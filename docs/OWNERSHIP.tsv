@@ -1,0 +1,231 @@
+# Family Veda — file-level ownership manifest
+# Single source of truth for file ownership. Generated tags in source headers and
+# .github/CODEOWNERS are both derived from this file.
+#
+# Ownership is binding: never edit a file tagged with another member's ref.
+# SHARED files follow the labelled-block convention (agent/MEMORY.md:63) —
+# add lines inside your own labelled block, never reorder or reformat.
+#
+# owner	path
+# owner is one of: S1 S2 S3 S4 SHARED:Sx (coordinator) ALL (migration lock)
+#
+# GitHub handles — verified against the GitHub API on 2026-09-22:
+#   S1 @IT23544154 · S2 @it24101875 · S3 @Jani6969 · S4 @sahansbandara (repo owner)
+# Each member commits only as their own account: 70 of 100 marks are individual
+# and are assessed from `git log --author`.
+
+# ── S1 · IT23544154 · Samaranayaka S.G.V.S · Family, Identity & Consent ──
+# CI/testing lead · tool-permission enforcement layer
+SHARED:S1	backend/src/Api/Program.cs
+S1	backend/src/Api/Controllers/ApiControllerBase.cs
+S1	backend/src/Api/Controllers/AuthController.cs
+S1	backend/src/Api/Controllers/FamiliesController.cs
+S1	backend/src/Api/Controllers/MembersController.cs
+S1	backend/src/Api/Middleware/ExceptionMiddleware.cs
+S1	backend/src/Api/Security/HttpCurrentUser.cs
+S1	backend/src/Api/FamilyVeda.Api.csproj
+S1	backend/src/Api/FamilyVeda.Api.http
+# JSON files carry no comment syntax — ownership lives in this manifest and CODEOWNERS only
+S1	backend/src/Api/appsettings.json
+S1	backend/src/Api/Properties/launchSettings.json
+S1	backend/src/Application/Auth/AuthContracts.cs
+S1	backend/src/Application/Common/ICurrentUser.cs
+S1	backend/src/Application/Common/PagedResult.cs
+S1	backend/src/Application/Families/FamilyContracts.cs
+S1	.env.example
+S1	web/index.html
+S1	web/package-lock.json
+S1	mobile/analysis_options.yaml
+S1	mobile/android/gradle.properties
+S1	mobile/test/screens/login_screen_test.dart
+S1	backend/src/Application/Validation/RequestValidators.cs
+S1	backend/src/Application/FamilyVeda.Application.csproj
+S1	backend/src/Application/Agents/ToolRegistry.cs
+S1	backend/src/Domain/Common/Entity.cs
+S1	backend/src/Domain/Common/Enums.cs
+S1	backend/src/Domain/Consent/ConsentStateMachine.cs
+S1	backend/src/Domain/Identity/IdentityEntities.cs
+S1	backend/src/Domain/FamilyVeda.Domain.csproj
+S1	backend/src/Infrastructure/Auth/AuthService.cs
+S1	backend/src/Infrastructure/Auth/JwtOptions.cs
+S1	backend/src/Infrastructure/Families/FamilyService.cs
+SHARED:S1	backend/src/Infrastructure/DependencyInjection.cs
+S1	backend/src/Infrastructure/FamilyVeda.Infrastructure.csproj
+SHARED:S1	.github/workflows/ci.yml
+S1	backend/src/Infrastructure/Agents/ToolDispatcher.cs
+SHARED:S1	backend/src/Infrastructure/Persistence/AppDbContext.cs
+S1	backend/src/Infrastructure/Persistence/AppDbContextFactory.cs
+SHARED:S1	backend/src/Infrastructure/Persistence/DatabaseInitializer.cs
+S1	backend/src/Infrastructure/Persistence/Configurations/IdentityConfigurations.cs
+S1	backend/tests/UnitTests/ConsentStateMachineTests.cs
+S1	backend/tests/UnitTests/FamilyServicePrivacyTests.cs
+S1	backend/tests/UnitTests/ToolRegistryTests.cs
+S1	backend/tests/UnitTests/ToolDispatcherTests.cs
+S1	backend/tests/UnitTests/FamilyVeda.UnitTests.csproj
+S1	backend/tests/IntegrationTests/AuthAndPatientFlowTests.cs
+S1	backend/tests/IntegrationTests/MigrationTests.cs
+S1	backend/tests/IntegrationTests/FamilyVeda.IntegrationTests.csproj
+S1	web/src/App.tsx
+S1	web/src/main.tsx
+S1	web/src/pages/auth/LoginPage.tsx
+S1	web/src/pages/auth/RegisterPage.tsx
+S1	web/src/pages/family/FamilyPage.tsx
+S1	web/src/pages/family/OnboardingPage.tsx
+S1	web/src/pages/family/OnboardingPage.test.tsx
+SHARED:S1	web/src/routes/AppRouter.tsx
+S1	web/src/routes/AppRouter.test.tsx
+S1	web/src/routes/RouteGuard.tsx
+S1	web/src/services/apiClient.ts
+S1	web/src/store/hooks.ts
+S1	web/src/store/slices/authSlice.ts
+S1	web/src/store/slices/authSlice.test.ts
+SHARED:S1	mobile/lib/main.dart
+SHARED:S1	mobile/lib/router/app_router.dart
+S1	mobile/lib/config/app_config.dart
+S1	mobile/lib/models/member.dart
+S1	mobile/lib/providers/auth_provider.dart
+S1	mobile/lib/providers/active_member_provider.dart
+S1	mobile/lib/providers/core_providers.dart
+S1	mobile/lib/providers/members_provider.dart
+S1	mobile/lib/screens/auth/login_screen.dart
+S1	mobile/lib/screens/auth/splash_screen.dart
+S1	mobile/lib/screens/family/members_screen.dart
+S1	mobile/lib/services/api/api_client.dart
+S1	mobile/lib/services/api/auth_api.dart
+S1	mobile/lib/services/storage/secure_token_store.dart
+S1	mobile/lib/services/storage/member_preference_store.dart
+S1	mobile/lib/services/storage/logout_cleanup_marker_store.dart
+S1	mobile/lib/widgets/shared/member_card.dart
+S1	mobile/test/main_test.dart
+S1	mobile/test/providers/auth_provider_test.dart
+S1	mobile/test/providers/active_member_provider_test.dart
+S1	mobile/test/router/route_guard_test.dart
+S1	mobile/test/services/api_services_test.dart
+S1	mobile/test/services/secure_storage_test.dart
+
+# ── S2 · IT24101875 · Fernando K.R.N · Health Records & Extraction ──
+# OCR pipeline · Extraction Agent
+S2	backend/src/Api/Controllers/RecordsController.cs
+S2	backend/src/Application/Records/RecordContracts.cs
+S2	backend/src/Domain/Records/RecordEntities.cs
+S2	backend/src/Infrastructure/Records/RecordService.cs
+S2	backend/src/Infrastructure/Records/LabExtractionService.cs
+S2	backend/src/Infrastructure/Records/TesseractOcrService.cs
+S2	backend/src/Infrastructure/Agents/ExtractionAgent.cs
+S2	backend/src/Infrastructure/Persistence/Configurations/RecordConfigurations.cs
+S2	backend/tests/UnitTests/LabExtractionParserTests.cs
+S2	backend/tests/UnitTests/LabExtractionSafetyTests.cs
+S2	backend/tests/UnitTests/LabReportDurableStorageTests.cs
+S2	backend/tests/UnitTests/RecordServiceLabReviewTests.cs
+S2	web/src/pages/records/RecordsPage.tsx
+S2	mobile/lib/models/health_record.dart
+S2	mobile/lib/providers/records_provider.dart
+S2	mobile/lib/screens/records/records_screen.dart
+S2	mobile/lib/screens/records/record_entry_screen.dart
+S2	mobile/lib/screens/records/lab_upload_screen.dart
+S2	mobile/lib/screens/records/vital_entry_screen.dart
+S2	mobile/lib/services/api/mobile_api.dart
+S2	web/src/pages/records/RecordsPage.test.tsx
+S2	mobile/test/screens/records_screen_test.dart
+
+# ── S3 · IT24100551 · Karunathilaka K.D.J.C (Group Leader) · Triage & Orchestration ──
+# notifications · Coordinator + Context + Analysis Agents
+SHARED:S3	backend/src/Application/Agents/AgentContracts.cs
+S3	backend/src/Api/Controllers/TriageController.cs
+S3	backend/src/Api/Background/TriageWorker.cs
+S3	backend/src/Api/Background/CaseSlaWorker.cs
+S3	backend/src/Application/Triage/TriageContracts.cs
+S3	backend/src/Domain/Triage/TriageEntities.cs
+S3	backend/src/Infrastructure/Agents/ContextAgent.cs
+S3	backend/src/Infrastructure/Agents/AnalysisAgent.cs
+S3	backend/src/Infrastructure/Agents/OllamaClient.cs
+S3	backend/src/Infrastructure/Agents/ChatCompletionsLlmClient.cs
+S3	backend/src/Infrastructure/Agents/GeminiClient.cs
+S3	mobile/test/screens/home_screen_test.dart
+S3	backend/src/Infrastructure/Triage/TriageOrchestrator.cs
+S3	backend/src/Infrastructure/Triage/TriageService.cs
+S3	backend/src/Infrastructure/Triage/TriageWorkQueue.cs
+S3	backend/src/Infrastructure/Triage/CaseSlaProcessor.cs
+S3	backend/src/Infrastructure/Triage/NotificationService.cs
+S3	backend/src/Infrastructure/Triage/FcmPushNotificationClient.cs
+S3	backend/src/Infrastructure/Persistence/Configurations/TriageConfigurations.cs
+S3	backend/tests/UnitTests/TriageOrchestratorSchemaTests.cs
+S3	backend/tests/UnitTests/TriageOrchestratorEmergencyTests.cs
+S3	backend/tests/UnitTests/TriageWorkerRecoveryTests.cs
+S3	backend/tests/UnitTests/CaseSlaProcessorTests.cs
+S3	backend/tests/UnitTests/NotificationServiceTests.cs
+S3	backend/tests/UnitTests/OllamaClientTests.cs
+S3	backend/tests/UnitTests/ChatCompletionsLlmClientTests.cs
+SHARED:S3	web/src/store/index.ts
+S3	web/src/pages/dashboard/DashboardPage.tsx
+S3	web/src/components/layout/AppLayout.tsx
+S3	web/src/components/layout/AmbientMesh.tsx
+S3	web/src/components/shared/ListToolbar.tsx
+S3	web/src/components/shared/Pagination.tsx
+S3	web/src/components/shared/StatusBadge.tsx
+S3	web/src/components/shared/ViewState.tsx
+S3	web/src/components/shared/ViewState.test.tsx
+S3	web/src/index.css
+S3	web/src/styles/tokens.css
+S3	web/src/styles/components.css
+S3	web/src/styles/materials.css
+S3	mobile/lib/models/triage_case.dart
+S3	mobile/lib/models/app_notification.dart
+S3	mobile/lib/providers/cases_provider.dart
+S3	mobile/lib/providers/notifications_provider.dart
+S3	mobile/lib/providers/push_registration_provider.dart
+S3	mobile/lib/services/api/patient_api.dart
+S3	mobile/lib/screens/home/home_screen.dart
+S3	mobile/lib/screens/triage/submit_complaint_screen.dart
+S3	mobile/lib/screens/triage/cases_screen.dart
+S3	mobile/lib/screens/triage/case_status_screen.dart
+S3	mobile/lib/screens/notifications/notifications_screen.dart
+S3	mobile/lib/theme/app_theme.dart
+S3	mobile/lib/theme/glass.dart
+S3	mobile/lib/widgets/shared/async_state_views.dart
+S3	mobile/lib/widgets/shared/brand_mark.dart
+S3	mobile/lib/widgets/shared/status_stepper.dart
+S3	mobile/lib/widgets/shared/symptom_chip.dart
+S3	mobile/test/providers/patient_providers_test.dart
+S3	mobile/test/screens/case_status_screen_test.dart
+S3	mobile/test/screens/async_state_views_test.dart
+
+# ── S4 · IT24100559 · W.M.S.S.B. Wasala · Familial Risk & Clinical Approval ──
+# Deterministic rule tables · Familial Risk + Safety Agents
+S4	backend/src/Api/Controllers/ClinicalController.cs
+S4	backend/src/Application/Clinical/ClinicalContracts.cs
+S4	backend/src/Domain/Access/CaseGrantPolicy.cs
+S4	backend/src/Domain/Clinical/ClinicalEntities.cs
+S4	backend/src/Domain/FamilialRisk/FamilialRiskPolicy.cs
+S4	backend/src/Domain/Safety/ClinicalRuleTables.cs
+S4	backend/src/Domain/Safety/SafetyValidationService.cs
+S4	backend/src/Infrastructure/Clinical/ClinicalService.cs
+S4	backend/src/Infrastructure/Agents/FamilialRiskAgent.cs
+S4	backend/src/Infrastructure/Persistence/Configurations/ClinicalConfigurations.cs
+S4	backend/tests/UnitTests/CaseGrantPolicyTests.cs
+S4	backend/tests/UnitTests/ClinicalCasePoolPrivacyTests.cs
+S4	backend/tests/UnitTests/ClinicalEmergencyReferralTests.cs
+S4	backend/tests/UnitTests/ClinicalRuleTableTests.cs
+S4	backend/tests/UnitTests/FamilialRiskPolicyTests.cs
+S4	backend/tests/UnitTests/SafetyValidationServiceTests.cs
+S4	web/src/pages/auth/DoctorRegisterPage.tsx
+S4	web/src/pages/admin/DoctorVerificationPage.tsx
+S4	web/src/pages/audit/AuditPage.tsx
+S4	web/src/pages/doctor/ApprovalsPage.tsx
+S4	web/src/pages/doctor/ApprovalsPage.test.tsx
+S4	web/src/pages/doctor/CasesPage.tsx
+S4	web/src/pages/doctor/DoctorStatusPage.tsx
+S4	web/src/pages/system/SystemPages.tsx
+S4	mobile/lib/models/approved_guidance.dart
+S4	mobile/lib/providers/guidance_provider.dart
+S4	mobile/lib/screens/risk/approved_guidance_screen.dart
+S4	mobile/lib/screens/emergency/emergency_screen.dart
+S4	mobile/lib/widgets/shared/clinical_disclaimer.dart
+S4	mobile/test/models/approved_guidance_test.dart
+S4	mobile/test/providers/guidance_provider_test.dart
+S4	mobile/test/screens/approved_guidance_screen_test.dart
+S4	mobile/test/screens/emergency_screen_test.dart
+
+# ── ALL · migration lock protocol (CLAUDE.md "Migration protocol") ──
+# Never two migrations in flight. Never edit a pushed migration — add a new one.
+ALL	backend/src/Infrastructure/Persistence/Migrations

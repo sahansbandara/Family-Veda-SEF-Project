@@ -1,0 +1,76 @@
+# ── Environment and secrets ────────────────────────────────
+.env
+.env.*
+!.env.example
+appsettings.Development.json
+appsettings.Production.json
+**/google-services.json
+**/GoogleService-Info.plist
+*.keystore
+*.jks
+key.properties
+*.pem
+*.pfx
+
+# ── .NET / ASP.NET Core ────────────────────────────────────
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+*.trx
+*.coverage
+coverage.cobertura.xml
+
+# ── Node / React ───────────────────────────────────────────
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# ── Flutter / Dart ─────────────────────────────────────────
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+**/ios/Pods/
+**/ios/.symlinks/
+**/android/.gradle/
+**/android/local.properties
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+
+# ── Uploaded lab report files (synthetic, but never committed) ──
+/storage/
+/uploads/
+**/lab-reports/*.jpg
+**/lab-reports/*.png
+**/lab-reports/*.pdf
+
+# ── Coverage and test output ───────────────────────────────
+coverage/
+*.lcov
+
+# ── Logs ───────────────────────────────────────────────────
+*.log
+logs/*.md
+!logs/README.md
+
+# ── OS ─────────────────────────────────────────────────────
+.DS_Store
+__MACOSX/
+Thumbs.db
+
+# ── IDE ────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Agent tooling ──────────────────────────────────────────
+.claude/settings.local.json

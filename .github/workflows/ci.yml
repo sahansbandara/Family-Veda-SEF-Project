@@ -1,0 +1,189 @@
+name: CI
+
+# Owner: S1. Gate: W2 — CI must be green before any merge into develop.
+#
+# Each layer is guarded by a scaffold check. Until a project exists (backend/*.sln,
+# web/package.json, mobile/pubspec.yaml) its job reports "not scaffolded yet" and
+# skips rather than failing. The guards become no-ops once W2 lands, and the real
+# steps below them are the ones that must stay green from then on.
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect:
+    name: Detect scaffolded projects
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.check.outputs.backend }}
+      web: ${{ steps.check.outputs.web }}
+      mobile: ${{ steps.check.outputs.mobile }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: check
+        run: |
+          backend=false; web=false; mobile=false
+          if [ -f backend/FamilyVeda.slnx ] || find backend -name '*.csproj' -print -quit | grep -q .; then backend=true; fi
+          if [ -f web/package.json ]; then web=true; fi
+          if [ -f mobile/pubspec.yaml ]; then mobile=true; fi
+          {
+            echo "backend=$backend"
+            echo "web=$web"
+            echo "mobile=$mobile"
+          } >> "$GITHUB_OUTPUT"
+          echo "backend=$backend web=$web mobile=$mobile"
+
+  backend:
+    name: Backend (.NET 8)
+    needs: detect
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skip notice
+        if: needs.detect.outputs.backend != 'true'
+        run: echo "backend/ not scaffolded yet — due at the W2 skeleton gate."
+
+      - name: Setup .NET 8
+        if: needs.detect.outputs.backend == 'true'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        if: needs.detect.outputs.backend == 'true'
+        run: |
+          dotnet restore tests/UnitTests/FamilyVeda.UnitTests.csproj
+          dotnet restore tests/IntegrationTests/FamilyVeda.IntegrationTests.csproj
+
+      - name: Build
+        if: needs.detect.outputs.backend == 'true'
+        run: |
+          dotnet build tests/UnitTests/FamilyVeda.UnitTests.csproj --no-restore --configuration Release
+          dotnet build tests/IntegrationTests/FamilyVeda.IntegrationTests.csproj --no-restore --configuration Release
+
+      - name: Test
+        if: needs.detect.outputs.backend == 'true'
+        run: |
+          dotnet test tests/UnitTests/FamilyVeda.UnitTests.csproj --no-build --configuration Release --collect:"XPlat Code Coverage" --logger trx
+          dotnet test tests/IntegrationTests/FamilyVeda.IntegrationTests.csproj --no-build --configuration Release --collect:"XPlat Code Coverage" --logger trx
+
+      - name: Upload coverage
+        if: needs.detect.outputs.backend == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/**/TestResults/**
+          if-no-files-found: ignore
+
+  web:
+    name: Web (React 18)
+    needs: detect
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skip notice
+        if: needs.detect.outputs.web != 'true'
+        run: echo "web/ not scaffolded yet — due at the W2 skeleton gate."
+
+      - name: Setup Node
+        if: needs.detect.outputs.web == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install
+        if: needs.detect.outputs.web == 'true'
+        run: npm ci
+
+      - name: Lint
+        if: needs.detect.outputs.web == 'true'
+        run: npm run lint
+
+      - name: Test
+        if: needs.detect.outputs.web == 'true'
+        run: npm test -- --run
+
+      - name: Build
+        if: needs.detect.outputs.web == 'true'
+        run: npm run build
+
+  mobile:
+    name: Mobile (Flutter 3.x)
+    needs: detect
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skip notice
+        if: needs.detect.outputs.mobile != 'true'
+        run: echo "mobile/ not scaffolded yet — due at the W2 skeleton gate."
+
+      - name: Setup Java (required by the Android toolchain)
+        if: needs.detect.outputs.mobile == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        if: needs.detect.outputs.mobile == 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Pub get
+        if: needs.detect.outputs.mobile == 'true'
+        run: flutter pub get
+
+      - name: Analyze
+        if: needs.detect.outputs.mobile == 'true'
+        run: flutter analyze
+
+      - name: Test
+        if: needs.detect.outputs.mobile == 'true'
+        run: flutter test
+
+      - name: Build debug APK
+        if: needs.detect.outputs.mobile == 'true'
+        run: flutter build apk --debug
+
+  quality:
+    name: Quality gate
+    runs-on: ubuntu-latest
+    needs: [backend, web, mobile]
+    if: always()
+    steps:
+      - name: Fail if any job failed
+        run: |
+          if [ "${{ needs.backend.result }}" != "success" ] \
+          || [ "${{ needs.web.result }}" != "success" ] \
+          || [ "${{ needs.mobile.result }}" != "success" ]; then
+            echo "One or more jobs failed:"
+            echo "  backend: ${{ needs.backend.result }}"
+            echo "  web:     ${{ needs.web.result }}"
+            echo "  mobile:  ${{ needs.mobile.result }}"
+            exit 1
+          fi
+          echo "All jobs passed."

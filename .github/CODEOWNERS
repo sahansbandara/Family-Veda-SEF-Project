@@ -1,0 +1,232 @@
+# Family Veda — CODEOWNERS
+# GENERATED from docs/OWNERSHIP.tsv. Do not hand-edit; edit the manifest and regenerate.
+#
+# Purpose: GitHub auto-requests the owning member as reviewer on every PR that
+# touches their files, and (with branch protection) requires their approval.
+# This is the machine-enforced half of the file-level ownership rule in CLAUDE.md.
+#
+# CODEOWNERS is LAST-MATCH-WINS: specific rules appear after general ones, and
+# the SHARED files are listed last so their coordinator always wins.
+#
+# Handle map — all four verified against the GitHub API on 2026-09-22.
+#   S1  Samaranayaka S.G.V.S   IT23544154  ->  @IT23544154
+#   S2  Fernando K.R.N         IT24101875  ->  @it24101875
+#   S3  Karunathilaka K.D.J.C  IT24100551  ->  @Jani6969        (Group Leader)
+#   S4  W.M.S.S.B. Wasala      IT24100559  ->  @sahansbandara   (repository owner)
+#
+# ⚠ A CODEOWNERS entry is only honoured for a user with write access to this
+#   repository. @IT23544154's collaborator invitation was still PENDING when
+#   this file was generated — until it is accepted, GitHub silently skips every
+#   rule naming that account. Re-check under Settings > Collaborators.
+
+# ── Migration lock: every member must review a schema change ──
+/backend/src/Infrastructure/Persistence/Migrations/ @IT23544154 @it24101875 @Jani6969 @sahansbandara
+
+# ── S1 · Family, Identity & Consent — Samaranayaka S.G.V.S ──
+/.env.example @IT23544154
+/backend/src/Api/Controllers/ApiControllerBase.cs @IT23544154
+/backend/src/Api/Controllers/AuthController.cs @IT23544154
+/backend/src/Api/Controllers/FamiliesController.cs @IT23544154
+/backend/src/Api/Controllers/MembersController.cs @IT23544154
+/backend/src/Api/FamilyVeda.Api.csproj @IT23544154
+/backend/src/Api/FamilyVeda.Api.http @IT23544154
+/backend/src/Api/Middleware/ExceptionMiddleware.cs @IT23544154
+/backend/src/Api/Properties/launchSettings.json @IT23544154
+/backend/src/Api/Security/HttpCurrentUser.cs @IT23544154
+/backend/src/Api/appsettings.json @IT23544154
+/backend/src/Application/Agents/ToolRegistry.cs @IT23544154
+/backend/src/Application/Auth/AuthContracts.cs @IT23544154
+/backend/src/Application/Common/ICurrentUser.cs @IT23544154
+/backend/src/Application/Common/PagedResult.cs @IT23544154
+/backend/src/Application/Families/FamilyContracts.cs @IT23544154
+/backend/src/Application/FamilyVeda.Application.csproj @IT23544154
+/backend/src/Application/Validation/RequestValidators.cs @IT23544154
+/backend/src/Domain/Common/Entity.cs @IT23544154
+/backend/src/Domain/Common/Enums.cs @IT23544154
+/backend/src/Domain/Consent/ConsentStateMachine.cs @IT23544154
+/backend/src/Domain/FamilyVeda.Domain.csproj @IT23544154
+/backend/src/Domain/Identity/IdentityEntities.cs @IT23544154
+/backend/src/Infrastructure/Agents/ToolDispatcher.cs @IT23544154
+/backend/src/Infrastructure/Auth/AuthService.cs @IT23544154
+/backend/src/Infrastructure/Auth/JwtOptions.cs @IT23544154
+/backend/src/Infrastructure/Families/FamilyService.cs @IT23544154
+/backend/src/Infrastructure/FamilyVeda.Infrastructure.csproj @IT23544154
+/backend/src/Infrastructure/Persistence/AppDbContextFactory.cs @IT23544154
+/backend/src/Infrastructure/Persistence/Configurations/IdentityConfigurations.cs @IT23544154
+/backend/tests/IntegrationTests/AuthAndPatientFlowTests.cs @IT23544154
+/backend/tests/IntegrationTests/FamilyVeda.IntegrationTests.csproj @IT23544154
+/backend/tests/IntegrationTests/MigrationTests.cs @IT23544154
+/backend/tests/UnitTests/ConsentStateMachineTests.cs @IT23544154
+/backend/tests/UnitTests/FamilyServicePrivacyTests.cs @IT23544154
+/backend/tests/UnitTests/FamilyVeda.UnitTests.csproj @IT23544154
+/backend/tests/UnitTests/ToolDispatcherTests.cs @IT23544154
+/backend/tests/UnitTests/ToolRegistryTests.cs @IT23544154
+/mobile/analysis_options.yaml @IT23544154
+/mobile/android/gradle.properties @IT23544154
+/mobile/lib/config/app_config.dart @IT23544154
+/mobile/lib/models/member.dart @IT23544154
+/mobile/lib/providers/active_member_provider.dart @IT23544154
+/mobile/lib/providers/auth_provider.dart @IT23544154
+/mobile/lib/providers/core_providers.dart @IT23544154
+/mobile/lib/providers/members_provider.dart @IT23544154
+/mobile/lib/screens/auth/login_screen.dart @IT23544154
+/mobile/lib/screens/auth/splash_screen.dart @IT23544154
+/mobile/lib/screens/family/members_screen.dart @IT23544154
+/mobile/lib/services/api/api_client.dart @IT23544154
+/mobile/lib/services/api/auth_api.dart @IT23544154
+/mobile/lib/services/storage/logout_cleanup_marker_store.dart @IT23544154
+/mobile/lib/services/storage/member_preference_store.dart @IT23544154
+/mobile/lib/services/storage/secure_token_store.dart @IT23544154
+/mobile/lib/widgets/shared/member_card.dart @IT23544154
+/mobile/test/main_test.dart @IT23544154
+/mobile/test/providers/active_member_provider_test.dart @IT23544154
+/mobile/test/providers/auth_provider_test.dart @IT23544154
+/mobile/test/router/route_guard_test.dart @IT23544154
+/mobile/test/screens/login_screen_test.dart @IT23544154
+/mobile/test/services/api_services_test.dart @IT23544154
+/mobile/test/services/secure_storage_test.dart @IT23544154
+/web/index.html @IT23544154
+/web/package-lock.json @IT23544154
+/web/src/App.tsx @IT23544154
+/web/src/main.tsx @IT23544154
+/web/src/pages/auth/LoginPage.tsx @IT23544154
+/web/src/pages/auth/RegisterPage.tsx @IT23544154
+/web/src/pages/family/FamilyPage.tsx @IT23544154
+/web/src/pages/family/OnboardingPage.test.tsx @IT23544154
+/web/src/pages/family/OnboardingPage.tsx @IT23544154
+/web/src/routes/AppRouter.test.tsx @IT23544154
+/web/src/routes/RouteGuard.tsx @IT23544154
+/web/src/services/apiClient.ts @IT23544154
+/web/src/store/hooks.ts @IT23544154
+/web/src/store/slices/authSlice.test.ts @IT23544154
+/web/src/store/slices/authSlice.ts @IT23544154
+
+# ── S2 · Health Records & Extraction — Fernando K.R.N ──
+/backend/src/Api/Controllers/RecordsController.cs @it24101875
+/backend/src/Application/Records/RecordContracts.cs @it24101875
+/backend/src/Domain/Records/RecordEntities.cs @it24101875
+/backend/src/Infrastructure/Agents/ExtractionAgent.cs @it24101875
+/backend/src/Infrastructure/Persistence/Configurations/RecordConfigurations.cs @it24101875
+/backend/src/Infrastructure/Records/LabExtractionService.cs @it24101875
+/backend/src/Infrastructure/Records/RecordService.cs @it24101875
+/backend/src/Infrastructure/Records/TesseractOcrService.cs @it24101875
+/backend/tests/UnitTests/LabExtractionParserTests.cs @it24101875
+/backend/tests/UnitTests/LabExtractionSafetyTests.cs @it24101875
+/backend/tests/UnitTests/LabReportDurableStorageTests.cs @it24101875
+/backend/tests/UnitTests/RecordServiceLabReviewTests.cs @it24101875
+/mobile/lib/models/health_record.dart @it24101875
+/mobile/lib/providers/records_provider.dart @it24101875
+/mobile/lib/screens/records/lab_upload_screen.dart @it24101875
+/mobile/lib/screens/records/record_entry_screen.dart @it24101875
+/mobile/lib/screens/records/records_screen.dart @it24101875
+/mobile/lib/screens/records/vital_entry_screen.dart @it24101875
+/mobile/lib/services/api/mobile_api.dart @it24101875
+/mobile/test/screens/records_screen_test.dart @it24101875
+/web/src/pages/records/RecordsPage.test.tsx @it24101875
+/web/src/pages/records/RecordsPage.tsx @it24101875
+
+# ── S3 · Triage & Agent Orchestration — Karunathilaka K.D.J.C ──
+/backend/src/Api/Background/CaseSlaWorker.cs @Jani6969
+/backend/src/Api/Background/TriageWorker.cs @Jani6969
+/backend/src/Api/Controllers/TriageController.cs @Jani6969
+/backend/src/Application/Triage/TriageContracts.cs @Jani6969
+/backend/src/Domain/Triage/TriageEntities.cs @Jani6969
+/backend/src/Infrastructure/Agents/AnalysisAgent.cs @Jani6969
+/backend/src/Infrastructure/Agents/ChatCompletionsLlmClient.cs @Jani6969
+/backend/src/Infrastructure/Agents/ContextAgent.cs @Jani6969
+/backend/src/Infrastructure/Agents/GeminiClient.cs @Jani6969
+/backend/src/Infrastructure/Agents/OllamaClient.cs @Jani6969
+/backend/src/Infrastructure/Persistence/Configurations/TriageConfigurations.cs @Jani6969
+/backend/src/Infrastructure/Triage/CaseSlaProcessor.cs @Jani6969
+/backend/src/Infrastructure/Triage/FcmPushNotificationClient.cs @Jani6969
+/backend/src/Infrastructure/Triage/NotificationService.cs @Jani6969
+/backend/src/Infrastructure/Triage/TriageOrchestrator.cs @Jani6969
+/backend/src/Infrastructure/Triage/TriageService.cs @Jani6969
+/backend/src/Infrastructure/Triage/TriageWorkQueue.cs @Jani6969
+/backend/tests/UnitTests/CaseSlaProcessorTests.cs @Jani6969
+/backend/tests/UnitTests/ChatCompletionsLlmClientTests.cs @Jani6969
+/backend/tests/UnitTests/NotificationServiceTests.cs @Jani6969
+/backend/tests/UnitTests/OllamaClientTests.cs @Jani6969
+/backend/tests/UnitTests/TriageOrchestratorEmergencyTests.cs @Jani6969
+/backend/tests/UnitTests/TriageOrchestratorSchemaTests.cs @Jani6969
+/backend/tests/UnitTests/TriageWorkerRecoveryTests.cs @Jani6969
+/mobile/lib/models/app_notification.dart @Jani6969
+/mobile/lib/models/triage_case.dart @Jani6969
+/mobile/lib/providers/cases_provider.dart @Jani6969
+/mobile/lib/providers/notifications_provider.dart @Jani6969
+/mobile/lib/providers/push_registration_provider.dart @Jani6969
+/mobile/lib/screens/home/home_screen.dart @Jani6969
+/mobile/lib/screens/notifications/notifications_screen.dart @Jani6969
+/mobile/lib/screens/triage/case_status_screen.dart @Jani6969
+/mobile/lib/screens/triage/cases_screen.dart @Jani6969
+/mobile/lib/screens/triage/submit_complaint_screen.dart @Jani6969
+/mobile/lib/services/api/patient_api.dart @Jani6969
+/mobile/lib/theme/app_theme.dart @Jani6969
+/mobile/lib/theme/glass.dart @Jani6969
+/mobile/lib/widgets/shared/async_state_views.dart @Jani6969
+/mobile/lib/widgets/shared/brand_mark.dart @Jani6969
+/mobile/lib/widgets/shared/status_stepper.dart @Jani6969
+/mobile/lib/widgets/shared/symptom_chip.dart @Jani6969
+/mobile/test/providers/patient_providers_test.dart @Jani6969
+/mobile/test/screens/async_state_views_test.dart @Jani6969
+/mobile/test/screens/case_status_screen_test.dart @Jani6969
+/mobile/test/screens/home_screen_test.dart @Jani6969
+/web/src/components/layout/AmbientMesh.tsx @Jani6969
+/web/src/components/layout/AppLayout.tsx @Jani6969
+/web/src/components/shared/ListToolbar.tsx @Jani6969
+/web/src/components/shared/Pagination.tsx @Jani6969
+/web/src/components/shared/StatusBadge.tsx @Jani6969
+/web/src/components/shared/ViewState.test.tsx @Jani6969
+/web/src/components/shared/ViewState.tsx @Jani6969
+/web/src/index.css @Jani6969
+/web/src/pages/dashboard/DashboardPage.tsx @Jani6969
+/web/src/styles/components.css @Jani6969
+/web/src/styles/materials.css @Jani6969
+/web/src/styles/tokens.css @Jani6969
+
+# ── S4 · Familial Risk & Clinical Approval — W.M.S.S.B. Wasala ──
+/backend/src/Api/Controllers/ClinicalController.cs @sahansbandara
+/backend/src/Application/Clinical/ClinicalContracts.cs @sahansbandara
+/backend/src/Domain/Access/CaseGrantPolicy.cs @sahansbandara
+/backend/src/Domain/Clinical/ClinicalEntities.cs @sahansbandara
+/backend/src/Domain/FamilialRisk/FamilialRiskPolicy.cs @sahansbandara
+/backend/src/Domain/Safety/ClinicalRuleTables.cs @sahansbandara
+/backend/src/Domain/Safety/SafetyValidationService.cs @sahansbandara
+/backend/src/Infrastructure/Agents/FamilialRiskAgent.cs @sahansbandara
+/backend/src/Infrastructure/Clinical/ClinicalService.cs @sahansbandara
+/backend/src/Infrastructure/Persistence/Configurations/ClinicalConfigurations.cs @sahansbandara
+/backend/tests/UnitTests/CaseGrantPolicyTests.cs @sahansbandara
+/backend/tests/UnitTests/ClinicalCasePoolPrivacyTests.cs @sahansbandara
+/backend/tests/UnitTests/ClinicalEmergencyReferralTests.cs @sahansbandara
+/backend/tests/UnitTests/ClinicalRuleTableTests.cs @sahansbandara
+/backend/tests/UnitTests/FamilialRiskPolicyTests.cs @sahansbandara
+/backend/tests/UnitTests/SafetyValidationServiceTests.cs @sahansbandara
+/mobile/lib/models/approved_guidance.dart @sahansbandara
+/mobile/lib/providers/guidance_provider.dart @sahansbandara
+/mobile/lib/screens/emergency/emergency_screen.dart @sahansbandara
+/mobile/lib/screens/risk/approved_guidance_screen.dart @sahansbandara
+/mobile/lib/widgets/shared/clinical_disclaimer.dart @sahansbandara
+/mobile/test/models/approved_guidance_test.dart @sahansbandara
+/mobile/test/providers/guidance_provider_test.dart @sahansbandara
+/mobile/test/screens/approved_guidance_screen_test.dart @sahansbandara
+/mobile/test/screens/emergency_screen_test.dart @sahansbandara
+/web/src/pages/admin/DoctorVerificationPage.tsx @sahansbandara
+/web/src/pages/audit/AuditPage.tsx @sahansbandara
+/web/src/pages/auth/DoctorRegisterPage.tsx @sahansbandara
+/web/src/pages/doctor/ApprovalsPage.test.tsx @sahansbandara
+/web/src/pages/doctor/ApprovalsPage.tsx @sahansbandara
+/web/src/pages/doctor/CasesPage.tsx @sahansbandara
+/web/src/pages/doctor/DoctorStatusPage.tsx @sahansbandara
+/web/src/pages/system/SystemPages.tsx @sahansbandara
+
+# ── ⚠ SHARED files — labelled-block convention, coordinator listed ──
+/backend/src/Api/Program.cs @IT23544154
+/backend/src/Infrastructure/DependencyInjection.cs @IT23544154
+/.github/workflows/ci.yml @IT23544154
+/backend/src/Infrastructure/Persistence/AppDbContext.cs @IT23544154
+/backend/src/Infrastructure/Persistence/DatabaseInitializer.cs @IT23544154
+/web/src/routes/AppRouter.tsx @IT23544154
+/mobile/lib/main.dart @IT23544154
+/mobile/lib/router/app_router.dart @IT23544154
+/backend/src/Application/Agents/AgentContracts.cs @Jani6969
+/web/src/store/index.ts @Jani6969

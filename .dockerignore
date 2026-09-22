@@ -1,0 +1,11 @@
+.git
+.env
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/build
+**/.dart_tool
+**/coverage
+**/TestResults
+storage
