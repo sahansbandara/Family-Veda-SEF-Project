@@ -12,7 +12,7 @@ void main() {
       ProviderScope(
         overrides: [
           memberRecordsProvider.overrideWith(
-            (ref) async => const [
+            (ref) async => [
               HealthRecord(
                 id: 'older',
                 memberId: 'member-1',
