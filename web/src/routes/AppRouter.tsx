@@ -13,6 +13,8 @@ import { ApprovalsPage } from '../pages/doctor/ApprovalsPage'
 import { CasesPage } from '../pages/doctor/CasesPage'
 import { DoctorStatusPage } from '../pages/doctor/DoctorStatusPage'
 import { RecordsPage } from '../pages/records/RecordsPage'
+import { FamilyRiskPage } from '../pages/family/FamilyRiskPage'
+import { TriagePage } from '../pages/triage/TriagePage'
 import { FamilyPage } from '../pages/family/FamilyPage'
 import { OnboardingPage } from '../pages/family/OnboardingPage'
 import { AccessDeniedPage, NotFoundPage } from '../pages/system/SystemPages'
@@ -34,6 +36,7 @@ export function AppRoutes() {
         <Route path="/doctor-status" element={<RouteGuard allowedRoles={['DOCTOR']} allowUnverifiedDoctor><DoctorStatusPage /></RouteGuard>} />
         {/* ===== S3 — Dashboard foundation ===== */}
         <Route path="/dashboard" element={<RouteGuard allowedRoles={['DOCTOR', 'ADMIN', 'FAMILY_HEAD', 'MEMBER']}><DashboardPage /></RouteGuard>} />
+        <Route path="/triage" element={<RouteGuard allowedRoles={['FAMILY_HEAD', 'MEMBER']}><TriagePage /></RouteGuard>} />
 
         {/* ===== S2 — Records foundation ===== */}
         <Route path="/records" element={<RouteGuard allowedRoles={['FAMILY_HEAD', 'MEMBER']}><RecordsPage /></RouteGuard>} />
@@ -42,6 +45,7 @@ export function AppRoutes() {
         {/* ===== S4 — Doctor and audit foundations ===== */}
         <Route path="/cases" element={<RouteGuard allowedRoles={['DOCTOR']}><CasesPage /></RouteGuard>} />
         <Route path="/approvals" element={<RouteGuard allowedRoles={['DOCTOR']}><ApprovalsPage /></RouteGuard>} />
+        <Route path="/family-risk" element={<RouteGuard allowedRoles={['FAMILY_HEAD', 'MEMBER']}><FamilyRiskPage /></RouteGuard>} />
         <Route path="/audit" element={<RouteGuard allowedRoles={['ADMIN', 'FAMILY_HEAD']}><AuditPage /></RouteGuard>} />
         <Route path="/doctor-verification" element={<RouteGuard allowedRoles={['ADMIN']}><DoctorVerificationPage /></RouteGuard>} />
       </Route>

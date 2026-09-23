@@ -12,6 +12,7 @@ export function AuditPage() {
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [agentOnly, setAgentOnly] = useState(false)
   const loadAudit = useCallback(async () => {
     setStatus('loading')
     try {
@@ -20,11 +21,17 @@ export function AuditPage() {
     } catch { setStatus('error') }
   }, [page])
   useEffect(() => { void loadAudit() }, [loadAudit])
+  // S1 · tool-permission layer: TOOL_* events are written by the backend dispatcher when an agent
+  // requests a tool outside its allow-list. Filter applies to the loaded page.
+  const visible = agentOnly ? events.filter((event) => event.eventType.startsWith('TOOL_')) : events
+  const deniedCount = events.filter((event) => event.eventType === 'TOOL_DENIED').length
 
   return <div className="page-stack">
     <header className="page-header"><div><p className="eyebrow">Consent and access history</p><h1>Audit activity</h1><p>Clinical content is excluded; this view shows access metadata only.</p></div></header>
     <section className="panel">
-      {status === 'loading' ? <LoadingState label="Loading audit activity" /> : status === 'error' ? <ErrorState message="Audit activity could not be loaded." onRetry={() => void loadAudit()} /> : events.length === 0 ? <EmptyState title="No audit activity" message="No permitted audit events are available." /> : <div className="table-scroll"><table><caption className="sr-only">Audit activity</caption><thead><tr><th>Event</th><th>Resource</th><th>Time</th><th>Outcome</th></tr></thead><tbody>{events.map((event) => <tr key={event.id}><td>{event.eventType.replaceAll('_', ' ')}</td><td>{event.resourceType}</td><td>{new Date(event.createdAt).toLocaleString()}</td><td><StatusBadge status={event.outcome} /></td></tr>)}</tbody></table></div>}
+      <label className="field"><span><input type="checkbox" checked={agentOnly} onChange={(event) => setAgentOnly(event.target.checked)} /> Show only agent tool-permission events</span></label>
+      {deniedCount > 0 && <p role="status"><span className="status-badge status-badge--danger">{deniedCount} denied agent tool call{deniedCount === 1 ? '' : 's'}</span> on this page. The dispatcher blocked tools outside the agent allow-list.</p>}
+      {status === 'loading' ? <LoadingState label="Loading audit activity" /> : status === 'error' ? <ErrorState message="Audit activity could not be loaded." onRetry={() => void loadAudit()} /> : visible.length === 0 ? <EmptyState title="No audit activity" message={agentOnly ? 'No agent tool-permission events on this page.' : 'No permitted audit events are available.'} /> : <div className="table-scroll"><table><caption className="sr-only">Audit activity</caption><thead><tr><th>Event</th><th>Resource</th><th>Time</th><th>Outcome</th></tr></thead><tbody>{visible.map((event) => <tr key={event.id}><td>{event.eventType.replaceAll('_', ' ')}{event.eventType.startsWith('TOOL_') && <> <span className="status-badge status-badge--agent">Agent</span></>}</td><td>{event.resourceType}</td><td>{new Date(event.createdAt).toLocaleString()}</td><td><StatusBadge status={event.outcome} /></td></tr>)}</tbody></table></div>}
       <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
     </section>
   </div>

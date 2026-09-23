@@ -18,6 +18,9 @@ const toneByStatus: Record<string, StatusTone> = {
   REJECTED: 'danger',
   Escalated: 'danger',
   Failure: 'danger',
+  DENIED: 'danger',
+  FailedSafe: 'danger',
+  LowConfidence: 'warning',
   REVIEW_REQUIRED: 'warning',
   DRAFT: 'agent',
 }

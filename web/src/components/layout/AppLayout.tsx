@@ -18,7 +18,9 @@ type NavItem = {
 const navItems: NavItem[] = [
   { label: 'Verification status', path: '/doctor-status', roles: ['DOCTOR'] },
   { label: 'Dashboard', path: '/dashboard', roles: ['DOCTOR', 'ADMIN', 'FAMILY_HEAD', 'MEMBER'] },
+  { label: 'AI triage', path: '/triage', roles: ['FAMILY_HEAD', 'MEMBER'] },
   { label: 'Records', path: '/records', roles: ['FAMILY_HEAD', 'MEMBER'] },
+  { label: 'Family screening', path: '/family-risk', roles: ['FAMILY_HEAD', 'MEMBER'] },
   { label: 'Family', path: '/family', roles: ['FAMILY_HEAD'] },
   { label: 'Triage cases', path: '/cases', roles: ['DOCTOR'] },
   { label: 'Approvals', path: '/approvals', roles: ['DOCTOR'] },

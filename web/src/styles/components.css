@@ -1174,3 +1174,23 @@ tbody tr:hover { background: var(--primary-subtle); }
   .login-intro .trust-note { display: none; }
   .login-card { margin: var(--sp-5) auto var(--sp-7); }
 }
+
+/* ── S3 · agent pipeline timeline ─────────────────────────────────────── */
+.agent-pipeline { list-style: none; margin: var(--sp-3) 0 0; padding: 0; display: grid; gap: var(--sp-3); }
+.agent-pipeline__step { padding: var(--sp-3) var(--sp-4); border: 1px solid var(--border); border-left-width: 4px; border-radius: var(--r-md); background: var(--surface-subtle); }
+.agent-pipeline__step--done { border-left-color: var(--success); }
+.agent-pipeline__step--running { border-left-color: var(--primary); }
+.agent-pipeline__step--failed { border-left-color: var(--danger); }
+.agent-pipeline__step--waiting { border-left-color: var(--border); opacity: 0.8; }
+.agent-pipeline__head { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+.agent-pipeline__step p { margin: 4px 0 0; }
+.agent-pipeline__meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--sp-2); margin: var(--sp-2) 0 0; font-size: 0.85rem; }
+.agent-pipeline__meta dt { color: var(--muted); font-size: 0.75rem; }
+.agent-pipeline__meta dd { margin: 0; word-break: break-word; }
+.referral-card, .approved-card { margin-top: var(--sp-4); padding: var(--sp-4); border-radius: var(--r-md); border: 1px solid var(--border); }
+.referral-card { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 10%, transparent); }
+.approved-card { border-color: var(--success); background: color-mix(in srgb, var(--success) 10%, transparent); }
+
+/* ── S4 · deterministic safety checklist ──────────────────────────────── */
+.safety-checks { list-style: none; padding: 0; margin: var(--sp-2) 0 var(--sp-4); display: grid; gap: 6px; }
+.safety-checks li { display: flex; justify-content: space-between; gap: var(--sp-2); align-items: center; }
