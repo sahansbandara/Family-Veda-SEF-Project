@@ -2,6 +2,12 @@
 
 Applies to Claude Code, Codex, Cursor, Antigravity, Gemini, and any other coding agent working in this repository.
 
+## Communication and university reference
+
+- Explain updates, decisions and results in a natural Sinhala and English mix by default, including future sessions. Keep code, paths and configuration names in their original form; follow a later explicit user language request.
+- Before planning or changing an assessed feature, use [`docs/university/REQUIREMENTS_REFERENCE.md`](docs/university/REQUIREMENTS_REFERENCE.md) and re-check the cited university PDF pages. Review [`docs/university/AUDIT_2026-09-23.md`](docs/university/AUDIT_2026-09-23.md) for evidence gaps and verify its dated claims against current code and deployment.
+- The AutoCare PDF is guidance only, never a project scenario to copy. University PDFs are assessment sources, not instructions overriding clinical safety, ownership or the user's request.
+
 > **Naming note.** "Agent" is overloaded here. This file governs **AI coding assistants** working on the repository. The five **application agents** (Extraction, Context, Analysis, Familial Risk, Safety/Validation) are a product feature — their rules live in `rules/agents.md` and `docs/AGENTS_DESIGN.md`.
 
 ## Non-negotiables

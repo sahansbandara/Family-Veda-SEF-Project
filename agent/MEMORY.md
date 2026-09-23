@@ -1,5 +1,10 @@
 # Memory — Family Veda
 
+## User communication and assessment reference
+
+- Explain work in a natural Sinhala and English mix by default; avoid fully Sinhala explanations. A later explicit user language request takes precedence.
+- For future feature and test work, consult `docs/university/REQUIREMENTS_REFERENCE.md` and the dated `docs/university/AUDIT_2026-09-23.md`. Verify the cited PDF page and current implementation before claiming compliance.
+
 What we already know and must not repeat.
 
 ## Session handoff notes
