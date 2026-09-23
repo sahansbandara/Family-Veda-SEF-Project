@@ -1,0 +1,65 @@
+# Render Blueprint — Family Veda backend API.
+# Deploy: Render dashboard -> New -> Blueprint -> point at this repo.
+# The database itself is NOT provisioned here — see docs/DEPLOYMENT.md:
+# use an external managed Postgres (Neon free tier) and paste its
+# connection string into DATABASE_URL as a secret in the Render dashboard.
+services:
+  - type: web
+    name: family-veda-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: singapore
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: Database__MigrateOnStartup
+        value: "false" # apply migrations manually (see docs/DEPLOYMENT.md) — MigrateOnStartup hits a known Npgsql 8.0.11 bug
+      - key: Seed__Enabled
+        value: "true"
+      - key: ConnectionStrings__DefaultConnection
+        sync: false # secret — paste the Neon connection string in the Render dashboard
+      - key: Jwt__Key
+        generateValue: true
+      - key: Jwt__Issuer
+        value: familyveda
+      - key: Jwt__Audience
+        value: familyveda-clients
+      - key: Jwt__AccessTokenMinutes
+        value: "60"
+      - key: Jwt__RefreshTokenDays
+        value: "7"
+      - key: Cors__AllowedOrigins
+        sync: false # secret — set to the deployed web origin(s), comma-separated
+      - key: Gemini__ApiKey
+        sync: false # secret — primary LLM provider
+      - key: Llm__Provider
+        value: openai-compatible
+      - key: Llm__ApiKey
+        sync: false # secret — Groq fallback, used when Gemini fails or rate-limits
+      - key: Ollama__BaseUrl
+        value: http://localhost:11434 # unreachable on Render — last-resort fallback fails safe, does not block requests
+      - key: Agents__ConfidenceThreshold
+        value: "0.60"
+      - key: Ocr__Engine
+        value: Tesseract
+      - key: Ocr__TimeoutSeconds
+        value: "30"
+      - key: Ocr__MaxConcurrentProcesses
+        value: "2"
+      - key: Ocr__MaxOutputCharacters
+        value: "250000"
+      - key: Storage__LabReportPath
+        value: ./storage/lab-reports # ephemeral on Render free plan — see docs/DEPLOYMENT.md
+      - key: Storage__MaxUploadBytes
+        value: "10485760"
+      - key: DataProtection__KeysPath
+        value: ./storage/data-protection-keys # ephemeral on Render free plan
+      - key: Sla__DoctorResponseHours
+        value: "6"
+      - key: Grants__ExpiryHours
+        value: "48"
+      - key: Seed__DefaultPassword
+        sync: false # secret — shared synthetic demo password

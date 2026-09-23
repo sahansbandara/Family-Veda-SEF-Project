@@ -17,10 +17,15 @@ Local values go in `.env` (gitignored). Hosted values go in the platform's envir
 | `Jwt__AccessTokenMinutes` | Access token lifetime | Yes | all |
 | `Jwt__RefreshTokenDays` | Refresh token lifetime | Yes | all |
 | `Cors__AllowedOrigins` | Comma-separated web origins | Yes | all |
-| `Gemini__ApiKey` | **Google Gemini API key — secret; primary hosted LLM inference** | Optional (fallback to Ollama) | all |
+| `Gemini__ApiKey` | **Google Gemini API key — secret; primary hosted LLM inference** | Optional (falls through the chain below) | all |
 | `Gemini__Model` | Gemini model name (default: `gemini-3.5-flash`) | Optional | all |
 | `Gemini__TimeoutSeconds` | Per-call timeout for Gemini API calls | Optional | all |
-| `Ollama__BaseUrl` | Ollama endpoint, e.g. `http://localhost:11434` (fallback when Gemini key unset) | Yes (if offline) | all |
+| `Llm__Provider` | `openai-compatible` to enable the Groq fallback client | Optional | all |
+| `Llm__BaseUrl` | Groq endpoint (default `https://api.groq.com/openai/v1`) | Optional | all |
+| `Llm__Model` | Groq model, e.g. `llama-3.1-8b-instant` | Optional | all |
+| `Llm__ApiKey` | **Groq API key — secret; fallback LLM when Gemini fails or is rate-limited** | Optional | all |
+| `Llm__TimeoutSeconds` | Per-call timeout for Groq API calls | Optional | all |
+| `Ollama__BaseUrl` | Ollama endpoint, e.g. `http://localhost:11434` (last-resort fallback, always tried, no key needed) | Yes (if offline) | all |
 | `Ollama__Model` | Model name, e.g. `llama3.1:8b` | Yes (if offline) | all |
 | `Ollama__TimeoutSeconds` | Per-call timeout before safe failure | Yes | all |
 | `Agents__ConfidenceThreshold` | Below this → `LOW_CONFIDENCE`, draft hidden | Yes | all |
