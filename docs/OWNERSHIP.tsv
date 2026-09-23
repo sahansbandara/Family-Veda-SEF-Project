@@ -165,6 +165,11 @@ S3	web/src/components/shared/Pagination.tsx
 S3	web/src/components/shared/StatusBadge.tsx
 S3	web/src/components/shared/ViewState.tsx
 S3	web/src/components/shared/ViewState.test.tsx
+S3	web/src/components/shared/AiBadge.tsx
+S3	web/src/pages/triage/TriagePage.tsx
+S3	web/src/pages/triage/TriagePage.test.tsx
+S3	web/src/pages/triage/AgentPipeline.tsx
+S3	web/src/pages/triage/pipelineStages.ts
 S3	web/src/index.css
 S3	web/src/styles/tokens.css
 S3	web/src/styles/components.css
@@ -213,6 +218,11 @@ S4	web/src/pages/admin/DoctorVerificationPage.tsx
 S4	web/src/pages/audit/AuditPage.tsx
 S4	web/src/pages/doctor/ApprovalsPage.tsx
 S4	web/src/pages/doctor/ApprovalsPage.test.tsx
+S4	web/src/pages/doctor/SafetyChecks.tsx
+S4	web/src/pages/doctor/safetyRules.ts
+S4	web/src/pages/doctor/safetyRules.test.ts
+S4	web/src/pages/family/FamilyRiskPage.tsx
+S4	web/src/pages/family/FamilyRiskPage.test.tsx
 S4	web/src/pages/doctor/CasesPage.tsx
 S4	web/src/pages/doctor/DoctorStatusPage.tsx
 S4	web/src/pages/system/SystemPages.tsx
