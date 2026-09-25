@@ -138,7 +138,6 @@ S3	backend/src/Application/Triage/TriageContracts.cs
 S3	backend/src/Domain/Triage/TriageEntities.cs
 S3	backend/src/Infrastructure/Agents/ContextAgent.cs
 S3	backend/src/Infrastructure/Agents/AnalysisAgent.cs
-S3	backend/src/Infrastructure/Agents/OllamaClient.cs
 S3	backend/src/Infrastructure/Agents/ChatCompletionsLlmClient.cs
 S3	backend/src/Infrastructure/Agents/GeminiClient.cs
 S3	mobile/test/screens/home_screen_test.dart
@@ -154,7 +153,6 @@ S3	backend/tests/UnitTests/TriageOrchestratorEmergencyTests.cs
 S3	backend/tests/UnitTests/TriageWorkerRecoveryTests.cs
 S3	backend/tests/UnitTests/CaseSlaProcessorTests.cs
 S3	backend/tests/UnitTests/NotificationServiceTests.cs
-S3	backend/tests/UnitTests/OllamaClientTests.cs
 S3	backend/tests/UnitTests/ChatCompletionsLlmClientTests.cs
 SHARED:S3	web/src/store/index.ts
 S3	web/src/pages/dashboard/DashboardPage.tsx

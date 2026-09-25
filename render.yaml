@@ -39,8 +39,6 @@ services:
         value: openai-compatible
       - key: Llm__ApiKey
         sync: false # secret — Groq fallback, used when Gemini fails or rate-limits
-      - key: Ollama__BaseUrl
-        value: http://localhost:11434 # unreachable on Render — last-resort fallback fails safe, does not block requests
       - key: Agents__ConfidenceThreshold
         value: "0.60"
       - key: Ocr__Engine
