@@ -46,8 +46,8 @@ export function DoctorRegisterPage() {
       email: String(form.get('email') ?? '').trim(),
       password: String(form.get('password') ?? ''),
     }
-    if (!registration.displayName || !registration.email.includes('@') || registration.password.length < 12) {
-      setError('Enter a valid name, email, and password of at least 12 characters.')
+    if (!registration.displayName || !registration.email.includes('@') || registration.password.length < 8) {
+      setError('Enter a valid name, email, and password of at least 8 characters.')
       return
     }
     const result = await dispatch(registerDoctorUser(registration))
@@ -112,8 +112,8 @@ export function DoctorRegisterPage() {
           </div>
         </aside>
 
-        {/* Clean centered card */}
-        <div className="simple-login-card">
+        {/* Clean centered expanded doctor registration card */}
+        <div className="simple-login-card simple-login-card--wide">
           <div className="simple-login-brand">
             <img src={logoUrl} alt="Family Veda" width={56} height={56} />
             <h1>Family Veda</h1>
@@ -124,7 +124,7 @@ export function DoctorRegisterPage() {
           <h2>Create doctor account</h2>
           <p className="muted">Clinical access remains blocked until an administrator verifies the profile. Never enter real medical credentials.</p>
 
-          <form onSubmit={submit} noValidate>
+          <form onSubmit={submit} className="register-form-grid" noValidate>
             <label className="field">
               <span>Display name</span>
               <input name="displayName" placeholder="e.g. Dr. Kasun Perera" required maxLength={120} />
@@ -134,10 +134,6 @@ export function DoctorRegisterPage() {
               <input name="email" type="email" placeholder="doctor@example.invalid" required />
             </label>
             <label className="field">
-              <span>Password</span>
-              <input name="password" type="password" placeholder="At least 12 characters" minLength={12} required />
-            </label>
-            <label className="field">
               <span>Synthetic SLMC registration identifier</span>
               <input name="registrationNumber" placeholder="e.g. SLMC-SYNTH-9941" minLength={4} maxLength={30} required />
             </label>
@@ -145,8 +141,12 @@ export function DoctorRegisterPage() {
               <span>Specialty (optional)</span>
               <input name="specialty" placeholder="e.g. General Practice / Paediatrics" maxLength={120} />
             </label>
-            {(error || authError) && <p className="form-error" role="alert">{error || authError}</p>}
-            <button className="button button--primary button--full" type="submit" disabled={status === 'loading'}>
+            <label className="field field--full">
+              <span>Password</span>
+              <input name="password" type="password" placeholder="At least 8 characters" minLength={8} required />
+            </label>
+            {(error || authError) && <p className="form-error field--full" role="alert">{error || authError}</p>}
+            <button className="button button--primary button--full field--full" type="submit" disabled={status === 'loading'}>
               {status === 'loading' ? 'Creating account…' : 'Submit for verification'}
             </button>
           </form>

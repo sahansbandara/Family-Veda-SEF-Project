@@ -9,13 +9,37 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { registerFamilyUser } from '../../store/slices/authSlice'
 import logoUrl from '../../assets/logo.png'
 
+const SRI_LANKAN_NIC_REGEX = /^([0-9]{9}[vVxX]|[0-9]{12})$/
+
 const registrationSchema = z.object({
-  displayName: z.string().trim().min(1, 'Enter your display name.').max(120),
-  email: z.string().email('Enter a valid email address.'),
-  nic: z.string().trim().min(4, 'Enter a synthetic NIC number (at least 4 characters).').max(30),
-  address: z.string().trim().min(3, 'Enter your residential address.').max(250),
-  password: z.string().min(12, 'Use at least 12 characters.').max(128),
+  displayName: z
+    .string()
+    .trim()
+    .min(2, 'Display name must be at least 2 characters.')
+    .max(120, 'Display name must not exceed 120 characters.'),
+  email: z
+    .string()
+    .trim()
+    .email('Please enter a valid email address (e.g. name@example.invalid).'),
+  nic: z
+    .string()
+    .trim()
+    .refine(
+      (val) => SRI_LANKAN_NIC_REGEX.test(val),
+      'Enter a valid synthetic NIC (9 digits + V/X or 12 digits, e.g. 200012345678 or 991234567V).',
+    ),
+  address: z
+    .string()
+    .trim()
+    .min(5, 'Residential address must be at least 5 characters.')
+    .max(250, 'Residential address must not exceed 250 characters.'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters.')
+    .max(128, 'Password must not exceed 128 characters.'),
 })
+
+type FieldKey = 'displayName' | 'email' | 'nic' | 'address' | 'password'
 
 export function RegisterPage() {
   const dispatch = useAppDispatch()
@@ -26,7 +50,8 @@ export function RegisterPage() {
   const [nic, setNic] = useState('')
   const [address, setAddress] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldKey, string>>>({})
+  const [generalError, setGeneralError] = useState('')
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     try {
       return (globalThis.localStorage?.getItem('fv-theme') as 'light' | 'dark') || 'light'
@@ -51,14 +76,31 @@ export function RegisterPage() {
 
   if (isAuthenticated) return <Navigate to={user?.role === 'ONBOARDING' ? '/onboarding' : '/dashboard'} replace />
 
+  const clearFieldError = (key: FieldKey) => {
+    if (fieldErrors[key]) {
+      setFieldErrors((prev) => ({ ...prev, [key]: undefined }))
+    }
+    if (generalError) setGeneralError('')
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const parsed = registrationSchema.safeParse({ displayName, email, nic, address, password })
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? 'Check the form.')
+      const formattedErrors: Partial<Record<FieldKey, string>> = {}
+      for (const issue of parsed.error.issues) {
+        const fieldName = issue.path[0] as FieldKey
+        if (fieldName && !formattedErrors[fieldName]) {
+          formattedErrors[fieldName] = issue.message
+        }
+      }
+      setFieldErrors(formattedErrors)
+      setGeneralError(parsed.error.issues[0]?.message ?? 'Please correct the highlighted errors.')
       return
     }
-    setError('')
+
+    setFieldErrors({})
+    setGeneralError('')
     const result = await dispatch(registerFamilyUser(parsed.data))
     if (registerFamilyUser.fulfilled.match(result)) navigate('/onboarding', { replace: true })
   }
@@ -112,8 +154,8 @@ export function RegisterPage() {
           </div>
         </aside>
 
-        {/* Clean centered registration card */}
-        <div className="simple-login-card">
+        {/* Clean centered expanded registration card */}
+        <div className="simple-login-card simple-login-card--wide">
           <div className="simple-login-brand">
             <img src={logoUrl} alt="Family Veda" width={56} height={56} />
             <h1>Family Veda</h1>
@@ -124,16 +166,21 @@ export function RegisterPage() {
           <h2 id="register-heading">Create account</h2>
           <p className="muted">Set up the account first, then create the family and your linked head profile.</p>
 
-          <form onSubmit={submit} noValidate>
+          <form onSubmit={submit} className="register-form-grid" noValidate>
             <label className="field">
               <span>Display name</span>
               <input
                 value={displayName}
                 autoComplete="name"
                 placeholder="e.g. Sahan Bandara"
-                onChange={(event) => setDisplayName(event.target.value)}
+                className={fieldErrors.displayName ? 'field-input--error' : ''}
+                onChange={(event) => {
+                  setDisplayName(event.target.value)
+                  clearFieldError('displayName')
+                }}
                 required
               />
+              {fieldErrors.displayName && <span className="field-error-text" role="alert">{fieldErrors.displayName}</span>}
             </label>
             <label className="field">
               <span>Email address</span>
@@ -142,41 +189,62 @@ export function RegisterPage() {
                 value={email}
                 autoComplete="email"
                 placeholder="name@example.invalid"
-                onChange={(event) => setEmail(event.target.value)}
+                className={fieldErrors.email ? 'field-input--error' : ''}
+                onChange={(event) => {
+                  setEmail(event.target.value)
+                  clearFieldError('email')
+                }}
                 required
               />
+              {fieldErrors.email && <span className="field-error-text" role="alert">{fieldErrors.email}</span>}
             </label>
             <label className="field">
               <span>Synthetic NIC</span>
               <input
                 value={nic}
                 placeholder="e.g. 200012345678 or 991234567V"
-                onChange={(event) => setNic(event.target.value)}
+                maxLength={12}
+                className={fieldErrors.nic ? 'field-input--error' : ''}
+                onChange={(event) => {
+                  setNic(event.target.value)
+                  clearFieldError('nic')
+                }}
                 required
               />
+              {fieldErrors.nic && <span className="field-error-text" role="alert">{fieldErrors.nic}</span>}
             </label>
             <label className="field">
               <span>Residential address</span>
               <input
                 value={address}
                 placeholder="e.g. 124 Temple Road, Colombo"
-                onChange={(event) => setAddress(event.target.value)}
+                className={fieldErrors.address ? 'field-input--error' : ''}
+                onChange={(event) => {
+                  setAddress(event.target.value)
+                  clearFieldError('address')
+                }}
                 required
               />
+              {fieldErrors.address && <span className="field-error-text" role="alert">{fieldErrors.address}</span>}
             </label>
-            <label className="field">
+            <label className="field field--full">
               <span>Password</span>
               <input
                 type="password"
                 value={password}
                 autoComplete="new-password"
-                placeholder="At least 12 characters"
-                onChange={(event) => setPassword(event.target.value)}
+                placeholder="At least 8 characters"
+                className={fieldErrors.password ? 'field-input--error' : ''}
+                onChange={(event) => {
+                  setPassword(event.target.value)
+                  clearFieldError('password')
+                }}
                 required
               />
+              {fieldErrors.password && <span className="field-error-text" role="alert">{fieldErrors.password}</span>}
             </label>
-            {(error || authError) && <p className="form-error" role="alert">{error || authError}</p>}
-            <button type="submit" disabled={status === 'loading'} className="button button--primary button--full">
+            {(generalError || authError) && <p className="form-error field--full" role="alert">{generalError || authError}</p>}
+            <button type="submit" disabled={status === 'loading'} className="button button--primary button--full field--full">
               {status === 'loading' ? 'Creating account…' : 'Create account'}
             </button>
           </form>

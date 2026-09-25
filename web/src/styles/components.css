@@ -673,6 +673,23 @@ table input:focus {
 }
 
 .form-error { margin: 0; color: var(--danger); font-size: 0.88rem; font-weight: 500; }
+.field-error-text {
+  margin: 3px 0 0;
+  color: var(--danger);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.field input.field-input--error,
+.field select.field-input--error,
+.field textarea.field-input--error {
+  border-color: var(--danger) !important;
+}
+.field input.field-input--error:focus,
+.field select.field-input--error:focus,
+.field textarea.field-input--error:focus {
+  box-shadow: 0 0 0 3px rgba(179, 38, 30, 0.18) !important;
+}
 
 /* ── tables ───────────────────────────────────────────────────────────── */
 
@@ -974,6 +991,27 @@ tbody tr:hover { background: var(--primary-subtle); }
   box-shadow: var(--shadow-md);
   position: relative;
   z-index: 2;
+  transition: max-width 200ms ease;
+}
+
+.simple-login-card--wide {
+  max-width: 700px;
+}
+
+.register-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-4);
+}
+
+.register-form-grid .field--full {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 640px) {
+  .register-form-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .simple-login-brand {
