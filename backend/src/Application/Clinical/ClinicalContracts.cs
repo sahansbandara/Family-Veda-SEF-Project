@@ -15,7 +15,7 @@ public sealed record ApprovalDto(Guid Id, Guid TriageCaseId, Guid DoctorId, Appr
 public sealed record AuditDto(Guid Id, string EventType, string ResourceType, Guid? ResourceId, string Outcome, DateTimeOffset CreatedAt);
 public sealed record AvailableCaseDto(Guid Id, TriagePriority Priority, DateTimeOffset CreatedAt);
 
-public sealed record FamilyHeadDto(Guid Id, Guid UserId, Guid FamilyId, string FamilyName, string DisplayName, string Email, int MemberCount, VerificationStatus VerificationStatus, bool IsActive, DateTimeOffset CreatedAt);
+public sealed record FamilyHeadDto(Guid Id, Guid UserId, Guid FamilyId, string FamilyName, string DisplayName, string Email, int MemberCount, VerificationStatus VerificationStatus, bool IsActive, DateTimeOffset CreatedAt, string? Nic = null, string? Address = null, string? FamilyCode = null);
 public sealed record VerifyFamilyHeadRequest(VerificationStatus Status, string? Reason);
 
 public interface IClinicalService

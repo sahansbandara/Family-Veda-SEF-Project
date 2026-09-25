@@ -111,27 +111,70 @@ public sealed class ClinicalService(
             .ToListAsync(cancellationToken);
 
         var auditLogs = await dbContext.AuditLogs.AsNoTracking()
-            .Where(a => a.ResourceType == "FamilyHead" && a.ResourceId.HasValue && userIds.Contains(a.ResourceId.Value) && a.EventType == "FAMILY_HEAD_VERIFICATION_CHANGED")
+            .Where(a => a.ResourceType == "FamilyHead" && a.ResourceId.HasValue && userIds.Contains(a.ResourceId.Value))
             .OrderByDescending(a => a.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        var latestAudits = auditLogs
+        var auditsByUser = auditLogs
             .GroupBy(a => a.ResourceId!.Value)
-            .ToDictionary(g => g.Key, g => g.First());
+            .ToDictionary(g => g.Key, g => g.ToList());
 
         var items = headUsers.Select(user =>
         {
             var family = families.FirstOrDefault(f => f.CreatedByUserId == user.Id || f.Members.Any(m => m.UserId == user.Id && m.Role == FamilyRole.Head));
             var member = family?.Members.FirstOrDefault(m => m.UserId == user.Id && m.Role == FamilyRole.Head);
 
+            auditsByUser.TryGetValue(user.Id, out var userAudits);
+            var latestVerificationAudit = userAudits?.FirstOrDefault(a => a.EventType == "FAMILY_HEAD_VERIFICATION_CHANGED");
+            var registrationAudit = userAudits?.FirstOrDefault(a => a.EventType == "FAMILY_HEAD_REGISTERED");
+
             VerificationStatus status = user.Email == "demo-head@example.invalid" ? VerificationStatus.Verified : VerificationStatus.Pending;
-            if (latestAudits.TryGetValue(user.Id, out var audit) && Enum.TryParse<VerificationStatus>(audit.Outcome, out var parsedStatus))
+            if (latestVerificationAudit != null && Enum.TryParse<VerificationStatus>(latestVerificationAudit.Outcome, out var parsedStatus))
             {
                 status = parsedStatus;
             }
             else if (!user.IsActive)
             {
                 status = VerificationStatus.Suspended;
+            }
+
+            string? nic = null;
+            string? address = null;
+            string? familyCode = null;
+
+            if (user.Email == "demo-head@example.invalid")
+            {
+                nic = "••••8921";
+                address = "24/B Temple Road, Kandy";
+                familyCode = "FV-1001";
+            }
+
+            if (registrationAudit?.MetadataJson != null)
+            {
+                try
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(registrationAudit.MetadataJson);
+                    if (doc.RootElement.TryGetProperty("Nic", out var nicElem)) nic = nicElem.GetString();
+                    if (doc.RootElement.TryGetProperty("Address", out var addrElem)) address = addrElem.GetString();
+                }
+                catch { }
+            }
+
+            if (latestVerificationAudit?.MetadataJson != null)
+            {
+                try
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(latestVerificationAudit.MetadataJson);
+                    if (doc.RootElement.TryGetProperty("FamilyCode", out var codeElem)) familyCode = codeElem.GetString();
+                    if (nic == null && doc.RootElement.TryGetProperty("Nic", out var nicElem)) nic = nicElem.GetString();
+                    if (address == null && doc.RootElement.TryGetProperty("Address", out var addrElem)) address = addrElem.GetString();
+                }
+                catch { }
+            }
+
+            if (status == VerificationStatus.Verified && string.IsNullOrEmpty(familyCode))
+            {
+                familyCode = $"FV-{Math.Abs(user.Id.GetHashCode()) % 9000 + 1000}";
             }
 
             return new FamilyHeadDto(
@@ -144,7 +187,10 @@ public sealed class ClinicalService(
                 family?.Members.Count ?? 0,
                 status,
                 user.IsActive,
-                user.CreatedAt);
+                user.CreatedAt,
+                nic,
+                address,
+                familyCode);
         }).ToList();
 
         var total = items.Count;
@@ -170,10 +216,49 @@ public sealed class ClinicalService(
             user.IsActive = true;
         }
 
+        var existingAudits = await dbContext.AuditLogs
+            .Where(a => a.ResourceType == "FamilyHead" && a.ResourceId == user.Id)
+            .OrderByDescending(a => a.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        string? nic = null;
+        string? address = null;
+        string? familyCode = null;
+
+        if (user.Email == "demo-head@example.invalid")
+        {
+            nic = "••••8921";
+            address = "24/B Temple Road, Kandy";
+            familyCode = "FV-1001";
+        }
+
+        foreach (var audit in existingAudits)
+        {
+            if (audit.MetadataJson != null)
+            {
+                try
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(audit.MetadataJson);
+                    if (nic == null && doc.RootElement.TryGetProperty("Nic", out var nicElem)) nic = nicElem.GetString();
+                    if (address == null && doc.RootElement.TryGetProperty("Address", out var addrElem)) address = addrElem.GetString();
+                    if (familyCode == null && doc.RootElement.TryGetProperty("FamilyCode", out var codeElem)) familyCode = codeElem.GetString();
+                }
+                catch { }
+            }
+        }
+
+        if (request.Status == VerificationStatus.Verified && string.IsNullOrEmpty(familyCode))
+        {
+            familyCode = $"FV-{Math.Abs(userId.GetHashCode()) % 9000 + 1000}";
+        }
+
         var metadata = System.Text.Json.JsonSerializer.Serialize(new
         {
             Status = request.Status.ToString(),
-            Reason = request.Reason?.Trim()
+            Reason = request.Reason?.Trim(),
+            FamilyCode = familyCode,
+            Nic = nic,
+            Address = address
         });
 
         dbContext.AuditLogs.Add(new AuditLog
@@ -199,8 +284,12 @@ public sealed class ClinicalService(
             family?.Members.Count ?? 0,
             request.Status,
             user.IsActive,
-            user.CreatedAt);
+            user.CreatedAt,
+            nic,
+            address,
+            familyCode);
     }
+
 
 
     public async Task<PagedResult<TriageCaseDto>> GetMyCasesAsync(int page, int pageSize, CancellationToken cancellationToken)

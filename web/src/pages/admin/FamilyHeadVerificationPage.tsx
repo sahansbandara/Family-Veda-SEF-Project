@@ -36,8 +36,9 @@ export function FamilyHeadVerificationPage() {
     const reason = window.prompt('Audit reason (no clinical content):')
     if (reason === null) return
     try {
-      await apiClient.post(`/admin/family-heads/${userId}/${action}`, { reason })
-      setMessage('Family head verification status updated and audited.')
+      const response = await apiClient.post<FamilyHeadDto>(`/admin/family-heads/${userId}/${action}`, { reason })
+      const codeMsg = response.data.familyCode ? ` Assigned Family ID: ${response.data.familyCode}` : ''
+      setMessage(`Family head verification status updated and audited.${codeMsg}`)
       await load()
     } catch {
       setMessage('Verification status could not be updated.')
@@ -46,11 +47,15 @@ export function FamilyHeadVerificationPage() {
 
   const filteredHeads = useMemo(() => {
     return familyHeads.filter((head) => {
+      const q = search.toLowerCase().trim()
       const matchesSearch =
-        search.trim() === '' ||
-        head.displayName.toLowerCase().includes(search.toLowerCase()) ||
-        head.email.toLowerCase().includes(search.toLowerCase()) ||
-        head.familyName.toLowerCase().includes(search.toLowerCase())
+        q === '' ||
+        head.displayName.toLowerCase().includes(q) ||
+        head.email.toLowerCase().includes(q) ||
+        head.familyName.toLowerCase().includes(q) ||
+        (head.familyCode && head.familyCode.toLowerCase().includes(q)) ||
+        (head.nic && head.nic.toLowerCase().includes(q)) ||
+        (head.address && head.address.toLowerCase().includes(q))
 
       if (!matchesSearch) return false
 
@@ -134,10 +139,10 @@ export function FamilyHeadVerificationPage() {
             </button>
           </div>
 
-          <div style={{ minWidth: '220px' }}>
+          <div style={{ minWidth: '260px' }}>
             <input
               type="search"
-              placeholder="Search family head or email…"
+              placeholder="Search by ID, name, NIC, or email…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               style={{ width: '100%', padding: '6px 12px', fontSize: '0.85rem' }}
@@ -159,8 +164,10 @@ export function FamilyHeadVerificationPage() {
             <table>
               <thead>
                 <tr>
+                  <th>Family ID</th>
                   <th>Family head</th>
-                  <th>Email</th>
+                  <th>NIC</th>
+                  <th>Address</th>
                   <th>Workspace</th>
                   <th>Members</th>
                   <th>Status</th>
@@ -176,12 +183,37 @@ export function FamilyHeadVerificationPage() {
                   return (
                     <tr key={head.userId}>
                       <td>
-                        <strong>{head.displayName}</strong>
+                        {head.familyCode ? (
+                          <strong style={{ color: 'var(--primary)', fontFamily: 'monospace', fontSize: '0.95rem' }}>
+                            {head.familyCode}
+                          </strong>
+                        ) : (
+                          <span className="muted" style={{ fontStyle: 'italic', fontSize: '0.85rem' }}>
+                            Pending
+                          </span>
+                        )}
                       </td>
-                      <td>{head.email}</td>
+                      <td>
+                        <div>
+                          <strong>{head.displayName}</strong>
+                          <div className="muted" style={{ fontSize: '0.82rem' }}>{head.email}</div>
+                        </div>
+                      </td>
+                      <td>
+                        {head.nic ? (
+                          <span style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{head.nic}</span>
+                        ) : (
+                          <span className="muted">—</span>
+                        )}
+                      </td>
+                      <td>
+                        <div style={{ maxWidth: '200px', fontSize: '0.85rem', wordBreak: 'break-word' }}>
+                          {head.address ?? <span className="muted">—</span>}
+                        </div>
+                      </td>
                       <td>
                         {head.familyName === 'Pending Setup' ? (
-                          <span className="muted" style={{ fontStyle: 'italic' }}>Pending workspace</span>
+                          <span className="muted" style={{ fontStyle: 'italic', fontSize: '0.85rem' }}>Pending workspace</span>
                         ) : (
                           head.familyName
                         )}
@@ -196,7 +228,7 @@ export function FamilyHeadVerificationPage() {
                             <button
                               className="button button--primary button--sm"
                               onClick={() => void decide(head.userId, 'verify')}
-                              title="Verify this family head"
+                              title="Verify and generate Family ID"
                             >
                               Verify
                             </button>

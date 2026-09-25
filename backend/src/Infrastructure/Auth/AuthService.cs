@@ -41,6 +41,26 @@ public sealed class AuthService(
         };
         user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
         dbContext.Users.Add(user);
+
+        if (request.UserType == UserType.FamilyUser && (!string.IsNullOrWhiteSpace(request.Nic) || !string.IsNullOrWhiteSpace(request.Address)))
+        {
+            var metadata = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                Nic = request.Nic?.Trim(),
+                Address = request.Address?.Trim(),
+                NicLastFour = request.Nic?.Trim().Length >= 4 ? request.Nic.Trim()[^4..] : request.Nic?.Trim()
+            });
+            dbContext.AuditLogs.Add(new Domain.Clinical.AuditLog
+            {
+                ActorUserId = user.Id,
+                EventType = "FAMILY_HEAD_REGISTERED",
+                ResourceType = "FamilyHead",
+                ResourceId = user.Id,
+                Outcome = "PENDING",
+                MetadataJson = metadata
+            });
+        }
+
         var response = await IssueTokensAsync(user, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return response;

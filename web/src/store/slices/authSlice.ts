@@ -63,7 +63,7 @@ export const signIn = createAsyncThunk<SessionUser, { email: string; password: s
   },
 )
 
-export const registerFamilyUser = createAsyncThunk<SessionUser, { email: string; password: string; displayName: string }, { rejectValue: string }>(
+export const registerFamilyUser = createAsyncThunk<SessionUser, { email: string; password: string; displayName: string; nic?: string; address?: string }, { rejectValue: string }>(
   'auth/registerFamilyUser',
   async (registration, { rejectWithValue }) => {
     try {
