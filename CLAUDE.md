@@ -111,7 +111,7 @@ Full matrix: `agent/BRIEF.md` and blueprint §1.3.
 | Database | PostgreSQL 16 |
 | Web | React 18 (Vite) + React Router + Redux Toolkit |
 | Mobile | Flutter 3.x + go_router + Riverpod + flutter_secure_storage |
-| LLM | Ollama, local, `llama3.1:8b` |
+| LLM | Gemini (primary) -> Groq (fallback), hosted |
 | OCR | Tesseract / Google ML Kit on-device |
 | CI | GitHub Actions |
 | Testing | xUnit + Moq · Vitest + RTL · flutter_test · Testcontainers |
@@ -302,7 +302,7 @@ Keep on the main model: planning, architecture, ambiguity, security-sensitive de
 | Database host | Neon / Supabase (free tier) — confirm W7 |
 | Web host | Vercel / Netlify |
 | Mobile | Signed APK submitted with the report |
-| LLM | Ollama local, `llama3.1:8b` (ADR-006) |
+| LLM | Gemini -> Groq, hosted (ADR-013, supersedes ADR-006) |
 | Evaluator | JSON schema + deterministic rule tables + prohibited-content check |
 | Approval model | Mandatory licensed-doctor approval gate; time-bound case grants |
 | Third-party service | FCM push (fallback Twilio SMS), backend-only |

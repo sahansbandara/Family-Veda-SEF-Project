@@ -135,7 +135,6 @@
 /backend/src/Infrastructure/Agents/ChatCompletionsLlmClient.cs @Jani6969
 /backend/src/Infrastructure/Agents/ContextAgent.cs @Jani6969
 /backend/src/Infrastructure/Agents/GeminiClient.cs @Jani6969
-/backend/src/Infrastructure/Agents/OllamaClient.cs @Jani6969
 /backend/src/Infrastructure/Persistence/Configurations/TriageConfigurations.cs @Jani6969
 /backend/src/Infrastructure/Triage/CaseSlaProcessor.cs @Jani6969
 /backend/src/Infrastructure/Triage/FcmPushNotificationClient.cs @Jani6969
@@ -146,7 +145,6 @@
 /backend/tests/UnitTests/CaseSlaProcessorTests.cs @Jani6969
 /backend/tests/UnitTests/ChatCompletionsLlmClientTests.cs @Jani6969
 /backend/tests/UnitTests/NotificationServiceTests.cs @Jani6969
-/backend/tests/UnitTests/OllamaClientTests.cs @Jani6969
 /backend/tests/UnitTests/TriageOrchestratorEmergencyTests.cs @Jani6969
 /backend/tests/UnitTests/TriageOrchestratorSchemaTests.cs @Jani6969
 /backend/tests/UnitTests/TriageWorkerRecoveryTests.cs @Jani6969

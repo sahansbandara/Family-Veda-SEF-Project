@@ -25,9 +25,6 @@ Local values go in `.env` (gitignored). Hosted values go in the platform's envir
 | `Llm__Model` | Groq model, e.g. `llama-3.1-8b-instant` | Optional | all |
 | `Llm__ApiKey` | **Groq API key — secret; fallback LLM when Gemini fails or is rate-limited** | Optional | all |
 | `Llm__TimeoutSeconds` | Per-call timeout for Groq API calls | Optional | all |
-| `Ollama__BaseUrl` | Ollama endpoint, e.g. `http://localhost:11434` (last-resort fallback, always tried, no key needed) | Yes (if offline) | all |
-| `Ollama__Model` | Model name, e.g. `llama3.1:8b` | Yes (if offline) | all |
-| `Ollama__TimeoutSeconds` | Per-call timeout before safe failure | Yes | all |
 | `Agents__ConfidenceThreshold` | Below this → `LOW_CONFIDENCE`, draft hidden | Yes | all |
 | `Ocr__Engine` | `Tesseract` or `MlKit` | Yes | all |
 | `Ocr__TesseractDataPath` | Tesseract language data path | If Tesseract | all |

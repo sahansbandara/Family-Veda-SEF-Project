@@ -58,7 +58,7 @@ Env var to set in Vercel: `VITE_API_BASE_URL=https://<your-render-service>.onren
 - **Gemini**: https://aistudio.google.com/apikey — free tier, no card required.
 - **Groq**: https://console.groq.com/keys — free tier, no card required.
 
-The backend now tries Gemini first, falls back to Groq automatically on any failure or rate limit (HTTP 429 or 5xx), and falls back to local Ollama last (which will simply fail closed on Render, since nothing's listening there — that's fine, it's the offline-dev-only path, not a hosted dependency).
+The backend tries Gemini first, falls back to Groq automatically on any failure or rate limit (HTTP 429 or 5xx). If both are unconfigured or fail, the agent step throws and the case defers to the doctor (Rule 9) rather than blocking.
 
 ## 5. Mobile — Android (signed release APK)
 

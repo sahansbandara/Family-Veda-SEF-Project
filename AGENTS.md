@@ -117,7 +117,7 @@ The seven shared files: `Program.cs` [S1] · `AppDbContext.cs` [S1] · `IAgent.c
 
 ## LLM policy
 
-- The application LLM is **Ollama, local** (ADR-006). Do not introduce a hosted LLM API — data residency is part of the argument in the report.
+- The application LLM is **Gemini (primary), Groq (fallback)** — both hosted, no local Ollama (ADR-013 supersedes ADR-006). Disclose the hosted architecture transparently in the report; do not claim offline-only data residency.
 - Every agent output is JSON-schema validated. Schema failure → one retry → safe failure.
 - The Safety/Validation Agent uses **no LLM**. Do not "improve" it with one.
 - Treat all LLM output as untrusted input to the rest of the system.
