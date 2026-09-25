@@ -10,14 +10,12 @@ namespace FamilyVeda.Infrastructure.Agents;
 /// Tries hosted providers in order and falls through to the next one on failure
 /// or rate limit, so a single provider hitting its free-tier quota does not stop
 /// the agentic pipeline. Order: Gemini (primary, if configured) -> Groq
-/// (openai-compatible, if configured) -> local Ollama (always available,
-/// last resort). A provider with no API key configured is skipped without
-/// making a network call.
+/// (openai-compatible, fallback). A provider with no API key configured is
+/// skipped without making a network call.
 /// </summary>
 public sealed class LlmFallbackClient(
     GeminiClient gemini,
     ChatCompletionsLlmClient groq,
-    OllamaClient ollama,
     IOptions<GeminiOptions> geminiOptions,
     IOptions<LlmOptions> groqOptions,
     ILogger<LlmFallbackClient> logger) : IOllamaClient
@@ -28,7 +26,6 @@ public sealed class LlmFallbackClient(
         {
             ("Gemini", gemini, !string.IsNullOrWhiteSpace(geminiOptions.Value.ApiKey)),
             ("Groq", groq, !string.IsNullOrWhiteSpace(groqOptions.Value.ApiKey)),
-            ("Ollama", ollama, true),
         };
 
         Exception? lastError = null;

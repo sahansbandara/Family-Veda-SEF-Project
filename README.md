@@ -48,7 +48,7 @@ Family Veda closes that gap. A family maintains one shared account with individu
                              │    ├─ Analysis Agent         │
                              │    ├─ Familial Risk Agent    │
                              │    └─ Safety/Validation      │
-                             │   Ollama (local model)       │
+                             │   Gemini -> Groq (hosted)    │
                              └──────────────┬───────────────┘
                                             ▼
                              ┌──────────────────────────────┐
@@ -114,7 +114,7 @@ One application, four authors — **not** a folder per student. Reasoning: bluep
 | Database | PostgreSQL 16 |
 | Web | React 18 (Vite) · React Router · Redux Toolkit |
 | Mobile | Flutter 3.x · go_router · Riverpod · flutter_secure_storage |
-| LLM | Ollama (local) — `llama3.1:8b` |
+| LLM | Gemini (primary) -> Groq (fallback) — hosted |
 | OCR | Tesseract / Google ML Kit on-device |
 | CI | GitHub Actions |
 | Testing | xUnit + Moq · Vitest + RTL · flutter_test · Testcontainers |
@@ -212,7 +212,7 @@ backend/
 │   │   ├── Families/FamilyService.cs              families, members, invitations, consent
 │   │   ├── Records/                            RecordService, TesseractOcrService, LabExtractionService
 │   │   ├── Agents/                             Extraction, Context, Analysis, FamilialRisk agents,
-│   │   │                                       OllamaClient (local LLM), ToolDispatcher (allow-list gate)
+│   │   │                                       GeminiClient / ChatCompletionsLlmClient (hosted LLM), ToolDispatcher (allow-list gate)
 │   │   ├── Triage/                             TriageOrchestrator (coordinator), TriageService,
 │   │   │                                       TriageWorkQueue, CaseSlaProcessor, FcmPushNotificationClient
 │   │   └── Clinical/ClinicalService.cs            doctor verification, case pool, approval gate
@@ -273,7 +273,6 @@ Everything below assumes **macOS** (Homebrew). Linux/Windows: install same tools
 | PostgreSQL | 16 | `brew install postgresql@16 && brew services start postgresql@16` | `psql --version` |
 | Node.js | 20+ | `brew install node@20` | `node -v` |
 | Flutter | 3.x | `brew install --cask flutter` + Android Studio (SDK + emulator) or Xcode | `flutter doctor` |
-| Ollama | latest | `brew install ollama` | `ollama --version` |
 | Tesseract | 5.x | `brew install tesseract` | `tesseract --version` |
 | Docker | optional | Docker Desktop — only for integration tests | `docker ps` |
 
@@ -375,21 +374,9 @@ Check:
 
 > Plain `dotnet run` without `--urls` uses `launchSettings.json` port `5139`. Then set `VITE_API_BASE_URL` / `API_BASE_URL` to match.
 
-### 4. Ollama (local LLM)
+### 4. LLM keys (Gemini / Groq)
 
-New terminal:
-
-```bash
-ollama serve
-```
-
-Another terminal (one-time, ~4.7 GB download):
-
-```bash
-ollama pull llama3.1:8b
-```
-
-Without Ollama the API still starts; agent steps time out and cases defer to the doctor (Rule 9).
+Set `Gemini__ApiKey` (and optionally `Llm__ApiKey` for Groq) in your `.env`. Without either configured, the API still starts; agent steps fail closed and cases defer to the doctor (Rule 9).
 
 ### 5. Web app (React)
 
@@ -440,7 +427,6 @@ Physical phone: use your Mac's LAN IP (e.g. `http://192.168.1.20:5000/api/v1`) a
 | Terminal | Command | URL |
 |---|---|---|
 | 1 | PostgreSQL (brew service / Docker) | `localhost:5432` |
-| 2 | `ollama serve` | `localhost:11434` |
 | 3 | backend `dotnet run … --urls http://localhost:5000` | `localhost:5000/swagger` |
 | 4 | web `npm run dev` | `localhost:5173` |
 | 5 | mobile `flutter run …` | emulator |
@@ -457,7 +443,7 @@ Sign in with a seeded synthetic account (see *Live demo access* for emails) usin
 | `dotnet ef: command not found` | Install `dotnet-ef`, add `~/.dotnet/tools` to `PATH`. |
 | Web shows network/CORS error | API not on port 5000, or origin missing from `Cors__AllowedOrigins`. |
 | Android app can't reach API | Use `10.0.2.2`, not `localhost`. |
-| Triage stuck / deferred | Ollama not running or model not pulled. |
+| Triage stuck / deferred | Gemini/Groq keys missing or invalid — check `Gemini__ApiKey` / `Llm__ApiKey`. |
 | OCR fails | `brew install tesseract`; check `Ocr__TesseractDataPath`. |
 
 ## Live demo access
