@@ -589,6 +589,19 @@
   background: var(--danger);
 }
 .button--full { width: 100%; }
+.button--sm {
+  min-height: 32px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  border-radius: var(--r-sm);
+}
+.table-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
 .button-stack { display: grid; gap: var(--sp-2); }
 
 /* ── forms & form grid ────────────────────────────────────────────────── */

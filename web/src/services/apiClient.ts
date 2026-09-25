@@ -68,6 +68,8 @@ export type CaseReviewDto = { id: string; memberId: string; status: string; prio
 export type ConsentDto = { id: string; memberId: string; category: string; status: string; grantedByGuardian: boolean }
 export type RelationshipDto = { id: string; memberId: string; relatedMemberId: string; relationshipType: string; isBiological: boolean }
 export type DoctorDto = { id: string; userId: string; registrationNumberLastFour: string; verificationStatus: string; specialty?: string }
+export type FamilyHeadDto = { id: string; userId: string; familyId: string; familyName: string; displayName: string; email: string; memberCount: number; verificationStatus: string; isActive: boolean; createdAt: string }
+
 export type LabReportDto = { id: string; memberId: string; originalFileName: string; ocrStatus: string; collectedAt?: string }
 export type LabValueDto = { id: string; analyte: string; value: number; unit: string; referenceLow?: number | null; referenceHigh?: number | null; wasManuallyConfirmed: boolean }
 export type HereditaryFlagDto = { id: string; memberId: string; conditionCode: string; finding: string; confidence: number; manuallyConfirmed: boolean }

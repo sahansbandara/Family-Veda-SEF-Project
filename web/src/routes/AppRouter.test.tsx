@@ -95,4 +95,12 @@ describe('AppRoutes', () => {
 
     expect(screen.getByRole('heading', { name: /create doctor account/i })).toBeInTheDocument()
   })
+
+  it('allows administrators to view family head verification queue', async () => {
+    renderRoute('/family-head-verification', 'ADMIN')
+
+    expect(await screen.findByRole('heading', { name: /family head verification/i })).toBeInTheDocument()
+  })
 })
+
+

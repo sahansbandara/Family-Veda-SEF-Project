@@ -5,6 +5,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from '../components/layout/AppLayout'
 import { AuditPage } from '../pages/audit/AuditPage'
 import { DoctorVerificationPage } from '../pages/admin/DoctorVerificationPage'
+import { FamilyHeadVerificationPage } from '../pages/admin/FamilyHeadVerificationPage'
 import { LoginPage } from '../pages/auth/LoginPage'
 import { RegisterPage } from '../pages/auth/RegisterPage'
 import { DoctorRegisterPage } from '../pages/auth/DoctorRegisterPage'
@@ -48,6 +49,7 @@ export function AppRoutes() {
         <Route path="/family-risk" element={<RouteGuard allowedRoles={['FAMILY_HEAD', 'MEMBER']}><FamilyRiskPage /></RouteGuard>} />
         <Route path="/audit" element={<RouteGuard allowedRoles={['ADMIN', 'FAMILY_HEAD']}><AuditPage /></RouteGuard>} />
         <Route path="/doctor-verification" element={<RouteGuard allowedRoles={['ADMIN']}><DoctorVerificationPage /></RouteGuard>} />
+        <Route path="/family-head-verification" element={<RouteGuard allowedRoles={['ADMIN']}><FamilyHeadVerificationPage /></RouteGuard>} />
       </Route>
 
       <Route path="/" element={<Navigate to="/dashboard" replace />} />

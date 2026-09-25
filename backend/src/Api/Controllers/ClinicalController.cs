@@ -69,6 +69,37 @@ public sealed class ClinicalController(IClinicalService clinicalService) : ApiCo
     public async Task<ActionResult<DoctorDto>> SuspendDoctor(Guid doctorId, VerificationReasonRequest request, CancellationToken cancellationToken) =>
         Ok(await clinicalService.ChangeVerificationAsync(doctorId, new VerifyDoctorRequest(VerificationStatus.Suspended, request.Reason), cancellationToken));
 
+    [HttpGet("admin/family-heads")]
+    [Authorize(Policy = "Admin")]
+    public async Task<ActionResult<PagedResult<FamilyHeadDto>>> GetFamilyHeads(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default) =>
+        Ok(await clinicalService.GetFamilyHeadsAsync(page, pageSize, cancellationToken));
+
+    [HttpPost("admin/family-heads/{userId:guid}/verification")]
+    [Authorize(Policy = "Admin")]
+    public async Task<ActionResult<FamilyHeadDto>> ChangeFamilyHeadVerification(Guid userId, VerifyDoctorRequest request, CancellationToken cancellationToken) =>
+        Ok(await clinicalService.ChangeFamilyHeadVerificationAsync(userId, request, cancellationToken));
+
+    [HttpPost("admin/family-heads/{userId:guid}/verify")]
+    [Authorize(Policy = "Admin")]
+    public async Task<ActionResult<FamilyHeadDto>> VerifyFamilyHead(Guid userId, VerificationReasonRequest request, CancellationToken cancellationToken) =>
+        Ok(await clinicalService.ChangeFamilyHeadVerificationAsync(userId, new VerifyDoctorRequest(VerificationStatus.Verified, request.Reason), cancellationToken));
+
+    [HttpPost("admin/family-heads/{userId:guid}/request-info")]
+    [Authorize(Policy = "Admin")]
+    public async Task<ActionResult<FamilyHeadDto>> RequestFamilyHeadInfo(Guid userId, VerificationReasonRequest request, CancellationToken cancellationToken) =>
+        Ok(await clinicalService.ChangeFamilyHeadVerificationAsync(userId, new VerifyDoctorRequest(VerificationStatus.MoreInformationRequired, request.Reason), cancellationToken));
+
+    [HttpPost("admin/family-heads/{userId:guid}/reject")]
+    [Authorize(Policy = "Admin")]
+    public async Task<ActionResult<FamilyHeadDto>> RejectFamilyHead(Guid userId, VerificationReasonRequest request, CancellationToken cancellationToken) =>
+        Ok(await clinicalService.ChangeFamilyHeadVerificationAsync(userId, new VerifyDoctorRequest(VerificationStatus.Rejected, request.Reason), cancellationToken));
+
+    [HttpPost("admin/family-heads/{userId:guid}/suspend")]
+    [Authorize(Policy = "Admin")]
+    public async Task<ActionResult<FamilyHeadDto>> SuspendFamilyHead(Guid userId, VerificationReasonRequest request, CancellationToken cancellationToken) =>
+        Ok(await clinicalService.ChangeFamilyHeadVerificationAsync(userId, new VerifyDoctorRequest(VerificationStatus.Suspended, request.Reason), cancellationToken));
+
+
     [HttpPost("triage-cases/{caseId:guid}/claim")]
     [Authorize(Policy = "Doctor")]
     [Authorize(Policy = "Doctor")]

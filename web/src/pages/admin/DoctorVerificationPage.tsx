@@ -10,12 +10,106 @@ export function DoctorVerificationPage() {
   const [doctors, setDoctors] = useState<DoctorDto[]>([])
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [message, setMessage] = useState('')
-  const load = useCallback(async () => { setStatus('loading'); try { setDoctors((await apiClient.get<PagedResult<DoctorDto>>('/admin/doctors', { params: { page: 1, pageSize: 100 } })).data.items); setStatus('ready') } catch { setStatus('error') } }, [])
-  useEffect(() => { void load() }, [load])
+
+  const load = useCallback(async () => {
+    setStatus('loading')
+    try {
+      const response = await apiClient.get<PagedResult<DoctorDto>>('/admin/doctors', {
+        params: { page: 1, pageSize: 100 },
+      })
+      setDoctors(response.data.items)
+      setStatus('ready')
+    } catch {
+      setStatus('error')
+    }
+  }, [])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
   async function decide(id: string, action: 'verify' | 'request-info' | 'reject' | 'suspend') {
     const reason = window.prompt('Audit reason (no clinical content):')
     if (reason === null) return
-    try { await apiClient.post(`/admin/doctors/${id}/${action}`, { reason }); setMessage('Verification status updated and audited.'); await load() } catch { setMessage('Verification status could not be updated.') }
+    try {
+      await apiClient.post(`/admin/doctors/${id}/${action}`, { reason })
+      setMessage('Verification status updated and audited.')
+      await load()
+    } catch {
+      setMessage('Verification status could not be updated.')
+    }
   }
-  return <div className="page-stack"><header className="page-header"><div><p className="eyebrow">Clinic administration</p><h1>Doctor verification</h1><p>Manual administrative verification; no external registration API is claimed.</p></div></header>{message && <p role="status">{message}</p>}<section className="panel">{status === 'loading' ? <LoadingState label="Loading doctor queue" /> : status === 'error' ? <ErrorState message="Doctor queue could not be loaded." onRetry={() => void load()} /> : doctors.length === 0 ? <EmptyState title="No pending doctors" message="New registrations appear here for manual review." /> : <div className="table-scroll"><table><thead><tr><th>Registration</th><th>Specialty</th><th>Status</th><th>Actions</th></tr></thead><tbody>{doctors.map((doctor) => <tr key={doctor.id}><td>••••{doctor.registrationNumberLastFour}</td><td>{doctor.specialty ?? 'Not supplied'}</td><td><StatusBadge status={doctor.verificationStatus} /></td><td><button className="button button--primary" onClick={() => void decide(doctor.id, 'verify')}>Verify</button> <button className="button button--secondary" onClick={() => void decide(doctor.id, 'request-info')}>Request info</button> <button className="button button--danger" onClick={() => void decide(doctor.id, 'reject')}>Reject</button></td></tr>)}</tbody></table></div>}</section></div>
+
+  return (
+    <div className="page-stack">
+      <header className="page-header">
+        <div>
+          <p className="eyebrow">Clinic administration</p>
+          <h1>Doctor verification</h1>
+          <p>Manual administrative verification; no external registration API is claimed.</p>
+        </div>
+      </header>
+
+      {message && <p role="status">{message}</p>}
+
+      <section className="panel">
+        {status === 'loading' ? (
+          <LoadingState label="Loading doctor queue" />
+        ) : status === 'error' ? (
+          <ErrorState message="Doctor queue could not be loaded." onRetry={() => void load()} />
+        ) : doctors.length === 0 ? (
+          <EmptyState
+            title="No pending doctors"
+            message="New registrations appear here for manual review."
+          />
+        ) : (
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Registration</th>
+                  <th>Specialty</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {doctors.map((doctor) => (
+                  <tr key={doctor.id}>
+                    <td>••••{doctor.registrationNumberLastFour}</td>
+                    <td>{doctor.specialty ?? 'Not supplied'}</td>
+                    <td>
+                      <StatusBadge status={doctor.verificationStatus} />
+                    </td>
+                    <td>
+                      <div className="table-actions">
+                        <button
+                          className="button button--primary button--sm"
+                          onClick={() => void decide(doctor.id, 'verify')}
+                        >
+                          Verify
+                        </button>
+                        <button
+                          className="button button--secondary button--sm"
+                          onClick={() => void decide(doctor.id, 'request-info')}
+                        >
+                          Request info
+                        </button>
+                        <button
+                          className="button button--danger button--sm"
+                          onClick={() => void decide(doctor.id, 'reject')}
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </div>
+  )
 }
