@@ -185,8 +185,27 @@ public sealed class ClinicalService(
         RequireAdmin();
         (page, pageSize) = NormalizePage(page, pageSize);
 
+        var headAuditUserIds = await dbContext.AuditLogs.AsNoTracking()
+            .Where(a => a.ResourceType == "FamilyHead" && a.ResourceId.HasValue)
+            .Select(a => a.ResourceId!.Value)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        var familyCreatorIds = await dbContext.Families.AsNoTracking()
+            .Select(f => f.CreatedByUserId)
+            .ToListAsync(cancellationToken);
+
+        var allHeadCandidateIds = headAuditUserIds.Concat(familyCreatorIds).Distinct().ToList();
+
+        var adultMemberUserIds = await dbContext.Members.AsNoTracking()
+            .Where(m => m.UserId.HasValue && m.Role == FamilyRole.AdultMember)
+            .Select(m => m.UserId!.Value)
+            .ToListAsync(cancellationToken);
+
         var headUsers = await dbContext.Users.AsNoTracking()
-            .Where(x => x.UserType == UserType.FamilyUser)
+            .Where(x => x.UserType == UserType.FamilyUser
+                && (allHeadCandidateIds.Contains(x.Id) || x.Email == "demo-head@example.invalid")
+                && !adultMemberUserIds.Contains(x.Id))
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync(cancellationToken);
 

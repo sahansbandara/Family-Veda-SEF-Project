@@ -67,8 +67,14 @@ export function FamilyHeadVerificationPage() {
     }
   }
 
+  const headApplicants = useMemo(() => {
+    return familyHeads.filter(
+      (head) => Boolean(head.nic || head.address || head.familyCode || head.email === 'demo-head@example.invalid')
+    )
+  }, [familyHeads])
+
   const filteredHeads = useMemo(() => {
-    return familyHeads.filter((head) => {
+    return headApplicants.filter((head) => {
       const q = search.toLowerCase().trim()
       const matchesSearch =
         q === '' ||
@@ -97,10 +103,10 @@ export function FamilyHeadVerificationPage() {
           return true
       }
     })
-  }, [familyHeads, search, activeFilter])
+  }, [headApplicants, search, activeFilter])
 
-  const pendingCount = familyHeads.filter((h) => (h.verificationStatus?.toUpperCase() ?? 'PENDING') === 'PENDING').length
-  const verifiedCount = familyHeads.filter((h) => h.verificationStatus?.toUpperCase() === 'VERIFIED').length
+  const pendingCount = headApplicants.filter((h) => (h.verificationStatus?.toUpperCase() ?? 'PENDING') === 'PENDING').length
+  const verifiedCount = headApplicants.filter((h) => h.verificationStatus?.toUpperCase() === 'VERIFIED').length
 
   return (
     <div className="page-stack">
@@ -140,7 +146,7 @@ export function FamilyHeadVerificationPage() {
               className={`button button--sm ${activeFilter === 'ALL' ? 'button--primary' : 'button--secondary'}`}
               onClick={() => setActiveFilter('ALL')}
             >
-              All ({familyHeads.length})
+              All ({headApplicants.length})
             </button>
             <button
               type="button"
