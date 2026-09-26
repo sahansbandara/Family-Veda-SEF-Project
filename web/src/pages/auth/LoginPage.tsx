@@ -70,6 +70,7 @@ export function LoginPage() {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const location = useLocation()
+  const user = useAppSelector((state) => state.auth.user)
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated)
   const authStatus = useAppSelector((state) => state.auth.status)
   const authError = useAppSelector((state) => state.auth.error)
@@ -203,10 +204,10 @@ export function LoginPage() {
           <div className="simple-login-brand">
             <img src={logoUrl} alt="Family Veda" width={56} height={56} />
             <h1>Family Veda</h1>
-            <p>Clinical workspace</p>
+            <p>Clinical Decision Support</p>
           </div>
 
-          <p className="eyebrow">Workspace access</p>
+          <p className="eyebrow">Portal access</p>
           <h2 id="sign-in-heading">Sign in</h2>
           <p className="muted">Enter your credentials or choose a demo role:</p>
 
@@ -246,7 +247,12 @@ export function LoginPage() {
               />
             </label>
             <label className="field">
-              <span>Password</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>Password</span>
+                <Link to="/forgot-password" style={{ fontSize: '0.82rem', color: 'var(--primary)', textDecoration: 'none' }}>
+                  Forgot password?
+                </Link>
+              </div>
               <input
                 type="password"
                 autoComplete="current-password"

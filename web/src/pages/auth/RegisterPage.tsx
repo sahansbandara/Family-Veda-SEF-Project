@@ -163,7 +163,7 @@ export function RegisterPage() {
           <div className="simple-login-brand">
             <img src={logoUrl} alt="Family Veda" width={56} height={56} />
             <h1>Family Veda</h1>
-            <p>Family workspace</p>
+            <p>Family Portal</p>
           </div>
 
           <p className="eyebrow">Family registration</p>

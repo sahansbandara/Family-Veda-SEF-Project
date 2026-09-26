@@ -10,7 +10,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { signedIn } from '../../store/slices/authSlice'
 
 const onboardingSchema = z.object({
-  familyName: z.string().trim().min(1, 'Enter a family workspace name.').max(120),
+  familyName: z.string().trim().min(1, 'Enter a family name.').max(120),
   dateOfBirth: z.string().min(1, 'Enter your date of birth.').refine((value) => {
     const date = new Date(`${value}T00:00:00Z`)
     const adultCutoff = new Date(); adultCutoff.setUTCFullYear(adultCutoff.getUTCFullYear() - 18)
@@ -26,8 +26,6 @@ export function OnboardingPage() {
   const [dateOfBirth, setDateOfBirth] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const [invitationToken, setInvitationToken] = useState('')
-  const [invitationDateOfBirth, setInvitationDateOfBirth] = useState('')
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -48,24 +46,32 @@ export function OnboardingPage() {
     } catch { setError('Family setup could not be completed. Retry to resume the existing setup safely.') }
     finally { setSaving(false) }
   }
-  async function acceptInvitation(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); if (!user || saving) return
-    if (!invitationToken.trim() || !invitationDateOfBirth) { setError('Enter invitation token and your synthetic date of birth.'); return }
-    setSaving(true); setError('')
-    try {
-      await apiClient.post('/families/invitations/accept', { token: invitationToken.trim(), dateOfBirth: invitationDateOfBirth })
-      dispatch(signedIn({ ...user, role: 'MEMBER' })); navigate('/dashboard', { replace: true })
-    } catch { setError('Invitation is invalid, expired, already used, or does not match this account email.') }
-    finally { setSaving(false) }
-  }
 
-  return <div className="page-stack"><header className="page-header"><div><p className="eyebrow">Required setup</p><h1>Create your family workspace</h1><p>This links your account to an adult family-head profile. Use synthetic information only.</p></div></header>
-    <section className="panel"><form className="button-stack" onSubmit={submit} noValidate>
-      <label className="field"><span>Family workspace name</span><input value={familyName} onChange={(event) => setFamilyName(event.target.value)} /></label>
-      <label className="field"><span>Your synthetic date of birth</span><input type="date" value={dateOfBirth} onChange={(event) => setDateOfBirth(event.target.value)} /></label>
-      {error && <p className="form-error" role="alert">{error}</p>}
-      <button className="button button--primary" type="submit" disabled={saving}>{saving ? 'Creating workspace…' : 'Complete setup'}</button>
-    </form></section>
-    <section className="panel"><h2>Join an existing family</h2><p>Use one-time token provided by family head. Signed-in email must match invitation.</p><form className="button-stack" onSubmit={acceptInvitation}><label className="field"><span>Invitation token</span><input value={invitationToken} onChange={(event) => setInvitationToken(event.target.value)} required /></label><label className="field"><span>Invited adult date of birth</span><input type="date" value={invitationDateOfBirth} onChange={(event) => setInvitationDateOfBirth(event.target.value)} required /></label><button className="button button--primary" type="submit" disabled={saving}>{saving ? 'Joining…' : 'Join family'}</button></form></section>
-  </div>
+  return (
+    <div className="page-stack">
+      <header className="page-header">
+        <div>
+          <p className="eyebrow">Required setup</p>
+          <h1>Create your family profile</h1>
+          <p>This links your account to an adult family-head profile. Use synthetic information only.</p>
+        </div>
+      </header>
+      <section className="panel">
+        <form className="button-stack" onSubmit={submit} noValidate>
+          <label className="field">
+            <span>Family name</span>
+            <input value={familyName} onChange={(event) => setFamilyName(event.target.value)} />
+          </label>
+          <label className="field">
+            <span>Your synthetic date of birth</span>
+            <input type="date" value={dateOfBirth} onChange={(event) => setDateOfBirth(event.target.value)} />
+          </label>
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <button className="button button--primary" type="submit" disabled={saving}>
+            {saving ? 'Setting up…' : 'Complete setup'}
+          </button>
+        </form>
+      </section>
+    </div>
+  )
 }

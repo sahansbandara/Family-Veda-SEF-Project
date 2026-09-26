@@ -42,7 +42,7 @@ export function RouteGuard({
   }
 
   if (!allowedRoles.includes(user.role)) {
-    return <Navigate to="/access-denied" replace />
+    return <Navigate to="/dashboard" replace />
   }
 
   return children

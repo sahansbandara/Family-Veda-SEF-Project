@@ -62,7 +62,7 @@ export function FamilyHeadStatusPage() {
         <div>
           <p className="eyebrow">Family Head Verification Gate</p>
           <h1>Family head verification</h1>
-          <p>Family workspace creation and clinical triage access remain unavailable until administrator verification.</p>
+          <p>Family profile creation and clinical triage access remain unavailable until administrator verification.</p>
         </div>
         {head?.verificationStatus && <StatusBadge status={head.verificationStatus} />}
       </header>
@@ -78,13 +78,13 @@ export function FamilyHeadStatusPage() {
             <p>
               Your auto-generated Family ID is <strong>{head?.familyCode || user?.familyCode || 'FV-1001'}</strong>.
             </p>
-            <p>You can now proceed to initialize your family workspace and invite family members.</p>
+            <p>You can now proceed to initialize your family profile and invite family members.</p>
             <button
               type="button"
               className="button button--primary"
               onClick={() => navigate(user?.role === 'ONBOARDING' ? '/onboarding' : '/dashboard')}
             >
-              Continue to family workspace →
+              Continue to family profile →
             </button>
           </div>
         ) : (

@@ -9,6 +9,8 @@ import { FamilyHeadVerificationPage } from '../pages/admin/FamilyHeadVerificatio
 import { LoginPage } from '../pages/auth/LoginPage'
 import { RegisterPage } from '../pages/auth/RegisterPage'
 import { DoctorRegisterPage } from '../pages/auth/DoctorRegisterPage'
+import { ForgotPasswordPage } from '../pages/auth/ForgotPasswordPage'
+import { ResetPasswordPage } from '../pages/auth/ResetPasswordPage'
 import { DashboardPage } from '../pages/dashboard/DashboardPage'
 import { ApprovalsPage } from '../pages/doctor/ApprovalsPage'
 import { CasesPage } from '../pages/doctor/CasesPage'
@@ -19,7 +21,7 @@ import { FamilyRiskPage } from '../pages/family/FamilyRiskPage'
 import { TriagePage } from '../pages/triage/TriagePage'
 import { FamilyPage } from '../pages/family/FamilyPage'
 import { OnboardingPage } from '../pages/family/OnboardingPage'
-import { AccessDeniedPage, NotFoundPage } from '../pages/system/SystemPages'
+import { NotFoundPage } from '../pages/system/SystemPages'
 import { RouteGuard } from './RouteGuard'
 
 const allRoles = ['DOCTOR', 'ADMIN', 'FAMILY_HEAD', 'MEMBER', 'ONBOARDING'] as const
@@ -31,7 +33,9 @@ export function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/register/doctor" element={<DoctorRegisterPage />} />
-      <Route path="/access-denied" element={<AccessDeniedPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/access-denied" element={<Navigate to="/dashboard" replace />} />
 
       <Route element={<RouteGuard allowedRoles={[...allRoles]} allowUnverifiedDoctor allowUnverifiedFamilyHead><AppLayout /></RouteGuard>}>
         <Route path="/onboarding" element={<RouteGuard allowedRoles={['ONBOARDING']}><OnboardingPage /></RouteGuard>} />
