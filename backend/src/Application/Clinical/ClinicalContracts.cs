@@ -22,6 +22,7 @@ public interface IClinicalService
 {
     Task<DoctorDto> RegisterDoctorAsync(RegisterDoctorRequest request, CancellationToken cancellationToken);
     Task<DoctorDto> GetMyDoctorAsync(CancellationToken cancellationToken);
+    Task<FamilyHeadDto> GetMyFamilyHeadStatusAsync(CancellationToken cancellationToken);
     Task<PagedResult<DoctorDto>> GetPendingDoctorsAsync(int page, int pageSize, CancellationToken cancellationToken);
     Task<DoctorDto> ChangeVerificationAsync(Guid doctorId, VerifyDoctorRequest request, CancellationToken cancellationToken);
     Task<PagedResult<FamilyHeadDto>> GetFamilyHeadsAsync(int page, int pageSize, CancellationToken cancellationToken);

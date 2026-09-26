@@ -69,6 +69,11 @@ public sealed class ClinicalController(IClinicalService clinicalService) : ApiCo
     public async Task<ActionResult<DoctorDto>> SuspendDoctor(Guid doctorId, VerificationReasonRequest request, CancellationToken cancellationToken) =>
         Ok(await clinicalService.ChangeVerificationAsync(doctorId, new VerifyDoctorRequest(VerificationStatus.Suspended, request.Reason), cancellationToken));
 
+    [HttpGet("family-head/me")]
+    [Authorize(Policy = "FamilyUser")]
+    public async Task<ActionResult<FamilyHeadDto>> GetMyFamilyHeadStatus(CancellationToken cancellationToken) =>
+        Ok(await clinicalService.GetMyFamilyHeadStatusAsync(cancellationToken));
+
     [HttpGet("admin/family-heads")]
     [Authorize(Policy = "Admin")]
     public async Task<ActionResult<PagedResult<FamilyHeadDto>>> GetFamilyHeads(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default) =>

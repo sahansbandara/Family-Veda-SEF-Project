@@ -74,7 +74,11 @@ export function RegisterPage() {
     }
   }
 
-  if (isAuthenticated) return <Navigate to={user?.role === 'ONBOARDING' ? '/onboarding' : '/dashboard'} replace />
+  if (isAuthenticated) {
+    const isUnverifiedHead =
+      user?.familyHeadVerificationStatus !== 'VERIFIED' && (user?.role === 'FAMILY_HEAD' || user?.role === 'ONBOARDING')
+    return <Navigate to={isUnverifiedHead ? '/family-head-status' : user?.role === 'ONBOARDING' ? '/onboarding' : '/dashboard'} replace />
+  }
 
   const clearFieldError = (key: FieldKey) => {
     if (fieldErrors[key]) {
@@ -102,7 +106,7 @@ export function RegisterPage() {
     setFieldErrors({})
     setGeneralError('')
     const result = await dispatch(registerFamilyUser(parsed.data))
-    if (registerFamilyUser.fulfilled.match(result)) navigate('/onboarding', { replace: true })
+    if (registerFamilyUser.fulfilled.match(result)) navigate('/family-head-status', { replace: true })
   }
 
   return (

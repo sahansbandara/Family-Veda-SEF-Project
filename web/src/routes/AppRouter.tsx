@@ -13,6 +13,7 @@ import { DashboardPage } from '../pages/dashboard/DashboardPage'
 import { ApprovalsPage } from '../pages/doctor/ApprovalsPage'
 import { CasesPage } from '../pages/doctor/CasesPage'
 import { DoctorStatusPage } from '../pages/doctor/DoctorStatusPage'
+import { FamilyHeadStatusPage } from '../pages/family/FamilyHeadStatusPage'
 import { RecordsPage } from '../pages/records/RecordsPage'
 import { FamilyRiskPage } from '../pages/family/FamilyRiskPage'
 import { TriagePage } from '../pages/triage/TriagePage'
@@ -32,8 +33,9 @@ export function AppRoutes() {
       <Route path="/register/doctor" element={<DoctorRegisterPage />} />
       <Route path="/access-denied" element={<AccessDeniedPage />} />
 
-      <Route element={<RouteGuard allowedRoles={[...allRoles]} allowUnverifiedDoctor><AppLayout /></RouteGuard>}>
+      <Route element={<RouteGuard allowedRoles={[...allRoles]} allowUnverifiedDoctor allowUnverifiedFamilyHead><AppLayout /></RouteGuard>}>
         <Route path="/onboarding" element={<RouteGuard allowedRoles={['ONBOARDING']}><OnboardingPage /></RouteGuard>} />
+        <Route path="/family-head-status" element={<RouteGuard allowedRoles={['FAMILY_HEAD', 'ONBOARDING']} allowUnverifiedFamilyHead><FamilyHeadStatusPage /></RouteGuard>} />
         <Route path="/doctor-status" element={<RouteGuard allowedRoles={['DOCTOR']} allowUnverifiedDoctor><DoctorStatusPage /></RouteGuard>} />
         {/* ===== S3 — Dashboard foundation ===== */}
         <Route path="/dashboard" element={<RouteGuard allowedRoles={['DOCTOR', 'ADMIN', 'FAMILY_HEAD', 'MEMBER']}><DashboardPage /></RouteGuard>} />

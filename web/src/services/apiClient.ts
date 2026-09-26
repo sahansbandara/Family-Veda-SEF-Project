@@ -48,6 +48,8 @@ export type AuthResponse = {
   userType: 'FamilyUser' | 'Doctor' | 'Admin'
   familyRole?: 'Head' | 'AdultMember' | 'MinorMember' | null
   doctorVerificationStatus?: 'Pending' | 'Verified' | 'MoreInformationRequired' | 'Rejected' | 'Suspended' | null
+  familyHeadVerificationStatus?: 'Pending' | 'Verified' | 'MoreInformationRequired' | 'Rejected' | 'Suspended' | null
+  familyCode?: string | null
   accessToken: string
   refreshToken: string
   accessTokenExpiresAt: string
