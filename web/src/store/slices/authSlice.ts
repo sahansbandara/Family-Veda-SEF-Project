@@ -12,6 +12,8 @@ export type SessionUser = {
   name: string
   role: UserRole
   verificationStatus?: VerificationStatus
+  familyHeadVerificationStatus?: VerificationStatus
+  familyCode?: string | null
 }
 
 function mapAuthResponse(data: AuthResponse): SessionUser {
@@ -33,7 +35,26 @@ function mapAuthResponse(data: AuthResponse): SessionUser {
         : data.doctorVerificationStatus === 'MoreInformationRequired'
           ? 'MORE_INFORMATION_REQUIRED'
           : data.userType === 'Doctor' ? 'PENDING' : undefined
-  return { id: data.userId, name: data.displayName, role, verificationStatus }
+
+  const rawHeadStatus = data.familyHeadVerificationStatus
+  const familyHeadVerificationStatus: VerificationStatus | undefined = rawHeadStatus === 'Verified'
+    ? 'VERIFIED'
+    : rawHeadStatus === 'Suspended'
+      ? 'SUSPENDED'
+      : rawHeadStatus === 'Rejected'
+        ? 'REJECTED'
+        : rawHeadStatus === 'MoreInformationRequired'
+          ? 'MORE_INFORMATION_REQUIRED'
+          : (data.userType === 'FamilyUser' || role === 'FAMILY_HEAD' || role === 'ONBOARDING') ? 'PENDING' : undefined
+
+  return {
+    id: data.userId,
+    name: data.displayName,
+    role,
+    verificationStatus,
+    familyHeadVerificationStatus,
+    familyCode: data.familyCode,
+  }
 }
 
 type AuthState = {
@@ -63,7 +84,7 @@ export const signIn = createAsyncThunk<SessionUser, { email: string; password: s
   },
 )
 
-export const registerFamilyUser = createAsyncThunk<SessionUser, { email: string; password: string; displayName: string }, { rejectValue: string }>(
+export const registerFamilyUser = createAsyncThunk<SessionUser, { email: string; password: string; displayName: string; nic?: string; address?: string }, { rejectValue: string }>(
   'auth/registerFamilyUser',
   async (registration, { rejectWithValue }) => {
     try {

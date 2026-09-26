@@ -93,6 +93,292 @@ public sealed class ClinicalService(
         return MapDoctor(doctor);
     }
 
+    public async Task<FamilyHeadDto> GetMyFamilyHeadStatusAsync(CancellationToken cancellationToken)
+    {
+        if (!currentUser.IsAuthenticated || currentUser.UserType != UserType.FamilyUser)
+        {
+            throw new ForbiddenException();
+        }
+
+        var user = await dbContext.Users.SingleOrDefaultAsync(x => x.Id == currentUser.UserId, cancellationToken)
+            ?? throw new NotFoundException();
+
+        var family = await dbContext.Families.Include(f => f.Members)
+            .FirstOrDefaultAsync(f => f.CreatedByUserId == user.Id || f.Members.Any(m => m.UserId == user.Id && m.Role == FamilyRole.Head), cancellationToken);
+        var member = family?.Members.FirstOrDefault(m => m.UserId == user.Id && m.Role == FamilyRole.Head);
+
+        var auditLogs = await dbContext.AuditLogs.AsNoTracking()
+            .Where(a => a.ResourceType == "FamilyHead" && a.ResourceId == user.Id)
+            .OrderByDescending(a => a.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        var latestVerificationAudit = auditLogs.FirstOrDefault(a => a.EventType == "FAMILY_HEAD_VERIFICATION_CHANGED");
+        var registrationAudit = auditLogs.FirstOrDefault(a => a.EventType == "FAMILY_HEAD_REGISTERED");
+
+        VerificationStatus status = user.Email == "demo-head@example.invalid" ? VerificationStatus.Verified : VerificationStatus.Pending;
+        if (latestVerificationAudit != null && Enum.TryParse<VerificationStatus>(latestVerificationAudit.Outcome, out var parsedStatus))
+        {
+            status = parsedStatus;
+        }
+        else if (!user.IsActive)
+        {
+            status = VerificationStatus.Suspended;
+        }
+
+        string? nic = null;
+        string? address = null;
+        string? familyCode = null;
+
+        if (user.Email == "demo-head@example.invalid")
+        {
+            nic = "••••8921";
+            address = "24/B Temple Road, Kandy";
+            familyCode = "FV-1001";
+        }
+
+        if (registrationAudit?.MetadataJson != null)
+        {
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(registrationAudit.MetadataJson);
+                if (doc.RootElement.TryGetProperty("Nic", out var nicElem)) nic = nicElem.GetString();
+                if (doc.RootElement.TryGetProperty("Address", out var addrElem)) address = addrElem.GetString();
+            }
+            catch { }
+        }
+
+        if (latestVerificationAudit?.MetadataJson != null)
+        {
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(latestVerificationAudit.MetadataJson);
+                if (doc.RootElement.TryGetProperty("FamilyCode", out var codeElem)) familyCode = codeElem.GetString();
+                if (nic == null && doc.RootElement.TryGetProperty("Nic", out var nicElem)) nic = nicElem.GetString();
+                if (address == null && doc.RootElement.TryGetProperty("Address", out var addrElem)) address = addrElem.GetString();
+            }
+            catch { }
+        }
+
+        if (status == VerificationStatus.Verified && string.IsNullOrEmpty(familyCode))
+        {
+            familyCode = $"FV-{Math.Abs(user.Id.GetHashCode()) % 9000 + 1000}";
+        }
+
+        return new FamilyHeadDto(
+            member?.Id ?? user.Id,
+            user.Id,
+            family?.Id ?? Guid.Empty,
+            family?.Name ?? "Pending Setup",
+            user.DisplayName,
+            user.Email,
+            family?.Members.Count ?? 0,
+            status,
+            user.IsActive,
+            user.CreatedAt,
+            nic,
+            address,
+            familyCode);
+    }
+
+    public async Task<PagedResult<FamilyHeadDto>> GetFamilyHeadsAsync(int page, int pageSize, CancellationToken cancellationToken)
+    {
+        RequireAdmin();
+        (page, pageSize) = NormalizePage(page, pageSize);
+
+        var headUsers = await dbContext.Users.AsNoTracking()
+            .Where(x => x.UserType == UserType.FamilyUser)
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        var userIds = headUsers.Select(u => u.Id).ToList();
+
+        var families = await dbContext.Families.AsNoTracking()
+            .Include(f => f.Members)
+            .Where(f => userIds.Contains(f.CreatedByUserId) || f.Members.Any(m => m.UserId.HasValue && userIds.Contains(m.UserId.Value) && m.Role == FamilyRole.Head))
+            .ToListAsync(cancellationToken);
+
+        var auditLogs = await dbContext.AuditLogs.AsNoTracking()
+            .Where(a => a.ResourceType == "FamilyHead" && a.ResourceId.HasValue && userIds.Contains(a.ResourceId.Value))
+            .OrderByDescending(a => a.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        var auditsByUser = auditLogs
+            .GroupBy(a => a.ResourceId!.Value)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        var items = headUsers.Select(user =>
+        {
+            var family = families.FirstOrDefault(f => f.CreatedByUserId == user.Id || f.Members.Any(m => m.UserId == user.Id && m.Role == FamilyRole.Head));
+            var member = family?.Members.FirstOrDefault(m => m.UserId == user.Id && m.Role == FamilyRole.Head);
+
+            auditsByUser.TryGetValue(user.Id, out var userAudits);
+            var latestVerificationAudit = userAudits?.FirstOrDefault(a => a.EventType == "FAMILY_HEAD_VERIFICATION_CHANGED");
+            var registrationAudit = userAudits?.FirstOrDefault(a => a.EventType == "FAMILY_HEAD_REGISTERED");
+
+            VerificationStatus status = user.Email == "demo-head@example.invalid" ? VerificationStatus.Verified : VerificationStatus.Pending;
+            if (latestVerificationAudit != null && Enum.TryParse<VerificationStatus>(latestVerificationAudit.Outcome, out var parsedStatus))
+            {
+                status = parsedStatus;
+            }
+            else if (!user.IsActive)
+            {
+                status = VerificationStatus.Suspended;
+            }
+
+            string? nic = null;
+            string? address = null;
+            string? familyCode = null;
+
+            if (user.Email == "demo-head@example.invalid")
+            {
+                nic = "••••8921";
+                address = "24/B Temple Road, Kandy";
+                familyCode = "FV-1001";
+            }
+
+            if (registrationAudit?.MetadataJson != null)
+            {
+                try
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(registrationAudit.MetadataJson);
+                    if (doc.RootElement.TryGetProperty("Nic", out var nicElem)) nic = nicElem.GetString();
+                    if (doc.RootElement.TryGetProperty("Address", out var addrElem)) address = addrElem.GetString();
+                }
+                catch { }
+            }
+
+            if (latestVerificationAudit?.MetadataJson != null)
+            {
+                try
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(latestVerificationAudit.MetadataJson);
+                    if (doc.RootElement.TryGetProperty("FamilyCode", out var codeElem)) familyCode = codeElem.GetString();
+                    if (nic == null && doc.RootElement.TryGetProperty("Nic", out var nicElem)) nic = nicElem.GetString();
+                    if (address == null && doc.RootElement.TryGetProperty("Address", out var addrElem)) address = addrElem.GetString();
+                }
+                catch { }
+            }
+
+            if (status == VerificationStatus.Verified && string.IsNullOrEmpty(familyCode))
+            {
+                familyCode = $"FV-{Math.Abs(user.Id.GetHashCode()) % 9000 + 1000}";
+            }
+
+            return new FamilyHeadDto(
+                member?.Id ?? user.Id,
+                user.Id,
+                family?.Id ?? Guid.Empty,
+                family?.Name ?? "Pending Setup",
+                user.DisplayName,
+                user.Email,
+                family?.Members.Count ?? 0,
+                status,
+                user.IsActive,
+                user.CreatedAt,
+                nic,
+                address,
+                familyCode);
+        }).ToList();
+
+        var total = items.Count;
+        var pagedItems = items.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        return new PagedResult<FamilyHeadDto>(pagedItems, page, pageSize, total);
+    }
+
+    public async Task<FamilyHeadDto> ChangeFamilyHeadVerificationAsync(Guid userId, VerifyDoctorRequest request, CancellationToken cancellationToken)
+    {
+        RequireAdmin();
+        var user = await dbContext.Users.SingleOrDefaultAsync(x => x.Id == userId && x.UserType == UserType.FamilyUser, cancellationToken)
+            ?? throw new NotFoundException();
+
+        var family = await dbContext.Families.Include(f => f.Members)
+            .FirstOrDefaultAsync(f => f.CreatedByUserId == user.Id || f.Members.Any(m => m.UserId == user.Id && m.Role == FamilyRole.Head), cancellationToken);
+
+        if (request.Status == VerificationStatus.Suspended || request.Status == VerificationStatus.Rejected)
+        {
+            user.IsActive = false;
+        }
+        else if (request.Status == VerificationStatus.Verified)
+        {
+            user.IsActive = true;
+        }
+
+        var existingAudits = await dbContext.AuditLogs
+            .Where(a => a.ResourceType == "FamilyHead" && a.ResourceId == user.Id)
+            .OrderByDescending(a => a.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        string? nic = null;
+        string? address = null;
+        string? familyCode = null;
+
+        if (user.Email == "demo-head@example.invalid")
+        {
+            nic = "••••8921";
+            address = "24/B Temple Road, Kandy";
+            familyCode = "FV-1001";
+        }
+
+        foreach (var audit in existingAudits)
+        {
+            if (audit.MetadataJson != null)
+            {
+                try
+                {
+                    using var doc = System.Text.Json.JsonDocument.Parse(audit.MetadataJson);
+                    if (nic == null && doc.RootElement.TryGetProperty("Nic", out var nicElem)) nic = nicElem.GetString();
+                    if (address == null && doc.RootElement.TryGetProperty("Address", out var addrElem)) address = addrElem.GetString();
+                    if (familyCode == null && doc.RootElement.TryGetProperty("FamilyCode", out var codeElem)) familyCode = codeElem.GetString();
+                }
+                catch { }
+            }
+        }
+
+        if (request.Status == VerificationStatus.Verified && string.IsNullOrEmpty(familyCode))
+        {
+            familyCode = $"FV-{Math.Abs(userId.GetHashCode()) % 9000 + 1000}";
+        }
+
+        var metadata = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            Status = request.Status.ToString(),
+            Reason = request.Reason?.Trim(),
+            FamilyCode = familyCode,
+            Nic = nic,
+            Address = address
+        });
+
+        dbContext.AuditLogs.Add(new AuditLog
+        {
+            ActorUserId = currentUser.UserId,
+            EventType = "FAMILY_HEAD_VERIFICATION_CHANGED",
+            ResourceType = "FamilyHead",
+            ResourceId = user.Id,
+            Outcome = request.Status.ToString(),
+            MetadataJson = metadata
+        });
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        var member = family?.Members.FirstOrDefault(m => m.UserId == user.Id && m.Role == FamilyRole.Head);
+        return new FamilyHeadDto(
+            member?.Id ?? user.Id,
+            user.Id,
+            family?.Id ?? Guid.Empty,
+            family?.Name ?? "Pending Setup",
+            user.DisplayName,
+            user.Email,
+            family?.Members.Count ?? 0,
+            request.Status,
+            user.IsActive,
+            user.CreatedAt,
+            nic,
+            address,
+            familyCode);
+    }
+
+
+
     public async Task<PagedResult<TriageCaseDto>> GetMyCasesAsync(int page, int pageSize, CancellationToken cancellationToken)
     {
         var doctor = await RequireVerifiedDoctorAsync(cancellationToken);

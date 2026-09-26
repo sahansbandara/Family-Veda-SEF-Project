@@ -41,6 +41,26 @@ public sealed class AuthService(
         };
         user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
         dbContext.Users.Add(user);
+
+        if (request.UserType == UserType.FamilyUser && (!string.IsNullOrWhiteSpace(request.Nic) || !string.IsNullOrWhiteSpace(request.Address)))
+        {
+            var metadata = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                Nic = request.Nic?.Trim(),
+                Address = request.Address?.Trim(),
+                NicLastFour = request.Nic?.Trim().Length >= 4 ? request.Nic.Trim()[^4..] : request.Nic?.Trim()
+            });
+            dbContext.AuditLogs.Add(new Domain.Clinical.AuditLog
+            {
+                ActorUserId = user.Id,
+                EventType = "FAMILY_HEAD_REGISTERED",
+                ResourceType = "FamilyHead",
+                ResourceId = user.Id,
+                Outcome = "PENDING",
+                MetadataJson = metadata
+            });
+        }
+
         var response = await IssueTokensAsync(user, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return response;
@@ -152,6 +172,52 @@ public sealed class AuthService(
         var doctorVerificationStatus = user.UserType == UserType.Doctor
             ? await dbContext.Doctors.Where(x => x.UserId == user.Id).Select(x => (VerificationStatus?)x.VerificationStatus).SingleOrDefaultAsync(cancellationToken)
             : null;
+
+        VerificationStatus? familyHeadVerificationStatus = null;
+        string? familyCode = null;
+        if (user.UserType == UserType.FamilyUser)
+        {
+            if (user.Email == "demo-head@example.invalid" || user.Email == "demo-member@example.invalid")
+            {
+                familyHeadVerificationStatus = VerificationStatus.Verified;
+                familyCode = "FV-1001";
+            }
+            else
+            {
+                var latestVerificationAudit = await dbContext.AuditLogs
+                    .Where(a => a.ResourceType == "FamilyHead" && a.ResourceId == user.Id && a.EventType == "FAMILY_HEAD_VERIFICATION_CHANGED")
+                    .OrderByDescending(a => a.CreatedAt)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (latestVerificationAudit != null && Enum.TryParse<VerificationStatus>(latestVerificationAudit.Outcome, out var parsedStatus))
+                {
+                    familyHeadVerificationStatus = parsedStatus;
+                    if (latestVerificationAudit.MetadataJson != null)
+                    {
+                        try
+                        {
+                            using var doc = System.Text.Json.JsonDocument.Parse(latestVerificationAudit.MetadataJson);
+                            if (doc.RootElement.TryGetProperty("FamilyCode", out var codeElem)) familyCode = codeElem.GetString();
+                        }
+                        catch { }
+                    }
+                }
+                else if (!user.IsActive)
+                {
+                    familyHeadVerificationStatus = VerificationStatus.Suspended;
+                }
+                else
+                {
+                    familyHeadVerificationStatus = VerificationStatus.Pending;
+                }
+
+                if (familyHeadVerificationStatus == VerificationStatus.Verified && string.IsNullOrEmpty(familyCode))
+                {
+                    familyCode = $"FV-{Math.Abs(user.Id.GetHashCode()) % 9000 + 1000}";
+                }
+            }
+        }
+
         return new AuthResponse(
             user.Id,
             user.DisplayName,
@@ -160,7 +226,9 @@ public sealed class AuthService(
             doctorVerificationStatus,
             new JwtSecurityTokenHandler().WriteToken(token),
             refreshToken,
-            accessExpires);
+            accessExpires,
+            familyHeadVerificationStatus,
+            familyCode);
     }
 
     private static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();

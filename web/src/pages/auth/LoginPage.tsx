@@ -109,7 +109,17 @@ export function LoginPage() {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />
+    const isUnverifiedDoctor = user?.role === 'DOCTOR' && user?.verificationStatus !== 'VERIFIED'
+    const isUnverifiedHead =
+      (user?.role === 'FAMILY_HEAD' || user?.role === 'ONBOARDING') && user?.familyHeadVerificationStatus !== 'VERIFIED'
+    const dest = isUnverifiedDoctor
+      ? '/doctor-status'
+      : isUnverifiedHead
+        ? '/family-head-status'
+        : user?.role === 'ONBOARDING'
+          ? '/onboarding'
+          : '/dashboard'
+    return <Navigate to={dest} replace />
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -124,7 +134,18 @@ export function LoginPage() {
     const result = await dispatch(signIn(parsed.data))
     if (signIn.rejected.match(result)) return
 
-    const destination = result.payload.role === 'ONBOARDING' ? '/onboarding' : result.payload.role === 'DOCTOR' && result.payload.verificationStatus !== 'VERIFIED' ? '/doctor-status' : (location.state as { from?: string } | null)?.from ?? '/dashboard'
+    const isUnverifiedDoctor = result.payload.role === 'DOCTOR' && result.payload.verificationStatus !== 'VERIFIED'
+    const isUnverifiedHead =
+      (result.payload.role === 'FAMILY_HEAD' || result.payload.role === 'ONBOARDING') &&
+      result.payload.familyHeadVerificationStatus !== 'VERIFIED'
+
+    const destination = isUnverifiedDoctor
+      ? '/doctor-status'
+      : isUnverifiedHead
+        ? '/family-head-status'
+        : result.payload.role === 'ONBOARDING'
+          ? '/onboarding'
+          : (location.state as { from?: string } | null)?.from ?? '/dashboard'
     navigate(destination, { replace: true })
   }
 

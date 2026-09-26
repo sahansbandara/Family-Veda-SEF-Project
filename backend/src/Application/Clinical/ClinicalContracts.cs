@@ -15,15 +15,22 @@ public sealed record ApprovalDto(Guid Id, Guid TriageCaseId, Guid DoctorId, Appr
 public sealed record AuditDto(Guid Id, string EventType, string ResourceType, Guid? ResourceId, string Outcome, DateTimeOffset CreatedAt);
 public sealed record AvailableCaseDto(Guid Id, TriagePriority Priority, DateTimeOffset CreatedAt);
 
+public sealed record FamilyHeadDto(Guid Id, Guid UserId, Guid FamilyId, string FamilyName, string DisplayName, string Email, int MemberCount, VerificationStatus VerificationStatus, bool IsActive, DateTimeOffset CreatedAt, string? Nic = null, string? Address = null, string? FamilyCode = null);
+public sealed record VerifyFamilyHeadRequest(VerificationStatus Status, string? Reason);
+
 public interface IClinicalService
 {
     Task<DoctorDto> RegisterDoctorAsync(RegisterDoctorRequest request, CancellationToken cancellationToken);
     Task<DoctorDto> GetMyDoctorAsync(CancellationToken cancellationToken);
+    Task<FamilyHeadDto> GetMyFamilyHeadStatusAsync(CancellationToken cancellationToken);
     Task<PagedResult<DoctorDto>> GetPendingDoctorsAsync(int page, int pageSize, CancellationToken cancellationToken);
     Task<DoctorDto> ChangeVerificationAsync(Guid doctorId, VerifyDoctorRequest request, CancellationToken cancellationToken);
+    Task<PagedResult<FamilyHeadDto>> GetFamilyHeadsAsync(int page, int pageSize, CancellationToken cancellationToken);
+    Task<FamilyHeadDto> ChangeFamilyHeadVerificationAsync(Guid userId, VerifyDoctorRequest request, CancellationToken cancellationToken);
     Task<PagedResult<FamilyVeda.Application.Triage.TriageCaseDto>> GetMyCasesAsync(int page, int pageSize, CancellationToken cancellationToken);
     Task<PagedResult<AvailableCaseDto>> GetAvailableCasesAsync(int page, int pageSize, CancellationToken cancellationToken);
     Task<ApprovalDto> ClaimCaseAsync(Guid caseId, CancellationToken cancellationToken);
     Task<ApprovalDto> DecideCaseAsync(Guid caseId, ApprovalRequest request, CancellationToken cancellationToken);
     Task<PagedResult<AuditDto>> GetAuditAsync(Guid? subjectMemberId, int page, int pageSize, CancellationToken cancellationToken);
 }
+

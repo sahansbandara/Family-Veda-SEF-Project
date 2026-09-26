@@ -26,6 +26,7 @@ const navItems: NavItem[] = [
   { label: 'Approvals', path: '/approvals', roles: ['DOCTOR'] },
   { label: 'Audit', path: '/audit', roles: ['ADMIN', 'FAMILY_HEAD'] },
   { label: 'Doctor verification', path: '/doctor-verification', roles: ['ADMIN'] },
+  { label: 'Family head verification', path: '/family-head-verification', roles: ['ADMIN'] },
 ]
 
 function initials(name: string | undefined): string {

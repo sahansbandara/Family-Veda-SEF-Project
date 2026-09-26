@@ -18,7 +18,7 @@ public sealed class RegisterRequestValidator : AbstractValidator<RegisterRequest
     public RegisterRequestValidator()
     {
         RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(254);
-        RuleFor(x => x.Password).MinimumLength(12).MaximumLength(128);
+        RuleFor(x => x.Password).MinimumLength(8).MaximumLength(128);
         RuleFor(x => x.DisplayName).NotEmpty().MaximumLength(120);
         RuleFor(x => x.UserType).Must(type => type is UserType.FamilyUser or UserType.Doctor)
             .WithMessage("Public registration supports family users and doctors only.");

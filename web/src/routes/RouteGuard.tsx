@@ -10,9 +10,15 @@ type RouteGuardProps = {
   allowedRoles: UserRole[]
   children: ReactNode
   allowUnverifiedDoctor?: boolean
+  allowUnverifiedFamilyHead?: boolean
 }
 
-export function RouteGuard({ allowedRoles, children, allowUnverifiedDoctor = false }: RouteGuardProps) {
+export function RouteGuard({
+  allowedRoles,
+  children,
+  allowUnverifiedDoctor = false,
+  allowUnverifiedFamilyHead = false,
+}: RouteGuardProps) {
   const location = useLocation()
   const { isAuthenticated, user } = useAppSelector((state) => state.auth)
 
@@ -20,14 +26,21 @@ export function RouteGuard({ allowedRoles, children, allowUnverifiedDoctor = fal
     return <Navigate to="/login" replace state={{ from: location.pathname }} />
   }
 
-  if (user.role === 'ONBOARDING' && !allowedRoles.includes('ONBOARDING')) {
-    return <Navigate to="/onboarding" replace />
-  }
-
   const isVerifiedDoctor = user.role !== 'DOCTOR' || user.verificationStatus === 'VERIFIED'
   if (user.role === 'DOCTOR' && !isVerifiedDoctor && !allowUnverifiedDoctor) {
     return <Navigate to="/doctor-status" replace />
   }
+
+  const isVerifiedFamilyHead =
+    (user.role !== 'FAMILY_HEAD' && user.role !== 'ONBOARDING') || user.familyHeadVerificationStatus === 'VERIFIED'
+  if ((user.role === 'FAMILY_HEAD' || user.role === 'ONBOARDING') && !isVerifiedFamilyHead && !allowUnverifiedFamilyHead) {
+    return <Navigate to="/family-head-status" replace />
+  }
+
+  if (user.role === 'ONBOARDING' && !allowedRoles.includes('ONBOARDING')) {
+    return <Navigate to="/onboarding" replace />
+  }
+
   if (!allowedRoles.includes(user.role)) {
     return <Navigate to="/access-denied" replace />
   }

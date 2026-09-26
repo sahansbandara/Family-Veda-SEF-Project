@@ -24,6 +24,7 @@ function renderRoute(
   path: string,
   role?: 'DOCTOR' | 'ADMIN' | 'FAMILY_HEAD' | 'MEMBER' | 'ONBOARDING',
   doctorVerification: 'PENDING' | 'VERIFIED' = 'VERIFIED',
+  familyHeadVerification: 'PENDING' | 'VERIFIED' = 'VERIFIED',
 ) {
   const store = configureStore({ reducer: { auth: authReducer } })
 
@@ -34,6 +35,7 @@ function renderRoute(
         name: 'Synthetic User',
         role,
         verificationStatus: role === 'DOCTOR' ? doctorVerification : undefined,
+        familyHeadVerificationStatus: (role === 'FAMILY_HEAD' || role === 'ONBOARDING') ? familyHeadVerification : undefined,
       }),
     )
   }
@@ -84,6 +86,12 @@ describe('AppRoutes', () => {
     expect(screen.getByRole('heading', { name: /create your family workspace/i })).toBeInTheDocument()
   })
 
+  it('blocks unverified family heads and directs to verification status', async () => {
+    renderRoute('/dashboard', 'ONBOARDING', 'VERIFIED', 'PENDING')
+
+    expect(await screen.findByRole('heading', { name: /family head verification/i })).toBeInTheDocument()
+  })
+
   it('exposes public family registration', () => {
     renderRoute('/register')
 
@@ -95,4 +103,12 @@ describe('AppRoutes', () => {
 
     expect(screen.getByRole('heading', { name: /create doctor account/i })).toBeInTheDocument()
   })
+
+  it('allows administrators to view family head verification queue', async () => {
+    renderRoute('/family-head-verification', 'ADMIN')
+
+    expect(await screen.findByRole('heading', { name: /family head verification/i })).toBeInTheDocument()
+  })
 })
+
+
