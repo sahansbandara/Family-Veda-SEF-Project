@@ -71,7 +71,8 @@ export type ConsentDto = { id: string; memberId: string; category: string; statu
 export type RelationshipDto = { id: string; memberId: string; relatedMemberId: string; relationshipType: string; isBiological: boolean }
 export type DoctorDto = { id: string; userId: string; registrationNumberLastFour: string; verificationStatus: string; specialty?: string }
 export type FamilyHeadDto = { id: string; userId: string; familyId: string; familyName: string; displayName: string; email: string; memberCount: number; verificationStatus: string; isActive: boolean; createdAt: string; nic?: string | null; address?: string | null; familyCode?: string | null }
-
+export type AdminUserDto = { userId: string; email: string; displayName: string; userType: string; isActive: boolean; createdAt: string; status?: string; roleDetail?: string }
+export type ResetPasswordResponse = { success: boolean; message: string; resetToken?: string | null }
 
 export type LabReportDto = { id: string; memberId: string; originalFileName: string; ocrStatus: string; collectedAt?: string }
 export type LabValueDto = { id: string; analyte: string; value: number; unit: string; referenceLow?: number | null; referenceHigh?: number | null; wasManuallyConfirmed: boolean }

@@ -10,6 +10,7 @@ export function DoctorVerificationPage() {
   const [doctors, setDoctors] = useState<DoctorDto[]>([])
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [message, setMessage] = useState('')
+  const [generatedTokenInfo, setGeneratedTokenInfo] = useState<{ doctorReg: string; token: string } | null>(null)
 
   const load = useCallback(async () => {
     setStatus('loading')
@@ -28,11 +29,31 @@ export function DoctorVerificationPage() {
     void load()
   }, [load])
 
-  async function decide(id: string, action: 'verify' | 'request-info' | 'reject' | 'suspend') {
-    const reason = window.prompt('Audit reason (no clinical content):')
-    if (reason === null) return
+  async function handleResetPassword(userId: string, regLastFour: string) {
     try {
-      await apiClient.post(`/admin/doctors/${id}/${action}`, { reason })
+      const response = await apiClient.post<{ success: boolean; message: string; resetToken?: string }>(
+        `/auth/admin/users/${userId}/reset-password`,
+        { reason: 'Administrative password reset' }
+      )
+      setMessage(`Password reset token generated for Doctor (••••${regLastFour}) and logged to audit trail.`)
+      if (response.data.resetToken) {
+        setGeneratedTokenInfo({ doctorReg: `••••${regLastFour}`, token: response.data.resetToken })
+      }
+    } catch {
+      setMessage('Failed to generate password reset token.')
+    }
+  }
+
+  async function decide(id: string, action: 'verify' | 'request-info' | 'reject') {
+    const actionLabels: Record<string, string> = {
+      verify: 'Administrative verification completed',
+      'request-info': 'Additional registration details requested',
+      reject: 'Doctor registration rejected',
+    }
+    try {
+      await apiClient.post(`/admin/doctors/${id}/${action}`, {
+        reason: actionLabels[action] ?? 'Administrative verification update',
+      })
       setMessage('Verification status updated and audited.')
       await load()
     } catch {
@@ -50,7 +71,25 @@ export function DoctorVerificationPage() {
         </div>
       </header>
 
-      {message && <p role="status">{message}</p>}
+      {message && <p role="status" className="status-banner">{message}</p>}
+
+      {generatedTokenInfo && (
+        <div className="panel" style={{ borderLeft: '4px solid var(--primary)', backgroundColor: 'rgba(16, 185, 129, 0.08)', marginBottom: '16px' }}>
+          <h3>🔑 One-Time Reset Token Generated</h3>
+          <p>
+            Secure reset token for Doctor <strong>{generatedTokenInfo.doctorReg}</strong>:{' '}
+            <strong style={{ fontFamily: 'monospace', fontSize: '1.1rem', color: 'var(--primary)', letterSpacing: '1px' }}>
+              {generatedTokenInfo.token}
+            </strong>
+          </p>
+          <p className="muted" style={{ fontSize: '0.85rem' }}>
+            This token is valid for 30 minutes and has been logged to the audit trail.
+          </p>
+          <button type="button" className="button button--secondary button--sm" onClick={() => setGeneratedTokenInfo(null)}>
+            Dismiss
+          </button>
+        </div>
+      )}
 
       <section className="panel">
         {status === 'loading' ? (
@@ -100,6 +139,13 @@ export function DoctorVerificationPage() {
                           onClick={() => void decide(doctor.id, 'reject')}
                         >
                           Reject
+                        </button>
+                        <button
+                          className="button button--secondary button--sm"
+                          onClick={() => void handleResetPassword(doctor.userId, doctor.registrationNumberLastFour)}
+                          title="Generate one-time password reset token"
+                        >
+                          Reset Password
                         </button>
                       </div>
                     </td>

@@ -26,7 +26,7 @@ describe('OnboardingPage', () => {
     store.dispatch(signedIn({ id: 'synthetic-user-01', name: 'Synthetic User', role: 'ONBOARDING' }))
     render(<Provider store={store}><MemoryRouter initialEntries={['/onboarding']}><OnboardingPage /><Location /></MemoryRouter></Provider>)
 
-    fireEvent.change(screen.getByLabelText(/family workspace name/i), { target: { value: 'Synthetic Family' } })
+    fireEvent.change(screen.getByLabelText(/family name/i), { target: { value: 'Synthetic Family' } })
     fireEvent.change(screen.getByLabelText(/synthetic date of birth/i), { target: { value: '1990-01-01' } })
     fireEvent.click(screen.getByRole('button', { name: /complete setup/i }))
 
@@ -44,7 +44,7 @@ describe('OnboardingPage', () => {
     store.dispatch(signedIn({ id: 'synthetic-user-02', name: 'Synthetic User', role: 'ONBOARDING' }))
     render(<Provider store={store}><MemoryRouter><OnboardingPage /></MemoryRouter></Provider>)
 
-    fireEvent.change(screen.getByLabelText(/family workspace name/i), { target: { value: 'Ignored Existing Name' } })
+    fireEvent.change(screen.getByLabelText(/family name/i), { target: { value: 'Ignored Existing Name' } })
     fireEvent.change(screen.getByLabelText(/synthetic date of birth/i), { target: { value: '1990-01-01' } })
     fireEvent.click(screen.getByRole('button', { name: /complete setup/i }))
 
