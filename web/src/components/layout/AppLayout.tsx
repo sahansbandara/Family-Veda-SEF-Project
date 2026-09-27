@@ -31,6 +31,8 @@ const navItems: NavItem[] = [
   { label: 'Audit', path: '/audit', roles: ['ADMIN', 'FAMILY_HEAD'] },
   { label: 'Doctor verification', path: '/doctor-verification', roles: ['ADMIN'] },
   { label: 'Family head verification', path: '/family-head-verification', roles: ['ADMIN'] },
+  { label: 'User directory', path: '/users', roles: ['ADMIN'] },
+  { label: 'Safety & Settings', path: '/settings', roles: ['ADMIN'] },
 ]
 
 function initials(name: string | undefined): string {

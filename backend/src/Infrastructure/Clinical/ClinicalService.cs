@@ -513,7 +513,53 @@ public sealed class ClinicalService(
             familyCode);
     }
 
+    public async Task DeleteFamilyHeadAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        RequireAdmin();
+        var user = await dbContext.Users.SingleOrDefaultAsync(x => x.Id == userId, cancellationToken)
+            ?? throw new NotFoundException();
 
+        var members = await dbContext.Members.Where(m => m.UserId == userId).ToListAsync(cancellationToken);
+        if (members.Count > 0)
+        {
+            foreach (var m in members)
+            {
+                var episodes = await dbContext.Episodes.Where(e => e.MemberId == m.Id).ToListAsync(cancellationToken);
+                var epIds = episodes.Select(e => e.Id).ToList();
+                var cases = await dbContext.TriageCases.Where(c => epIds.Contains(c.EpisodeId)).ToListAsync(cancellationToken);
+                var cIds = cases.Select(c => c.Id).ToList();
+                var traces = await dbContext.AgentTraces.Where(t => cIds.Contains(t.TriageCaseId)).ToListAsync(cancellationToken);
+                if (traces.Count > 0) dbContext.AgentTraces.RemoveRange(traces);
+                var caseGrants = await dbContext.CaseAccessGrants.Where(g => cIds.Contains(g.TriageCaseId)).ToListAsync(cancellationToken);
+                if (caseGrants.Count > 0) dbContext.CaseAccessGrants.RemoveRange(caseGrants);
+                var approvals = await dbContext.Approvals.Where(a => cIds.Contains(a.TriageCaseId)).ToListAsync(cancellationToken);
+                if (approvals.Count > 0) dbContext.Approvals.RemoveRange(approvals);
+                if (cases.Count > 0) dbContext.TriageCases.RemoveRange(cases);
+                if (episodes.Count > 0) dbContext.Episodes.RemoveRange(episodes);
+
+                var consents = await dbContext.Consents.Where(c => c.MemberId == m.Id).ToListAsync(cancellationToken);
+                if (consents.Count > 0) dbContext.Consents.RemoveRange(consents);
+                var records = await dbContext.HealthRecords.Where(r => r.MemberId == m.Id).ToListAsync(cancellationToken);
+                if (records.Count > 0) dbContext.HealthRecords.RemoveRange(records);
+            }
+            dbContext.Members.RemoveRange(members);
+        }
+
+        var families = await dbContext.Families.Where(f => f.CreatedByUserId == userId).ToListAsync(cancellationToken);
+        if (families.Count > 0)
+        {
+            foreach (var f in families)
+            {
+                var familyAssignments = await dbContext.FamilyDoctorAssignments.Where(a => a.FamilyId == f.Id).ToListAsync(cancellationToken);
+                if (familyAssignments.Count > 0) dbContext.FamilyDoctorAssignments.RemoveRange(familyAssignments);
+            }
+            dbContext.Families.RemoveRange(families);
+        }
+
+        dbContext.Users.Remove(user);
+        await WriteAuditAsync("FAMILY_HEAD_DELETED", "FamilyHead", userId, "SUCCESS", cancellationToken, metadataJson: System.Text.Json.JsonSerializer.Serialize(new { UserId = userId, Email = user.Email, DisplayName = user.DisplayName }));
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
 
     public async Task<PagedResult<TriageCaseDto>> GetMyCasesAsync(int page, int pageSize, CancellationToken cancellationToken)
     {

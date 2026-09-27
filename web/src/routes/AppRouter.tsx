@@ -4,8 +4,6 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { AppLayout } from '../components/layout/AppLayout'
 import { AuditPage } from '../pages/audit/AuditPage'
-import { DoctorVerificationPage } from '../pages/admin/DoctorVerificationPage'
-import { FamilyHeadVerificationPage } from '../pages/admin/FamilyHeadVerificationPage'
 import { LoginPage } from '../pages/auth/LoginPage'
 import { RegisterPage } from '../pages/auth/RegisterPage'
 import { DoctorRegisterPage } from '../pages/auth/DoctorRegisterPage'
@@ -13,6 +11,7 @@ import { ForgotPasswordPage } from '../pages/auth/ForgotPasswordPage'
 import { ResetPasswordPage } from '../pages/auth/ResetPasswordPage'
 import { DashboardPage } from '../pages/dashboard/DashboardPage'
 import { DoctorPortal } from '../pages/doctor/DoctorPortal'
+import { ClinicAdminPortal } from '../pages/admin/ClinicAdminPortal'
 import { DoctorStatusPage } from '../pages/doctor/DoctorStatusPage'
 import { FamilyHeadStatusPage } from '../pages/family/FamilyHeadStatusPage'
 import { RecordsPage } from '../pages/records/RecordsPage'
@@ -56,8 +55,10 @@ export function AppRoutes() {
         <Route path="/approvals" element={<RouteGuard allowedRoles={['DOCTOR']}><DoctorPortal initialTab="approvals" /></RouteGuard>} />
         <Route path="/family-risk" element={<RouteGuard allowedRoles={['FAMILY_HEAD', 'MEMBER']}><FamilyRiskPage /></RouteGuard>} />
         <Route path="/audit" element={<RouteGuard allowedRoles={['ADMIN', 'FAMILY_HEAD']}><AuditPage /></RouteGuard>} />
-        <Route path="/doctor-verification" element={<RouteGuard allowedRoles={['ADMIN']}><DoctorVerificationPage /></RouteGuard>} />
-        <Route path="/family-head-verification" element={<RouteGuard allowedRoles={['ADMIN']}><FamilyHeadVerificationPage /></RouteGuard>} />
+        <Route path="/doctor-verification" element={<RouteGuard allowedRoles={['ADMIN']}><ClinicAdminPortal initialTab="doctor-verif" /></RouteGuard>} />
+        <Route path="/family-head-verification" element={<RouteGuard allowedRoles={['ADMIN']}><ClinicAdminPortal initialTab="family-verif" /></RouteGuard>} />
+        <Route path="/users" element={<RouteGuard allowedRoles={['ADMIN']}><ClinicAdminPortal initialTab="users" /></RouteGuard>} />
+        <Route path="/settings" element={<RouteGuard allowedRoles={['ADMIN']}><ClinicAdminPortal initialTab="settings" /></RouteGuard>} />
       </Route>
 
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
