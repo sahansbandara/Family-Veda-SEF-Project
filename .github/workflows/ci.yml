@@ -26,7 +26,7 @@ jobs:
       web: ${{ steps.check.outputs.web }}
       mobile: ${{ steps.check.outputs.mobile }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - id: check
         run: |
@@ -49,7 +49,7 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Skip notice
         if: needs.detect.outputs.backend != 'true'
@@ -95,7 +95,7 @@ jobs:
       run:
         working-directory: web
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Skip notice
         if: needs.detect.outputs.web != 'true'
@@ -133,7 +133,7 @@ jobs:
       run:
         working-directory: mobile
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Skip notice
         if: needs.detect.outputs.mobile != 'true'
