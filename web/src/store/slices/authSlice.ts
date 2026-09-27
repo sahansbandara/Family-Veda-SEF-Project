@@ -97,14 +97,30 @@ export const registerFamilyUser = createAsyncThunk<SessionUser, { email: string;
   },
 )
 
-export const registerDoctorUser = createAsyncThunk<SessionUser, { email: string; password: string; displayName: string }, { rejectValue: string }>(
+export const registerDoctorUser = createAsyncThunk<
+  SessionUser,
+  {
+    email: string
+    password: string
+    displayName: string
+    registrationNumber?: string
+    specialty?: string
+    hospitalClinic?: string
+    phoneNumber?: string
+  },
+  { rejectValue: string }
+>(
   'auth/registerDoctorUser',
   async (registration, { rejectWithValue }) => {
     try {
       const { data } = await apiClient.post<AuthResponse>('/auth/register', { ...registration, userType: 'Doctor' })
       setSessionTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken })
       return mapAuthResponse(data)
-    } catch { return rejectWithValue('Doctor account registration failed. Check the details or sign in to resume.') }
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { detail?: string; message?: string; error?: string; title?: string } } }
+      const msg = axiosError?.response?.data?.detail || axiosError?.response?.data?.message || axiosError?.response?.data?.error || axiosError?.response?.data?.title
+      return rejectWithValue(msg || 'Doctor account registration failed. Check the details or sign in to resume.')
+    }
   },
 )
 

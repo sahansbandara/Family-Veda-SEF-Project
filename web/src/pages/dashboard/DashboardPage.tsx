@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 
 import { StatusBadge } from '../../components/shared/StatusBadge'
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
+import { DoctorPortal } from '../doctor/DoctorPortal'
 import {
   apiClient,
   type AgentTraceDto,
@@ -24,6 +25,10 @@ export function DashboardPage() {
   const isDoctor = user?.role === 'DOCTOR'
   const isAdmin = user?.role === 'ADMIN'
   const isFamilyUser = !isDoctor && !isAdmin
+
+  if (isDoctor) {
+    return <DoctorPortal initialTab="dashboard" />
+  }
 
   const [metrics, setMetrics] = useState<Metrics | null>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')

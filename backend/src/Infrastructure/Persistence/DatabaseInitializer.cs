@@ -20,6 +20,13 @@ public static class DatabaseInitializer
         await using var scope = services.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         if (configuration.GetValue<bool>("Database:MigrateOnStartup")) await dbContext.Database.MigrateAsync(cancellationToken);
+        try
+        {
+            await dbContext.Database.ExecuteSqlRawAsync(
+                "ALTER TABLE doctors ADD COLUMN IF NOT EXISTS hospital_clinic character varying(200); ALTER TABLE doctors ADD COLUMN IF NOT EXISTS phone_number character varying(50);",
+                cancellationToken);
+        }
+        catch { }
         if (!configuration.GetValue<bool>("Seed:Enabled")) return;
         var password = configuration["Seed:DefaultPassword"];
         if (string.IsNullOrWhiteSpace(password) || password.Length < 12)

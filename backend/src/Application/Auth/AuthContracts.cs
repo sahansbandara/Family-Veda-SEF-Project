@@ -5,7 +5,17 @@ using FamilyVeda.Application.Common;
 
 namespace FamilyVeda.Application.Auth;
 
-public sealed record RegisterRequest(string Email, string Password, string DisplayName, UserType UserType, string? Nic = null, string? Address = null);
+public sealed record RegisterRequest(
+    string Email,
+    string Password,
+    string DisplayName,
+    UserType UserType,
+    string? Nic = null,
+    string? Address = null,
+    string? RegistrationNumber = null,
+    string? Specialty = null,
+    string? HospitalClinic = null,
+    string? PhoneNumber = null);
 public sealed record LoginRequest(string Email, string Password);
 public sealed record RefreshRequest(string RefreshToken);
 public sealed record AuthResponse(Guid UserId, string DisplayName, UserType UserType, FamilyRole? FamilyRole, VerificationStatus? DoctorVerificationStatus, string AccessToken, string RefreshToken, DateTimeOffset AccessTokenExpiresAt, VerificationStatus? FamilyHeadVerificationStatus = null, string? FamilyCode = null);

@@ -19,12 +19,15 @@ const navItems: NavItem[] = [
   { label: 'Doctor verification status', path: '/doctor-status', roles: ['DOCTOR'] },
   { label: 'Family head verification status', path: '/family-head-status', roles: ['FAMILY_HEAD', 'ONBOARDING'] },
   { label: 'Dashboard', path: '/dashboard', roles: ['DOCTOR', 'ADMIN', 'FAMILY_HEAD', 'MEMBER'] },
+  { label: 'Calendar', path: '/calendar', roles: ['DOCTOR'] },
+  { label: 'My Families', path: '/families', roles: ['DOCTOR'] },
   { label: 'AI triage', path: '/triage', roles: ['FAMILY_HEAD', 'MEMBER'] },
   { label: 'Records', path: '/records', roles: ['FAMILY_HEAD', 'MEMBER'] },
   { label: 'Family screening', path: '/family-risk', roles: ['FAMILY_HEAD', 'MEMBER'] },
   { label: 'Family', path: '/family', roles: ['FAMILY_HEAD'] },
   { label: 'Triage cases', path: '/cases', roles: ['DOCTOR'] },
   { label: 'Approvals', path: '/approvals', roles: ['DOCTOR'] },
+  { label: 'Profile & Availability', path: '/doctor-profile', roles: ['DOCTOR'] },
   { label: 'Audit', path: '/audit', roles: ['ADMIN', 'FAMILY_HEAD'] },
   { label: 'Doctor verification', path: '/doctor-verification', roles: ['ADMIN'] },
   { label: 'Family head verification', path: '/family-head-verification', roles: ['ADMIN'] },
@@ -117,6 +120,11 @@ export function AppLayout() {
             <span aria-hidden="true">{theme === 'light' ? '☀️' : '🌙'}</span>
             <span>{theme === 'light' ? 'Light' : 'Dark'}</span>
           </button>
+          {user?.role === 'DOCTOR' && user?.verificationStatus === 'VERIFIED' && (
+            <span className="status-badge status-badge--success" style={{ fontWeight: 700 }}>
+              VERIFIED
+            </span>
+          )}
           <span>
             <strong>{user?.name}</strong>
             <small>{user?.role.replaceAll('_', ' ')}</small>

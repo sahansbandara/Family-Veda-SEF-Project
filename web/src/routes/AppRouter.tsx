@@ -12,8 +12,7 @@ import { DoctorRegisterPage } from '../pages/auth/DoctorRegisterPage'
 import { ForgotPasswordPage } from '../pages/auth/ForgotPasswordPage'
 import { ResetPasswordPage } from '../pages/auth/ResetPasswordPage'
 import { DashboardPage } from '../pages/dashboard/DashboardPage'
-import { ApprovalsPage } from '../pages/doctor/ApprovalsPage'
-import { CasesPage } from '../pages/doctor/CasesPage'
+import { DoctorPortal } from '../pages/doctor/DoctorPortal'
 import { DoctorStatusPage } from '../pages/doctor/DoctorStatusPage'
 import { FamilyHeadStatusPage } from '../pages/family/FamilyHeadStatusPage'
 import { RecordsPage } from '../pages/records/RecordsPage'
@@ -50,8 +49,11 @@ export function AppRoutes() {
         <Route path="/family" element={<RouteGuard allowedRoles={['FAMILY_HEAD']}><FamilyPage /></RouteGuard>} />
 
         {/* ===== S4 — Doctor and audit foundations ===== */}
-        <Route path="/cases" element={<RouteGuard allowedRoles={['DOCTOR']}><CasesPage /></RouteGuard>} />
-        <Route path="/approvals" element={<RouteGuard allowedRoles={['DOCTOR']}><ApprovalsPage /></RouteGuard>} />
+        <Route path="/calendar" element={<RouteGuard allowedRoles={['DOCTOR']}><DoctorPortal initialTab="calendar" /></RouteGuard>} />
+        <Route path="/families" element={<RouteGuard allowedRoles={['DOCTOR']}><DoctorPortal initialTab="families" /></RouteGuard>} />
+        <Route path="/doctor-profile" element={<RouteGuard allowedRoles={['DOCTOR']}><DoctorPortal initialTab="profile" /></RouteGuard>} />
+        <Route path="/cases" element={<RouteGuard allowedRoles={['DOCTOR']}><DoctorPortal initialTab="cases" /></RouteGuard>} />
+        <Route path="/approvals" element={<RouteGuard allowedRoles={['DOCTOR']}><DoctorPortal initialTab="approvals" /></RouteGuard>} />
         <Route path="/family-risk" element={<RouteGuard allowedRoles={['FAMILY_HEAD', 'MEMBER']}><FamilyRiskPage /></RouteGuard>} />
         <Route path="/audit" element={<RouteGuard allowedRoles={['ADMIN', 'FAMILY_HEAD']}><AuditPage /></RouteGuard>} />
         <Route path="/doctor-verification" element={<RouteGuard allowedRoles={['ADMIN']}><DoctorVerificationPage /></RouteGuard>} />

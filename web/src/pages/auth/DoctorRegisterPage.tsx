@@ -7,13 +7,96 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { apiClient } from '../../services/apiClient'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { registerDoctorUser } from '../../store/slices/authSlice'
+import { SearchableSelect, type SearchableOption } from '../../components/shared/SearchableSelect'
 import logoUrl from '../../assets/logo.png'
+
+const SPECIALIZATIONS: SearchableOption[] = [
+  { value: 'General Practice / Family Medicine', label: 'General Practice / Family Medicine' },
+  { value: 'Internal Medicine', label: 'Internal Medicine' },
+  { value: 'Paediatrics', label: 'Paediatrics' },
+  { value: 'Cardiology', label: 'Cardiology' },
+  { value: 'Dermatology', label: 'Dermatology' },
+  { value: 'Endocrinology & Diabetology', label: 'Endocrinology & Diabetology' },
+  { value: 'Gastroenterology', label: 'Gastroenterology' },
+  { value: 'Neurology', label: 'Neurology' },
+  { value: 'Obstetrics & Gynaecology', label: 'Obstetrics & Gynaecology' },
+  { value: 'Oncology', label: 'Oncology' },
+  { value: 'Ophthalmology', label: 'Ophthalmology' },
+  { value: 'Orthopaedic Surgery', label: 'Orthopaedic Surgery' },
+  { value: 'Otolaryngology (ENT)', label: 'Otolaryngology (ENT)' },
+  { value: 'Psychiatry', label: 'Psychiatry' },
+  { value: 'Pulmonology / Respiratory Medicine', label: 'Pulmonology / Respiratory Medicine' },
+  { value: 'General Surgery', label: 'General Surgery' },
+  { value: 'Emergency Medicine', label: 'Emergency Medicine' },
+  { value: 'Nephrology', label: 'Nephrology' },
+  { value: 'Rheumatology', label: 'Rheumatology' },
+  { value: 'Other Specialization', label: 'Other Specialization' },
+]
+
+const HOSPITAL_OPTIONS: SearchableOption[] = [
+  // National & Teaching Hospitals
+  { value: 'National Hospital of Sri Lanka (NHSL) - Colombo', label: 'National Hospital of Sri Lanka (NHSL) - Colombo', group: 'National & Teaching Hospitals' },
+  { value: 'National Hospital Kandy', label: 'National Hospital Kandy', group: 'National & Teaching Hospitals' },
+  { value: 'Colombo South Teaching Hospital (Kalubowila)', label: 'Colombo South Teaching Hospital (Kalubowila)', group: 'National & Teaching Hospitals' },
+  { value: 'Colombo North Teaching Hospital (Ragama)', label: 'Colombo North Teaching Hospital (Ragama)', group: 'National & Teaching Hospitals' },
+  { value: 'Sri Jayewardenepura General Hospital', label: 'Sri Jayewardenepura General Hospital', group: 'National & Teaching Hospitals' },
+  { value: 'Lady Ridgeway Hospital for Children (LRH)', label: 'Lady Ridgeway Hospital for Children (LRH)', group: 'National & Teaching Hospitals' },
+  { value: 'Castle Street Hospital for Women (CSHW)', label: 'Castle Street Hospital for Women (CSHW)', group: 'National & Teaching Hospitals' },
+  { value: 'De Soysa Hospital for Women (DMH)', label: 'De Soysa Hospital for Women (DMH)', group: 'National & Teaching Hospitals' },
+  { value: 'Apeksha Hospital (National Cancer Institute) - Maharagama', label: 'Apeksha Hospital (National Cancer Institute) - Maharagama', group: 'National & Teaching Hospitals' },
+  { value: 'National Institute of Mental Health (NIMH) - Angoda', label: 'National Institute of Mental Health (NIMH) - Angoda', group: 'National & Teaching Hospitals' },
+  { value: 'Teaching Hospital Karapitiya (Galle)', label: 'Teaching Hospital Karapitiya (Galle)', group: 'National & Teaching Hospitals' },
+  { value: 'Teaching Hospital Peradeniya', label: 'Teaching Hospital Peradeniya', group: 'National & Teaching Hospitals' },
+  { value: 'Teaching Hospital Jaffna', label: 'Teaching Hospital Jaffna', group: 'National & Teaching Hospitals' },
+  { value: 'Teaching Hospital Batticaloa', label: 'Teaching Hospital Batticaloa', group: 'National & Teaching Hospitals' },
+  { value: 'Teaching Hospital Anuradhapura', label: 'Teaching Hospital Anuradhapura', group: 'National & Teaching Hospitals' },
+  { value: 'Teaching Hospital Kurunegala', label: 'Teaching Hospital Kurunegala', group: 'National & Teaching Hospitals' },
+  { value: 'Teaching Hospital Ratnapura', label: 'Teaching Hospital Ratnapura', group: 'National & Teaching Hospitals' },
+  { value: 'Teaching Hospital Badulla', label: 'Teaching Hospital Badulla', group: 'National & Teaching Hospitals' },
+
+  // General & District Hospitals
+  { value: 'District General Hospital Negombo', label: 'District General Hospital Negombo', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Gampaha', label: 'District General Hospital Gampaha', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Kalutara', label: 'District General Hospital Kalutara', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Matara', label: 'District General Hospital Matara', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Hambantota', label: 'District General Hospital Hambantota', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Chilaw', label: 'District General Hospital Chilaw', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Trincomalee', label: 'District General Hospital Trincomalee', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Polonnaruwa', label: 'District General Hospital Polonnaruwa', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Monaragala', label: 'District General Hospital Monaragala', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Nuwara Eliya', label: 'District General Hospital Nuwara Eliya', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Kegalle', label: 'District General Hospital Kegalle', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Vavuniya', label: 'District General Hospital Vavuniya', group: 'General & District Hospitals' },
+
+  // Major Private Hospitals
+  { value: 'Lanka Hospitals - Colombo', label: 'Lanka Hospitals - Colombo', group: 'Major Private Hospitals' },
+  { value: 'Asiri Central Hospital - Colombo', label: 'Asiri Central Hospital - Colombo', group: 'Major Private Hospitals' },
+  { value: 'Asiri Surgical Hospital - Colombo', label: 'Asiri Surgical Hospital - Colombo', group: 'Major Private Hospitals' },
+  { value: 'Asiri Hospital Kandy / Galle / Matara', label: 'Asiri Hospital Kandy / Galle / Matara', group: 'Major Private Hospitals' },
+  { value: 'Nawaloka Hospital - Colombo / Negombo', label: 'Nawaloka Hospital - Colombo / Negombo', group: 'Major Private Hospitals' },
+  { value: 'Durdans Hospital - Colombo', label: 'Durdans Hospital - Colombo', group: 'Major Private Hospitals' },
+  { value: 'Hemas Hospital - Wattala / Thalawathugoda', label: 'Hemas Hospital - Wattala / Thalawathugoda', group: 'Major Private Hospitals' },
+  { value: 'Kings Hospital - Colombo', label: 'Kings Hospital - Colombo', group: 'Major Private Hospitals' },
+  { value: 'Ninewells Hospital - Colombo', label: 'Ninewells Hospital - Colombo', group: 'Major Private Hospitals' },
+  { value: 'Melsta Hospitals - Ragama', label: 'Melsta Hospitals - Ragama', group: 'Major Private Hospitals' },
+  { value: 'Golden Key Eye & ENT Hospital', label: 'Golden Key Eye & ENT Hospital', group: 'Major Private Hospitals' },
+  { value: 'MediHelp Hospitals & Clinics', label: 'MediHelp Hospitals & Clinics', group: 'Major Private Hospitals' },
+  { value: 'Pannipitiya Private Hospital', label: 'Pannipitiya Private Hospital', group: 'Major Private Hospitals' },
+
+  // Primary Care, Clinics & Practices
+  { value: 'Primary Medical Care Unit (PMCU)', label: 'Primary Medical Care Unit (PMCU)', group: 'Primary Care, Clinics & Practices' },
+  { value: 'Divisional Hospital / MOH Clinic', label: 'Divisional Hospital / MOH Clinic', group: 'Primary Care, Clinics & Practices' },
+  { value: 'Family Practice / Private Medical Clinic', label: 'Family Practice / Private Medical Clinic', group: 'Primary Care, Clinics & Practices' },
+  { value: 'Other Registered Hospital / Clinic', label: 'Other Registered Hospital / Clinic', group: 'Primary Care, Clinics & Practices' },
+]
 
 export function DoctorRegisterPage() {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { isAuthenticated, user, status, error: authError } = useAppSelector((state) => state.auth)
   const [error, setError] = useState('')
+  const [specialty, setSpecialty] = useState('')
+  const [hospitalClinic, setHospitalClinic] = useState('')
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     try {
       return (globalThis.localStorage?.getItem('fv-theme') as 'light' | 'dark') || 'light'
@@ -40,25 +123,72 @@ export function DoctorRegisterPage() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    setError('')
     const form = new FormData(event.currentTarget)
-    const registration = {
-      displayName: String(form.get('displayName') ?? '').trim(),
-      email: String(form.get('email') ?? '').trim(),
-      password: String(form.get('password') ?? ''),
-    }
-    if (!registration.displayName || !registration.email.includes('@') || registration.password.length < 8) {
-      setError('Enter a valid name, email, and password of at least 8 characters.')
+    const displayName = String(form.get('displayName') ?? '').trim()
+    const email = String(form.get('email') ?? '').trim()
+    const password = String(form.get('password') ?? '')
+    const confirmPassword = String(form.get('confirmPassword') ?? '')
+    const registrationNumber = String(form.get('registrationNumber') ?? '').trim()
+    const selectedSpecialty = specialty || String(form.get('specialty') ?? '').trim()
+    const selectedHospital = hospitalClinic || String(form.get('hospitalClinic') ?? '').trim()
+    const phoneNumber = String(form.get('phoneNumber') ?? '').trim()
+
+    if (!displayName) {
+      setError('Please enter your Full Name.')
       return
     }
+    if (!email || !email.includes('@') || !email.includes('.')) {
+      setError('Please enter a valid Email address.')
+      return
+    }
+    if (!password || password.length < 8) {
+      setError('Password must be at least 8 characters long.')
+      return
+    }
+    if (password !== confirmPassword) {
+      setError('Password and Confirm Password do not match.')
+      return
+    }
+    if (!registrationNumber || registrationNumber.length < 4) {
+      setError('Please enter a valid Medical Registration No. (at least 4 characters).')
+      return
+    }
+    if (!selectedSpecialty) {
+      setError('Please select your Specialization.')
+      return
+    }
+    if (!selectedHospital) {
+      setError('Please select your Hospital / Clinic.')
+      return
+    }
+    if (!phoneNumber || phoneNumber.length < 7) {
+      setError('Please enter a valid Phone Number.')
+      return
+    }
+
+    const registration = {
+      displayName,
+      email,
+      password,
+      registrationNumber,
+      specialty: selectedSpecialty,
+      hospitalClinic: selectedHospital,
+      phoneNumber,
+    }
+
     const result = await dispatch(registerDoctorUser(registration))
     if (!registerDoctorUser.fulfilled.match(result)) return
+
     try {
       await apiClient.post('/doctors/register', {
-        registrationNumber: String(form.get('registrationNumber') ?? '').trim(),
-        specialty: String(form.get('specialty') ?? '').trim() || null,
+        registrationNumber,
+        specialty: selectedSpecialty,
+        hospitalClinic: selectedHospital,
+        phoneNumber,
       })
     } catch {
-      setError('Account created, but the synthetic doctor profile needs attention. Continue to status to resume.')
+      // Profile registration may already be created in single-step via /auth/register
     }
     navigate('/doctor-status', { replace: true })
   }
@@ -126,28 +256,63 @@ export function DoctorRegisterPage() {
 
           <form onSubmit={submit} className="register-form-grid" noValidate>
             <label className="field">
-              <span>Display name</span>
+              <span>Full Name <strong style={{ color: 'var(--color-danger, #ef4444)' }}>*</strong></span>
               <input name="displayName" placeholder="e.g. Dr. Kasun Perera" required maxLength={120} />
             </label>
+
             <label className="field">
-              <span>Email address</span>
+              <span>Email <strong style={{ color: 'var(--color-danger, #ef4444)' }}>*</strong></span>
               <input name="email" type="email" placeholder="doctor@example.invalid" required />
             </label>
+
             <label className="field">
-              <span>Synthetic SLMC registration identifier</span>
-              <input name="registrationNumber" placeholder="e.g. SLMC-SYNTH-9941" minLength={4} maxLength={30} required />
-            </label>
-            <label className="field">
-              <span>Specialty (optional)</span>
-              <input name="specialty" placeholder="e.g. General Practice / Paediatrics" maxLength={120} />
-            </label>
-            <label className="field field--full">
-              <span>Password</span>
+              <span>Password <strong style={{ color: 'var(--color-danger, #ef4444)' }}>*</strong></span>
               <input name="password" type="password" placeholder="At least 8 characters" minLength={8} required />
             </label>
+
+            <label className="field">
+              <span>Confirm Password <strong style={{ color: 'var(--color-danger, #ef4444)' }}>*</strong></span>
+              <input name="confirmPassword" type="password" placeholder="Re-enter password" minLength={8} required />
+            </label>
+
+            <label className="field">
+              <span>Medical Registration No. <strong style={{ color: 'var(--color-danger, #ef4444)' }}>*</strong></span>
+              <input name="registrationNumber" placeholder="e.g. SLMC-SYNTH-9941" minLength={4} maxLength={30} required />
+            </label>
+
+            <div className="field">
+              <span>Specialization <strong style={{ color: 'var(--color-danger, #ef4444)' }}>*</strong></span>
+              <SearchableSelect
+                name="specialty"
+                placeholder="Search or select specialization..."
+                options={SPECIALIZATIONS}
+                value={specialty}
+                onChange={setSpecialty}
+                required
+              />
+            </div>
+
+            <div className="field">
+              <span>Hospital / Clinic <strong style={{ color: 'var(--color-danger, #ef4444)' }}>*</strong></span>
+              <SearchableSelect
+                name="hospitalClinic"
+                placeholder="Search or select registered hospital..."
+                options={HOSPITAL_OPTIONS}
+                value={hospitalClinic}
+                onChange={setHospitalClinic}
+                required
+              />
+            </div>
+
+            <label className="field">
+              <span>Phone Number <strong style={{ color: 'var(--color-danger, #ef4444)' }}>*</strong></span>
+              <input name="phoneNumber" type="tel" placeholder="e.g. +94 77 123 4567" maxLength={50} required />
+            </label>
+
             {(error || authError) && <p className="form-error field--full" role="alert">{error || authError}</p>}
+
             <button className="button button--primary button--full field--full" type="submit" disabled={status === 'loading'}>
-              {status === 'loading' ? 'Creating account…' : 'Submit for verification'}
+              {status === 'loading' ? 'Creating doctor account…' : 'Register as Doctor'}
             </button>
           </form>
 
@@ -183,3 +348,5 @@ export function DoctorRegisterPage() {
     </main>
   )
 }
+
+

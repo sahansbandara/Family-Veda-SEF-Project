@@ -22,6 +22,10 @@ public sealed class RegisterRequestValidator : AbstractValidator<RegisterRequest
         RuleFor(x => x.DisplayName).NotEmpty().MaximumLength(120);
         RuleFor(x => x.UserType).Must(type => type is UserType.FamilyUser or UserType.Doctor)
             .WithMessage("Public registration supports family users and doctors only.");
+        RuleFor(x => x.RegistrationNumber).MaximumLength(50);
+        RuleFor(x => x.Specialty).MaximumLength(120);
+        RuleFor(x => x.HospitalClinic).MaximumLength(200);
+        RuleFor(x => x.PhoneNumber).MaximumLength(50);
     }
 }
 

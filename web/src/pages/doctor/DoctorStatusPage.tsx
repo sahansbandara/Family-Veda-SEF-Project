@@ -8,21 +8,276 @@ import { StatusBadge } from '../../components/shared/StatusBadge'
 import { apiClient, type DoctorDto } from '../../services/apiClient'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { signedIn } from '../../store/slices/authSlice'
+import { SearchableSelect, type SearchableOption } from '../../components/shared/SearchableSelect'
+
+const SPECIALIZATIONS: SearchableOption[] = [
+  { value: 'General Practice / Family Medicine', label: 'General Practice / Family Medicine' },
+  { value: 'Internal Medicine', label: 'Internal Medicine' },
+  { value: 'Paediatrics', label: 'Paediatrics' },
+  { value: 'Cardiology', label: 'Cardiology' },
+  { value: 'Dermatology', label: 'Dermatology' },
+  { value: 'Endocrinology & Diabetology', label: 'Endocrinology & Diabetology' },
+  { value: 'Gastroenterology', label: 'Gastroenterology' },
+  { value: 'Neurology', label: 'Neurology' },
+  { value: 'Obstetrics & Gynaecology', label: 'Obstetrics & Gynaecology' },
+  { value: 'Oncology', label: 'Oncology' },
+  { value: 'Ophthalmology', label: 'Ophthalmology' },
+  { value: 'Orthopaedic Surgery', label: 'Orthopaedic Surgery' },
+  { value: 'Otolaryngology (ENT)', label: 'Otolaryngology (ENT)' },
+  { value: 'Psychiatry', label: 'Psychiatry' },
+  { value: 'Pulmonology / Respiratory Medicine', label: 'Pulmonology / Respiratory Medicine' },
+  { value: 'General Surgery', label: 'General Surgery' },
+  { value: 'Emergency Medicine', label: 'Emergency Medicine' },
+  { value: 'Nephrology', label: 'Nephrology' },
+  { value: 'Rheumatology', label: 'Rheumatology' },
+  { value: 'Other Specialization', label: 'Other Specialization' },
+]
+
+const HOSPITAL_OPTIONS: SearchableOption[] = [
+  // National & Teaching Hospitals
+  { value: 'National Hospital of Sri Lanka (NHSL) - Colombo', label: 'National Hospital of Sri Lanka (NHSL) - Colombo', group: 'National & Teaching Hospitals' },
+  { value: 'National Hospital Kandy', label: 'National Hospital Kandy', group: 'National & Teaching Hospitals' },
+  { value: 'Colombo South Teaching Hospital (Kalubowila)', label: 'Colombo South Teaching Hospital (Kalubowila)', group: 'National & Teaching Hospitals' },
+  { value: 'Colombo North Teaching Hospital (Ragama)', label: 'Colombo North Teaching Hospital (Ragama)', group: 'National & Teaching Hospitals' },
+  { value: 'Sri Jayewardenepura General Hospital', label: 'Sri Jayewardenepura General Hospital', group: 'National & Teaching Hospitals' },
+  { value: 'Lady Ridgeway Hospital for Children (LRH)', label: 'Lady Ridgeway Hospital for Children (LRH)', group: 'National & Teaching Hospitals' },
+  { value: 'Castle Street Hospital for Women (CSHW)', label: 'Castle Street Hospital for Women (CSHW)', group: 'National & Teaching Hospitals' },
+  { value: 'De Soysa Hospital for Women (DMH)', label: 'De Soysa Hospital for Women (DMH)', group: 'National & Teaching Hospitals' },
+  { value: 'Apeksha Hospital (National Cancer Institute) - Maharagama', label: 'Apeksha Hospital (National Cancer Institute) - Maharagama', group: 'National & Teaching Hospitals' },
+  { value: 'National Institute of Mental Health (NIMH) - Angoda', label: 'National Institute of Mental Health (NIMH) - Angoda', group: 'National & Teaching Hospitals' },
+  { value: 'Teaching Hospital Karapitiya (Galle)', label: 'Teaching Hospital Karapitiya (Galle)', group: 'National & Teaching Hospitals' },
+  { value: 'Teaching Hospital Peradeniya', label: 'Teaching Hospital Peradeniya', group: 'National & Teaching Hospitals' },
+  { value: 'Teaching Hospital Jaffna', label: 'Teaching Hospital Jaffna', group: 'National & Teaching Hospitals' },
+  { value: 'Teaching Hospital Batticaloa', label: 'Teaching Hospital Batticaloa', group: 'National & Teaching Hospitals' },
+  { value: 'Teaching Hospital Anuradhapura', label: 'Teaching Hospital Anuradhapura', group: 'National & Teaching Hospitals' },
+  { value: 'Teaching Hospital Kurunegala', label: 'Teaching Hospital Kurunegala', group: 'National & Teaching Hospitals' },
+  { value: 'Teaching Hospital Ratnapura', label: 'Teaching Hospital Ratnapura', group: 'National & Teaching Hospitals' },
+  { value: 'Teaching Hospital Badulla', label: 'Teaching Hospital Badulla', group: 'National & Teaching Hospitals' },
+
+  // General & District Hospitals
+  { value: 'District General Hospital Negombo', label: 'District General Hospital Negombo', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Gampaha', label: 'District General Hospital Gampaha', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Kalutara', label: 'District General Hospital Kalutara', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Matara', label: 'District General Hospital Matara', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Hambantota', label: 'District General Hospital Hambantota', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Chilaw', label: 'District General Hospital Chilaw', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Trincomalee', label: 'District General Hospital Trincomalee', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Polonnaruwa', label: 'District General Hospital Polonnaruwa', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Monaragala', label: 'District General Hospital Monaragala', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Nuwara Eliya', label: 'District General Hospital Nuwara Eliya', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Kegalle', label: 'District General Hospital Kegalle', group: 'General & District Hospitals' },
+  { value: 'District General Hospital Vavuniya', label: 'District General Hospital Vavuniya', group: 'General & District Hospitals' },
+
+  // Major Private Hospitals
+  { value: 'Lanka Hospitals - Colombo', label: 'Lanka Hospitals - Colombo', group: 'Major Private Hospitals' },
+  { value: 'Asiri Central Hospital - Colombo', label: 'Asiri Central Hospital - Colombo', group: 'Major Private Hospitals' },
+  { value: 'Asiri Surgical Hospital - Colombo', label: 'Asiri Surgical Hospital - Colombo', group: 'Major Private Hospitals' },
+  { value: 'Asiri Hospital Kandy / Galle / Matara', label: 'Asiri Hospital Kandy / Galle / Matara', group: 'Major Private Hospitals' },
+  { value: 'Nawaloka Hospital - Colombo / Negombo', label: 'Nawaloka Hospital - Colombo / Negombo', group: 'Major Private Hospitals' },
+  { value: 'Durdans Hospital - Colombo', label: 'Durdans Hospital - Colombo', group: 'Major Private Hospitals' },
+  { value: 'Hemas Hospital - Wattala / Thalawathugoda', label: 'Hemas Hospital - Wattala / Thalawathugoda', group: 'Major Private Hospitals' },
+  { value: 'Kings Hospital - Colombo', label: 'Kings Hospital - Colombo', group: 'Major Private Hospitals' },
+  { value: 'Ninewells Hospital - Colombo', label: 'Ninewells Hospital - Colombo', group: 'Major Private Hospitals' },
+  { value: 'Melsta Hospitals - Ragama', label: 'Melsta Hospitals - Ragama', group: 'Major Private Hospitals' },
+  { value: 'Golden Key Eye & ENT Hospital', label: 'Golden Key Eye & ENT Hospital', group: 'Major Private Hospitals' },
+  { value: 'MediHelp Hospitals & Clinics', label: 'MediHelp Hospitals & Clinics', group: 'Major Private Hospitals' },
+  { value: 'Pannipitiya Private Hospital', label: 'Pannipitiya Private Hospital', group: 'Major Private Hospitals' },
+
+  // Primary Care, Clinics & Practices
+  { value: 'Primary Medical Care Unit (PMCU)', label: 'Primary Medical Care Unit (PMCU)', group: 'Primary Care, Clinics & Practices' },
+  { value: 'Divisional Hospital / MOH Clinic', label: 'Divisional Hospital / MOH Clinic', group: 'Primary Care, Clinics & Practices' },
+  { value: 'Family Practice / Private Medical Clinic', label: 'Family Practice / Private Medical Clinic', group: 'Primary Care, Clinics & Practices' },
+  { value: 'Other Registered Hospital / Clinic', label: 'Other Registered Hospital / Clinic', group: 'Primary Care, Clinics & Practices' },
+]
 
 export function DoctorStatusPage() {
-  const dispatch = useAppDispatch(); const user = useAppSelector((root) => root.auth.user)
+  const dispatch = useAppDispatch()
+  const user = useAppSelector((root) => root.auth.user)
   const [doctor, setDoctor] = useState<DoctorDto | null>(null)
   const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'error'>('loading')
-  const load = useCallback(async () => { setState('loading'); try { const data = (await apiClient.get<DoctorDto>('/doctors/me')).data; setDoctor(data); const verificationStatus = data.verificationStatus === 'Verified' ? 'VERIFIED' : data.verificationStatus === 'Suspended' ? 'SUSPENDED' : data.verificationStatus === 'Rejected' ? 'REJECTED' : data.verificationStatus === 'MoreInformationRequired' ? 'MORE_INFORMATION_REQUIRED' : 'PENDING'; if (user && user.verificationStatus !== verificationStatus) dispatch(signedIn({ ...user, verificationStatus })); setState('ready') } catch (error: unknown) { const status = (error as { response?: { status?: number } }).response?.status; setState(status === 404 ? 'missing' : 'error') } }, [dispatch, user])
+  const [formError, setFormError] = useState('')
+  const [specialty, setSpecialty] = useState('')
+  const [hospitalClinic, setHospitalClinic] = useState('')
+
+  const load = useCallback(async () => {
+    setState('loading')
+    try {
+      const data = (await apiClient.get<DoctorDto>('/doctors/me')).data
+      setDoctor(data)
+      const verificationStatus =
+        data.verificationStatus === 'Verified'
+          ? 'VERIFIED'
+          : data.verificationStatus === 'Suspended'
+            ? 'SUSPENDED'
+            : data.verificationStatus === 'Rejected'
+              ? 'REJECTED'
+              : data.verificationStatus === 'MoreInformationRequired'
+                ? 'MORE_INFORMATION_REQUIRED'
+                : 'PENDING'
+      if (user && user.verificationStatus !== verificationStatus) {
+        dispatch(signedIn({ ...user, verificationStatus }))
+      }
+      setState('ready')
+    } catch (error: unknown) {
+      const status = (error as { response?: { status?: number } }).response?.status
+      setState(status === 404 ? 'missing' : 'error')
+    }
+  }, [dispatch, user])
+
   const submitProfile = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); const form = new FormData(event.currentTarget)
-    try { await apiClient.post('/doctors/register', { registrationNumber: form.get('registrationNumber'), specialty: form.get('specialty') || null }); await load() }
-    catch { setState('error') }
+    event.preventDefault()
+    setFormError('')
+    const form = new FormData(event.currentTarget)
+    const registrationNumber = String(form.get('registrationNumber') ?? '').trim()
+    const selectedSpecialty = specialty || String(form.get('specialty') ?? '').trim()
+    const selectedHospital = hospitalClinic || String(form.get('hospitalClinic') ?? '').trim()
+    const phoneNumber = String(form.get('phoneNumber') ?? '').trim()
+
+    if (!registrationNumber || registrationNumber.length < 4) {
+      setFormError('Please enter a valid Medical Registration No.')
+      return
+    }
+    if (!selectedSpecialty) {
+      setFormError('Please select your Specialization.')
+      return
+    }
+    if (!selectedHospital) {
+      setFormError('Please select your Hospital / Clinic.')
+      return
+    }
+    if (!phoneNumber) {
+      setFormError('Please enter your Phone Number.')
+      return
+    }
+
+    try {
+      await apiClient.post('/doctors/register', {
+        registrationNumber,
+        specialty: selectedSpecialty,
+        hospitalClinic: selectedHospital,
+        phoneNumber,
+      })
+      await load()
+    } catch {
+      setFormError('Failed to submit doctor profile. Please verify your details.')
+    }
   }
-  useEffect(() => { void load() }, [load])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
   if (state === 'loading') return <LoadingState label="Loading verification status" />
   if (state === 'error') return <ErrorState message="Verification status could not be loaded." onRetry={() => void load()} />
-  return <div className="page-stack"><header className="page-header"><div><p className="eyebrow">Clinical access gate</p><h1>Doctor verification</h1><p>Clinical routes remain unavailable until manual administrator verification.</p></div>{doctor?.verificationStatus && <StatusBadge status={doctor.verificationStatus} />}</header>
-    <section className="panel">{state === 'missing' ? <><h2>Complete profile submission</h2><p>Use synthetic registration data only. The identifier is hashed before storage.</p><form className="button-stack" onSubmit={(event) => void submitProfile(event)}><label className="field"><span>Synthetic registration identifier</span><input name="registrationNumber" minLength={4} maxLength={30} required /></label><label className="field"><span>Specialty (optional)</span><input name="specialty" maxLength={120} /></label><button className="button button--primary" type="submit">Submit for verification</button></form></> : <><h2>Submission received</h2><p>Registration ending in <strong>{doctor?.registrationNumberLastFour}</strong> is recorded with status <strong>{doctor?.verificationStatus}</strong>.</p><p>No patient or case information is accessible in this state.</p></>}</section>
-  </div>
+
+  return (
+    <div className="page-stack">
+      <header className="page-header">
+        <div>
+          <p className="eyebrow">Clinical access gate</p>
+          <h1>Doctor Verification</h1>
+          <p>Clinical routes remain unavailable until manual administrator verification.</p>
+        </div>
+        {doctor?.verificationStatus && <StatusBadge status={doctor.verificationStatus} />}
+      </header>
+
+      <section className="panel">
+        {state === 'missing' ? (
+          <>
+            <h2>Complete Profile Submission</h2>
+            <p className="muted">Use synthetic registration data only. The identifier is hashed before storage.</p>
+            {formError && <p className="form-error" role="alert">{formError}</p>}
+            <form className="register-form-grid" onSubmit={(event) => void submitProfile(event)}>
+              <label className="field">
+                <span>Medical Registration No. <strong style={{ color: 'var(--color-danger, #ef4444)' }}>*</strong></span>
+                <input name="registrationNumber" placeholder="e.g. SLMC-SYNTH-9941" minLength={4} maxLength={30} required />
+              </label>
+
+              <div className="field">
+                <span>Specialization <strong style={{ color: 'var(--color-danger, #ef4444)' }}>*</strong></span>
+                <SearchableSelect
+                  name="specialty"
+                  placeholder="Search or select specialization..."
+                  options={SPECIALIZATIONS}
+                  value={specialty}
+                  onChange={setSpecialty}
+                  required
+                />
+              </div>
+
+              <div className="field">
+                <span>Hospital / Clinic <strong style={{ color: 'var(--color-danger, #ef4444)' }}>*</strong></span>
+                <SearchableSelect
+                  name="hospitalClinic"
+                  placeholder="Search or select registered hospital..."
+                  options={HOSPITAL_OPTIONS}
+                  value={hospitalClinic}
+                  onChange={setHospitalClinic}
+                  required
+                />
+              </div>
+
+              <label className="field">
+                <span>Phone Number <strong style={{ color: 'var(--color-danger, #ef4444)' }}>*</strong></span>
+                <input name="phoneNumber" type="tel" placeholder="e.g. +94 77 123 4567" maxLength={50} required />
+              </label>
+
+              <button className="button button--primary field--full" type="submit">
+                Submit for verification
+              </button>
+            </form>
+          </>
+        ) : (
+          <>
+            <h2>Doctor Profile & Status</h2>
+            <p className="muted">
+              Registration ending in <strong>••••{doctor?.registrationNumberLastFour}</strong> is recorded with status{' '}
+              <strong>{doctor?.verificationStatus}</strong>.
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginTop: '1.25rem' }}>
+              <div className="card-mini" style={{ padding: '0.85rem', background: 'var(--bg-subtle, rgba(0,0,0,0.02))', borderRadius: '8px', border: '1px solid var(--border-color, #e5e7eb)' }}>
+                <span className="muted" style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Full Name</span>
+                <p style={{ margin: '0.25rem 0 0', fontWeight: 600 }}>{doctor?.displayName || user?.name || 'Doctor Account'}</p>
+              </div>
+
+              <div className="card-mini" style={{ padding: '0.85rem', background: 'var(--bg-subtle, rgba(0,0,0,0.02))', borderRadius: '8px', border: '1px solid var(--border-color, #e5e7eb)' }}>
+                <span className="muted" style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email</span>
+                <p style={{ margin: '0.25rem 0 0', fontWeight: 600 }}>{doctor?.email || 'Registered Email'}</p>
+              </div>
+
+              <div className="card-mini" style={{ padding: '0.85rem', background: 'var(--bg-subtle, rgba(0,0,0,0.02))', borderRadius: '8px', border: '1px solid var(--border-color, #e5e7eb)' }}>
+                <span className="muted" style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Medical Reg No.</span>
+                <p style={{ margin: '0.25rem 0 0', fontWeight: 600 }}>••••{doctor?.registrationNumberLastFour}</p>
+              </div>
+
+              <div className="card-mini" style={{ padding: '0.85rem', background: 'var(--bg-subtle, rgba(0,0,0,0.02))', borderRadius: '8px', border: '1px solid var(--border-color, #e5e7eb)' }}>
+                <span className="muted" style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Specialization</span>
+                <p style={{ margin: '0.25rem 0 0', fontWeight: 600 }}>{doctor?.specialty || 'General Practice'}</p>
+              </div>
+
+              <div className="card-mini" style={{ padding: '0.85rem', background: 'var(--bg-subtle, rgba(0,0,0,0.02))', borderRadius: '8px', border: '1px solid var(--border-color, #e5e7eb)' }}>
+                <span className="muted" style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Hospital / Clinic</span>
+                <p style={{ margin: '0.25rem 0 0', fontWeight: 600 }}>{doctor?.hospitalClinic || 'Not specified'}</p>
+              </div>
+
+              <div className="card-mini" style={{ padding: '0.85rem', background: 'var(--bg-subtle, rgba(0,0,0,0.02))', borderRadius: '8px', border: '1px solid var(--border-color, #e5e7eb)' }}>
+                <span className="muted" style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Phone Number</span>
+                <p style={{ margin: '0.25rem 0 0', fontWeight: 600 }}>{doctor?.phoneNumber || 'Not specified'}</p>
+              </div>
+            </div>
+
+            <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(59, 130, 246, 0.06)', borderRadius: '8px', borderLeft: '4px solid var(--primary, #3b82f6)' }}>
+              <h4 style={{ margin: '0 0 0.5rem' }}>ℹ️ Verification Notice</h4>
+              <p className="muted" style={{ margin: 0, fontSize: '0.9rem' }}>
+                Your clinician credentials have been submitted for verification. Clinical cases, triage workflows, and patient consultations remain locked until an administrator reviews and approves your account.
+              </p>
+            </div>
+          </>
+        )}
+      </section>
+    </div>
+  )
 }
+
+

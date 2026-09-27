@@ -49,16 +49,27 @@ public sealed class ClinicalService(
             UserId = currentUser.UserId,
             RegistrationNumberHash = hash,
             RegistrationNumberLastFour = normalized[^Math.Min(4, normalized.Length)..],
-            Specialty = request.Specialty?.Trim()
+            Specialty = request.Specialty?.Trim(),
+            HospitalClinic = request.HospitalClinic?.Trim(),
+            PhoneNumber = request.PhoneNumber?.Trim()
         };
         dbContext.Doctors.Add(doctor);
+        var metadata = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            RegistrationNumber = request.RegistrationNumber?.Trim(),
+            Specialization = request.Specialty?.Trim(),
+            HospitalClinic = request.HospitalClinic?.Trim(),
+            PhoneNumber = request.PhoneNumber?.Trim(),
+            RegistrationNumberLastFour = doctor.RegistrationNumberLastFour
+        });
+        await WriteAuditAsync("DOCTOR_REGISTERED", "Doctor", doctor.Id, "PENDING", cancellationToken, metadataJson: metadata);
         await dbContext.SaveChangesAsync(cancellationToken);
-        return MapDoctor(doctor);
+        return MapDoctor(doctor, request.RegistrationNumber?.Trim());
     }
 
     public async Task<DoctorDto> GetMyDoctorAsync(CancellationToken cancellationToken)
     {
-        var doctor = await dbContext.Doctors.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == currentUser.UserId, cancellationToken) ?? throw new NotFoundException();
+        var doctor = await dbContext.Doctors.AsNoTracking().Include(x => x.User).SingleOrDefaultAsync(x => x.UserId == currentUser.UserId, cancellationToken) ?? throw new NotFoundException();
         return MapDoctor(doctor);
     }
 
@@ -66,20 +77,92 @@ public sealed class ClinicalService(
     {
         RequireAdmin();
         (page, pageSize) = NormalizePage(page, pageSize);
-        var query = dbContext.Doctors.AsNoTracking().Where(x => x.VerificationStatus == VerificationStatus.Pending).OrderBy(x => x.CreatedAt);
-        var total = await query.CountAsync(cancellationToken);
-        var items = await query.Skip((page - 1) * pageSize).Take(pageSize)
-            .Select(x => new DoctorDto(x.Id, x.UserId, x.RegistrationNumberLastFour, x.VerificationStatus, x.Specialty))
+        var doctors = await dbContext.Doctors.AsNoTracking()
+            .Include(x => x.User)
+            .OrderByDescending(x => x.VerificationStatus == VerificationStatus.Pending)
+            .ThenByDescending(x => x.CreatedAt)
             .ToListAsync(cancellationToken);
-        return new PagedResult<DoctorDto>(items, page, pageSize, total);
+
+        var doctorIds = doctors.Select(d => d.Id).ToList();
+        var userIds = doctors.Select(d => d.UserId).ToList();
+
+        var auditLogs = await dbContext.AuditLogs.AsNoTracking()
+            .Where(a => a.ResourceType == "Doctor" && a.ResourceId.HasValue && (doctorIds.Contains(a.ResourceId.Value) || userIds.Contains(a.ResourceId.Value)))
+            .OrderByDescending(a => a.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        var auditsByDoctor = auditLogs
+            .GroupBy(a => a.ResourceId!.Value)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        var items = doctors.Select(x =>
+        {
+            var hospital = x.HospitalClinic;
+            var phone = x.PhoneNumber;
+            var specialty = x.Specialty;
+            string? regNumber = null;
+
+            List<AuditLog>? userAudits = null;
+            if (auditsByDoctor.TryGetValue(x.Id, out var da)) userAudits = da;
+            else if (auditsByDoctor.TryGetValue(x.UserId, out var ua)) userAudits = ua;
+
+            if (userAudits != null)
+            {
+                var regAudit = userAudits.FirstOrDefault(a => a.EventType == "DOCTOR_REGISTERED");
+                if (regAudit?.MetadataJson != null)
+                {
+                    try
+                    {
+                        using var doc = System.Text.Json.JsonDocument.Parse(regAudit.MetadataJson);
+                        if (string.IsNullOrEmpty(hospital) && doc.RootElement.TryGetProperty("HospitalClinic", out var hElem)) hospital = hElem.GetString();
+                        if (string.IsNullOrEmpty(phone) && doc.RootElement.TryGetProperty("PhoneNumber", out var pElem)) phone = pElem.GetString();
+                        if (string.IsNullOrEmpty(specialty) && doc.RootElement.TryGetProperty("Specialization", out var sElem)) specialty = sElem.GetString();
+                        if (doc.RootElement.TryGetProperty("RegistrationNumber", out var rElem)) regNumber = rElem.GetString();
+                    }
+                    catch { }
+                }
+            }
+
+            return new DoctorDto(
+                x.Id,
+                x.UserId,
+                x.RegistrationNumberLastFour,
+                x.VerificationStatus,
+                specialty ?? "General Practice / Family Medicine",
+                hospital,
+                phone,
+                x.User?.DisplayName ?? "Doctor Account",
+                x.User?.Email,
+                regNumber
+            );
+        }).ToList();
+
+        var total = items.Count;
+        var pagedItems = items.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        return new PagedResult<DoctorDto>(pagedItems, page, pageSize, total);
     }
 
     public async Task<DoctorDto> ChangeVerificationAsync(Guid doctorId, VerifyDoctorRequest request, CancellationToken cancellationToken)
     {
         RequireAdmin();
-        var doctor = await dbContext.Doctors.SingleOrDefaultAsync(x => x.Id == doctorId, cancellationToken) ?? throw new NotFoundException();
+        var doctor = await dbContext.Doctors.Include(x => x.User).SingleOrDefaultAsync(x => x.Id == doctorId, cancellationToken)
+            ?? await dbContext.Doctors.Include(x => x.User).SingleOrDefaultAsync(x => x.UserId == doctorId, cancellationToken)
+            ?? throw new NotFoundException();
         var previous = doctor.VerificationStatus;
         doctor.VerificationStatus = request.Status;
+
+        if (doctor.User != null)
+        {
+            if (request.Status == VerificationStatus.Suspended || request.Status == VerificationStatus.Rejected)
+            {
+                doctor.User.IsActive = false;
+            }
+            else if (request.Status == VerificationStatus.Verified)
+            {
+                doctor.User.IsActive = true;
+            }
+        }
+
         dbContext.DoctorVerificationLogs.Add(new DoctorVerificationLog
         {
             DoctorId = doctor.Id,
@@ -91,6 +174,40 @@ public sealed class ClinicalService(
         await WriteAuditAsync("DOCTOR_VERIFICATION_CHANGED", "Doctor", doctor.Id, "SUCCESS", cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return MapDoctor(doctor);
+    }
+
+    public async Task DeleteDoctorAsync(Guid doctorId, CancellationToken cancellationToken)
+    {
+        RequireAdmin();
+        var doctor = await dbContext.Doctors.Include(x => x.User).SingleOrDefaultAsync(x => x.Id == doctorId, cancellationToken)
+            ?? await dbContext.Doctors.Include(x => x.User).SingleOrDefaultAsync(x => x.UserId == doctorId, cancellationToken)
+            ?? throw new NotFoundException();
+
+        var dId = doctor.Id;
+        var uId = doctor.UserId;
+
+        var logs = await dbContext.DoctorVerificationLogs.Where(x => x.DoctorId == dId).ToListAsync(cancellationToken);
+        if (logs.Count > 0) dbContext.DoctorVerificationLogs.RemoveRange(logs);
+
+        var assignments = await dbContext.FamilyDoctorAssignments.Where(x => x.DoctorId == dId).ToListAsync(cancellationToken);
+        if (assignments.Count > 0) dbContext.FamilyDoctorAssignments.RemoveRange(assignments);
+
+        var grants = await dbContext.CaseAccessGrants.Where(x => x.DoctorId == dId).ToListAsync(cancellationToken);
+        if (grants.Count > 0) dbContext.CaseAccessGrants.RemoveRange(grants);
+
+        var approvals = await dbContext.Approvals.Where(x => x.DoctorId == dId).ToListAsync(cancellationToken);
+        if (approvals.Count > 0) dbContext.Approvals.RemoveRange(approvals);
+
+        dbContext.Doctors.Remove(doctor);
+
+        var user = doctor.User ?? await dbContext.Users.SingleOrDefaultAsync(x => x.Id == uId, cancellationToken);
+        if (user != null)
+        {
+            dbContext.Users.Remove(user);
+        }
+
+        await WriteAuditAsync("DOCTOR_DELETED", "Doctor", dId, "SUCCESS", cancellationToken, metadataJson: System.Text.Json.JsonSerializer.Serialize(new { DoctorId = dId, UserId = uId, Email = user?.Email, DisplayName = user?.DisplayName }));
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<FamilyHeadDto> GetMyFamilyHeadStatusAsync(CancellationToken cancellationToken)
@@ -605,7 +722,7 @@ public sealed class ClinicalService(
         }
     }
 
-    private async Task WriteAuditAsync(string eventType, string resourceType, Guid resourceId, string outcome, CancellationToken cancellationToken, Guid? subjectMemberId = null)
+    private async Task WriteAuditAsync(string eventType, string resourceType, Guid resourceId, string outcome, CancellationToken cancellationToken, Guid? subjectMemberId = null, string? metadataJson = null)
     {
         dbContext.AuditLogs.Add(new AuditLog
         {
@@ -614,7 +731,8 @@ public sealed class ClinicalService(
             EventType = eventType,
             ResourceType = resourceType,
             ResourceId = resourceId,
-            Outcome = outcome
+            Outcome = outcome,
+            MetadataJson = metadataJson
         });
         await Task.CompletedTask;
     }
@@ -629,7 +747,8 @@ public sealed class ClinicalService(
         return normalized;
     }
 
-    private static DoctorDto MapDoctor(Doctor x) => new(x.Id, x.UserId, x.RegistrationNumberLastFour, x.VerificationStatus, x.Specialty);
+    private static DoctorDto MapDoctor(Doctor x, string? registrationNumber = null) =>
+        new(x.Id, x.UserId, x.RegistrationNumberLastFour, x.VerificationStatus, x.Specialty, x.HospitalClinic, x.PhoneNumber, x.User?.DisplayName, x.User?.Email, registrationNumber);
     private static ApprovalDto MapApproval(Approval x) => new(x.Id, x.TriageCaseId, x.DoctorId, x.Action, x.DecidedAt);
     private static (int Page, int PageSize) NormalizePage(int page, int pageSize) => (Math.Max(page, 1), Math.Clamp(pageSize, 1, 100));
 }

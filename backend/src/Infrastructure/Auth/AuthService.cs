@@ -60,6 +60,46 @@ public sealed class AuthService(
                 MetadataJson = metadata
             });
         }
+        else if (request.UserType == UserType.Doctor && !string.IsNullOrWhiteSpace(request.RegistrationNumber))
+        {
+            var normalizedReg = request.RegistrationNumber.Trim().ToUpperInvariant();
+            var purposeKey = SHA256.HashData(Encoding.UTF8.GetBytes($"FamilyVeda.DoctorRegistration.v1:{_options.Key}"));
+            var hash = Convert.ToHexString(HMACSHA256.HashData(purposeKey, Encoding.UTF8.GetBytes(normalizedReg)));
+            if (await dbContext.Doctors.AnyAsync(x => x.RegistrationNumberHash == hash, cancellationToken))
+            {
+                throw new ConflictException("Registration number is already registered.");
+            }
+
+            var doctor = new Domain.Clinical.Doctor
+            {
+                UserId = user.Id,
+                RegistrationNumberHash = hash,
+                RegistrationNumberLastFour = normalizedReg[^Math.Min(4, normalizedReg.Length)..],
+                Specialty = request.Specialty?.Trim(),
+                HospitalClinic = request.HospitalClinic?.Trim(),
+                PhoneNumber = request.PhoneNumber?.Trim(),
+                VerificationStatus = VerificationStatus.Pending
+            };
+            dbContext.Doctors.Add(doctor);
+
+            var doctorMetadata = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                RegistrationNumber = request.RegistrationNumber?.Trim(),
+                Specialization = request.Specialty?.Trim(),
+                HospitalClinic = request.HospitalClinic?.Trim(),
+                PhoneNumber = request.PhoneNumber?.Trim(),
+                RegistrationNumberLastFour = doctor.RegistrationNumberLastFour
+            });
+            dbContext.AuditLogs.Add(new Domain.Clinical.AuditLog
+            {
+                ActorUserId = user.Id,
+                EventType = "DOCTOR_REGISTERED",
+                ResourceType = "Doctor",
+                ResourceId = doctor.Id,
+                Outcome = "PENDING",
+                MetadataJson = doctorMetadata
+            });
+        }
 
         var response = await IssueTokensAsync(user, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
