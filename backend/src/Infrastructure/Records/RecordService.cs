@@ -274,7 +274,7 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
     private static HereditaryFlagDto MapFlag(HereditaryFlag x) => new(x.Id, x.MemberId, x.ConditionCode, x.Finding, x.Confidence, x.ManuallyConfirmed);
     private static LabReportDetailDto MapLabDetail(LabReport report, IReadOnlyList<HereditaryFlagDto> flags) => new(
         report.Id, report.MemberId, report.OriginalFileName, report.OcrStatus, report.CollectedAt,
-        report.Values.OrderBy(x => x.Analyte).Select(x => new LabValueDto(x.Id, x.Analyte, x.Value, x.Unit, x.ReferenceLow, x.ReferenceHigh, x.WasManuallyConfirmed)).ToList(), flags);
+        report.Values.OrderBy(x => x.Analyte).Select(x => new LabValueDto(x.Id, x.Analyte, x.Value, x.Unit, x.ReferenceLow, x.ReferenceHigh, x.WasManuallyConfirmed, LabRangeClassifier.Classify(x.Value, x.ReferenceLow, x.ReferenceHigh))).ToList(), flags);
     private static async Task<bool> HasSafeImageDimensionsAsync(Stream stream, string contentType, CancellationToken cancellationToken)
     {
         var dimensions = contentType switch

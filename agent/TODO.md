@@ -14,3 +14,26 @@
 - [ ] [human] Get a Gemini API key (aistudio.google.com/apikey) and a Groq API key (console.groq.com/keys) — both free tier, no card
 - [ ] Apply the EF Core migration to the hosted Neon DB once it exists (`docs/DEPLOYMENT.md` §1 has the exact commands — do NOT rely on `Database__MigrateOnStartup`, the installed Npgsql provider has a real bug on that path, see agent/MEMORY.md)
 - [ ] [human, only if needed] Apple Developer account for a distributable iOS build beyond simulator; Android release keystore for a signed APK (docs/DEPLOYMENT.md §5–6)
+
+## Three-portal blueprint (2026-09-28) — see docs/Three_Portal_Implementation_Blueprint.md
+
+Due 2026-09-30. CORE first; FUTURE only if time remains, otherwise it goes in the report's future-work section.
+
+### CORE
+- [x] [S4] Keep approval gate covering every patient-visible AI output; approval screen shows full draft + rule results (already true in ApprovalsPage — add a regression test)
+- [x] [S2→done by S4] Deterministic lab range status (`LabRangeClassifier`, server-side `RangeStatus`, "Reference range unavailable"). Value and range share one `Unit` column, so no mismatch is possible yet.
+- [x] [S4] Adult privacy verified: Head gets 404 on any adult's reports/vitals (`AdultPrivacyAuthorizationTests`). Opt-in "Share with Family Head" needs a schema migration → moved to FUTURE.
+- [x] [S4] Web family triage shows 4 plain steps (`FamilyCaseProgress`); agent pipeline kept under "Technical details" as viva evidence. Flutter stepper already uses non-technical labels.
+- [x] Emergency referral already a card on web + Flutter screen; no alert() in code (only in the external mockups).
+- [x] [S4] 404 for other adult's private items. Expired grant / revoked consent already covered by `CaseGrantPolicyTests`, `ConsentStateMachineTests`.
+- [x] [S4] CodeQL workflow + Dependabot added. [human] Turn on secret scanning + push protection in GitHub Settings → Code security.
+
+### FUTURE
+- [ ] [S1+S2] Opt-in "Share with Family Head" per adult report (needs migration lock)
+- [ ] [S1] Family Code + join requests; Head transfer; Start My Own Family; leave/remove
+- [ ] [S1] Lifecycle gaps: revoke old doctor grants on leaving; minor turning 18; inactive Head recovery; sharing for vitals/cases/appointments
+- [ ] [S1/S4] Family Doctor request/change; AI doctor discovery (suggest, never "best")
+- [ ] [TBD] Appointments, availability, calendar, notifications (FCM backend-only)
+- [ ] [S2/S3] AI report explanation (doctor-gated); handwriting reader (doctor-only, RULE 6); image observations (doctor-only); health search (records-only, ACL-filtered)
+- [ ] [S3] Pre-Visit Brief (doctor-only, case-grant scoped)
+- [ ] [design] Apply mockup fixes listed in the blueprint before reusing mockups

@@ -75,7 +75,7 @@ export type AdminUserDto = { userId: string; email: string; displayName: string;
 export type ResetPasswordResponse = { success: boolean; message: string; resetToken?: string | null }
 
 export type LabReportDto = { id: string; memberId: string; originalFileName: string; ocrStatus: string; collectedAt?: string }
-export type LabValueDto = { id: string; analyte: string; value: number; unit: string; referenceLow?: number | null; referenceHigh?: number | null; wasManuallyConfirmed: boolean }
+export type LabValueDto = { id: string; analyte: string; value: number; unit: string; referenceLow?: number | null; referenceHigh?: number | null; wasManuallyConfirmed: boolean; rangeStatus?: 'RangeUnavailable' | 'BelowRange' | 'WithinRange' | 'AboveRange' }
 export type HereditaryFlagDto = { id: string; memberId: string; conditionCode: string; finding: string; confidence: number; manuallyConfirmed: boolean }
 export type LabReportDetailDto = LabReportDto & { values: LabValueDto[]; flags: HereditaryFlagDto[] }
 export type VitalDto = { id: string; memberId: string; vitalType: string; value: number; unit: string; measuredAt: string }

@@ -10,8 +10,10 @@ import { StatusBadge } from '../../components/shared/StatusBadge'
 import { apiClient, type FamilyDto, type HealthRecordDto, type LabReportDetailDto, type LabReportDto, type LabValueDto, type MemberDto, type PagedResult, type VitalDto, type VitalTrendDto } from '../../services/apiClient'
 
 function recordedRangeMarker(value: LabValueDto) {
-  const below = value.referenceLow != null && value.value < value.referenceLow
-  const above = value.referenceHigh != null && value.value > value.referenceHigh
+  // Server status is authoritative (deterministic, RULE 4); the local check covers unsaved edits.
+  const below = value.rangeStatus ? value.rangeStatus === 'BelowRange' : value.referenceLow != null && value.value < value.referenceLow
+  const above = value.rangeStatus ? value.rangeStatus === 'AboveRange' : value.referenceHigh != null && value.value > value.referenceHigh
+  if (value.rangeStatus === 'RangeUnavailable') return <span className="status-badge" title="No reference range printed on this report">Reference range unavailable</span>
   if (!below && !above) return null
   return (
     <span className="status-badge status-badge--warning" title="Outside recorded reference range">

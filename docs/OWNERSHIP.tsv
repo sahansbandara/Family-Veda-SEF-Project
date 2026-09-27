@@ -237,3 +237,11 @@ S4	mobile/test/screens/emergency_screen_test.dart
 # ── ALL · migration lock protocol (CLAUDE.md "Migration protocol") ──
 # Never two migrations in flight. Never edit a pushed migration — add a new one.
 ALL	backend/src/Infrastructure/Persistence/Migrations
+S4	.github/workflows/codeql.yml
+S4	.github/dependabot.yml
+S4	backend/src/Domain/Records/LabRangeClassifier.cs
+S4	backend/tests/UnitTests/LabRangeClassifierTests.cs
+S4	backend/tests/UnitTests/AdultPrivacyAuthorizationTests.cs
+S4	web/src/pages/triage/FamilyCaseProgress.tsx
+S4	web/src/pages/triage/FamilyCaseProgress.test.tsx
+S4	docs/Three_Portal_Implementation_Blueprint.md
