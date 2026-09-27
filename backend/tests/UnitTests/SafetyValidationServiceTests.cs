@@ -46,4 +46,20 @@ public sealed class SafetyValidationServiceTests
         Assert.False(result.CanContinue);
         Assert.Contains("PROHIBITED_CONTENT", result.Violations);
     }
+
+    [Theory]
+    [InlineData("Hemoglobin is below the reference interval printed on this report.")]
+    [InlineData("The image shows a localized red area.")]
+    [InlineData("")]
+    public void IsApprovedPatientGuidance_WhenTextIsFreeFormAiOutput_ReturnsFalse(string text)
+    {
+        // RULE 2: only allow-listed wording can be released to a patient; arbitrary AI prose never can.
+        Assert.False(SafetyValidationService.IsApprovedPatientGuidance(text));
+    }
+
+    [Fact]
+    public void IsApprovedPatientGuidance_WhenTextIsAllowListed_ReturnsTrue()
+    {
+        Assert.True(SafetyValidationService.IsApprovedPatientGuidance("  Please arrange an in-person clinical review.  "));
+    }
 }

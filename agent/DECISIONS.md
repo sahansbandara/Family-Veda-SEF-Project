@@ -20,3 +20,11 @@ What is already decided. Record at the moment of decision, including rejected al
 |---|---|---|---|
 | 1 | Turn on branch protection on `main` | Sahan (human) | ASAP |
 | 2 | S3 to open PR of `feature/s3-agent-orchestration` into `develop` | S3 | Next session |
+
+## 2026-09-28 — Three-portal blueprint: CORE vs FUTURE, and AI gating
+
+**Decision:** every patient- or family-visible AI output passes the doctor approval gate, no exceptions; handwriting transcription and image observations are doctor-only; no AI on the emergency path; doctor reads require a case grant + consent (a Family Doctor assignment only confers eligibility). Only the CORE table in `docs/Three_Portal_Implementation_Blueprint.md` is in scope for 2026-09-30.
+
+**Reason:** the draft conflicted with RULES 2, 3, 6, 8, 10; two days to deadline.
+
+**Status:** Accepted 2026-09-28 at Sahan's request.
