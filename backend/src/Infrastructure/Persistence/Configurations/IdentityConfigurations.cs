@@ -31,6 +31,9 @@ internal sealed class FamilyConfiguration : IEntityTypeConfiguration<Family>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Name).HasMaxLength(120).IsRequired();
         builder.HasOne(x => x.CreatedByUser).WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+        // S4 — three-portal join-by-code (docs/Three_Portal_Feature_Spec.md)
+        builder.Property(x => x.FamilyCode).HasMaxLength(9);
+        builder.HasIndex(x => x.FamilyCode).IsUnique();
     }
 }
 

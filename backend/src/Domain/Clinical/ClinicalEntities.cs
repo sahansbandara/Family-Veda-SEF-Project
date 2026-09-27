@@ -16,6 +16,10 @@ public sealed class Doctor : Entity
     public string? Specialty { get; set; }
     public string? HospitalClinic { get; set; }
     public string? PhoneNumber { get; set; }
+    // Three-portal directory fields (docs/Three_Portal_Feature_Spec.md)
+    public string? District { get; set; }
+    public string? City { get; set; }
+    public string? Languages { get; set; }
 }
 
 public sealed class DoctorVerificationLog : Entity

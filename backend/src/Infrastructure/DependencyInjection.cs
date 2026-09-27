@@ -4,6 +4,7 @@ using FamilyVeda.Application.Auth;
 using FamilyVeda.Application.Agents;
 using FamilyVeda.Application.Clinical;
 using FamilyVeda.Application.Families;
+using FamilyVeda.Application.Portal;
 using FamilyVeda.Application.Records;
 using FamilyVeda.Application.Triage;
 using FamilyVeda.Domain.Identity;
@@ -13,6 +14,7 @@ using FamilyVeda.Infrastructure.Agents;
 using FamilyVeda.Infrastructure.Clinical;
 using FamilyVeda.Infrastructure.Families;
 using FamilyVeda.Infrastructure.Persistence;
+using FamilyVeda.Infrastructure.Portal;
 using FamilyVeda.Infrastructure.Records;
 using FamilyVeda.Infrastructure.Triage;
 using Microsoft.AspNetCore.Identity;
@@ -65,6 +67,11 @@ public static class DependencyInjection
         services.AddScoped<IAgent, AnalysisAgent>();
         services.AddScoped<IAgent, FamilialRiskAgent>();
         services.AddScoped<ITriageOrchestrator, TriageOrchestrator>();
+        services.AddScoped<IJoinRequestService, JoinRequestService>();
+        services.AddScoped<IFamilyDoctorService, FamilyDoctorService>();
+        services.AddScoped<IAppointmentService, AppointmentService>();
+        services.AddScoped<IPortalNotificationService, PortalNotificationService>();
+        services.AddScoped<IPortalDashboardService, PortalDashboardService>();
         return services;
     }
 }

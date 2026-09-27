@@ -8,6 +8,8 @@ import { signedOut } from '../../store/slices/authSlice'
 import type { UserRole } from '../../store/slices/authSlice'
 import { apiClient } from '../../services/apiClient'
 import markUrl from '../../assets/mark.svg'
+// ===== S4 Feature: notifications + three-portal nav (docs/Three_Portal_Feature_Spec.md) =====
+import { NotificationBell } from '../shared/NotificationBell'
 
 type NavItem = {
   label: string
@@ -25,6 +27,10 @@ const navItems: NavItem[] = [
   { label: 'Records', path: '/records', roles: ['FAMILY_HEAD', 'MEMBER'] },
   { label: 'Family screening', path: '/family-risk', roles: ['FAMILY_HEAD', 'MEMBER'] },
   { label: 'Family', path: '/family', roles: ['FAMILY_HEAD'] },
+  { label: 'Join requests', path: '/join-family', roles: ['FAMILY_HEAD', 'MEMBER'] },
+  { label: 'My Doctor', path: '/my-doctor', roles: ['FAMILY_HEAD', 'MEMBER'] },
+  { label: 'Appointments', path: '/appointments', roles: ['FAMILY_HEAD', 'MEMBER'] },
+  { label: 'Appointments calendar', path: '/doctor-calendar', roles: ['DOCTOR'] },
   { label: 'Triage cases', path: '/cases', roles: ['DOCTOR'] },
   { label: 'Approvals', path: '/approvals', roles: ['DOCTOR'] },
   { label: 'Profile & Availability', path: '/doctor-profile', roles: ['DOCTOR'] },
@@ -112,6 +118,7 @@ export function AppLayout() {
           </span>
         </NavLink>
         <div className="session-summary">
+          {user && <NotificationBell />}
           <button
             type="button"
             className="theme-toggle"

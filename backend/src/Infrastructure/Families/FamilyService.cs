@@ -41,10 +41,30 @@ public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUs
             throw new ConflictException("This account already manages a family.");
         }
 
-        var family = new Family { Name = request.Name.Trim(), CreatedByUserId = currentUser.UserId };
+        var family = new Family { Name = request.Name.Trim(), CreatedByUserId = currentUser.UserId, FamilyCode = await GenerateFamilyCodeAsync(cancellationToken) };
         dbContext.Families.Add(family);
         await dbContext.SaveChangesAsync(cancellationToken);
         return MapFamily(family);
+    }
+
+    // S4 — three-portal join-by-code generator (docs/Three_Portal_Feature_Spec.md)
+    private async Task<string> GenerateFamilyCodeAsync(CancellationToken cancellationToken)
+    {
+        const string alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        for (var attempt = 0; attempt < 20; attempt++)
+        {
+            var chars = new char[6];
+            for (var i = 0; i < chars.Length; i++)
+            {
+                chars[i] = alphabet[RandomNumberGenerator.GetInt32(alphabet.Length)];
+            }
+            var code = "FV-" + new string(chars);
+            if (!await dbContext.Families.AnyAsync(x => x.FamilyCode == code, cancellationToken))
+            {
+                return code;
+            }
+        }
+        throw new InvalidOperationException("Unable to generate a unique family code.");
     }
 
     public async Task<FamilyDto> UpdateAsync(Guid familyId, UpdateFamilyRequest request, CancellationToken cancellationToken)
@@ -70,7 +90,7 @@ public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUs
 
         var total = await query.CountAsync(cancellationToken);
         var items = await query.OrderBy(x => x.DisplayName).Skip((page - 1) * pageSize).Take(pageSize)
-            .Select(x => new MemberDto(x.Id, x.FamilyId, x.DisplayName, x.DateOfBirth, x.Role))
+            .Select(x => new MemberDto(x.Id, x.FamilyId, x.DisplayName, x.DateOfBirth, x.Role, x.UserId == currentUser.UserId))
             .ToListAsync(cancellationToken);
         return new PagedResult<MemberDto>(items, page, pageSize, total);
     }
@@ -373,9 +393,9 @@ public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUs
     private static readonly System.Linq.Expressions.Expression<Func<Domain.Identity.Consent, ConsentDto>> MapConsentExpression =
         x => new ConsentDto(x.Id, x.MemberId, x.Category, x.Status, x.GrantedByGuardian);
     private static ConsentDto MapConsent(Domain.Identity.Consent consent) => new(consent.Id, consent.MemberId, consent.Category, consent.Status, consent.GrantedByGuardian);
-    private static MemberDto MapMember(Member member) => new(member.Id, member.FamilyId, member.DisplayName, member.DateOfBirth, member.Role);
-    private static FamilyDto MapFamily(Family family, IEnumerable<Member>? members = null) =>
-        new(family.Id, family.Name, (members ?? family.Members).Select(MapMember).ToList());
+    private MemberDto MapMember(Member member) => new(member.Id, member.FamilyId, member.DisplayName, member.DateOfBirth, member.Role, member.UserId == currentUser.UserId);
+    private FamilyDto MapFamily(Family family, IEnumerable<Member>? members = null) =>
+        new(family.Id, family.Name, (members ?? family.Members).Select(MapMember).ToList(), family.FamilyCode);
     private static (int Page, int PageSize) NormalizePage(int page, int pageSize) => (Math.Max(page, 1), Math.Clamp(pageSize, 1, 100));
     private static string Hash(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
     private static string HashInvitationEmail(string email, string token) => Convert.ToHexString(

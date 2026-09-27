@@ -5,8 +5,8 @@ using FamilyVeda.Domain.Common;
 
 namespace FamilyVeda.Application.Families;
 
-public sealed record FamilyDto(Guid Id, string Name, IReadOnlyList<MemberDto> Members);
-public sealed record MemberDto(Guid Id, Guid FamilyId, string DisplayName, DateOnly DateOfBirth, FamilyRole Role);
+public sealed record FamilyDto(Guid Id, string Name, IReadOnlyList<MemberDto> Members, string? FamilyCode = null);
+public sealed record MemberDto(Guid Id, Guid FamilyId, string DisplayName, DateOnly DateOfBirth, FamilyRole Role, bool IsSelf = false);
 public sealed record CreateFamilyRequest(string Name);
 public sealed record UpdateFamilyRequest(string Name);
 public sealed record CreateMemberRequest(string DisplayName, DateOnly DateOfBirth, FamilyRole Role, Guid? UserId);

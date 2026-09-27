@@ -28,3 +28,13 @@ What is already decided. Record at the moment of decision, including rejected al
 **Reason:** the draft conflicted with RULES 2, 3, 6, 8, 10; two days to deadline.
 
 **Status:** Accepted 2026-09-28 at Sahan's request.
+
+## 2026-09-28 — S4 implements the full three-portal scope across ownership boundaries
+
+**Decision:** At Sahan's (S4, repo owner) explicit instruction, the S4 branch `feature/s4-three-portal-safety-review` implements the whole three-portal spec (`docs/Three_Portal_Feature_Spec.md`): Family Code, join requests, Family Doctor requests, appointments, in-app notifications, and the Family Head / Adult Member / Doctor dashboards, on backend, web and Flutter. Ownership checks are waived for this work; files owned by S1/S2/S3 are edited where needed.
+
+**Reason:** the other members will not deliver these features before the 2026-09-30 deadline.
+
+**Consequences:** these commits appear under S4's `git log --author`, not the file owners'. Individual reports must describe this honestly. Migration `20260928_S4_ThreePortalFeatures` — announce the migration lock in the group chat.
+
+**Status:** Accepted 2026-09-28.

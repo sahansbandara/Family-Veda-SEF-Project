@@ -30,14 +30,12 @@ public sealed class MigrationTests : IAsyncLifetime
         await dbContext.Database.MigrateAsync();
 
         var applied = await dbContext.Database.GetAppliedMigrationsAsync();
-        Assert.Contains(applied, migration => migration.EndsWith("20260804_ALL_InitialSchema", StringComparison.Ordinal));
-        Assert.Contains(applied, migration => migration.EndsWith("20260804_ALL_AddNotificationSubscriptions", StringComparison.Ordinal));
-        Assert.Contains(applied, migration => migration.EndsWith("20260804_ALL_EnforceCaseGrantConcurrency", StringComparison.Ordinal));
-        Assert.Contains(applied, migration => migration.EndsWith("20260804_ALL_EnforceMemberAccountOwnership", StringComparison.Ordinal));
+        Assert.Contains(applied, migration => migration.EndsWith("_InitialCreate", StringComparison.Ordinal));
+        Assert.Contains(applied, migration => migration.EndsWith("_20260928_S4_ThreePortalFeatures", StringComparison.Ordinal));
         var applicationTableCount = await dbContext.Database.SqlQueryRaw<int>(
                 "SELECT COUNT(*)::int AS \"Value\" FROM information_schema.tables WHERE table_schema = 'public' AND table_name <> '__EFMigrationsHistory'")
             .SingleAsync();
-        Assert.Equal(23, applicationTableCount); // +lab_report_files, data_protection_keys (ADR-010)
+        Assert.Equal(27, applicationTableCount); // +family_join_requests, family_doctor_requests, appointments, portal_notifications (three-portal)
         var grantIndex = await dbContext.Database.SqlQueryRaw<string>(
                 "SELECT indexdef AS \"Value\" FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'ix_case_access_grants_triage_case_id'")
             .SingleAsync();

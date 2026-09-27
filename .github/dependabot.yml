@@ -9,6 +9,16 @@ updates:
     directory: /web
     schedule: { interval: weekly }
     target-branch: develop
+    # Stack is React 18 (CLAUDE.md); react and react-dom must move together, so skip major bumps.
+    ignore:
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react-dom"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: pub
     directory: /mobile
     schedule: { interval: weekly }

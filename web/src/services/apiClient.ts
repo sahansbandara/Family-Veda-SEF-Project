@@ -55,7 +55,7 @@ export type AuthResponse = {
   accessTokenExpiresAt: string
 }
 
-export type MemberDto = { id: string; familyId: string; displayName: string; dateOfBirth: string; role: string }
+export type MemberDto = { id: string; familyId: string; displayName: string; dateOfBirth: string; role: string; isSelf?: boolean }
 export type FamilyDto = { id: string; name: string; members: MemberDto[] }
 export type PagedResult<T> = { items: T[]; page: number; pageSize: number; totalCount: number; totalPages: number }
 export type HealthRecordDto = { id: string; memberId: string; recordType: string; title: string; summary?: string; occurredOn: string }
@@ -81,3 +81,116 @@ export type LabReportDetailDto = LabReportDto & { values: LabValueDto[]; flags: 
 export type VitalDto = { id: string; memberId: string; vitalType: string; value: number; unit: string; measuredAt: string }
 export type VitalTrendDto = { vitalType: string; points: Array<{ measuredAt: string; value: number; unit: string }> }
 export type ApprovedGuidanceDto = { caseId: string; status: string; finalAdvisory: string; approvedAt: string; disclaimer: string }
+
+// ===== S4 three-portal additions (docs/Three_Portal_Feature_Spec.md) =====
+export type JoinRequestDto = {
+  id: string
+  familyId: string
+  familyName: string
+  requesterDisplayName: string
+  requesterEmailMasked: string
+  relationshipType: string
+  message?: string | null
+  status: 'Pending' | 'Accepted' | 'Declined' | 'Cancelled'
+  createdAt: string
+  respondedAt?: string | null
+}
+export type DoctorSummaryDto = {
+  id: string
+  displayName: string
+  specialty?: string | null
+  clinic?: string | null
+  district?: string | null
+  city?: string | null
+  languages?: string | null
+}
+export type DoctorRequestDto = {
+  id: string
+  familyId: string
+  familyName: string
+  memberCount: number
+  doctor: DoctorSummaryDto
+  message?: string | null
+  status: 'Pending' | 'Accepted' | 'Declined' | 'Cancelled'
+  createdAt: string
+}
+export type AppointmentDto = {
+  id: string
+  memberId: string
+  memberDisplayName: string
+  familyName: string
+  doctor: DoctorSummaryDto
+  startsAt: string
+  durationMinutes: number
+  reason: string
+  status: 'Requested' | 'Confirmed' | 'Completed' | 'Cancelled' | 'NoShow'
+  doctorNote?: string | null
+  createdAt: string
+}
+export type NotificationDto = {
+  id: string
+  type: string
+  title: string
+  body: string
+  linkPath?: string | null
+  readAt?: string | null
+  createdAt: string
+}
+export type FamilyDashboardSummaryDto = {
+  role: string
+  familyId: string
+  familyName: string
+  familyCode?: string | null
+  memberCount: number
+  minorCount: number
+  pendingJoinRequests?: number
+  nextAppointment?: AppointmentDto | null
+  openCases: number
+  approvedGuidanceCount: number
+  familyDoctor?: DoctorSummaryDto | null
+  unreadNotifications: number
+  recentActivity: Array<{ id: string; description: string; createdAt: string }>
+}
+export type DoctorDashboardSummaryDto = {
+  todayAppointments: AppointmentDto[]
+  pendingApprovals: number
+  openCases: number
+  pendingFamilyRequests: DoctorRequestDto[]
+  assignedFamilies: number
+  unreadNotifications: number
+}
+
+export const threePortalApi = {
+  getFamilyDashboard: () => apiClient.get<FamilyDashboardSummaryDto>('/dashboard/family'),
+  getDoctorDashboard: () => apiClient.get<DoctorDashboardSummaryDto>('/dashboard/doctor'),
+
+  submitJoinRequest: (body: { familyCode: string; relationshipType: string; message?: string }) =>
+    apiClient.post<JoinRequestDto>('/families/join-requests', body),
+  getMyJoinRequests: () => apiClient.get<JoinRequestDto[]>('/families/join-requests/mine'),
+  getFamilyJoinRequests: (familyId: string, status = 'Pending') =>
+    apiClient.get<JoinRequestDto[]>(`/families/${familyId}/join-requests`, { params: { status } }),
+  acceptJoinRequest: (id: string) => apiClient.post(`/families/join-requests/${id}/accept`),
+  declineJoinRequest: (id: string) => apiClient.post(`/families/join-requests/${id}/decline`),
+
+  getDoctorDirectory: (params?: { search?: string; district?: string }) =>
+    apiClient.get<DoctorSummaryDto[]>('/doctors/directory', { params }),
+  getFamilyDoctor: (familyId: string) => apiClient.get<DoctorSummaryDto | null>(`/families/${familyId}/doctor`),
+  requestFamilyDoctor: (familyId: string, body: { doctorId: string; message?: string }) =>
+    apiClient.post<DoctorRequestDto>(`/families/${familyId}/doctor-requests`, body),
+  getMyFamilyDoctorRequests: () => apiClient.get<DoctorRequestDto[]>('/doctors/me/family-requests'),
+  acceptFamilyDoctorRequest: (id: string) => apiClient.post(`/doctors/me/family-requests/${id}/accept`),
+  declineFamilyDoctorRequest: (id: string) => apiClient.post(`/doctors/me/family-requests/${id}/decline`),
+
+  bookAppointment: (body: { memberId: string; startsAt: string; durationMinutes?: number; reason: string }) =>
+    apiClient.post<AppointmentDto>('/appointments', body),
+  getMyAppointments: () => apiClient.get<AppointmentDto[]>('/appointments/mine'),
+  cancelAppointment: (id: string) => apiClient.post(`/appointments/${id}/cancel`),
+  getDoctorAppointments: (params?: { from?: string; to?: string }) =>
+    apiClient.get<AppointmentDto[]>('/doctors/me/appointments', { params }),
+  setAppointmentStatus: (id: string, action: 'confirm' | 'complete' | 'no-show' | 'cancel', note?: string) =>
+    apiClient.post(`/doctors/me/appointments/${id}/${action}`, { note }),
+
+  getNotifications: (unreadOnly?: boolean) =>
+    apiClient.get<NotificationDto[]>('/notifications', { params: unreadOnly ? { unreadOnly: true } : undefined }),
+  markNotificationRead: (id: string) => apiClient.post(`/notifications/${id}/read`),
+}

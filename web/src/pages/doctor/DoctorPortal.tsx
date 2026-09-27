@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { signedOut } from '../../store/slices/authSlice'
 import { StatusBadge } from '../../components/shared/StatusBadge'
 import { apiClient, type PagedResult, type TriageCaseDto } from '../../services/apiClient'
+import { DoctorDashboardPanel } from './DoctorDashboardPanel'
 import './DoctorPortal.css'
 
 export type PageTab = 'dashboard' | 'calendar' | 'families' | 'cases' | 'approvals' | 'profile'
@@ -81,7 +82,7 @@ export function DoctorPortal({ initialTab = 'dashboard' }: { initialTab?: PageTa
   useEffect(() => {
     async function loadMe() {
       try {
-        const { data } = await apiClient.get<any>('/doctors/me')
+        const { data } = await apiClient.get<{ displayName?: string; specialty?: string; hospitalClinic?: string; phoneNumber?: string; registrationNumberLastFour?: string }>('/doctors/me')
         if (data) {
           setDoctorProfile((prev) => ({
             ...prev,
@@ -92,7 +93,9 @@ export function DoctorPortal({ initialTab = 'dashboard' }: { initialTab?: PageTa
             regLastFour: data.registrationNumberLastFour || prev.regLastFour,
           }))
         }
-      } catch {}
+      } catch {
+        // Profile is optional here; the card keeps its placeholder values.
+      }
     }
     void loadMe()
   }, [])
@@ -107,7 +110,9 @@ export function DoctorPortal({ initialTab = 'dashboard' }: { initialTab?: PageTa
         if (data?.items && data.items.length > 0) {
           setCases(data.items)
         }
-      } catch {}
+      } catch {
+        // Keep the current case list; the cases tab shows its own error state.
+      }
     }
     void loadCases()
   }, [])
@@ -560,6 +565,9 @@ export function DoctorPortal({ initialTab = 'dashboard' }: { initialTab?: PageTa
               </div>
             </section>
           </div>
+
+          {/* ===== S4 Feature: live dashboard summary (docs/Three_Portal_Feature_Spec.md GET /dashboard/doctor) ===== */}
+          <DoctorDashboardPanel />
         </>
       )}
 
@@ -954,7 +962,7 @@ export function DoctorPortal({ initialTab = 'dashboard' }: { initialTab?: PageTa
 
               <select
                 value={sortFilter}
-                onChange={(e) => setSortFilter(e.target.value as any)}
+                onChange={(e) => setSortFilter(e.target.value as 'oldest' | 'newest')}
                 style={{ padding: '8px 12px', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)' }}
               >
                 <option value="newest">Newest first</option>
