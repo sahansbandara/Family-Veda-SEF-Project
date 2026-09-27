@@ -27,7 +27,6 @@ export function DashboardPage() {
   const user = useAppSelector((state) => state.auth.user)
   const isDoctor = user?.role === 'DOCTOR'
   const isAdmin = user?.role === 'ADMIN'
-  const isFamilyUser = !isDoctor && !isAdmin
 
   if (isDoctor) {
     return <DoctorPortal initialTab="dashboard" />
@@ -36,6 +35,16 @@ export function DashboardPage() {
   if (isAdmin) {
     return <ClinicAdminPortal initialTab="dashboard" />
   }
+
+  return <FamilyUserDashboard />
+}
+
+// Hooks live in their own component so they never run after the role-based early returns above.
+function FamilyUserDashboard() {
+  const user = useAppSelector((state) => state.auth.user)
+  const isDoctor = user?.role === 'DOCTOR'
+  const isAdmin = user?.role === 'ADMIN'
+  const isFamilyUser = !isDoctor && !isAdmin
 
   const [metrics, setMetrics] = useState<Metrics | null>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
