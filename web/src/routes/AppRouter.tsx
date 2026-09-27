@@ -20,6 +20,12 @@ import { TriagePage } from '../pages/triage/TriagePage'
 import { FamilyPage } from '../pages/family/FamilyPage'
 import { OnboardingPage } from '../pages/family/OnboardingPage'
 import { NotFoundPage } from '../pages/system/SystemPages'
+// ===== S4 — Three-portal feature routes (docs/Three_Portal_Feature_Spec.md) =====
+import { JoinFamilyPage } from '../pages/family/JoinFamilyPage'
+import { MyDoctorPage } from '../pages/family/MyDoctorPage'
+import { AppointmentsPage } from '../pages/family/AppointmentsPage'
+import { DoctorCalendarPage } from '../pages/doctor/DoctorCalendarPage'
+import { NotificationsPage } from '../pages/notifications/NotificationsPage'
 import { RouteGuard } from './RouteGuard'
 
 const allRoles = ['DOCTOR', 'ADMIN', 'FAMILY_HEAD', 'MEMBER', 'ONBOARDING'] as const
@@ -59,6 +65,13 @@ export function AppRoutes() {
         <Route path="/family-head-verification" element={<RouteGuard allowedRoles={['ADMIN']}><ClinicAdminPortal initialTab="family-verif" /></RouteGuard>} />
         <Route path="/users" element={<RouteGuard allowedRoles={['ADMIN']}><ClinicAdminPortal initialTab="users" /></RouteGuard>} />
         <Route path="/settings" element={<RouteGuard allowedRoles={['ADMIN']}><ClinicAdminPortal initialTab="settings" /></RouteGuard>} />
+
+        {/* ===== S4 — Three-portal feature routes (docs/Three_Portal_Feature_Spec.md) ===== */}
+        <Route path="/join-family" element={<RouteGuard allowedRoles={['FAMILY_HEAD', 'MEMBER']}><JoinFamilyPage /></RouteGuard>} />
+        <Route path="/my-doctor" element={<RouteGuard allowedRoles={['FAMILY_HEAD', 'MEMBER']}><MyDoctorPage /></RouteGuard>} />
+        <Route path="/appointments" element={<RouteGuard allowedRoles={['FAMILY_HEAD', 'MEMBER']}><AppointmentsPage /></RouteGuard>} />
+        <Route path="/doctor-calendar" element={<RouteGuard allowedRoles={['DOCTOR']}><DoctorCalendarPage /></RouteGuard>} />
+        <Route path="/notifications" element={<RouteGuard allowedRoles={[...allRoles]}><NotificationsPage /></RouteGuard>} />
       </Route>
 
       <Route path="/" element={<Navigate to="/dashboard" replace />} />

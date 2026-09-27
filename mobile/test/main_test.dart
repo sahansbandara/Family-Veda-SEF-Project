@@ -6,8 +6,13 @@ import 'package:family_veda/main.dart';
 import 'package:family_veda/providers/active_member_provider.dart';
 import 'package:family_veda/providers/auth_provider.dart';
 import 'package:family_veda/providers/core_providers.dart';
+// [S4] Avoid a real network call from the new family-dashboard card this
+// screen now renders — see lib/screens/home/home_screen.dart.
+import 'package:family_veda/providers/family_portal_provider.dart';
 import 'package:family_veda/providers/members_provider.dart';
+import 'package:family_veda/providers/notifications_provider.dart';
 import 'package:family_veda/providers/push_registration_provider.dart';
+import 'package:family_veda/models/family_dashboard.dart';
 import 'package:family_veda/services/api/auth_api.dart';
 import 'package:family_veda/services/storage/member_preference_store.dart';
 import 'package:family_veda/services/storage/secure_token_store.dart';
@@ -106,6 +111,17 @@ void main() {
           memberPreferenceStoreProvider.overrideWithValue(memberStore),
           membersProvider.overrideWith((ref) async => const []),
           pushRegistrationProvider.overrideWith((ref) async => false),
+          notificationsProvider.overrideWith((ref) async => const []),
+          familyDashboardProvider.overrideWith(
+            (ref) async => const FamilyDashboard(
+              role: 'AdultMember',
+              memberCount: 0,
+              minorCount: 0,
+              openCases: 0,
+              approvedGuidanceCount: 0,
+              unreadNotifications: 0,
+            ),
+          ),
         ],
         child: const FamilyVedaApp(),
       ),

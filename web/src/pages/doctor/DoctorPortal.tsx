@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { signedOut } from '../../store/slices/authSlice'
 import { StatusBadge } from '../../components/shared/StatusBadge'
 import { apiClient, type PagedResult, type TriageCaseDto } from '../../services/apiClient'
+import { DoctorDashboardPanel } from './DoctorDashboardPanel'
 import './DoctorPortal.css'
 
 export type PageTab = 'dashboard' | 'calendar' | 'families' | 'cases' | 'approvals' | 'profile'
@@ -560,6 +561,9 @@ export function DoctorPortal({ initialTab = 'dashboard' }: { initialTab?: PageTa
               </div>
             </section>
           </div>
+
+          {/* ===== S4 Feature: live dashboard summary (docs/Three_Portal_Feature_Spec.md GET /dashboard/doctor) ===== */}
+          <DoctorDashboardPanel />
         </>
       )}
 

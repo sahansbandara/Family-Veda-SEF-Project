@@ -8,15 +8,25 @@ class AppNotification {
     required this.isRead,
     this.caseId,
     this.caseStatus,
+    // [S4] Three-portal feature fields — NotificationDto per
+    // docs/Three_Portal_Feature_Spec.md: {type, title, body, linkPath, readAt}.
+    this.type,
+    this.title,
+    this.body,
+    this.linkPath,
   });
 
   factory AppNotification.fromJson(Map<String, dynamic> json) =>
       AppNotification(
         id: json['id'] as String,
         createdAt: DateTime.parse(json['createdAt'] as String),
-        isRead: (json['isRead'] as bool?) ?? false,
+        isRead: (json['isRead'] as bool?) ?? (json['readAt'] != null),
         caseId: json['caseId'] as String?,
         caseStatus: (json['caseStatus'] ?? json['status']) as String?,
+        type: json['type'] as String?,
+        title: json['title'] as String?,
+        body: json['body'] as String?,
+        linkPath: json['linkPath'] as String?,
       );
 
   final String id;
@@ -24,4 +34,8 @@ class AppNotification {
   final bool isRead;
   final String? caseId;
   final String? caseStatus;
+  final String? type;
+  final String? title;
+  final String? body;
+  final String? linkPath;
 }

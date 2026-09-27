@@ -28,6 +28,17 @@ Due 2026-09-30. CORE first; FUTURE only if time remains, otherwise it goes in th
 - [x] [S4] 404 for other adult's private items. Expired grant / revoked consent already covered by `CaseGrantPolicyTests`, `ConsentStateMachineTests`.
 - [x] [S4] CodeQL workflow + Dependabot added. [human] Turn on secret scanning + push protection in GitHub Settings → Code security.
 
+### DONE 2026-09-28 (S4, ownership waived — see DECISIONS 2026-09-28)
+- [x] Family Code + join requests (backend, web, Flutter)
+- [x] Family Doctor directory + request/accept (assignment history kept)
+- [x] Appointments: book/cancel (family), confirm/complete/no-show (doctor), overlap + privacy rules
+- [x] In-app notifications + bell
+- [x] Family Head / Adult Member / Doctor dashboards
+- [ ] [human] Apply migration `20260927200627_20260928_S4_ThreePortalFeatures` to Neon via `dotnet ef migrations script --idempotent` + psql (see DEPLOYMENT.md)
+- [ ] Book-appointment on Flutter: add duration picker (fixed 30 min now)
+- [ ] Dashboard `recentActivity` list is empty — wire from audit rows (own + minors only)
+- [ ] [human] Announce migration lock for `20260928_S4_ThreePortalFeatures`
+
 ### FUTURE
 - [ ] [S1+S2] Opt-in "Share with Family Head" per adult report (needs migration lock)
 - [ ] [S1] Family Code + join requests; Head transfer; Start My Own Family; leave/remove

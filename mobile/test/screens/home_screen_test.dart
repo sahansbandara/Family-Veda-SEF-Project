@@ -1,6 +1,9 @@
 import 'package:family_veda/models/member.dart';
 import 'package:family_veda/providers/active_member_provider.dart';
+import 'package:family_veda/models/family_dashboard.dart';
+import 'package:family_veda/providers/family_portal_provider.dart';
 import 'package:family_veda/providers/members_provider.dart';
+import 'package:family_veda/providers/notifications_provider.dart';
 import 'package:family_veda/screens/home/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,6 +33,17 @@ void main() {
         overrides: [
           activeMemberProvider.overrideWith((ref) => null),
           membersProvider.overrideWith((ref) async => const []),
+          notificationsProvider.overrideWith((ref) async => const []),
+          familyDashboardProvider.overrideWith(
+            (ref) async => const FamilyDashboard(
+              role: 'AdultMember',
+              memberCount: 0,
+              minorCount: 0,
+              openCases: 0,
+              approvedGuidanceCount: 0,
+              unreadNotifications: 0,
+            ),
+          ),
         ],
         child: MaterialApp.router(routerConfig: router),
       ),
@@ -83,6 +97,17 @@ void main() {
       ProviderScope(
         overrides: [
           membersProvider.overrideWith((ref) async => sampleMembers),
+          notificationsProvider.overrideWith((ref) async => const []),
+          familyDashboardProvider.overrideWith(
+            (ref) async => const FamilyDashboard(
+              role: 'AdultMember',
+              memberCount: 0,
+              minorCount: 0,
+              openCases: 0,
+              approvedGuidanceCount: 0,
+              unreadNotifications: 0,
+            ),
+          ),
         ],
         child: MaterialApp.router(routerConfig: router),
       ),
@@ -125,6 +150,17 @@ void main() {
         overrides: [
           activeMemberProvider.overrideWith((ref) => 'mem-99'),
           membersProvider.overrideWith((ref) async => sampleMembers),
+          notificationsProvider.overrideWith((ref) async => const []),
+          familyDashboardProvider.overrideWith(
+            (ref) async => const FamilyDashboard(
+              role: 'AdultMember',
+              memberCount: 0,
+              minorCount: 0,
+              openCases: 0,
+              approvedGuidanceCount: 0,
+              unreadNotifications: 0,
+            ),
+          ),
         ],
         child: MaterialApp.router(routerConfig: router),
       ),

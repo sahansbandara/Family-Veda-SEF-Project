@@ -3,8 +3,13 @@ import 'package:family_veda/providers/active_member_provider.dart';
 import 'package:family_veda/providers/auth_provider.dart';
 import 'package:family_veda/screens/auth/login_screen.dart';
 import 'package:family_veda/screens/auth/splash_screen.dart';
+import 'package:family_veda/screens/appointments/appointments_screen.dart';
+import 'package:family_veda/screens/appointments/book_appointment_screen.dart';
 import 'package:family_veda/screens/emergency/emergency_screen.dart';
+import 'package:family_veda/screens/family/join_family_screen.dart';
+import 'package:family_veda/screens/family/join_requests_screen.dart';
 import 'package:family_veda/screens/family/members_screen.dart';
+import 'package:family_veda/screens/family/my_doctor_screen.dart';
 import 'package:family_veda/screens/home/home_screen.dart';
 import 'package:family_veda/screens/notifications/notifications_screen.dart';
 import 'package:family_veda/screens/records/records_screen.dart';
@@ -68,6 +73,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(path: '/emergency', builder: (_, _) => const EmergencyScreen()),
+
+      // ===== S4 — Three-portal family features (spec: docs/Three_Portal_Feature_Spec.md) =====
+      GoRoute(path: '/appointments', builder: (_, _) => const AppointmentsScreen()),
+      GoRoute(
+        path: '/appointments/book',
+        builder: (_, _) => const BookAppointmentScreen(),
+      ),
+      GoRoute(path: '/join-family', builder: (_, _) => const JoinFamilyScreen()),
+      GoRoute(
+        path: '/join-requests',
+        builder: (_, _) => const JoinRequestsScreen(),
+      ),
+      GoRoute(path: '/my-doctor', builder: (_, _) => const MyDoctorScreen()),
     ],
   );
 });
@@ -85,7 +103,10 @@ String? routeRedirect({
   if (!authenticated) return location == '/login' ? null : '/login';
   if (location == '/login' || location == '/splash') return '/home';
 
-  const memberRequired = {'/records', '/records/new', '/vitals/new', '/lab-upload', '/complaints/new', '/cases'};
+  const memberRequired = {
+    '/records', '/records/new', '/vitals/new', '/lab-upload', '/complaints/new', '/cases',
+    '/appointments', '/appointments/book',
+  };
   final requiresMember =
       memberRequired.contains(location) ||
       location.startsWith('/cases/') ||

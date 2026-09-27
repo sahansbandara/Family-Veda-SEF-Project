@@ -7,6 +7,8 @@ import { StatusBadge } from '../../components/shared/StatusBadge'
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { DoctorPortal } from '../doctor/DoctorPortal'
 import { ClinicAdminPortal } from '../admin/ClinicAdminPortal'
+// ===== S4 Feature: Family Head / Adult Member dashboard (docs/Three_Portal_Feature_Spec.md) =====
+import { FamilyDashboardPanel } from '../family/FamilyDashboardPanel'
 import {
   apiClient,
   type AgentTraceDto,
@@ -182,7 +184,10 @@ export function DashboardPage() {
         </div>
       </section>
 
-      {status === 'loading' ? (
+      {/* ===== S4 Feature: Family Head / Adult Member dashboard summary (docs/Three_Portal_Feature_Spec.md) ===== */}
+      {isFamilyUser ? (
+        <FamilyDashboardPanel />
+      ) : status === 'loading' ? (
         <div className="skeleton-grid" role="status" aria-label="Loading summary">
           <div className="skeleton-card" />
           <div className="skeleton-card" />

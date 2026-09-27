@@ -6,7 +6,11 @@ import 'package:family_veda/models/member.dart';
 import 'package:family_veda/providers/active_member_provider.dart';
 import 'package:family_veda/providers/auth_provider.dart';
 import 'package:family_veda/providers/core_providers.dart';
+// [S4] Three-portal family features (docs/Three_Portal_Feature_Spec.md):
+// role-aware dashboard cards + unread notifications badge.
+import 'package:family_veda/providers/family_portal_provider.dart';
 import 'package:family_veda/providers/members_provider.dart';
+import 'package:family_veda/providers/notifications_provider.dart';
 import 'package:family_veda/theme/app_theme.dart';
 import 'package:family_veda/theme/glass.dart';
 import 'package:flutter/material.dart';
@@ -382,7 +386,13 @@ class HomeScreen extends ConsumerWidget {
           IconButton(
             tooltip: 'Notifications',
             onPressed: () => context.push('/notifications'),
-            icon: const Icon(Icons.notifications_outlined),
+            // [S4] Unread badge, sourced from the existing notifications
+            // fetch — see unreadNotificationsCountProvider.
+            icon: Badge(
+              label: Text('${ref.watch(unreadNotificationsCountProvider)}'),
+              isLabelVisible: ref.watch(unreadNotificationsCountProvider) > 0,
+              child: const Icon(Icons.notifications_outlined),
+            ),
           ),
           IconButton(
             tooltip: 'Sign out',
@@ -644,6 +654,83 @@ class HomeScreen extends ConsumerWidget {
               icon: Icons.people_outline,
               title: 'Switch family member',
               onTap: () => context.push('/members'),
+            ),
+
+            const SizedBox(height: 18),
+            // [S4] Family Portal — role-aware cards + quick actions from
+            // GET /dashboard/family (docs/Three_Portal_Feature_Spec.md).
+            _SectionLabel('Family Portal'),
+            ref
+                .watch(familyDashboardProvider)
+                .when(
+                  loading: () => const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: LinearProgressIndicator(),
+                  ),
+                  error: (_, _) => const SizedBox.shrink(),
+                  data: (dashboard) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GlassCard(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              dashboard.nextAppointment == null
+                                  ? 'No upcoming appointment'
+                                  : 'Next appointment: '
+                                        '${dashboard.nextAppointment!.status.friendlyLabel}',
+                              style: theme.textTheme.titleSmall,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Open cases: ${dashboard.openCases} · '
+                              'Approved guidance: ${dashboard.approvedGuidanceCount}',
+                              style: theme.textTheme.bodySmall,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              dashboard.familyDoctor == null
+                                  ? 'No family doctor assigned yet'
+                                  : 'Family doctor: Dr. ${dashboard.familyDoctor!.displayName}',
+                              style: theme.textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      if (dashboard.isHead && dashboard.pendingJoinRequests > 0)
+                        _ActionRow(
+                          icon: Icons.mark_email_unread_outlined,
+                          title:
+                              'Join requests (${dashboard.pendingJoinRequests})',
+                          onTap: () => context.push('/join-requests'),
+                        ),
+                    ],
+                  ),
+                ),
+            _ActionRow(
+              icon: Icons.event_outlined,
+              title: 'Appointments',
+              onTap: () => context.push('/appointments'),
+            ),
+            _ActionRow(
+              icon: Icons.add_task_outlined,
+              title: 'Book appointment',
+              enabled: true,
+              onTap: () =>
+                  _handleMemberAction(context, '/appointments/book', hasMember),
+            ),
+            _ActionRow(
+              icon: Icons.medical_services_outlined,
+              title: 'My Doctor',
+              onTap: () => context.push('/my-doctor'),
+            ),
+            _ActionRow(
+              icon: Icons.group_add_outlined,
+              title: 'Join a family by code',
+              onTap: () => context.push('/join-family'),
             ),
 
             const SizedBox(height: 18),

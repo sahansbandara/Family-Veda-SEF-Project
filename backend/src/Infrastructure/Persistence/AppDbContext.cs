@@ -2,6 +2,7 @@
 // never reorder or reformat existing lines. See agent/MEMORY.md:63.
 using FamilyVeda.Domain.Clinical;
 using FamilyVeda.Domain.Identity;
+using FamilyVeda.Domain.Portal;
 using FamilyVeda.Domain.Records;
 using FamilyVeda.Domain.Triage;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
@@ -40,6 +41,12 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<CaseAccessGrant> CaseAccessGrants => Set<CaseAccessGrant>();
     public DbSet<Approval> Approvals => Set<Approval>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
+    // S4 — three-portal features (docs/Three_Portal_Feature_Spec.md)
+    public DbSet<FamilyJoinRequest> FamilyJoinRequests => Set<FamilyJoinRequest>();
+    public DbSet<FamilyDoctorRequest> FamilyDoctorRequests => Set<FamilyDoctorRequest>();
+    public DbSet<Appointment> Appointments => Set<Appointment>();
+    public DbSet<PortalNotification> PortalNotifications => Set<PortalNotification>();
 
     // S1 — ASP.NET Data Protection key ring, persisted so protected tokens survive restarts (ADR-010)
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();

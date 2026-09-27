@@ -25,6 +25,10 @@ public static class DatabaseInitializer
             await dbContext.Database.ExecuteSqlRawAsync(
                 "ALTER TABLE doctors ADD COLUMN IF NOT EXISTS hospital_clinic character varying(200); ALTER TABLE doctors ADD COLUMN IF NOT EXISTS phone_number character varying(50);",
                 cancellationToken);
+            // S4 — three-portal columns, in case migrations have not been applied yet on this host
+            await dbContext.Database.ExecuteSqlRawAsync(
+                "ALTER TABLE doctors ADD COLUMN IF NOT EXISTS district character varying(60); ALTER TABLE doctors ADD COLUMN IF NOT EXISTS city character varying(60); ALTER TABLE doctors ADD COLUMN IF NOT EXISTS languages character varying(120); ALTER TABLE families ADD COLUMN IF NOT EXISTS family_code character varying(9);",
+                cancellationToken);
         }
         catch { }
         if (!configuration.GetValue<bool>("Seed:Enabled")) return;
@@ -46,7 +50,7 @@ public static class DatabaseInitializer
         var pendingUser = User("demo-pending@example.invalid", "Synthetic Pending Doctor", UserType.Doctor);
         var admin = User("demo-admin@example.invalid", "Synthetic Clinic Admin", UserType.Admin);
         dbContext.Users.AddRange(head, adult, doctorUser, pendingUser, admin);
-        var family = new Family { Name = "Synthetic Demonstration Family", CreatedByUser = head };
+        var family = new Family { Name = "Synthetic Demonstration Family", CreatedByUser = head, FamilyCode = "FV-DEMO01" };
         var headMember = new Member { Family = family, User = head, DisplayName = "Synthetic Head", DateOfBirth = new DateOnly(1985, 1, 15), Role = FamilyRole.Head };
         var adultMember = new Member { Family = family, User = adult, DisplayName = "Synthetic Adult", DateOfBirth = new DateOnly(2000, 6, 10), Role = FamilyRole.AdultMember };
         var minorMember = new Member { Family = family, DisplayName = "Synthetic Minor", DateOfBirth = new DateOnly(2015, 3, 20), Role = FamilyRole.MinorMember };
@@ -79,7 +83,7 @@ public static class DatabaseInitializer
         });
         // ===== end S2 =====
         string Hash(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
-        var verifiedDoctor = new Doctor { User = doctorUser, RegistrationNumberHash = Hash("SYNTHETIC-VERIFIED"), RegistrationNumberLastFour = "DEMO", VerificationStatus = VerificationStatus.Verified, Specialty = "Synthetic demonstration" };
+        var verifiedDoctor = new Doctor { User = doctorUser, RegistrationNumberHash = Hash("SYNTHETIC-VERIFIED"), RegistrationNumberLastFour = "DEMO", VerificationStatus = VerificationStatus.Verified, Specialty = "Synthetic demonstration", District = "Colombo", City = "Colombo 07", Languages = "English, Sinhala" };
         var pendingDoctor = new Doctor { User = pendingUser, RegistrationNumberHash = Hash("SYNTHETIC-PENDING"), RegistrationNumberLastFour = "TEST", VerificationStatus = VerificationStatus.Pending, Specialty = "Synthetic demonstration" };
         dbContext.Doctors.AddRange(verifiedDoctor, pendingDoctor);
         dbContext.FamilyDoctorAssignments.Add(new FamilyDoctorAssignment { Family = family, Doctor = verifiedDoctor, IsPrimary = true });

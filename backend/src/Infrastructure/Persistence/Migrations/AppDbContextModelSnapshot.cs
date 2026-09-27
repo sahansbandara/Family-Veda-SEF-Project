@@ -221,9 +221,34 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<string>("City")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("city");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<string>("District")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("district");
+
+                    b.Property<string>("HospitalClinic")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("hospital_clinic");
+
+                    b.Property<string>("Languages")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("languages");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("phone_number");
 
                     b.Property<string>("RegistrationNumberHash")
                         .IsRequired()
@@ -448,6 +473,11 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("created_by_user_id");
 
+                    b.Property<string>("FamilyCode")
+                        .HasMaxLength(9)
+                        .HasColumnType("character varying(9)")
+                        .HasColumnName("family_code");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(120)
@@ -463,6 +493,10 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CreatedByUserId")
                         .HasDatabaseName("ix_families_created_by_user_id");
+
+                    b.HasIndex("FamilyCode")
+                        .IsUnique()
+                        .HasDatabaseName("ix_families_family_code");
 
                     b.ToTable("families", (string)null);
                 });
@@ -716,6 +750,243 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_users_email");
 
                     b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("FamilyVeda.Domain.Portal.Appointment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("BookedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("booked_by_user_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("DoctorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("doctor_id");
+
+                    b.Property<string>("DoctorNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("doctor_note");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("duration_minutes");
+
+                    b.Property<Guid>("MemberId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("member_id");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("reason");
+
+                    b.Property<DateTimeOffset>("StartsAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("starts_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_appointments");
+
+                    b.HasIndex("DoctorId", "StartsAt")
+                        .HasDatabaseName("ix_appointments_doctor_id_starts_at");
+
+                    b.HasIndex("MemberId", "StartsAt")
+                        .HasDatabaseName("ix_appointments_member_id_starts_at");
+
+                    b.ToTable("appointments", (string)null);
+                });
+
+            modelBuilder.Entity("FamilyVeda.Domain.Portal.FamilyDoctorRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("DoctorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("doctor_id");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(280)
+                        .HasColumnType("character varying(280)")
+                        .HasColumnName("message");
+
+                    b.Property<Guid>("RequestedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("requested_by_user_id");
+
+                    b.Property<DateTimeOffset?>("RespondedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("responded_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_family_doctor_requests");
+
+                    b.HasIndex("DoctorId", "Status")
+                        .HasDatabaseName("ix_family_doctor_requests_doctor_id_status");
+
+                    b.HasIndex("FamilyId", "Status")
+                        .HasDatabaseName("ix_family_doctor_requests_family_id_status");
+
+                    b.ToTable("family_doctor_requests", (string)null);
+                });
+
+            modelBuilder.Entity("FamilyVeda.Domain.Portal.FamilyJoinRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("family_id");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(280)
+                        .HasColumnType("character varying(280)")
+                        .HasColumnName("message");
+
+                    b.Property<string>("RelationshipType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("relationship_type");
+
+                    b.Property<Guid>("RequestingUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("requesting_user_id");
+
+                    b.Property<DateTimeOffset?>("RespondedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("responded_at");
+
+                    b.Property<Guid?>("RespondedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("responded_by_user_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_family_join_requests");
+
+                    b.HasIndex("FamilyId", "Status")
+                        .HasDatabaseName("ix_family_join_requests_family_id_status");
+
+                    b.HasIndex("RequestingUserId", "CreatedAt")
+                        .HasDatabaseName("ix_family_join_requests_requesting_user_id_created_at");
+
+                    b.ToTable("family_join_requests", (string)null);
+                });
+
+            modelBuilder.Entity("FamilyVeda.Domain.Portal.PortalNotification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)")
+                        .HasColumnName("body");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("LinkPath")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("link_path");
+
+                    b.Property<DateTimeOffset?>("ReadAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("read_at");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("title");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("type");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_notifications");
+
+                    b.HasIndex("UserId", "CreatedAt")
+                        .HasDatabaseName("ix_notifications_user_id_created_at");
+
+                    b.ToTable("notifications", (string)null);
                 });
 
             modelBuilder.Entity("FamilyVeda.Domain.Records.HealthRecord", b =>
@@ -1584,6 +1855,81 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
                     b.Navigation("Member");
 
                     b.Navigation("RelatedMember");
+                });
+
+            modelBuilder.Entity("FamilyVeda.Domain.Portal.Appointment", b =>
+                {
+                    b.HasOne("FamilyVeda.Domain.Clinical.Doctor", "Doctor")
+                        .WithMany()
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_appointments_doctors_doctor_id");
+
+                    b.HasOne("FamilyVeda.Domain.Identity.Member", "Member")
+                        .WithMany()
+                        .HasForeignKey("MemberId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_appointments_members_member_id");
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("Member");
+                });
+
+            modelBuilder.Entity("FamilyVeda.Domain.Portal.FamilyDoctorRequest", b =>
+                {
+                    b.HasOne("FamilyVeda.Domain.Clinical.Doctor", "Doctor")
+                        .WithMany()
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_family_doctor_requests_doctors_doctor_id");
+
+                    b.HasOne("FamilyVeda.Domain.Identity.Family", "Family")
+                        .WithMany()
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_family_doctor_requests_families_family_id");
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("Family");
+                });
+
+            modelBuilder.Entity("FamilyVeda.Domain.Portal.FamilyJoinRequest", b =>
+                {
+                    b.HasOne("FamilyVeda.Domain.Identity.Family", "Family")
+                        .WithMany()
+                        .HasForeignKey("FamilyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_family_join_requests_families_family_id");
+
+                    b.HasOne("FamilyVeda.Domain.Identity.UserAccount", "RequestingUser")
+                        .WithMany()
+                        .HasForeignKey("RequestingUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_family_join_requests_users_requesting_user_id");
+
+                    b.Navigation("Family");
+
+                    b.Navigation("RequestingUser");
+                });
+
+            modelBuilder.Entity("FamilyVeda.Domain.Portal.PortalNotification", b =>
+                {
+                    b.HasOne("FamilyVeda.Domain.Identity.UserAccount", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_notifications_users_user_id");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("FamilyVeda.Domain.Records.HealthRecord", b =>

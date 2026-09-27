@@ -24,6 +24,8 @@ public sealed class Family : Entity
     public Guid CreatedByUserId { get; set; }
     public UserAccount? CreatedByUser { get; set; }
     public ICollection<Member> Members { get; set; } = [];
+    // S4 — three-portal join-by-code (docs/Three_Portal_Feature_Spec.md)
+    public string? FamilyCode { get; set; }
 }
 
 public sealed class Member : Entity
