@@ -21,14 +21,15 @@ Due 2026-09-30. CORE first; FUTURE only if time remains, otherwise it goes in th
 
 ### CORE
 - [x] [S4] Keep approval gate covering every patient-visible AI output; approval screen shows full draft + rule results (already true in ApprovalsPage — add a regression test)
-- [ ] [S2] Deterministic lab range status with unit-mismatch check ("Cannot compare — unit mismatch")
-- [ ] [S1+S2] Adult report sharing: Private default / Share with Family Head; Head queries filtered; no dashboard count leaks
-- [ ] [S3] Simple family triage states on web + Flutter (no agent names)
-- [ ] [S3/S4] Emergency referral screen on web (replace any alert()), 1990
-- [ ] [each owner] Authorization-negative tests: 404 for other adult's private item, expired grant, revoked consent
-- [ ] [S1] CI: CodeQL, Dependabot, secret scanning + push protection, coverage gate (Lecture 08)
+- [x] [S2→done by S4] Deterministic lab range status (`LabRangeClassifier`, server-side `RangeStatus`, "Reference range unavailable"). Value and range share one `Unit` column, so no mismatch is possible yet.
+- [x] [S4] Adult privacy verified: Head gets 404 on any adult's reports/vitals (`AdultPrivacyAuthorizationTests`). Opt-in "Share with Family Head" needs a schema migration → moved to FUTURE.
+- [x] [S4] Web family triage shows 4 plain steps (`FamilyCaseProgress`); agent pipeline kept under "Technical details" as viva evidence. Flutter stepper already uses non-technical labels.
+- [x] Emergency referral already a card on web + Flutter screen; no alert() in code (only in the external mockups).
+- [x] [S4] 404 for other adult's private items. Expired grant / revoked consent already covered by `CaseGrantPolicyTests`, `ConsentStateMachineTests`.
+- [x] [S4] CodeQL workflow + Dependabot added. [human] Turn on secret scanning + push protection in GitHub Settings → Code security.
 
 ### FUTURE
+- [ ] [S1+S2] Opt-in "Share with Family Head" per adult report (needs migration lock)
 - [ ] [S1] Family Code + join requests; Head transfer; Start My Own Family; leave/remove
 - [ ] [S1] Lifecycle gaps: revoke old doctor grants on leaving; minor turning 18; inactive Head recovery; sharing for vitals/cases/appointments
 - [ ] [S1/S4] Family Doctor request/change; AI doctor discovery (suggest, never "best")

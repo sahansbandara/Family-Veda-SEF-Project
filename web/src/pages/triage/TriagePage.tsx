@@ -3,7 +3,6 @@
 import { type FormEvent, useCallback, useEffect, useState } from 'react'
 
 import { AiBadge } from '../../components/shared/AiBadge'
-import { StatusBadge } from '../../components/shared/StatusBadge'
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import {
   apiClient,
@@ -16,6 +15,7 @@ import {
   type TriageCaseDto,
 } from '../../services/apiClient'
 import { AgentPipeline } from './AgentPipeline'
+import { FamilyCaseProgress } from './FamilyCaseProgress'
 import { terminalStatuses } from './pipelineStages'
 
 type TriageStatusDto = { id: string; status: string; priority: string; failureCode?: string | null }
@@ -144,10 +144,17 @@ export function TriagePage() {
           {selectedId && (
             <section className="panel" aria-live="polite">
               <div className="panel-heading" style={{ display: 'flex', justifyContent: 'space-between', gap: 'var(--sp-3)', flexWrap: 'wrap' }}>
-                <h2>Agent pipeline</h2>
-                {caseStatus && <StatusBadge status={caseStatus.status} />}
+                <h2>Request progress</h2>
               </div>
-              {!caseStatus ? <LoadingState label="Loading pipeline progress" /> : <AgentPipeline traces={traces} caseStatus={caseStatus.status} />}
+              {!caseStatus ? <LoadingState label="Loading pipeline progress" /> : (
+                <>
+                  <FamilyCaseProgress caseStatus={caseStatus.status} />
+                  <details>
+                    <summary>Technical details</summary>
+                    <AgentPipeline traces={traces} caseStatus={caseStatus.status} />
+                  </details>
+                </>
+              )}
               {failedSafe && (
                 <div className="referral-card" role="alert">
                   <h3>Please seek in-person care</h3>
