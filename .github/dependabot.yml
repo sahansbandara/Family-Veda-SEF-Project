@@ -23,6 +23,12 @@ updates:
     directory: /mobile
     schedule: { interval: weekly }
     target-branch: develop
+    # Code uses the Riverpod 2 API (StateProvider, StateNotifierProvider); skip major bumps.
+    ignore:
+      - dependency-name: "flutter_riverpod"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "flutter_secure_storage"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
