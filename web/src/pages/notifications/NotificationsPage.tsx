@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { threePortalApi, type NotificationDto } from '../../services/apiClient'
-import { formatDateTime } from '../family/threePortalShared'
+import { formatDateTime } from '../family/threePortalUtils'
 
 export function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationDto[]>([])

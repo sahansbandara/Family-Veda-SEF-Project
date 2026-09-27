@@ -6,7 +6,7 @@ import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { useAppSelector } from '../../store/hooks'
 import { apiClient, threePortalApi, type DoctorSummaryDto, type FamilyDto } from '../../services/apiClient'
-import { extractErrorMessage } from './threePortalShared'
+import { extractErrorMessage } from './threePortalUtils'
 
 export function MyDoctorPage() {
   const user = useAppSelector((state) => state.auth.user)

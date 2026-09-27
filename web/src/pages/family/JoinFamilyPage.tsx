@@ -6,7 +6,8 @@ import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { useAppSelector } from '../../store/hooks'
 import { apiClient, threePortalApi, type FamilyDto, type JoinRequestDto } from '../../services/apiClient'
-import { FriendlyStatusBadge, extractErrorMessage, formatDateTime } from './threePortalShared'
+import { FriendlyStatusBadge } from './threePortalShared'
+import { extractErrorMessage, formatDateTime } from './threePortalUtils'
 
 export function JoinFamilyPage() {
   const user = useAppSelector((state) => state.auth.user)

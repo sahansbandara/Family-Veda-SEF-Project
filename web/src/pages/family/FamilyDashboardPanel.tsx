@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom'
 
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { threePortalApi, type FamilyDashboardSummaryDto } from '../../services/apiClient'
-import { formatDateTime, friendlyStatusLabel } from './threePortalShared'
+import { formatDateTime, friendlyStatusLabel } from './threePortalUtils'
 
 export function FamilyDashboardPanel() {
   const [data, setData] = useState<FamilyDashboardSummaryDto | null>(null)

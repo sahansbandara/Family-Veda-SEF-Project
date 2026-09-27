@@ -4,7 +4,6 @@
 // No AI in these features — pure CRUD + deterministic rules.
 import { friendlyStatusLabel, toneByFriendlyStatus } from './threePortalUtils'
 
-export { friendlyStatusLabel, formatDateTime, formatDay, extractErrorMessage } from './threePortalUtils'
 
 export function FriendlyStatusBadge({ status }: { status: string }) {
   const tone = toneByFriendlyStatus[status] ?? 'muted'

@@ -6,7 +6,8 @@ import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { useAppSelector } from '../../store/hooks'
 import { apiClient, threePortalApi, type AppointmentDto, type FamilyDto, type MemberDto } from '../../services/apiClient'
-import { FriendlyStatusBadge, extractErrorMessage, formatDateTime } from './threePortalShared'
+import { FriendlyStatusBadge } from './threePortalShared'
+import { extractErrorMessage, formatDateTime } from './threePortalUtils'
 
 function isMinor(member: MemberDto): boolean {
   const dob = new Date(member.dateOfBirth)

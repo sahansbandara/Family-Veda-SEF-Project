@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom'
 
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { threePortalApi, type DoctorDashboardSummaryDto, type DoctorRequestDto } from '../../services/apiClient'
-import { extractErrorMessage, formatDateTime } from '../family/threePortalShared'
+import { extractErrorMessage, formatDateTime } from '../family/threePortalUtils'
 
 export function DoctorDashboardPanel() {
   const [data, setData] = useState<DoctorDashboardSummaryDto | null>(null)

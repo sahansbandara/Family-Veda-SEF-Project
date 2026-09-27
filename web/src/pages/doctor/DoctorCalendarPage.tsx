@@ -5,7 +5,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { threePortalApi, type AppointmentDto } from '../../services/apiClient'
-import { FriendlyStatusBadge, extractErrorMessage, formatDateTime, formatDay } from '../family/threePortalShared'
+import { FriendlyStatusBadge } from '../family/threePortalShared'
+import { extractErrorMessage, formatDateTime, formatDay } from '../family/threePortalUtils'
 
 type Action = 'confirm' | 'complete' | 'no-show' | 'cancel'
 
