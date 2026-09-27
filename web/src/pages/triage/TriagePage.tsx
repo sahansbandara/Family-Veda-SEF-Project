@@ -118,7 +118,7 @@ export function TriagePage() {
         </div>
       </header>
 
-      {status === 'loading' ? <LoadingState label="Loading triage workspace" /> : status === 'error' ? <ErrorState message="Triage workspace could not be loaded." onRetry={() => void load()} /> : (
+      {status === 'loading' ? <LoadingState label="Loading triage interface" /> : status === 'error' ? <ErrorState message="Triage interface could not be loaded." onRetry={() => void load()} /> : (
         <>
           <section className="panel">
             <h2>New symptom episode</h2>

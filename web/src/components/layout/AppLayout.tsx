@@ -16,7 +16,8 @@ type NavItem = {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Verification status', path: '/doctor-status', roles: ['DOCTOR'] },
+  { label: 'Doctor verification status', path: '/doctor-status', roles: ['DOCTOR'] },
+  { label: 'Family head verification status', path: '/family-head-status', roles: ['FAMILY_HEAD', 'ONBOARDING'] },
   { label: 'Dashboard', path: '/dashboard', roles: ['DOCTOR', 'ADMIN', 'FAMILY_HEAD', 'MEMBER'] },
   { label: 'AI triage', path: '/triage', roles: ['FAMILY_HEAD', 'MEMBER'] },
   { label: 'Records', path: '/records', roles: ['FAMILY_HEAD', 'MEMBER'] },
@@ -67,8 +68,26 @@ export function AppLayout() {
     }
   }
 
-  const visibleItems = navItems.filter((item) => user && item.roles.includes(user.role) &&
-    (user.role !== 'DOCTOR' || user.verificationStatus === 'VERIFIED' || item.path === '/doctor-status'))
+  const isUnverifiedDoctor = user?.role === 'DOCTOR' && user?.verificationStatus !== 'VERIFIED'
+  const isUnverifiedFamilyHead =
+    (user?.role === 'FAMILY_HEAD' || user?.role === 'ONBOARDING') && user?.familyHeadVerificationStatus !== 'VERIFIED'
+
+  const visibleItems = navItems.filter((item) => {
+    if (!user || !item.roles.includes(user.role)) return false
+    if (isUnverifiedDoctor) return item.path === '/doctor-status'
+    if (isUnverifiedFamilyHead) return item.path === '/family-head-status'
+    if (item.path === '/doctor-status' || item.path === '/family-head-status') return false
+    return true
+  })
+
+  const brandDestination = isUnverifiedDoctor
+    ? '/doctor-status'
+    : isUnverifiedFamilyHead
+      ? '/family-head-status'
+      : user?.role === 'ONBOARDING'
+        ? '/onboarding'
+        : '/dashboard'
+
   async function signOut() {
     try { await apiClient.post('/auth/logout') }
     finally { dispatch(signedOut()) }
@@ -78,13 +97,13 @@ export function AppLayout() {
     <div className="app-shell">
       <a className="skip-link" href="#main-content">Skip to main content</a>
       <header className="topbar">
-        <NavLink className="brand" to={user?.role === 'ONBOARDING' ? '/onboarding' : '/dashboard'} aria-label="Family Veda dashboard">
+        <NavLink className="brand" to={brandDestination} aria-label="Family Veda dashboard">
           <span className="brand-mark">
             <img src={markUrl} alt="" width={42} height={42} />
           </span>
           <span>
             <strong>Family Veda</strong>
-            <small>Clinical workspace</small>
+            <small>Clinical decision support</small>
           </span>
         </NavLink>
         <div className="session-summary">
@@ -119,7 +138,7 @@ export function AppLayout() {
         <Outlet />
       </main>
       <footer className="app-footer">
-        Clinical decision-support workspace. Access is controlled and activity is audited.
+        Clinical decision-support system. Access is controlled and activity is audited.
       </footer>
     </div>
   )

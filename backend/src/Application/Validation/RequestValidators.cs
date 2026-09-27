@@ -34,6 +34,33 @@ public sealed class LoginRequestValidator : AbstractValidator<LoginRequest>
     }
 }
 
+public sealed class ForgotPasswordRequestValidator : AbstractValidator<ForgotPasswordRequest>
+{
+    public ForgotPasswordRequestValidator()
+    {
+        RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(254);
+    }
+}
+
+public sealed class ResetPasswordRequestValidator : AbstractValidator<ResetPasswordRequest>
+{
+    public ResetPasswordRequestValidator()
+    {
+        RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(254);
+        RuleFor(x => x.Token).NotEmpty().MaximumLength(128);
+        RuleFor(x => x.NewPassword).MinimumLength(8).MaximumLength(128);
+    }
+}
+
+public sealed class ChangePasswordRequestValidator : AbstractValidator<ChangePasswordRequest>
+{
+    public ChangePasswordRequestValidator()
+    {
+        RuleFor(x => x.CurrentPassword).NotEmpty().MaximumLength(128);
+        RuleFor(x => x.NewPassword).MinimumLength(8).MaximumLength(128);
+    }
+}
+
 public sealed class CreateFamilyRequestValidator : AbstractValidator<CreateFamilyRequest>
 {
     public CreateFamilyRequestValidator() => RuleFor(x => x.Name).NotEmpty().MaximumLength(120);

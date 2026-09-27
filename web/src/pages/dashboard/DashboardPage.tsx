@@ -160,9 +160,9 @@ export function DashboardPage() {
 
   return (
     <div className="page-stack">
-      <section className="welcome-banner" aria-label="Workspace overview">
+      <section className="welcome-banner" aria-label="Dashboard overview">
         <div className="welcome-banner-content">
-          <p className="eyebrow">Workspace overview</p>
+          <p className="eyebrow">Dashboard overview</p>
           <h1>Good day, {user?.name}</h1>
           <p>Review current workload, health updates, and access your next permitted task.</p>
         </div>
@@ -173,15 +173,15 @@ export function DashboardPage() {
       </section>
 
       {status === 'loading' ? (
-        <div className="skeleton-grid" role="status" aria-label="Loading workspace summary">
+        <div className="skeleton-grid" role="status" aria-label="Loading summary">
           <div className="skeleton-card" />
           <div className="skeleton-card" />
           <div className="skeleton-card" />
         </div>
       ) : status === 'error' ? (
-        <ErrorState message="Workspace summary could not be loaded." onRetry={() => void load()} />
+        <ErrorState message="Dashboard summary could not be loaded." onRetry={() => void load()} />
       ) : (
-        <section className="metric-grid" aria-label="Workspace summary">
+        <section className="metric-grid" aria-label="Dashboard summary">
           <article className="metric-card metric-card--teal">
             <div className="metric-card-top">
               <span>Open items</span>

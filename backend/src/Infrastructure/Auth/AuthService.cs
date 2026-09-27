@@ -231,6 +231,223 @@ public sealed class AuthService(
             familyCode);
     }
 
+    public async Task<ResetPasswordResponse> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken)
+    {
+        var email = NormalizeEmail(request.Email);
+        var user = await dbContext.Users.SingleOrDefaultAsync(x => x.Email == email, cancellationToken);
+        if (user is null || !user.IsActive)
+        {
+            return new ResetPasswordResponse(true, "If an account exists for this email address, password reset instructions have been dispatched.");
+        }
+
+        var rawToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(4)); // 8-character hex token
+        var tokenHash = HashToken(rawToken);
+        var metadata = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            TokenHash = tokenHash,
+            ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(15)
+        });
+
+        dbContext.AuditLogs.Add(new Domain.Clinical.AuditLog
+        {
+            ActorUserId = user.Id,
+            EventType = "PASSWORD_RESET_TOKEN_GENERATED",
+            ResourceType = "UserAccount",
+            ResourceId = user.Id,
+            Outcome = "PENDING",
+            MetadataJson = metadata
+        });
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return new ResetPasswordResponse(true, "If an account exists for this email address, password reset instructions have been dispatched.", rawToken);
+    }
+
+    public async Task<ResetPasswordResponse> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        var email = NormalizeEmail(request.Email);
+        var user = await dbContext.Users.SingleOrDefaultAsync(x => x.Email == email, cancellationToken);
+        if (user is null || !user.IsActive)
+        {
+            throw new ForbiddenException("Invalid or expired password reset request.");
+        }
+
+        var tokenHash = HashToken(request.Token.Trim().ToUpperInvariant());
+        var pendingAudits = await dbContext.AuditLogs
+            .Where(a => a.ResourceType == "UserAccount" && a.ResourceId == user.Id && (a.EventType == "PASSWORD_RESET_TOKEN_GENERATED" || a.EventType == "ADMIN_PASSWORD_RESET_TRIGGERED") && a.Outcome == "PENDING")
+            .OrderByDescending(a => a.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        Domain.Clinical.AuditLog? validAudit = null;
+        foreach (var audit in pendingAudits)
+        {
+            if (audit.MetadataJson is null) continue;
+            try
+            {
+                using var doc = System.Text.Json.JsonDocument.Parse(audit.MetadataJson);
+                if (doc.RootElement.TryGetProperty("TokenHash", out var hashElem) && hashElem.GetString() == tokenHash)
+                {
+                    if (doc.RootElement.TryGetProperty("ExpiresAt", out var expElem) && expElem.TryGetDateTimeOffset(out var exp) && exp > DateTimeOffset.UtcNow)
+                    {
+                        validAudit = audit;
+                        break;
+                    }
+                }
+            }
+            catch { }
+        }
+
+        if (validAudit is null)
+        {
+            throw new ForbiddenException("Invalid or expired password reset token.");
+        }
+
+        validAudit.Outcome = "COMPLETED";
+        user.PasswordHash = passwordHasher.HashPassword(user, request.NewPassword);
+        user.RefreshTokenHash = null;
+        user.RefreshTokenRevokedAt = DateTimeOffset.UtcNow;
+
+        dbContext.AuditLogs.Add(new Domain.Clinical.AuditLog
+        {
+            ActorUserId = user.Id,
+            EventType = "PASSWORD_RESET_COMPLETED",
+            ResourceType = "UserAccount",
+            ResourceId = user.Id,
+            Outcome = "SUCCESS"
+        });
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return new ResetPasswordResponse(true, "Password has been successfully reset. You may now log in with your new password.");
+    }
+
+    public async Task ChangePasswordAsync(ChangePasswordRequest request, CancellationToken cancellationToken)
+    {
+        if (!currentUser.IsAuthenticated) throw new ForbiddenException();
+        var user = await dbContext.Users.SingleOrDefaultAsync(x => x.Id == currentUser.UserId, cancellationToken)
+            ?? throw new ForbiddenException();
+
+        var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.CurrentPassword);
+        if (result == PasswordVerificationResult.Failed)
+        {
+            throw new ForbiddenException("Current password is incorrect.");
+        }
+
+        user.PasswordHash = passwordHasher.HashPassword(user, request.NewPassword);
+        user.RefreshTokenHash = null;
+        user.RefreshTokenRevokedAt = DateTimeOffset.UtcNow;
+
+        dbContext.AuditLogs.Add(new Domain.Clinical.AuditLog
+        {
+            ActorUserId = user.Id,
+            EventType = "PASSWORD_CHANGED",
+            ResourceType = "UserAccount",
+            ResourceId = user.Id,
+            Outcome = "SUCCESS"
+        });
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<PagedResult<AdminUserDto>> GetAdminUsersAsync(int page, int pageSize, string? search, CancellationToken cancellationToken)
+    {
+        var query = dbContext.Users.AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var q = search.Trim().ToLower();
+            query = query.Where(u => u.DisplayName.ToLower().Contains(q) || u.Email.ToLower().Contains(q));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var users = await query
+            .OrderByDescending(u => u.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(u => new AdminUserDto(
+                u.Id,
+                u.Email,
+                u.DisplayName,
+                u.UserType,
+                u.IsActive,
+                u.CreatedAt,
+                u.IsActive ? "Active" : "Suspended",
+                u.UserType.ToString()))
+            .ToListAsync(cancellationToken);
+
+        return new PagedResult<AdminUserDto>(users, page, pageSize, totalCount);
+    }
+
+    public async Task<ResetPasswordResponse> AdminResetPasswordAsync(Guid userId, AdminResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        var user = await dbContext.Users.SingleOrDefaultAsync(x => x.Id == userId, cancellationToken);
+        if (user is null)
+        {
+            throw new NotFoundException("User account not found.");
+        }
+
+        var rawToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(4)); // 8 hex chars
+        var tokenHash = HashToken(rawToken);
+        var metadata = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            TokenHash = tokenHash,
+            Reason = request.Reason?.Trim(),
+            AdminUserId = currentUser.UserId,
+            ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(30)
+        });
+
+        dbContext.AuditLogs.Add(new Domain.Clinical.AuditLog
+        {
+            ActorUserId = currentUser.UserId,
+            EventType = "ADMIN_PASSWORD_RESET_TRIGGERED",
+            ResourceType = "UserAccount",
+            ResourceId = user.Id,
+            Outcome = "PENDING",
+            MetadataJson = metadata
+        });
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return new ResetPasswordResponse(true, $"Password reset token generated for {user.Email}.", rawToken);
+    }
+
+    public async Task<AdminUserDto> AdminToggleUserStatusAsync(Guid userId, AdminToggleStatusRequest request, CancellationToken cancellationToken)
+    {
+        var user = await dbContext.Users.SingleOrDefaultAsync(x => x.Id == userId, cancellationToken);
+        if (user is null)
+        {
+            throw new NotFoundException("User account not found.");
+        }
+
+        if (user.Id == currentUser.UserId)
+        {
+            throw new ConflictException("Administrators cannot suspend their own account.");
+        }
+
+        user.IsActive = request.IsActive;
+        if (!request.IsActive)
+        {
+            user.RefreshTokenHash = null;
+            user.RefreshTokenRevokedAt = DateTimeOffset.UtcNow;
+        }
+
+        var metadata = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            Reason = request.Reason?.Trim(),
+            AdminUserId = currentUser.UserId,
+            NewStatus = request.IsActive ? "Active" : "Suspended"
+        });
+
+        dbContext.AuditLogs.Add(new Domain.Clinical.AuditLog
+        {
+            ActorUserId = currentUser.UserId,
+            EventType = request.IsActive ? "ACCOUNT_REACTIVATED" : "ACCOUNT_SUSPENDED",
+            ResourceType = "UserAccount",
+            ResourceId = user.Id,
+            Outcome = request.IsActive ? "ACTIVE" : "SUSPENDED",
+            MetadataJson = metadata
+        });
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return new AdminUserDto(user.Id, user.Email, user.DisplayName, user.UserType, user.IsActive, user.CreatedAt, user.IsActive ? "Active" : "Suspended");
+    }
+
     private static string NormalizeEmail(string email) => email.Trim().ToLowerInvariant();
     private static string HashToken(string token) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
 }

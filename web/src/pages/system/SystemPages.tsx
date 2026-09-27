@@ -3,7 +3,7 @@
 import { Link } from 'react-router-dom'
 
 export function AccessDeniedPage() {
-  return <main className="centered-page"><p className="eyebrow">Permission check</p><h1>Access unavailable</h1><p>Your current role does not permit this workspace.</p><Link className="button button--primary" to="/dashboard">Return to dashboard</Link></main>
+  return <main className="centered-page"><p className="eyebrow">Permission check</p><h1>Access unavailable</h1><p>Your current role does not permit this page.</p><Link className="button button--primary" to="/dashboard">Return to dashboard</Link></main>
 }
 
 export function NotFoundPage() {

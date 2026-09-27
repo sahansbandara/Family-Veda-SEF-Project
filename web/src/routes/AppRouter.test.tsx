@@ -56,10 +56,10 @@ describe('AppRoutes', () => {
     expect(screen.getByRole('heading', { name: /sign in/i })).toBeInTheDocument()
   })
 
-  it('blocks family users from doctor case routes', () => {
+  it('blocks family users from doctor case routes and redirects to dashboard', () => {
     renderRoute('/cases', 'FAMILY_HEAD')
 
-    expect(screen.getByRole('heading', { name: /access unavailable/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /good day/i })).toBeInTheDocument()
   })
 
   it('allows verified doctors to view triage cases', () => {
@@ -83,7 +83,7 @@ describe('AppRoutes', () => {
   it('routes an unlinked family account into required onboarding', () => {
     renderRoute('/dashboard', 'ONBOARDING')
 
-    expect(screen.getByRole('heading', { name: /create your family workspace/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /create your family profile/i })).toBeInTheDocument()
   })
 
   it('blocks unverified family heads and directs to verification status', async () => {

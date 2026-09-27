@@ -12,6 +12,7 @@ export function FamilyHeadVerificationPage() {
   const [familyHeads, setFamilyHeads] = useState<FamilyHeadDto[]>([])
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [message, setMessage] = useState('')
+  const [generatedTokenInfo, setGeneratedTokenInfo] = useState<{ email: string; token: string } | null>(null)
   const [search, setSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState<FilterStatus>('ALL')
 
@@ -32,11 +33,32 @@ export function FamilyHeadVerificationPage() {
     void load()
   }, [load])
 
-  async function decide(userId: string, action: 'verify' | 'request-info' | 'reject' | 'suspend') {
-    const reason = window.prompt('Audit reason (no clinical content):')
-    if (reason === null) return
+  async function handleResetPassword(userId: string, email: string) {
     try {
-      const response = await apiClient.post<FamilyHeadDto>(`/admin/family-heads/${userId}/${action}`, { reason })
+      const response = await apiClient.post<{ success: boolean; message: string; resetToken?: string }>(
+        `/auth/admin/users/${userId}/reset-password`,
+        { reason: 'Administrative password reset' }
+      )
+      setMessage(`Password reset token generated for ${email} and logged to audit trail.`)
+      if (response.data.resetToken) {
+        setGeneratedTokenInfo({ email, token: response.data.resetToken })
+      }
+    } catch {
+      setMessage('Failed to generate password reset token.')
+    }
+  }
+
+  async function decide(userId: string, action: 'verify' | 'request-info' | 'reject' | 'suspend') {
+    const actionLabels: Record<string, string> = {
+      verify: 'Administrative verification completed',
+      'request-info': 'Additional identity documents requested',
+      reject: 'Registration rejected by administrator',
+      suspend: 'Account suspended by administrator',
+    }
+    try {
+      const response = await apiClient.post<FamilyHeadDto>(`/admin/family-heads/${userId}/${action}`, {
+        reason: actionLabels[action] ?? 'Administrative verification update',
+      })
       const codeMsg = response.data.familyCode ? ` Assigned Family ID: ${response.data.familyCode}` : ''
       setMessage(`Family head verification status updated and audited.${codeMsg}`)
       await load()
@@ -45,8 +67,14 @@ export function FamilyHeadVerificationPage() {
     }
   }
 
+  const headApplicants = useMemo(() => {
+    return familyHeads.filter(
+      (head) => Boolean(head.nic || head.address || head.familyCode || head.email === 'demo-head@example.invalid')
+    )
+  }, [familyHeads])
+
   const filteredHeads = useMemo(() => {
-    return familyHeads.filter((head) => {
+    return headApplicants.filter((head) => {
       const q = search.toLowerCase().trim()
       const matchesSearch =
         q === '' ||
@@ -75,10 +103,10 @@ export function FamilyHeadVerificationPage() {
           return true
       }
     })
-  }, [familyHeads, search, activeFilter])
+  }, [headApplicants, search, activeFilter])
 
-  const pendingCount = familyHeads.filter((h) => (h.verificationStatus?.toUpperCase() ?? 'PENDING') === 'PENDING').length
-  const verifiedCount = familyHeads.filter((h) => h.verificationStatus?.toUpperCase() === 'VERIFIED').length
+  const pendingCount = headApplicants.filter((h) => (h.verificationStatus?.toUpperCase() ?? 'PENDING') === 'PENDING').length
+  const verifiedCount = headApplicants.filter((h) => h.verificationStatus?.toUpperCase() === 'VERIFIED').length
 
   return (
     <div className="page-stack">
@@ -86,11 +114,29 @@ export function FamilyHeadVerificationPage() {
         <div>
           <p className="eyebrow">Clinic administration</p>
           <h1>Family head verification</h1>
-          <p>Manual administrative verification of family heads and workspaces; no external registration API is claimed.</p>
+          <p>Manual administrative verification of family heads; no external registration API is claimed.</p>
         </div>
       </header>
 
       {message && <p role="status" className="status-banner">{message}</p>}
+
+      {generatedTokenInfo && (
+        <div className="panel" style={{ borderLeft: '4px solid var(--primary)', backgroundColor: 'rgba(16, 185, 129, 0.08)', marginBottom: '16px' }}>
+          <h3>🔑 One-Time Reset Token Generated</h3>
+          <p>
+            Secure reset token for <strong>{generatedTokenInfo.email}</strong>:{' '}
+            <strong style={{ fontFamily: 'monospace', fontSize: '1.1rem', color: 'var(--primary)', letterSpacing: '1px' }}>
+              {generatedTokenInfo.token}
+            </strong>
+          </p>
+          <p className="muted" style={{ fontSize: '0.85rem' }}>
+            This token is valid for 30 minutes and has been logged to the audit trail.
+          </p>
+          <button type="button" className="button button--secondary button--sm" onClick={() => setGeneratedTokenInfo(null)}>
+            Dismiss
+          </button>
+        </div>
+      )}
 
       <section className="panel">
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -100,7 +146,7 @@ export function FamilyHeadVerificationPage() {
               className={`button button--sm ${activeFilter === 'ALL' ? 'button--primary' : 'button--secondary'}`}
               onClick={() => setActiveFilter('ALL')}
             >
-              All ({familyHeads.length})
+              All ({headApplicants.length})
             </button>
             <button
               type="button"
@@ -168,7 +214,6 @@ export function FamilyHeadVerificationPage() {
                   <th>Family head</th>
                   <th>NIC</th>
                   <th>Address</th>
-                  <th>Workspace</th>
                   <th>Members</th>
                   <th>Status</th>
                   <th>Actions</th>
@@ -210,13 +255,6 @@ export function FamilyHeadVerificationPage() {
                         <div style={{ maxWidth: '200px', fontSize: '0.85rem', wordBreak: 'break-word' }}>
                           {head.address ?? <span className="muted">—</span>}
                         </div>
-                      </td>
-                      <td>
-                        {head.familyName === 'Pending Setup' ? (
-                          <span className="muted" style={{ fontStyle: 'italic', fontSize: '0.85rem' }}>Pending workspace</span>
-                        ) : (
-                          head.familyName
-                        )}
                       </td>
                       <td>{head.memberCount}</td>
                       <td>
@@ -268,6 +306,13 @@ export function FamilyHeadVerificationPage() {
                               Reactivate
                             </button>
                           )}
+                          <button
+                            className="button button--secondary button--sm"
+                            onClick={() => void handleResetPassword(head.userId, head.email)}
+                            title="Generate one-time password reset token"
+                          >
+                            Reset Password
+                          </button>
                         </div>
                       </td>
                     </tr>
