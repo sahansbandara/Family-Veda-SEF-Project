@@ -247,7 +247,7 @@ export function AuthPage() {
           
           {/* Register Form */}
           <div className="auth-form-content auth-form-register">
-            <h2 style={{ fontSize: '2rem', marginBottom: '16px' }}>Sign up</h2>
+            <h2 style={{ fontSize: '2.4rem', fontWeight: 700, marginBottom: '24px', color: 'white' }}>Sign up</h2>
             
             <AuthStepper steps={steps} currentStep={regStep} />
             
@@ -289,7 +289,7 @@ export function AuthPage() {
                   </div>
                   <div className="auth-form-group">
                     <label htmlFor="reg-email">Email Address</label>
-                    <input id="reg-email" type="email" className="auth-form-input" value={regEmail} required autoComplete="email" onChange={(e) => setRegEmail(e.target.value)} />
+                    <input id="reg-email" type="email" className="auth-form-input" placeholder="e.g. name@example.invalid" value={regEmail} required autoComplete="email" onChange={(e) => setRegEmail(e.target.value)} />
                   </div>
                   <div className="auth-form-group" style={{ opacity: 0.5 }}>
                     <label>Mobile Number <em>(Coming Soon)</em></label>
@@ -297,11 +297,11 @@ export function AuthPage() {
                   </div>
                   <div className="auth-form-group">
                     <label htmlFor="reg-password">Create Password</label>
-                    <input id="reg-password" type="password" className="auth-form-input" value={regPassword} required minLength={12} onChange={(e) => setRegPassword(e.target.value)} />
+                    <input id="reg-password" type="password" className="auth-form-input" placeholder="At least 8 characters" value={regPassword} required minLength={12} onChange={(e) => setRegPassword(e.target.value)} />
                   </div>
                   <div className="auth-form-group">
                     <label htmlFor="reg-confirm">Confirm Password</label>
-                    <input id="reg-confirm" type="password" className="auth-form-input" value={regConfirm} required onChange={(e) => setRegConfirm(e.target.value)} />
+                    <input id="reg-confirm" type="password" className="auth-form-input" placeholder="Confirm your password" value={regConfirm} required onChange={(e) => setRegConfirm(e.target.value)} />
                   </div>
                 </div>
               )}
@@ -445,17 +445,17 @@ export function AuthPage() {
 
           {/* Login Form */}
           <div className="auth-form-content auth-form-login">
-            <h2 style={{ fontSize: '2rem', marginBottom: '32px' }}>Sign in</h2>
+            <h2 style={{ fontSize: '2.4rem', fontWeight: 700, marginBottom: '32px', color: 'white' }}>Sign in</h2>
             
             <form onSubmit={handleLogin} noValidate>
               <div className="auth-form-group">
                 <label htmlFor="login-email">Email Address</label>
-                <input id="login-email" type="email" className="auth-form-input" value={loginEmail} required autoComplete="email" onChange={(e) => setLoginEmail(e.target.value)} />
+                <input id="login-email" type="email" className="auth-form-input" placeholder="e.g. name@example.invalid" value={loginEmail} required autoComplete="email" onChange={(e) => setLoginEmail(e.target.value)} />
               </div>
 
               <div className="auth-form-group">
                 <label htmlFor="login-password">Password</label>
-                <input id="login-password" type="password" className="auth-form-input" value={loginPassword} required autoComplete="current-password" onChange={(e) => setLoginPassword(e.target.value)} />
+                <input id="login-password" type="password" className="auth-form-input" placeholder="At least 8 characters" value={loginPassword} required autoComplete="current-password" onChange={(e) => setLoginPassword(e.target.value)} />
               </div>
 
               {(loginError || (mode === 'login' && authError)) && (
