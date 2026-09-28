@@ -31,9 +31,11 @@ describe('FamilyDashboardPanel (Adult)', () => {
 
     render(<MemoryRouter><FamilyDashboardPanel /></MemoryRouter>)
 
-    await waitFor(() => expect(screen.getByText('Book appointment')).toBeInTheDocument())
-    expect(screen.queryByText('Add minor')).not.toBeInTheDocument()
-    expect(screen.queryByText('Invite adult')).not.toBeInTheDocument()
-    expect(screen.queryByText('Join requests')).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText('Adult Member workspace')).toBeInTheDocument())
+    expect(screen.getAllByText('Book My Appointment').length).toBeGreaterThan(0)
+    expect(screen.queryByText('+ Add Minor')).not.toBeInTheDocument()
+    expect(screen.queryByText('Invite Adult')).not.toBeInTheDocument()
+    expect(screen.queryByText('Membership Requests')).not.toBeInTheDocument()
+    expect(screen.getByText('Who Can See My Data?')).toBeInTheDocument()
   })
 })

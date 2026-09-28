@@ -1,0 +1,96 @@
+/* Owner: S4 · whole-project waiver (agent/DECISIONS.md 2026-09-28b)
+   Three-portal dashboard layout, ported from the Family Head / Adult Member / Doctor mockups.
+   Colours reuse design tokens from tokens.css so light and dark themes both work. */
+
+.fv-dash { display: flex; flex-direction: column; gap: 17px; }
+
+.fv-hero {
+  display: flex; justify-content: space-between; align-items: center; gap: 18px;
+  padding: 25px 27px; border: 1px solid var(--border); border-radius: 22px;
+  background: linear-gradient(120deg, var(--primary-subtle), var(--surface) 55%, var(--surface-subtle));
+  box-shadow: 0 14px 38px rgba(18, 53, 52, 0.08);
+}
+.fv-hero h1 { margin: 0; font-size: 1.8rem; color: var(--text-heading); }
+.fv-hero p { margin: 8px 0 0; color: var(--muted); }
+.fv-eyebrow { margin: 0 0 6px; color: var(--primary); font-size: 11px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
+
+.fv-badge { display: inline-flex; align-items: center; gap: 4px; padding: 6px 9px; border-radius: 999px; font-size: 11px; font-weight: 800; white-space: nowrap; }
+.fv-badge--ok { background: var(--primary-subtle); color: var(--primary); }
+.fv-badge--warn { background: color-mix(in srgb, var(--warning) 14%, transparent); color: var(--warning); }
+.fv-badge--danger { background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
+.fv-badge--info { background: color-mix(in srgb, #3a739a 14%, transparent); color: #3a739a; }
+.fv-badge--muted { background: var(--surface-subtle); color: var(--muted); }
+
+.fv-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; }
+.fv-metric { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
+.fv-metric small { color: var(--muted); font-weight: 700; }
+.fv-metric strong { display: block; font-size: 28px; margin: 9px 0 3px; color: var(--text-heading); line-height: 1.15; }
+
+.fv-grid2 { display: grid; grid-template-columns: 1.45fr 0.75fr; gap: 17px; }
+.fv-gridhalf { display: grid; grid-template-columns: 1fr 1fr; gap: 17px; }
+
+.fv-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 19px; box-shadow: 0 8px 28px rgba(18, 53, 52, 0.045); min-width: 0; }
+.fv-panel h2 { margin: 0; font-size: 1.2rem; color: var(--text-heading); }
+.fv-panel p { color: var(--muted); }
+.fv-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 15px; }
+.fv-head p { margin: 4px 0 0; font-size: 12px; }
+
+.fv-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  padding: 9px 11px; border-radius: 10px; font-weight: 800; font-size: 0.85rem; text-decoration: none; cursor: pointer;
+}
+.fv-btn:hover { border-color: var(--primary); color: var(--primary); }
+.fv-btn--primary { background: var(--primary); border-color: var(--primary); color: var(--on-accent); }
+.fv-btn--primary:hover { background: var(--primary-hover); color: var(--on-accent); }
+
+.fv-stack { display: flex; flex-direction: column; gap: 10px; }
+.fv-item { border: 1px solid var(--border); border-radius: 13px; padding: 13px; background: var(--surface-subtle); }
+.fv-item p { margin: 5px 0; font-size: 12px; }
+.fv-row { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+
+.fv-quick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.fv-quick a { flex-direction: column; align-items: flex-start; text-align: left; min-height: 62px; }
+.fv-quick small { color: var(--muted); font-weight: 600; }
+
+.fv-doctor { border: 1px solid var(--border); border-radius: 15px; padding: 15px; background: linear-gradient(135deg, var(--surface), var(--primary-subtle)); }
+.fv-doctor .fv-name { font-size: 18px; font-weight: 900; color: var(--text-heading); }
+.fv-doctor small { color: var(--muted); }
+.fv-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 13px; }
+
+.fv-members { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.fv-member { border: 1px solid var(--border); border-radius: 13px; padding: 13px; }
+.fv-member p { font-size: 12px; margin: 6px 0 0; }
+
+.fv-tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+.fv-tool { border: 1px solid var(--border); background: var(--surface); border-radius: 13px; padding: 13px; text-align: left; text-decoration: none; color: var(--text); }
+.fv-tool:hover { border-color: var(--primary); }
+.fv-tool strong { display: block; }
+.fv-tool small { display: block; color: var(--muted); margin-top: 5px; }
+
+.fv-timeline { border-left: 2px solid var(--border); padding-left: 15px; margin: 0; list-style: none; }
+.fv-event { position: relative; margin-bottom: 14px; }
+.fv-event::before { content: ''; position: absolute; left: -20px; top: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+.fv-event p { font-size: 12px; margin: 3px 0; }
+
+.fv-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.fv-table th { text-align: left; color: var(--muted); font-size: 11px; text-transform: uppercase; padding: 10px; border-bottom: 1px solid var(--border); }
+.fv-table td { padding: 12px 10px; border-bottom: 1px solid var(--border-subtle); }
+.fv-scroll { overflow-x: auto; }
+
+.fv-emergency {
+  position: fixed; right: 18px; bottom: 18px; z-index: 30; border: 0; border-radius: 999px;
+  background: var(--emergency); color: var(--on-accent); padding: 10px 14px; font-weight: 900; text-decoration: none;
+}
+.fv-referral { border: 1px solid var(--emergency); border-radius: 14px; padding: 14px; background: color-mix(in srgb, var(--emergency) 8%, var(--surface)); }
+.fv-referral strong { color: var(--emergency); }
+
+@media (max-width: 1000px) {
+  .fv-metrics { grid-template-columns: repeat(2, 1fr); }
+  .fv-grid2, .fv-gridhalf { grid-template-columns: 1fr; }
+  .fv-tools { grid-template-columns: 1fr; }
+}
+@media (max-width: 680px) {
+  .fv-hero { flex-direction: column; align-items: flex-start; }
+  .fv-members, .fv-quick { grid-template-columns: 1fr; }
+}

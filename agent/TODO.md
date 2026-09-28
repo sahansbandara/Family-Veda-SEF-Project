@@ -61,6 +61,9 @@ Due 2026-10-06 (extended). CORE first; FUTURE only if time remains, otherwise it
 - [ ] Publish the APK link with checksum and install steps.
 
 #### Phase 1b — Synthetic test data (29–30 Sep) · RULE 7: synthetic only, `example.invalid` emails
+- [x] 2026-09-28: Three dashboards were rebuilt to match the mockups, using live API data. `DemoDataSeeder` adds 4 families, 5 doctors, appointments, labs, vitals and triage cases (see `docs/DEMO_DATA.md`). Backend unit tests 95/95; web tests 43/43, lint and build pass.
+- [x] Doctor `/approvals` and `/cases` now route to the live `ApprovalsPage` and `CasesPage` (PR #53). The dead `handleDecision` mock remains in the unused `DoctorPortal` approvals tab; delete it during clean-up.
+- [ ] Portal navigation labels still differ from the blueprint menus (e.g. "AI triage", "Family screening"). Align them in `AppLayout`.
 - [ ] Extend `DatabaseInitializer` seed (still gated by `Seed:Enabled`): 3 families; Head + 2 adults + 2 minors each; 1 adult in a second family (for Start My Own Family / join flows).
 - [ ] Doctors: 3 verified (different districts, languages, Saturday availability), 1 pending, 1 suspended — for directory, discovery and verification tests.
 - [ ] Records per member: conditions, vitals series (≥6 months), lab reports with values below/within/above range and one with no range; a private and a shared adult report.

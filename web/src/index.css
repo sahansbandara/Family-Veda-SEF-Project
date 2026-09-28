@@ -3,6 +3,7 @@
 @import './styles/tokens.css';
 @import './styles/materials.css';
 @import './styles/components.css';
+@import './styles/portal-dashboard.css';
 
 /* Base and reset. Tokens are defined in styles/tokens.css. */
 

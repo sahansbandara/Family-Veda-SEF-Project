@@ -27,22 +27,53 @@ const baseDashboard = {
 }
 
 describe('FamilyDashboardPanel (Head)', () => {
-  it('renders head metrics: members, open cases, join requests', async () => {
+  it('renders the mockup metrics: members, cases and join requests', async () => {
     mocks.getFamilyDashboard.mockResolvedValue({ data: baseDashboard })
 
     render(<MemoryRouter><FamilyDashboardPanel /></MemoryRouter>)
 
-    await waitFor(() => expect(screen.getByText('4')).toBeInTheDocument())
-    expect(screen.getByText('1')).toBeInTheDocument()
-    expect(screen.getByText('3')).toBeInTheDocument()
-    expect(screen.getByText('Add minor')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText('Family Members')).toBeInTheDocument())
+    expect(screen.getByText('4')).toBeInTheDocument()
+    expect(screen.getByText('Membership Requests')).toBeInTheDocument()
+    expect(screen.getByText('3 join requests')).toBeInTheDocument()
+    expect(screen.getByText('+ Add Minor')).toBeInTheDocument()
+    expect(screen.getByText(/FV-ABCDEF/)).toBeInTheDocument()
   })
 
-  it('renders recent activity strings from the dashboard API', async () => {
+  it('renders recent activity strings from older API builds', async () => {
     mocks.getFamilyDashboard.mockResolvedValue({ data: { ...baseDashboard, recentActivity: ['Appointment requested'] } })
 
     render(<MemoryRouter><FamilyDashboardPanel /></MemoryRouter>)
 
     expect(await screen.findByText('Appointment requested')).toBeInTheDocument()
+  })
+
+  it('shows member cards exactly as the API summarises them', async () => {
+    mocks.getFamilyDashboard.mockResolvedValue({
+      data: {
+        ...baseDashboard,
+        members: [
+          { id: 'm1', displayName: 'Nimal Perera', role: 'Head', isSelf: true, isMinor: false, summary: 'You · 1 upcoming appointment' },
+          { id: 'm2', displayName: 'Amaya Perera', role: 'AdultMember', isSelf: false, isMinor: false, summary: 'Adult · private by default' },
+          { id: 'm3', displayName: 'Kasun Perera', role: 'MinorMember', isSelf: false, isMinor: true, summary: 'Guardian managed · no upcoming appointments' },
+        ],
+        activity: [{ title: 'Case updated', subject: 'Kasun Perera', occurredAt: '2026-09-22T10:00:00Z' }],
+      },
+    })
+
+    render(<MemoryRouter><FamilyDashboardPanel /></MemoryRouter>)
+
+    expect(await screen.findByText('Adult · private by default')).toBeInTheDocument()
+    expect(screen.getByText('Minor')).toBeInTheDocument()
+    expect(screen.getByText('Case updated')).toBeInTheDocument()
+  })
+
+  it('shows an emergency referral card, not a browser alert', async () => {
+    mocks.getFamilyDashboard.mockResolvedValue({ data: baseDashboard })
+
+    render(<MemoryRouter><FamilyDashboardPanel /></MemoryRouter>)
+
+    ;(await screen.findByText('Emergency Help')).click()
+    expect(await screen.findByText(/call 1990/i)).toBeInTheDocument()
   })
 })
