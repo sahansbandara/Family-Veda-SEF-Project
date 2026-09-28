@@ -142,7 +142,6 @@
   flex: 0 0 var(--auth-form-w);
   background: var(--auth-glass-bg);
   backdrop-filter: var(--auth-glass-blur);
-  -webkit-backdrop-filter: var(--auth-glass-blur);
   border-left: 1px solid rgba(255,255,255,0.6);
   display: flex;
   flex-direction: column;
