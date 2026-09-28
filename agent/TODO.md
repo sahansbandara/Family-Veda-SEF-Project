@@ -44,7 +44,8 @@ Due 2026-10-06 (extended). CORE first; FUTURE only if time remains, otherwise it
 - [x] Built and installed hosted-API debug APK on Android API 36 emulator; launched to the sign-in screen and retained `docs/evidence/2026-09-28/android-launch.png`.
 - [x] Deterministic synthetic PostgreSQL API golden case and invalid-schema safe-failure tests passed; full integration suite 11/11. Doctor approves through the assigned case grant, then family reads allowlisted guidance.
 - [ ] Capture a full Flutter → API/agents → React approval → Flutter visual trace with synthetic accounts.
-- [x] [pending PR/deployment] Fix doctor web dashboard blank screen caused by treating the API's pending request count as a list; local web tests 41/41, lint and build passed. Retest hosted doctor portal after deployment.
+- [x] Fixed doctor web dashboard blank screen caused by treating the API's pending request count as a list; PR #49 merged, production synthetic verified-doctor dashboard and request panel retested without console errors.
+- [x] [pending PR/deployment] Route doctor `/dashboard` to the live API panel so hard-coded sample metrics no longer appear above real counts. Web tests 41/41, lint and build passed locally.
 - [x] Synthetic demo Head authenticated through the hosted-API APK; dashboard, appointments and notifications rendered on Android API 36 with retained screenshots.
 - [ ] Publish a stable APK download link with checksum and installation instructions; verify hosted doctor approval and family guidance on Android.
 - [ ] Verify the exact Render backend revision and complete a synthetic doctor-account flow. The live Family Head dashboard, appointments, and notifications pages loaded on 2026-09-28; the previous notification error did not recur in this smoke check.
@@ -61,7 +62,7 @@ Due 2026-10-06 (extended). CORE first; FUTURE only if time remains, otherwise it
 
 #### Phase 1b — Synthetic test data (29–30 Sep) · RULE 7: synthetic only, `example.invalid` emails
 - [x] 2026-09-28: Three dashboards were rebuilt to match the mockups, using live API data. `DemoDataSeeder` adds 4 families, 5 doctors, appointments, labs, vitals and triage cases (see `docs/DEMO_DATA.md`). Backend unit tests 95/95; web tests 43/43, lint and build pass.
-- [ ] Doctor Approvals tab in `DoctorPortal.tsx`: `handleDecision` only shows a toast and never calls `/triage-cases/{id}/decision`. It must use the real approval endpoints.
+- [x] Doctor `/approvals` and `/cases` now route to the live `ApprovalsPage` and `CasesPage` (PR #53). The dead `handleDecision` mock remains in the unused `DoctorPortal` approvals tab; delete it during clean-up.
 - [ ] Portal navigation labels still differ from the blueprint menus (e.g. "AI triage", "Family screening"). Align them in `AppLayout`.
 - [ ] Extend `DatabaseInitializer` seed (still gated by `Seed:Enabled`): 3 families; Head + 2 adults + 2 minors each; 1 adult in a second family (for Start My Own Family / join flows).
 - [ ] Doctors: 3 verified (different districts, languages, Saturday availability), 1 pending, 1 suspended — for directory, discovery and verification tests.

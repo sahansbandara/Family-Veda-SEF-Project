@@ -52,7 +52,7 @@ The deterministic PostgreSQL API golden case and invalid-schema safe-failure tes
 
 ## 5. Deployment and release status
 
-The repository contains Render/Vercel deployment configuration and deployment instructions. On 2026-09-28, `develop` CI and CodeQL passed at `49face54`, Vercel reported a successful production deployment of that commit, and the public web, API health and Swagger URLs returned HTTP 200. The synthetic Family Head portal loaded its dashboard, appointments and notifications; the earlier notifications error did not recur in this smoke check. Neon production migration history now contains all three migrations, including the doctor constraints, and the new indexes were verified. The exact Render backend revision, doctor-account journey and retained authenticated API output remain outstanding. See [`RELEASE_EVIDENCE_2026-09-28.md`](RELEASE_EVIDENCE_2026-09-28.md).
+The repository contains Render/Vercel deployment configuration and deployment instructions. On 2026-09-28, `develop` CI and CodeQL passed at `49face54`, Vercel reported a successful production deployment of that commit, and the public web, API health and Swagger URLs returned HTTP 200. The synthetic Family Head portal loaded its dashboard, appointments and notifications. The doctor dashboard contract fix in PR #49 was later deployed at `3df6bb3`; synthetic verified-doctor sign-in rendered its live request panel without console errors. A separate local change to remove misleading hard-coded sample metrics from that page awaits deployment. Neon production migration history contains all three migrations, including doctor constraints, and the new indexes were verified. The exact Render backend revision and a doctor-account decision journey with retained authenticated API output remain outstanding. See [`RELEASE_EVIDENCE_2026-09-28.md`](RELEASE_EVIDENCE_2026-09-28.md).
 
 An Android debug-signed APK targeting the hosted API was built and installed on an API 36 emulator on 2026-09-28. A synthetic demo Head signed in and loaded dashboard, appointments and notifications; screenshots are retained in `docs/evidence/2026-09-28/`. Its stable public share link, hosted doctor-approved guidance journey, release signing if chosen, public video URL and exact Render revision are **NEEDS VERIFIED LINK/evidence**. Never include credentials or secret values in this report.
 
@@ -92,10 +92,10 @@ Items explicitly marked `[FUTURE]` in the portal blueprint remain future work fo
 
 ## 9. Submission links and appendices
 
-- Repository: **NEEDS VERIFIED LINK**
-- Deployed React web: **NEEDS VERIFIED LINK**
-- API health: **NEEDS VERIFIED LINK**
-- Swagger: **NEEDS VERIFIED LINK**
+- Repository: [Family Veda on GitHub](https://github.com/sahansbandara/Family-Veda-SEF-Project) (HTTP 200 on 2026-09-28)
+- Deployed React web: [Family Veda web](https://family-veda-web.vercel.app/) (HTTP 200 on 2026-09-28)
+- API health: [Render health endpoint](https://family-veda-api.onrender.com/health) (HTTP 200 on 2026-09-28)
+- Swagger: [API reference](https://family-veda-api.onrender.com/swagger/index.html) (HTTP 200 on 2026-09-28)
 - Database/migration evidence: **NEEDS VERIFIED LINK**
 - Android APK and installation instructions: **NEEDS VERIFIED LINK**
 - Demonstration video (no access request): **NEEDS VERIFIED LINK**

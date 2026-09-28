@@ -66,10 +66,19 @@ describe('AppRoutes', () => {
     expect(screen.queryByRole('heading', { name: /triage cases/i })).not.toBeInTheDocument()
   })
 
-  it('allows verified doctors to view triage cases', () => {
+  it('shows verified doctors the live triage case queue', async () => {
     renderRoute('/cases', 'DOCTOR')
 
     expect(screen.getByRole('heading', { name: /triage cases/i })).toBeInTheDocument()
+    expect(await screen.findByText('No matching cases')).toBeInTheDocument()
+    expect(screen.queryByText('FV-TR-1048')).not.toBeInTheDocument()
+  })
+
+  it('shows verified doctors the live approval queue', async () => {
+    renderRoute('/approvals', 'DOCTOR')
+
+    expect(await screen.findByText('No cases awaiting approval')).toBeInTheDocument()
+    expect(screen.queryByText('FV-TR-1048')).not.toBeInTheDocument()
   })
 
   it('blocks unverified doctors from clinical routes', async () => {
@@ -114,5 +123,4 @@ describe('AppRoutes', () => {
     expect(await screen.findByRole('heading', { name: /family head verification/i })).toBeInTheDocument()
   })
 })
-
 
