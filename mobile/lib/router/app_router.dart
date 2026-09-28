@@ -2,6 +2,7 @@
 import 'package:family_veda/providers/active_member_provider.dart';
 import 'package:family_veda/providers/auth_provider.dart';
 import 'package:family_veda/screens/auth/login_screen.dart';
+import 'package:family_veda/screens/auth/register_screen.dart';
 import 'package:family_veda/screens/auth/splash_screen.dart';
 import 'package:family_veda/screens/appointments/appointments_screen.dart';
 import 'package:family_veda/screens/appointments/book_appointment_screen.dart';
@@ -40,6 +41,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // ===== S1 — Identity, Family, Consent =====
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
+      GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
       GoRoute(path: '/members', builder: (_, _) => const MembersScreen()),
 
       // ===== S3 — Home, Triage, Notifications =====

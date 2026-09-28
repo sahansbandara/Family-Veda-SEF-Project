@@ -19,6 +19,12 @@ vi.mock('../services/apiClient', () => ({
   threePortalApi: { getFamilyDashboard: vi.fn(() => new Promise(() => {})) },
 }))
 
+// Mock assets so Vitest doesn't choke on binary files
+vi.mock('../assets/logo.png',      () => ({ default: 'logo.png' }))
+vi.mock('../assets/Loging.webp',   () => ({ default: 'loging.webp' }))
+vi.mock('../assets/Register.webp', () => ({ default: 'register.webp' }))
+vi.mock('../styles/auth-shell.css', () => ({}))
+
 import authReducer, { signedIn } from '../store/slices/authSlice'
 import { AppRoutes } from './AppRouter'
 
@@ -54,8 +60,8 @@ function renderRoute(
 describe('AppRoutes', () => {
   it('redirects unauthenticated visitors to login', () => {
     renderRoute('/cases')
-
-    expect(screen.getByRole('heading', { name: /sign in/i })).toBeInTheDocument()
+    // New design: main landmark labelled "Sign in", section heading "Welcome back"
+    expect(screen.getByRole('main', { name: /sign in/i })).toBeInTheDocument()
   })
 
   it('blocks family users from doctor case routes and redirects to dashboard', () => {
@@ -68,7 +74,6 @@ describe('AppRoutes', () => {
 
   it('shows verified doctors the live triage case queue', async () => {
     renderRoute('/cases', 'DOCTOR')
-
     expect(screen.getByRole('heading', { name: /triage cases/i })).toBeInTheDocument()
     expect(await screen.findByText('No matching cases')).toBeInTheDocument()
     expect(screen.queryByText('FV-TR-1048')).not.toBeInTheDocument()
@@ -83,13 +88,11 @@ describe('AppRoutes', () => {
 
   it('blocks unverified doctors from clinical routes', async () => {
     renderRoute('/approvals', 'DOCTOR', 'PENDING')
-
     expect(await screen.findByRole('heading', { name: /doctor verification/i })).toBeInTheDocument()
   })
 
   it('allows administrators to view audit activity', () => {
     renderRoute('/audit', 'ADMIN')
-
     expect(screen.getByRole('heading', { name: /audit activity/i })).toBeInTheDocument()
   })
 
@@ -107,14 +110,14 @@ describe('AppRoutes', () => {
 
   it('exposes public family registration', () => {
     renderRoute('/register')
-
-    expect(screen.getByRole('heading', { name: /create account/i })).toBeInTheDocument()
+    // New design: main landmark labelled "Create account"
+    expect(screen.getByRole('main', { name: /create account/i })).toBeInTheDocument()
   })
 
-  it('exposes public synthetic doctor registration', () => {
+  it('exposes public doctor registration', () => {
     renderRoute('/register/doctor')
-
-    expect(screen.getByRole('heading', { name: /create doctor account/i })).toBeInTheDocument()
+    // DoctorRegisterPage: main landmark "Doctor registration", heading "Create your account"
+    expect(screen.getByRole('main', { name: /doctor registration/i })).toBeInTheDocument()
   })
 
   it('allows administrators to view family head verification queue', async () => {
