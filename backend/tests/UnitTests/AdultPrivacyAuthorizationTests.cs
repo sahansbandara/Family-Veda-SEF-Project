@@ -16,13 +16,13 @@ namespace FamilyVeda.UnitTests;
 public sealed class AdultPrivacyAuthorizationTests
 {
     [Fact]
-    public async Task FamilyHead_ReadingAdultMembersLabReports_GetsNotFoundAndNoAuditOrData()
+    public async Task FamilyHead_ReadingAdultMembersPrivateLabReports_GetsNothingAndNoAudit()
     {
         var (db, head, adult, report) = await SeedAsync();
         var service = new RecordService(db, new StubCurrentUser(head.Id), Options.Create(new StorageOptions()));
 
-        await FluentActions.Awaiting(() => service.GetLabReportsAsync(adult.Id, CancellationToken.None))
-            .Should().ThrowAsync<NotFoundException>();
+        // Phase 2: the list is reachable but contains only reports the adult shared — none here.
+        (await service.GetLabReportsAsync(adult.Id, CancellationToken.None)).Should().BeEmpty();
         await FluentActions.Awaiting(() => service.GetLabReportDetailAsync(report.Id, CancellationToken.None))
             .Should().ThrowAsync<NotFoundException>();
         await FluentActions.Awaiting(() => service.GetVitalsAsync(adult.Id, CancellationToken.None))

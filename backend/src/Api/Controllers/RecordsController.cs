@@ -40,6 +40,14 @@ public sealed class RecordsController(IRecordService recordService, ILabExtracti
         return NoContent();
     }
 
+    [HttpPatch("records/{recordId:guid}/sharing")]
+    public async Task<ActionResult<HealthRecordDto>> SetRecordSharing(Guid recordId, UpdateSharingRequest request, CancellationToken cancellationToken) =>
+        Ok(await recordService.SetRecordSharingAsync(recordId, request.SharedWithFamilyHead, cancellationToken));
+
+    [HttpPatch("lab-reports/{reportId:guid}/sharing")]
+    public async Task<ActionResult<LabReportDto>> SetLabReportSharing(Guid reportId, UpdateSharingRequest request, CancellationToken cancellationToken) =>
+        Ok(await recordService.SetLabReportSharingAsync(reportId, request.SharedWithFamilyHead, cancellationToken));
+
     [HttpGet("members/{memberId:guid}/vitals")]
     public async Task<ActionResult<IReadOnlyList<VitalDto>>> GetVitals(Guid memberId, CancellationToken cancellationToken) =>
         Ok(await recordService.GetVitalsAsync(memberId, cancellationToken));

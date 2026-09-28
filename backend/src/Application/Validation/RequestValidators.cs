@@ -76,5 +76,6 @@ public sealed class CreateMemberRequestValidator : AbstractValidator<CreateMembe
     {
         RuleFor(x => x.DisplayName).NotEmpty().MaximumLength(120);
         RuleFor(x => x.DateOfBirth).LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow));
+        RuleFor(x => x.SexForClinicalReference).IsInEnum();
     }
 }

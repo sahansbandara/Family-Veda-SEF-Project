@@ -6,18 +6,23 @@ using FamilyVeda.Domain.Common;
 namespace FamilyVeda.Application.Families;
 
 public sealed record FamilyDto(Guid Id, string Name, IReadOnlyList<MemberDto> Members, string? FamilyCode = null);
-public sealed record MemberDto(Guid Id, Guid FamilyId, string DisplayName, DateOnly DateOfBirth, FamilyRole Role, bool IsSelf = false);
+public sealed record MemberDto(Guid Id, Guid FamilyId, string DisplayName, DateOnly DateOfBirth, FamilyRole Role, bool IsSelf = false,
+    ClinicalSex SexForClinicalReference = ClinicalSex.NotSpecified);
 public sealed record CreateFamilyRequest(string Name);
 public sealed record UpdateFamilyRequest(string Name);
-public sealed record CreateMemberRequest(string DisplayName, DateOnly DateOfBirth, FamilyRole Role, Guid? UserId);
-public sealed record UpdateMemberRequest(string DisplayName, DateOnly DateOfBirth, FamilyRole Role);
+/// <summary>SexForClinicalReference selects which printed reference range applies; it is never used to infer anything.</summary>
+public sealed record CreateMemberRequest(string DisplayName, DateOnly DateOfBirth, FamilyRole Role, Guid? UserId,
+    ClinicalSex SexForClinicalReference = ClinicalSex.NotSpecified);
+public sealed record UpdateMemberRequest(string DisplayName, DateOnly DateOfBirth, FamilyRole Role,
+    ClinicalSex? SexForClinicalReference = null);
 public sealed record RelationshipDto(Guid Id, Guid MemberId, Guid RelatedMemberId, string RelationshipType, bool IsBiological);
 public sealed record CreateRelationshipRequest(Guid RelatedMemberId, string RelationshipType, bool IsBiological);
 public sealed record ConsentDto(Guid Id, Guid MemberId, ConsentCategory Category, ConsentStatus Status, bool GrantedByGuardian);
 public sealed record UpdateConsentRequest(ConsentStatus Status);
 public sealed record CreateFamilyInvitationRequest(string Email);
 public sealed record FamilyInvitationDto(Guid Id, string Token, DateTimeOffset ExpiresAt);
-public sealed record AcceptFamilyInvitationRequest(string Token, DateOnly DateOfBirth);
+public sealed record AcceptFamilyInvitationRequest(string Token, DateOnly DateOfBirth,
+    ClinicalSex SexForClinicalReference = ClinicalSex.NotSpecified);
 
 public interface IFamilyService
 {

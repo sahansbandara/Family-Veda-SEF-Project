@@ -3,6 +3,8 @@
 // [S2] Health Records & Extraction.
 import 'package:family_veda/models/health_record.dart';
 import 'package:family_veda/providers/records_provider.dart';
+import 'package:family_veda/models/lab_report.dart';
+import 'package:family_veda/widgets/records/report_library_card.dart';
 import 'package:family_veda/widgets/shared/async_state_views.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -37,106 +39,232 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
     return result;
   }
 
+  Future<void> _toggleRecord(HealthRecord record) async {
+    try {
+      await ref
+          .read(mobileApiProvider)
+          .setRecordSharing(
+            recordId: record.id,
+            shared: !record.sharedWithFamilyHead,
+          );
+      ref.invalidate(memberRecordsProvider);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sharing could not be changed. Retry.')),
+        );
+      }
+    }
+  }
+
+  Future<void> _toggleReport(LabReport report) async {
+    try {
+      await ref
+          .read(mobileApiProvider)
+          .setLabReportSharing(
+            reportId: report.id,
+            shared: !report.sharedWithFamilyHead,
+          );
+      ref.invalidate(memberLabReportsProvider);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sharing could not be changed. Retry.')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final records = ref.watch(memberRecordsProvider);
-    return Scaffold(
-      appBar: AppBar(title: const Text('Health records'), actions: [IconButton(tooltip: 'Add record', onPressed: () => context.push('/records/new'), icon: const Icon(Icons.note_add_outlined)), IconButton(tooltip: 'Upload lab report', onPressed: () => context.push('/lab-upload'), icon: const Icon(Icons.document_scanner_outlined))]),
-      body: SafeArea(
-        child: records.when(
-          loading: () => const LoadingStateView(label: 'Loading records'),
-          error: (_, _) => ErrorRetryView(
-            onRetry: () => ref.invalidate(memberRecordsProvider),
+    final myMemberId = ref.watch(myMemberIdProvider).valueOrNull;
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Health records'),
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'Records'),
+              Tab(text: 'Lab reports'),
+            ],
           ),
-          data: (items) {
-            if (items.isEmpty) {
-              return const EmptyStateView(
-                title: 'No records yet',
-                message: 'Add a record to start this member history.',
-              );
-            }
-            final types = {'All', ...items.map((item) => item.type)}.toList();
-            final visible = _filtered(items);
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
+          actions: [
+            IconButton(
+              tooltip: 'Add record',
+              onPressed: () => context.push('/records/new'),
+              icon: const Icon(Icons.note_add_outlined),
+            ),
+            IconButton(
+              tooltip: 'Upload lab report',
+              onPressed: () => context.push('/lab-upload'),
+              icon: const Icon(Icons.document_scanner_outlined),
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: TabBarView(
+            children: [
+              records.when(
+                loading: () => const LoadingStateView(label: 'Loading records'),
+                error: (_, _) => ErrorRetryView(
+                  onRetry: () => ref.invalidate(memberRecordsProvider),
+                ),
+                data: (items) {
+                  if (items.isEmpty) {
+                    return const EmptyStateView(
+                      title: 'No records yet',
+                      message: 'Add a record to start this member history.',
+                    );
+                  }
+                  final types = {
+                    'All',
+                    ...items.map((item) => item.type),
+                  }.toList();
+                  final visible = _filtered(items);
+                  return Column(
                     children: [
-                      TextField(
-                        decoration: const InputDecoration(
-                          labelText: 'Search records',
-                          prefixIcon: Icon(Icons.search),
-                        ),
-                        onChanged: (value) => setState(() => _query = value),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: DropdownButtonFormField<String>(
-                              initialValue: _type,
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            TextField(
                               decoration: const InputDecoration(
-                                labelText: 'Type',
+                                labelText: 'Search records',
+                                prefixIcon: Icon(Icons.search),
                               ),
-                              items: [
-                                for (final type in types)
-                                  DropdownMenuItem(
-                                    value: type,
-                                    child: Text(type),
-                                  ),
-                              ],
                               onChanged: (value) =>
-                                  setState(() => _type = value ?? 'All'),
+                                  setState(() => _query = value),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          IconButton.filledTonal(
-                            tooltip: _newestFirst
-                                ? 'Newest first'
-                                : 'Oldest first',
-                            onPressed: () =>
-                                setState(() => _newestFirst = !_newestFirst),
-                            icon: Icon(
-                              _newestFirst
-                                  ? Icons.arrow_downward
-                                  : Icons.arrow_upward,
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: DropdownButtonFormField<String>(
+                                    initialValue: _type,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Type',
+                                    ),
+                                    items: [
+                                      for (final type in types)
+                                        DropdownMenuItem(
+                                          value: type,
+                                          child: Text(type),
+                                        ),
+                                    ],
+                                    onChanged: (value) =>
+                                        setState(() => _type = value ?? 'All'),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                IconButton.filledTonal(
+                                  tooltip: _newestFirst
+                                      ? 'Newest first'
+                                      : 'Oldest first',
+                                  onPressed: () => setState(
+                                    () => _newestFirst = !_newestFirst,
+                                  ),
+                                  icon: Icon(
+                                    _newestFirst
+                                        ? Icons.arrow_downward
+                                        : Icons.arrow_upward,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: visible.isEmpty
+                            ? const EmptyStateView(
+                                title: 'No matching records',
+                                message:
+                                    'Change the search or type filter to see records.',
+                              )
+                            : ListView.builder(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                itemCount: visible.length,
+                                itemBuilder: (context, index) {
+                                  final record = visible[index];
+                                  return Card(
+                                    child: ListTile(
+                                      leading: const Icon(
+                                        Icons.description_outlined,
+                                      ),
+                                      title: Text(record.title),
+                                      subtitle: Text(
+                                        '${record.type} · ${DateFormat.yMMMd().format(record.recordedAt)}',
+                                      ),
+                                      trailing: record.memberId == myMemberId
+                                          ? IconButton(
+                                              tooltip:
+                                                  record.sharedWithFamilyHead
+                                                  ? 'Shared with Family Head · make private'
+                                                  : 'Private · share with Family Head',
+                                              onPressed: () =>
+                                                  _toggleRecord(record),
+                                              icon: Icon(
+                                                record.sharedWithFamilyHead
+                                                    ? Icons.people_outline
+                                                    : Icons.lock_outline,
+                                              ),
+                                            )
+                                          : null,
+                                    ),
+                                  );
+                                },
+                              ),
                       ),
                     ],
-                  ),
-                ),
-                Expanded(
-                  child: visible.isEmpty
-                      ? const EmptyStateView(
-                          title: 'No matching records',
-                          message:
-                              'Change the search or type filter to see records.',
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: visible.length,
-                          itemBuilder: (context, index) {
-                            final record = visible[index];
-                            return Card(
-                              child: ListTile(
-                                leading: const Icon(Icons.description_outlined),
-                                title: Text(record.title),
-                                subtitle: Text(
-                                  '${record.type} · ${DateFormat.yMMMd().format(record.recordedAt)}',
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                ),
-              ],
-            );
-          },
+                  );
+                },
+              ),
+              _LabReportsTab(myMemberId: myMemberId, onToggle: _toggleReport),
+            ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _LabReportsTab extends ConsumerWidget {
+  const _LabReportsTab({required this.myMemberId, required this.onToggle});
+
+  final String? myMemberId;
+  final Future<void> Function(LabReport report) onToggle;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final reports = ref.watch(memberLabReportsProvider);
+    return reports.when(
+      loading: () => const LoadingStateView(label: 'Loading lab reports'),
+      error: (_, _) => ErrorRetryView(
+        onRetry: () => ref.invalidate(memberLabReportsProvider),
+      ),
+      data: (items) => items.isEmpty
+          ? const EmptyStateView(
+              title: 'No lab reports',
+              message: 'Upload a synthetic lab report to start the library.',
+            )
+          : ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                for (final report in items)
+                  ReportLibraryCard(
+                    report: report,
+                    ownerName: report.memberId == myMemberId
+                        ? 'You'
+                        : 'Family member',
+                    canChangeSharing: report.memberId == myMemberId,
+                    onToggleSharing: () => onToggle(report),
+                  ),
+              ],
+            ),
     );
   }
 }

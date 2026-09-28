@@ -76,10 +76,12 @@ Due 2026-10-06 (extended). CORE first; FUTURE only if time remains, otherwise it
 - [ ] Every later phase adds its own seed rows for the feature it builds.
 
 #### Phase 2 — Member profile + adult privacy (30 Sep–1 Oct) · needs migration lock
-- [ ] [S1+S4] `Member.SexForClinicalReference` (`ClinicalSex = Male|Female|NotSpecified`) in registration, add-minor and invite-accept flows (web + Flutter).
-- [ ] [S2+S4] Per-report family sharing: `Keep Private from Family Head` by default, or `Share with Family Head`. Keep it separate from doctor consent.
-- [ ] [S4] Head sees shared adult reports only; dashboard counts and activity leak nothing. Add negative tests.
-- [ ] [S4] Report-library card: owner, collected date, visibility, extraction state, original-file status, range summary.
+- [x] [S1+S4] `Member.SexForClinicalReference` (`ClinicalSex = NotSpecified|Male|Female`) on add-member (Head self-registration + add-minor), invite-accept and profile update; web forms added. Flutter has no onboarding/add-minor/invite forms, so it parses and carries the field only.
+- [x] [S2+S4] Per-item family sharing on lab reports **and** health records (owner decision 2026-09-28): private by default; `PATCH /lab-reports/{id}/sharing`, `PATCH /records/{id}/sharing`, owning adult only. Separate from doctor consent.
+- [x] [S4] Head reads only shared adult items (audited `ADULT_SHARED_REPORT_ACCESS`); vitals, flags, writes and extraction stay 404; dashboard counts only shared adult reports; activity unchanged. Negative integration tests in `AdultReportSharingTests`.
+- [x] [S4] Report-library card (web `ReportLibraryCard`, Flutter `ReportLibraryCard`): owner, collected date, visibility, extraction state, original-file status, range-position counts.
+- [ ] Human: apply migration `20260929_S4_MemberClinicalSexAndSharing` to Neon, then release the migration lock.
+- [ ] Seed: add shared/private adult report rows to the Phase 1b seed now that the columns exist.
 
 #### Phase 3 — Family lifecycle (1–2 Oct) · needs migration lock
 - [ ] [S1] `Family.HeadMemberId`; keep `CreatedByUserId` as history.

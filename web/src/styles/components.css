@@ -1247,3 +1247,11 @@ tbody tr:hover { background: var(--primary-subtle); }
 /* ── S4 · deterministic safety checklist ──────────────────────────────── */
 .safety-checks { list-style: none; padding: 0; margin: var(--sp-2) 0 var(--sp-4); display: grid; gap: 6px; }
 .safety-checks li { display: flex; justify-content: space-between; gap: var(--sp-2); align-items: center; }
+
+/* Phase 2 report library */
+.report-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); margin-top: 12px; }
+.report-card h3 { margin: 0 0 4px; overflow-wrap: anywhere; }
+.report-card__facts { display: grid; gap: 6px; margin: 12px 0; }
+.report-card__facts div { display: flex; justify-content: space-between; gap: 8px; }
+.report-card__facts dt { color: var(--muted, inherit); }
+.report-card__facts dd { margin: 0; text-align: right; }

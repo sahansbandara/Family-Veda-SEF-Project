@@ -13,6 +13,8 @@ public sealed class HealthRecord : Entity
     public required string Title { get; set; }
     public string? Summary { get; set; }
     public DateOnly OccurredOn { get; set; }
+    /// <summary>Adult owner opted to let the Family Head read this record. Default private.</summary>
+    public bool SharedWithFamilyHead { get; set; }
 }
 
 public sealed class LabReport : Entity
@@ -26,6 +28,8 @@ public sealed class LabReport : Entity
     public OcrStatus OcrStatus { get; set; } = OcrStatus.Pending;
     public string? OcrErrorCode { get; set; }
     public DateTimeOffset? CollectedAt { get; set; }
+    /// <summary>Adult owner opted to let the Family Head read this report. Default private.</summary>
+    public bool SharedWithFamilyHead { get; set; }
     public ICollection<LabValue> Values { get; set; } = [];
     public LabReportFile? File { get; set; }
 }

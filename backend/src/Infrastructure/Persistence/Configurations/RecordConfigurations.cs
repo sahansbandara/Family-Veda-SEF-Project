@@ -15,6 +15,7 @@ internal sealed class HealthRecordConfiguration : IEntityTypeConfiguration<Healt
         builder.Property(x => x.RecordType).HasConversion<string>().HasMaxLength(32);
         builder.Property(x => x.Title).HasMaxLength(160).IsRequired();
         builder.Property(x => x.Summary).HasMaxLength(2000);
+        builder.Property(x => x.SharedWithFamilyHead).HasDefaultValue(false);
         builder.HasOne(x => x.Member).WithMany().HasForeignKey(x => x.MemberId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(x => new { x.MemberId, x.OccurredOn });
         builder.HasAlternateKey(x => new { x.Id, x.MemberId });
@@ -30,6 +31,7 @@ internal sealed class LabReportConfiguration : IEntityTypeConfiguration<LabRepor
         builder.Property(x => x.OriginalFileName).HasMaxLength(255).IsRequired();
         builder.Property(x => x.StoredFileName).HasMaxLength(255).IsRequired();
         builder.Property(x => x.ContentType).HasMaxLength(128).IsRequired();
+        builder.Property(x => x.SharedWithFamilyHead).HasDefaultValue(false);
         builder.Property(x => x.OcrStatus).HasConversion<string>().HasMaxLength(32).IsConcurrencyToken();
         builder.Property(x => x.OcrErrorCode).HasMaxLength(64);
         builder.HasOne(x => x.Member).WithMany().HasForeignKey(x => x.MemberId).OnDelete(DeleteBehavior.Cascade);

@@ -55,10 +55,10 @@ export type AuthResponse = {
   accessTokenExpiresAt: string
 }
 
-export type MemberDto = { id: string; familyId: string; displayName: string; dateOfBirth: string; role: string; isSelf?: boolean }
+export type MemberDto = { id: string; familyId: string; displayName: string; dateOfBirth: string; role: string; isSelf?: boolean; sexForClinicalReference?: 'NotSpecified' | 'Male' | 'Female' }
 export type FamilyDto = { id: string; name: string; members: MemberDto[] }
 export type PagedResult<T> = { items: T[]; page: number; pageSize: number; totalCount: number; totalPages: number }
-export type HealthRecordDto = { id: string; memberId: string; recordType: string; title: string; summary?: string; occurredOn: string }
+export type HealthRecordDto = { id: string; memberId: string; recordType: string; title: string; summary?: string; occurredOn: string; sharedWithFamilyHead?: boolean }
 export type EpisodeDto = { id: string; memberId: string; symptoms: string[]; durationDays: number; severity: number; notes?: string; createdAt: string }
 export type TriageCaseDto = { id: string; episodeId: string; memberId: string; status: string; priority: string; createdAt: string }
 export type AvailableCaseDto = { id: string; priority: string; createdAt: string }
@@ -74,7 +74,8 @@ export type FamilyHeadDto = { id: string; userId: string; familyId: string; fami
 export type AdminUserDto = { userId: string; email: string; displayName: string; userType: string; isActive: boolean; createdAt: string; status?: string; roleDetail?: string }
 export type ResetPasswordResponse = { success: boolean; message: string; resetToken?: string | null }
 
-export type LabReportDto = { id: string; memberId: string; originalFileName: string; ocrStatus: string; collectedAt?: string }
+export type LabRangeSummaryDto = { belowRange: number; withinRange: number; aboveRange: number; rangeUnavailable: number }
+export type LabReportDto = { id: string; memberId: string; originalFileName: string; ocrStatus: string; collectedAt?: string; sharedWithFamilyHead?: boolean; hasOriginalFile?: boolean; rangeSummary?: LabRangeSummaryDto | null }
 export type LabValueDto = { id: string; analyte: string; value: number; unit: string; referenceLow?: number | null; referenceHigh?: number | null; wasManuallyConfirmed: boolean; rangeStatus?: 'RangeUnavailable' | 'BelowRange' | 'WithinRange' | 'AboveRange' }
 export type HereditaryFlagDto = { id: string; memberId: string; conditionCode: string; finding: string; confidence: number; manuallyConfirmed: boolean }
 export type LabReportDetailDto = LabReportDto & { values: LabValueDto[]; flags: HereditaryFlagDto[] }
