@@ -169,6 +169,13 @@ export function AuthPage() {
     navigate(destination, { replace: true })
   }
 
+  // Named steps: Personal and Address are separate so no step is taller than the glass panel.
+  type WizardStep = StepDef & { key: 'role' | 'account' | 'personal' | 'address' | 'connection' | 'review' }
+  const steps: WizardStep[] = role === 'MEMBER'
+    ? [{ key: 'role', label: 'Role' }, { key: 'account', label: 'Account' }, { key: 'personal', label: 'Personal' }, { key: 'address', label: 'Address' }, { key: 'connection', label: 'Connection' }, { key: 'review', label: 'Review' }]
+    : [{ key: 'role', label: 'Role' }, { key: 'account', label: 'Account' }, { key: 'personal', label: 'Personal' }, { key: 'address', label: 'Address' }, { key: 'review', label: 'Review' }]
+  const stepKey = steps[regStep]?.key
+
   const handleNextStep = () => {
     setRegError('')
     setFieldErrors({})
@@ -177,7 +184,7 @@ export function AuthPage() {
       navigate('/register/doctor')
       return
     }
-    if (regStep === 1) {
+    if (stepKey === 'account') {
       const parsed = accountSchema.safeParse({ displayName: regName, email: regEmail, mobileNumber, password: regPassword, confirm: regConfirm })
       if (!parsed.success) {
         setFieldErrors(Object.fromEntries(parsed.error.issues.map((issue) => [issue.path[0]?.toString().toLowerCase() ?? 'form', issue.message])))
@@ -186,21 +193,24 @@ export function AuthPage() {
       }
     }
     
-    if (regStep === 2) {
-      if (role === 'FAMILY_HEAD') {
-        if (!familyName.trim()) { setFieldErrors({ familyname: 'Family name is required.' }); setRegError('Check the highlighted details.'); return }
-      } else if (role === 'DOCTOR') {
-        if (!regNum || regNum.length < 4) { setRegError('Enter a valid SLMC registration number.'); return }
-      }
-
-      if (role !== 'DOCTOR') {
-        const errors: FieldErrors = {}
+    if (stepKey === 'personal') {
+      const errors: FieldErrors = {}
+      {
         const dob = new Date(`${dateOfBirth}T00:00:00`)
         const adultCutoff = new Date()
         adultCutoff.setFullYear(adultCutoff.getFullYear() - 18)
         if (!dateOfBirth || Number.isNaN(dob.valueOf()) || dob < new Date('1900-01-01') || dob >= new Date()) errors.dateofbirth = 'Enter a valid date of birth.'
         else if (dob > adultCutoff) errors.dateofbirth = 'You must be at least 18 years old to register.'
         if (!clinicalSexes.includes(sexForClinicalReference as typeof clinicalSexes[number])) errors.sexforclinicalreference = 'Choose Male, Female or Not specified.'
+        if (role === 'FAMILY_HEAD' && !familyName.trim()) errors.familyname = 'Family name is required.'
+        if (role === 'FAMILY_HEAD' && !/^(?:\d{9}[VvXx]|\d{12})$/.test(nationalId.trim())) errors.nationalid = 'Enter a synthetic NIC: 9 digits followed by V or X, or 12 digits.'
+        if (Object.keys(errors).length) { setFieldErrors(errors); setRegError('Check the highlighted details.'); return }
+      }
+    }
+
+    if (stepKey === 'address') {
+      const errors: FieldErrors = {}
+      {
         if (!addressLine1.trim()) errors.addressline1 = 'Address line 1 is required.'
         else if (addressLine1.trim().length > 120) errors.addressline1 = 'Address line 1 must be 120 characters or fewer.'
         if (addressLine2.length > 120) errors.addressline2 = 'Address line 2 must be 120 characters or fewer.'
@@ -208,12 +218,11 @@ export function AuthPage() {
         else if (city.trim().length > 80) errors.city = 'City must be 80 characters or fewer.'
         if (!districts.includes(district as typeof districts[number])) errors.district = 'Choose a district.'
         if (postalCode && !/^\d{5}$/.test(postalCode.trim())) errors.postalcode = 'Postal code must be 5 digits.'
-        if (role === 'FAMILY_HEAD' && !/^(?:\d{9}[VvXx]|\d{12})$/.test(nationalId.trim())) errors.nationalid = 'Enter a synthetic NIC: 9 digits followed by V or X, or 12 digits.'
         if (Object.keys(errors).length) { setFieldErrors(errors); setRegError('Check the highlighted details.'); return }
       }
     }
 
-    if (regStep === 3 && role === 'MEMBER') {
+    if (stepKey === 'connection') {
       if (connectionMethod === 'INVITATION' && !invitationToken) {
         setFieldErrors({ 'connection.invitationtoken': 'Enter your invitation token.' }); setRegError('Check the highlighted details.'); return
       }
@@ -274,15 +283,6 @@ export function AuthPage() {
 
   const mainBg = mode === 'login' ? loginBg : registerBg;
   const textBg = mode === 'login' ? registerBg : loginBg;
-
-  let steps: StepDef[] = []
-  if (role === 'FAMILY_HEAD') {
-    steps = [{ label: 'Role' }, { label: 'Account' }, { label: 'Personal' }, { label: 'Review' }]
-  } else if (role === 'MEMBER') {
-    steps = [{ label: 'Role' }, { label: 'Account' }, { label: 'Personal' }, { label: 'Connection' }, { label: 'Review' }]
-  } else if (role === 'DOCTOR') {
-    steps = [{ label: 'Role' }, { label: 'Account' }, { label: 'Professional' }, { label: 'Verification' }, { label: 'Review' }]
-  }
 
   const isFinalStep = regStep === steps.length - 1
 
@@ -388,7 +388,7 @@ export function AuthPage() {
               )}
 
               {/* STEP 1: ACCOUNT */}
-              {regStep === 1 && (
+              {stepKey === 'account' && (
                 <div>
                   <div className="auth-form-group">
                     <label htmlFor="reg-name">Full Name</label>
@@ -425,7 +425,7 @@ export function AuthPage() {
               )}
 
               {/* STEP 2: PERSONAL / PROFESSIONAL */}
-              {regStep === 2 && (
+              {stepKey === 'personal' && (
                 <div>
                   {role === 'DOCTOR' ? (
                     <>
@@ -469,6 +469,16 @@ export function AuthPage() {
                           </div>
                         </>
                       )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* STEP: ADDRESS */}
+              {stepKey === 'address' && (
+                <div>
+                  {(
+                    <>
                       <div className="auth-form-group">
                         <label htmlFor="reg-address1">Address Line 1</label>
                         <input id="reg-address1" className="auth-form-input" value={addressLine1} required autoComplete="address-line1" onChange={(e) => setAddressLine1(e.target.value)} />
@@ -503,7 +513,7 @@ export function AuthPage() {
               )}
 
               {/* STEP 3: SPECIFIC (Member Connection / Doctor Verification / Family Head Review) */}
-              {regStep === 3 && (
+              {(stepKey === 'connection' || (stepKey === 'review' && role === 'FAMILY_HEAD')) && (
                 <div>
                   {role === 'MEMBER' && (
                     <>
@@ -586,7 +596,7 @@ export function AuthPage() {
               )}
 
               {/* STEP 4: FINAL REVIEW (Member / Doctor) */}
-              {regStep === 4 && (
+              {stepKey === 'review' && role !== 'FAMILY_HEAD' && (
                 <div>
                   {role === 'MEMBER' && (
                     <div className="auth-review-list">
