@@ -18,7 +18,7 @@
 
 ## Three-portal blueprint (2026-09-28) — see docs/Three_Portal_Implementation_Blueprint.md
 
-Due 2026-09-30. CORE first; FUTURE only if time remains, otherwise it goes in the report's future-work section.
+Due 2026-10-06 (extended). CORE first; FUTURE only if time remains, otherwise it goes in the report's future-work section.
 
 ### CORE
 - [x] [S4] Keep approval gate covering every patient-visible AI output; approval screen shows full draft + rule results (already true in ApprovalsPage — add a regression test)
@@ -50,14 +50,25 @@ Due 2026-09-30. CORE first; FUTURE only if time remains, otherwise it goes in th
 - [ ] Verify the exact Render backend revision and complete a synthetic doctor-account flow. The live Family Head dashboard, appointments, and notifications pages loaded on 2026-09-28; the previous notification error did not recur in this smoke check.
 - [x] [human-reported 2026-09-28] Released migration lock for `20260928_S4_ThreePortalFeatures`.
 
-### REMAINING WORK AFTER PR #49 — deadline 2026-10-06 (supersedes the old FUTURE list)
+### REMAINING WORK AFTER PR #49 — WHOLE PROJECT, deadline 2026-10-06 (supersedes the old FUTURE list)
 
-Gap check dated 2026-09-28 against the three-portal blueprint. Each phase: take the migration lock for schema changes, TDD first, open a PR into `develop`, and coordinate with the owner for S1-owned files (`IdentityEntities.cs`, `FamilyService.cs`).
+**Scope: we complete the entire project — every component (S1–S4), backend, web, Flutter, agents, docs — not only S4's part.** See DECISIONS 2026-09-28b. `[Sx]` tags below mark the *component* (for report attribution), not who must implement it. Each phase: take the migration lock for schema changes, TDD first, PR into `develop`, and tell the component owner what changed.
 
 #### Phase 1 — Stabilise and baseline (29 Sep)
 - [ ] Retest the hosted doctor dashboard after the #49 deploy; confirm the Render revision matches `develop`.
 - [ ] Record baseline results for backend unit and integration tests, web (41/41) and Flutter (69/69) in `docs/university/`.
 - [ ] Publish the APK link with checksum and install steps.
+
+#### Phase 1b — Synthetic test data (29–30 Sep) · RULE 7: synthetic only, `example.invalid` emails
+- [ ] Extend `DatabaseInitializer` seed (still gated by `Seed:Enabled`): 3 families; Head + 2 adults + 2 minors each; 1 adult in a second family (for Start My Own Family / join flows).
+- [ ] Doctors: 3 verified (different districts, languages, Saturday availability), 1 pending, 1 suspended — for directory, discovery and verification tests.
+- [ ] Records per member: conditions, vitals series (≥6 months), lab reports with values below/within/above range and one with no range; a private and a shared adult report.
+- [ ] Family history: hereditary flags + consents in granted/revoked/not-set states.
+- [ ] Triage: one routine, one priority, one emergency (red-flag) case; cases in each approval state (pending, approved, request-info, rejected, escalated).
+- [ ] Appointments in every status; pending join request, pending doctor request, pending head transfer; unread notifications.
+- [ ] Synthetic lab-report images (typed + handwritten-style) under `docs/evidence/synthetic-inputs/` for OCR and AI-tool tests.
+- [ ] Document all demo accounts and what each one demonstrates in `docs/TESTING.md`; reset script to reseed a clean demo DB.
+- [ ] Every later phase adds its own seed rows for the feature it builds.
 
 #### Phase 2 — Member profile + adult privacy (30 Sep–1 Oct) · needs migration lock
 - [ ] [S1+S4] `Member.SexForClinicalReference` (`ClinicalSex = Male|Female|NotSpecified`) in registration, add-minor and invite-accept flows (web + Flutter).

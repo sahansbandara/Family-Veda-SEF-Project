@@ -70,3 +70,13 @@ What is already decided. Record at the moment of decision, including rejected al
 **Alternative considered:** Change `ClaimCaseAsync` to replace the assigned grant. Rejected because the current UI distinguishes “Granted” cases from claimable pool cases and direct approval already enforces the same verified doctor and grant policy. No production service behavior was changed.
 
 **Status:** Accepted in local test evidence; cross-platform visual trace pending.
+
+## 2026-09-28b — Whole-project delivery until 2026-10-06
+
+**Decision:** At Sahan's (S4, repo owner) explicit instruction, the ownership waiver from 2026-09-28 is extended to the **entire project**: all remaining S1, S2, S3 and S4 work (backend, web, Flutter, agents, docs, test data) is implemented by us, following the phase plan in `agent/TODO.md`. Component tags `[S1]`–`[S4]` now mark the component for attribution, not the implementer.
+
+**Reason:** the remaining blueprint scope must be complete by the extended deadline of 2026-10-06.
+
+**Consequences:** commits appear under our author, not the component owners'; individual reports must state this honestly. The six invariants, ten clinical safety rules, migration lock and PR-into-`develop` flow still apply unchanged. Only synthetic data is used, including for the extended test seed.
+
+**Status:** Accepted 2026-09-28.
