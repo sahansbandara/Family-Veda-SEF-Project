@@ -49,6 +49,8 @@ What is already decided. Record at the moment of decision, including rejected al
 
 **Status:** Accepted 2026-09-28.
 
+**Amendment 2026-09-28d (Sahan):** Merging is now **mandatory and automatic**, not optional. Every PR the agent opens into `develop` must be merged by the agent in the same task, as soon as the guardrails above are met (docs-only: immediately; code: once CI is green). Do not stop to ask "should I merge?". If CI fails, fix it and merge; if the merge is blocked, report why. The completion report must state the PR number and that it was merged.
+
 ## 2026-09-28 — Preserve doctor assignment history and enforce one active decision
 
 **Decision:** Replace the unique `(family_id, doctor_id)` assignment index with a non-unique history index plus a partial unique index for one active primary assignment per family. Add a partial unique index for one pending family-doctor request per family. Keep past assignment rows when a family returns to a previous doctor. Use conditional request-status updates inside transactions so simultaneous accept/decline decisions record one outcome; map named PostgreSQL uniqueness conflicts to HTTP 409.
