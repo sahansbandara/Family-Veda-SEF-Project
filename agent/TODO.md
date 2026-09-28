@@ -64,14 +64,15 @@ Due 2026-10-06 (extended). CORE first; FUTURE only if time remains, otherwise it
 - [x] 2026-09-28: Three dashboards were rebuilt to match the mockups, using live API data. `DemoDataSeeder` adds 4 families, 5 doctors, appointments, labs, vitals and triage cases (see `docs/DEMO_DATA.md`). Backend unit tests 95/95; web tests 43/43, lint and build pass.
 - [x] Doctor `/approvals` and `/cases` now route to the live `ApprovalsPage` and `CasesPage` (PR #53). The dead `handleDecision` mock remains in the unused `DoctorPortal` approvals tab; delete it during clean-up.
 - [ ] Portal navigation labels still differ from the blueprint menus (e.g. "AI triage", "Family screening"). Align them in `AppLayout`.
-- [ ] Extend `DatabaseInitializer` seed (still gated by `Seed:Enabled`): 3 families; Head + 2 adults + 2 minors each; 1 adult in a second family (for Start My Own Family / join flows).
-- [ ] Doctors: 3 verified (different districts, languages, Saturday availability), 1 pending, 1 suspended — for directory, discovery and verification tests.
-- [ ] Records per member: conditions, vitals series (≥6 months), lab reports with values below/within/above range and one with no range; a private and a shared adult report.
-- [ ] Family history: hereditary flags + consents in granted/revoked/not-set states.
-- [ ] Triage: one routine, one priority, one emergency (red-flag) case; cases in each approval state (pending, approved, request-info, rejected, escalated).
-- [ ] Appointments in every status; pending join request, pending doctor request, pending head transfer; unread notifications.
-- [ ] Synthetic lab-report images (typed + handwritten-style) under `docs/evidence/synthetic-inputs/` for OCR and AI-tool tests.
-- [ ] Document all demo accounts and what each one demonstrates in `docs/TESTING.md`; reset script to reseed a clean demo DB.
+- [x] Extend `DatabaseInitializer` seed (still gated by `Seed:Enabled`), via new `Phase1bSeeder` (`backend/src/Infrastructure/Persistence/Seed/*.cs`, additive, idempotent): 3 families (Alpha/Beta/Gamma); Head + 2 adults + 2 minors each; Beta's second adult has a pending join request into the Alpha family (join / cross-family flow).
+- [x] Doctors: 3 verified (different districts: Jaffna, Badulla, Matara; different languages), 1 pending, 1 suspended — for directory, discovery and verification tests. Saturday-specific availability **not seeded** — no `DoctorAvailability` entity exists yet (Phase 4); noted in `docs/TESTING.md`.
+- [x] Records per member: conditions, vitals series (7 monthly points ≈6 months), lab reports with values below/within/above range and one with no range. Private/shared adult report **not seeded** — `LabReport` has no visibility column yet (Phase 2); noted in `docs/TESTING.md`.
+- [x] Family history: hereditary flags + consents in granted/revoked/not-set states (per-member split across the Alpha family).
+- [x] Triage: one routine, one priority, one emergency (red-flag, `FailedSafe`) case; cases in each approval state (pending, approved, request-info, rejected, escalated).
+- [x] Appointments in every status (Requested/Confirmed/Completed/Cancelled/NoShow); pending join request; pending doctor request; unread notifications. Pending head transfer **not seeded** — no `FamilyHeadTransfer` entity exists yet (Phase 3); noted in `docs/TESTING.md`.
+- [x] Synthetic lab-report images (typed + handwritten-style) under `docs/evidence/synthetic-inputs/`, clearly labelled SYNTHETIC.
+- [x] Documented all demo accounts (base + `DemoDataSeeder` + Phase 1b) in `docs/TESTING.md`; `scripts/reset-demo-db.sh` reseeds a clean local demo DB (refuses any non-localhost connection string).
+- [x] Unit tests (`backend/tests/UnitTests/Phase1bSeedTests.cs`): idempotency, `@example.invalid` email domain, per-role/per-family counts, consent-state coverage, triage-approval-state coverage, appointment-status coverage. Unit 102/102, integration 11/11 passed locally.
 - [ ] Every later phase adds its own seed rows for the feature it builds.
 
 #### Phase 2 — Member profile + adult privacy (30 Sep–1 Oct) · needs migration lock

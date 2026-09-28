@@ -6,6 +6,7 @@ using FamilyVeda.Domain.Clinical;
 using FamilyVeda.Domain.Common;
 using FamilyVeda.Domain.Identity;
 using FamilyVeda.Domain.Records;
+using FamilyVeda.Infrastructure.Persistence.Seed;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -40,6 +41,9 @@ public static class DatabaseInitializer
         if (await dbContext.Users.AnyAsync(x => x.Email == "demo-head@example.invalid", cancellationToken))
         {
             await DemoDataSeeder.SeedAsync(dbContext, hasher, password, cancellationToken);
+            // ===== Phase 1b — synthetic test data, agent/TODO.md "Phase 1b" (ownership waived, DECISIONS 2026-09-28b) =====
+            await Phase1bSeeder.SeedAsync(dbContext, hasher, password, cancellationToken);
+            // ===== end Phase 1b =====
             return;
         }
         // ===== end S4 =====
@@ -96,5 +100,8 @@ public static class DatabaseInitializer
         // ===== S4 — dashboard demo data =====
         await DemoDataSeeder.SeedAsync(dbContext, hasher, password, cancellationToken);
         // ===== end S4 =====
+        // ===== Phase 1b — synthetic test data, agent/TODO.md "Phase 1b" (ownership waived, DECISIONS 2026-09-28b) =====
+        await Phase1bSeeder.SeedAsync(dbContext, hasher, password, cancellationToken);
+        // ===== end Phase 1b =====
     }
 }
