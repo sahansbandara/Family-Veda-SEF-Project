@@ -3,7 +3,7 @@
 **Module:** SE3090 Software Engineering Frameworks
 **Group:** SE_016
 **Submission:** `SE3090_SE016`
-**Status:** Draft evidence structure. Replace every `NEEDS VERIFIED LINK` marker with the final public link or retained execution artifact before submission.
+**Status:** Draft evidence structure. CourseWeb's Assignment 1 submission item displayed **6 October 2026, 11:00 AM** on 2026-09-28; recheck before upload. Replace every `NEEDS VERIFIED LINK` marker with the final public link or retained execution artifact before submission.
 
 ## 1. Group and system overview
 
@@ -46,15 +46,15 @@ The intended workflow is: objective → structured plan → distinct agents → 
 
 Safety boundaries include no diagnosis, prescriptions, drug doses or meal plans; no patient-visible AI output without doctor approval; adult privacy by default; consent and time-bound grants for sensitive doctor access; and deterministic emergency referral without an AI draft. Evidence pointers include `SafetyValidationServiceTests`, `CaseGrantPolicyTests`, `ConsentStateMachineTests`, `ClinicalEmergencyReferralTests`, `TriageOrchestratorSchemaTests`, `TriageOrchestratorEmergencyTests`, `TriageWorkerRecoveryTests` and `ToolDispatcherTests`.
 
-The full Flutter → API/database/agents → React approval → Flutter golden case and safe-failure trace were not verified in the current evidence. Do not present this workflow as executed until a synthetic trace and retained output exist.
+The deterministic PostgreSQL API golden case and invalid-schema safe-failure tests passed 2/2, including doctor approval and family guidance read. The full Flutter → API/database/agents → React approval → Flutter visual trace remains unverified; do not present that cross-platform flow as executed.
 
 **Group-authored input required:** executed golden-case trace, denial/failure evidence, approval evidence and injection-resistance evidence.
 
 ## 5. Deployment and release status
 
-The repository contains Render/Vercel deployment configuration and deployment instructions. A read-only check recorded Vercel and Render health/Swagger responding, but the exact deployed revision and authenticated endpoint evidence still need to be retained. The deployed notifications endpoint was observed returning HTTP 500. The user reported that the original three-portal migration was applied to Neon and its lock released on 2026-09-28; direct Neon migration-history evidence has not been captured here. A follow-up doctor-constraint migration was tested locally but remains unapplied to Neon.
+The repository contains Render/Vercel deployment configuration and deployment instructions. On 2026-09-28, `develop` CI and CodeQL passed at `49face54`, Vercel reported a successful production deployment of that commit, and the public web, API health and Swagger URLs returned HTTP 200. The synthetic Family Head portal loaded its dashboard, appointments and notifications; the earlier notifications error did not recur in this smoke check. Neon production migration history now contains all three migrations, including the doctor constraints, and the new indexes were verified. The exact Render backend revision, doctor-account journey and retained authenticated API output remain outstanding. See [`RELEASE_EVIDENCE_2026-09-28.md`](RELEASE_EVIDENCE_2026-09-28.md).
 
-Android release APK, installation/device evidence, public video URL and final deployment revision are **NEEDS VERIFIED LINK/evidence**. Never include credentials or secret values in this report.
+An Android debug-signed APK targeting the hosted API was built, installed and launched to its sign-in screen on an API 36 emulator on 2026-09-28; its stable public share link, authenticated use evidence, release signing if chosen, public video URL and exact Render revision are **NEEDS VERIFIED LINK/evidence**. Never include credentials or secret values in this report.
 
 ## 6. Architecture decisions
 
@@ -71,22 +71,22 @@ The currently reported executed results are:
 | Area | Result | Evidence status |
 |---|---:|---|
 | Backend unit tests | 91/91 passed | Retain command output and revision |
-| PostgreSQL integration tests | 9/9 passed | Retain command output and database environment |
+| PostgreSQL integration tests | 11/11 passed, including synthetic approval and safe failure | Retained output: `docs/evidence/2026-09-28/backend-integration.txt` |
 | React tests | 40/40 passed | Retain command output |
 | React lint and production build | Passed | Retain command output |
-| Full cross-portal golden case | Not executed/verified | Pending; no pass claim |
-| Flutter verification | Analyze clean; 69/69 tests passed on Flutter 3.47.5/Dart 3.13.4; debug APK installed and 45-minute booking checked on Android API 36 emulator | Signed APK and physical-device evidence pending |
+| Full cross-portal golden case | Backend API sequence passed; full cross-platform visual trace not executed | Pending visual evidence; no cross-platform pass claim |
+| Flutter verification | Analyze clean; 69/69 tests passed on Flutter 3.47.5/Dart 3.13.4; local 45-minute booking checked on Android API 36 emulator; hosted-API debug APK built, installed and launched to sign-in | Authenticated hosted workflow, stable share link and physical-device evidence pending |
 | Local synthetic portal API journey | Passed across Head, Adult Member and Doctor with privacy 404 | `scripts/e2e/synthetic_portal_journey.py`; not the full agent golden case |
-| Performance testing | Not evidenced | Pending tool-generated result |
-| Dependency vulnerability audits | npm production and API NuGet: no known vulnerabilities reported | Application security testing pending |
+| Performance testing | Local ApacheBench baseline: 200/200 requests, 0 failures, 1.827 ms mean and 4 ms p99 | Broader workflow load and retained tool output pending |
+| Dependency vulnerability audits and access control | npm production and API NuGet: no known vulnerabilities reported; focused xUnit security tests and unauthenticated/CORS smoke checks passed | Wider application security testing pending |
 
 Add Assignment 2 test plan, completed cases, actual results, defect/retest records and execution summary as a linked appendix: **NEEDS VERIFIED LINK**.
 
 ## 8. Limitations and future work
 
-Report as limitations: missing full golden-case evidence; pending follow-up doctor migration and exact deployment proof; deployed notifications HTTP 500; unverified performance/application-security execution; and missing APK/device proof.
+Report as limitations: missing full cross-platform visual golden-case evidence; exact Render revision and doctor-account deployment proof; broader application-security execution; and missing public APK link, authenticated APK workflow and physical-device proof. The existing APK is debug-signed.
 
-Items explicitly marked `[FUTURE]` in the portal blueprint must remain future work, including opt-in adult report sharing, remaining family lifecycle controls, AI doctor discovery, doctor-gated report explanation, handwriting reader, image observations, personal health search and doctor-only Pre-Visit Brief. Concurrent family-doctor request/accept constraints passed local PostgreSQL tests; the follow-up migration and code still require Neon application and deployment verification before being claimed complete.
+Items explicitly marked `[FUTURE]` in the portal blueprint remain future work for the submission-first plan, including opt-in adult report sharing, remaining family lifecycle controls, AI doctor discovery, doctor-gated report explanation, handwriting reader, image observations, personal health search and doctor-only Pre-Visit Brief. Concurrent family-doctor request/accept constraints passed local PostgreSQL tests and the follow-up migration is installed on Neon; the live doctor workflow still requires an authenticated retest.
 
 **Student-authored input required:** each member’s limitations, lessons learned and personal reflection in their own words.
 

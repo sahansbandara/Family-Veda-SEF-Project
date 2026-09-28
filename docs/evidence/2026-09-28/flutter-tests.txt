@@ -1,0 +1,71 @@
+00:00 +0: loading /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/guidance_provider_test.dart
+00:00 +0: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/guidance_provider_test.dart: member switch invalidates approved guidance
+00:00 +1: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/guidance_provider_test.dart: member switch invalidates approved guidance
+00:00 +2: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/active_member_provider_test.dart: active member switch invalidates member-scoped records
+00:00 +3: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/models/app_notification_test.dart: parses the new NotificationDto fields (type/title/body/linkPath)
+00:00 +4: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/auth_provider_test.dart: stored refresh token restores account-scoped session
+00:00 +5: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/auth_provider_test.dart: stored refresh token restores account-scoped session
+00:00 +6: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/auth_provider_test.dart: stored refresh token restores account-scoped session
+00:00 +7: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/auth_provider_test.dart: secure storage failure fails closed instead of hanging startup
+00:00 +8: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/auth_provider_test.dart: session expiration immediately deauthenticates route state
+00:00 +9: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/auth_provider_test.dart: login failure returns patient-safe error and stays signed out
+00:00 +10: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/auth_provider_test.dart: failed token persistence removes partial bearer token
+00:00 +11: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/auth_provider_test.dart: logout clears local tokens when server revocation fails
+00:00 +12: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/auth_provider_test.dart: Keychain cleanup failure cannot keep logout authenticated
+00:00 +13: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/auth_provider_test.dart: combined logout failures lock session pending cleanup
+00:00 +14: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/auth_provider_test.dart: pending logout cleanup blocks session restore after restart
+00:00 +15: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/auth_provider_test.dart: failed tombstone removal keeps session locked
+00:00 +16: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/auth_provider_test.dart: direct account replacement requires logout first
+00:00 +17: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/auth_provider_test.dart: session expiration clears previous account member scope
+00:00 +18: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/auth_provider_test.dart: member preference cleanup failure does not escape lifecycle
+00:00 +19: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/providers/auth_provider_test.dart: failed account cleanup cannot restore member into next account
+00:01 +20: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/models/approved_guidance_test.dart: patient parser rejects final advisory in unapproved state
+00:01 +21: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/models/approved_guidance_test.dart: patient parser accepts final advisory in approved state
+00:01 +22: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/models/family_dashboard_test.dart: parses Head dashboard with family code and pending join requests
+00:01 +23: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/models/family_dashboard_test.dart: parses Adult dashboard without Head-only fields
+00:01 +24: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/models/family_dashboard_test.dart: parses nested nextAppointment and familyDoctor
+00:01 +25: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/models/family_dashboard_test.dart: Head with pending requests sees the join-requests card
+00:01 +26: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/models/family_dashboard_test.dart: Adult never sees the join-requests card
+00:01 +27: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/models/family_dashboard_test.dart: Head with zero pending requests does not see the card
+00:01 +28: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/models/appointment_test.dart: parses an appointment and its embedded doctor
+00:01 +29: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/models/appointment_test.dart: friendly status labels are patient-facing, not raw enum names
+00:01 +30: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/models/appointment_test.dart: maps unknown API status strings to unknown, not a crash
+00:01 +31: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/models/appointment_test.dart: only Requested and Confirmed appointments are cancellable
+00:01 +32: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/models/appointment_test.dart: missing optional fields default safely
+00:02 +33: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/home_screen_test.dart: tapping actions without an active member prompts user to select a member
+00:02 +34: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/home_screen_test.dart: tapping actions without an active member prompts user to select a member
+00:02 +35: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/home_screen_test.dart: tapping actions without an active member prompts user to select a member
+00:02 +36: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/home_screen_test.dart: tapping actions without an active member prompts user to select a member
+00:03 +37: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/home_screen_test.dart: tapping actions without an active member prompts user to select a member
+00:03 +38: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/home_screen_test.dart: tapping actions without an active member prompts user to select a member
+00:03 +39: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/home_screen_test.dart: tapping actions without an active member prompts user to select a member
+00:03 +40: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/home_screen_test.dart: tapping actions without an active member prompts user to select a member
+00:03 +41: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/home_screen_test.dart: tapping actions without an active member prompts user to select a member
+00:03 +42: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/records_screen_test.dart: records screen filters and sorts synthetic history
+00:03 +43: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/records_screen_test.dart: records screen filters and sorts synthetic history
+00:04 +44: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/records_screen_test.dart: records screen filters and sorts synthetic history
+00:04 +45: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/records_screen_test.dart: records screen filters and sorts synthetic history
+00:04 +46: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/records_screen_test.dart: lab upload screen is camera capture with no clinical advice
+00:04 +47: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/approved_guidance_screen_test.dart: unapproved output is never visible to patient
+00:04 +48: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:05 +49: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:05 +50: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:05 +51: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:05 +52: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:05 +53: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:05 +54: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:05 +55: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:05 +56: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:05 +57: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:05 +58: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:05 +59: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:05 +60: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:05 +61: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:05 +62: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:05 +63: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:05 +64: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/main_test.dart: late account restore cannot overwrite current member scope
+00:05 +65: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/main_test.dart: late account restore cannot overwrite current member scope
+00:05 +66: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/main_test.dart: late account restore cannot overwrite current member scope
+00:05 +67: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/main_test.dart: late account restore cannot overwrite current member scope
+00:05 +68: /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/mobile/test/main_test.dart: late account restore cannot overwrite current member scope
+00:06 +69: All tests passed!

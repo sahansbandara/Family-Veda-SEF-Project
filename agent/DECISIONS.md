@@ -1,5 +1,15 @@
 # Decisions — Family Veda
 
+## 2026-09-28 — Use the current CourseWeb due field and release the doctor constraints
+
+**Decision:** Plan Assignment 1 submission for 6 October 2026 at 11:00 AM (Asia/Colombo), the authenticated CourseWeb submission item's due field. Use a Neon data-and-schema recovery branch before applying the reviewed doctor-constraint migration. Prioritize CORE features and submission evidence; treat the portal blueprint's FUTURE list as work after the submission package.
+
+**Reason:** The course page's older announcement and the PDF still say 30 September, but the submission item now shows 6 October. Production migration history contained the first two migrations; conflict checks returned zero, and the SQL checksum matched the reviewed release file. The user approved the production release plan and the CORE-first scope.
+
+**Alternatives considered:** Plan to the stale 30 September announcement (rejected because the current submission item has a later due field); skip the backup branch (rejected because the production migration changes uniqueness rules); build optional future features before evidence (rejected because the submission requires executed proof).
+
+**Consequence:** The migration and its indexes are installed on Neon. The exact Render revision and doctor-account smoke test remain required before declaring the whole release verified. See `docs/university/RELEASE_EVIDENCE_2026-09-28.md`.
+
 What is already decided. Record at the moment of decision, including rejected alternatives.
 
 ## 2026-09-23 — Reverted direct merge to `main`; enforce PR-to-`develop`-only workflow
@@ -47,6 +57,16 @@ What is already decided. Record at the moment of decision, including rejected al
 
 **Alternatives considered:** reusing and reopening an ended assignment row (rejected because it erases separate assignment periods); service-only existence checks (rejected because concurrent requests can pass both checks); deleting duplicate legacy rows during migration (rejected because it would lose audit history).
 
-**Consequences:** the migration checks for preexisting conflicts and aborts without data cleanup. Once repeated doctor periods exist, rollback to the old pairwise index is refused; recovery uses the Neon branch backup and a reviewed roll-forward fix. The user reported the prior migration applied and its lock released before this migration was generated. Local PostgreSQL upgrade, concurrency, idempotency and unsafe-rollback checks passed; Neon application remains pending.
+**Consequences:** the migration checks for preexisting conflicts and aborts without data cleanup. Once repeated doctor periods exist, rollback to the old pairwise index is refused; recovery uses the Neon branch backup and a reviewed roll-forward fix. The user reported the prior migration applied and its lock released before this migration was generated. Local PostgreSQL upgrade, concurrency, idempotency and unsafe-rollback checks passed. On 2026-09-28, a Neon recovery branch was created, the migration applied to production and its history and indexes verified; the authenticated live doctor workflow remains pending.
 
-**Status:** Implemented locally on `codex/portal-e2e-fixes`; deployment pending.
+**Status:** Migration verified on Neon production; live doctor workflow pending.
+
+## 2026-09-28 — Use assigned grant for primary-doctor review
+
+**Decision:** The verified primary doctor approves a triage case through the grant that the orchestrator creates. The shared-pool `/claim` route remains for cases shown as available in the doctor portal. A redundant claim on an already granted case returns HTTP 409.
+
+**Reason:** The first synthetic golden-case test called `/claim` after auto-assignment and failed. Review of `CasesPage.tsx`, `GetMyCasesAsync` and `ClaimCaseAsync` showed this was a test-path error, not a production defect. The corrected test passed approval and family guidance read, and the full PostgreSQL integration suite passed 11/11.
+
+**Alternative considered:** Change `ClaimCaseAsync` to replace the assigned grant. Rejected because the current UI distinguishes “Granted” cases from claimable pool cases and direct approval already enforces the same verified doctor and grant policy. No production service behavior was changed.
+
+**Status:** Accepted in local test evidence; cross-platform visual trace pending.
