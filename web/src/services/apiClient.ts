@@ -150,7 +150,30 @@ export type FamilyDashboardSummaryDto = {
   familyDoctor?: DoctorSummaryDto | null
   unreadNotifications: number
   recentActivity: string[]
+  // Mockup-aligned additions (2026-09-28); optional so older API builds still render.
+  viewerDisplayName?: string
+  members?: DashboardMemberDto[]
+  activity?: DashboardActivityDto[]
+  visibleReportCount?: number
+  latestLab?: DashboardLabSummaryDto | null
+  latestVital?: DashboardVitalDto | null
+  upcomingAppointments?: number
 }
+export type DashboardMemberDto = { id: string; displayName: string; role: string; isSelf: boolean; isMinor: boolean; summary: string }
+export type DashboardActivityDto = { title: string; subject?: string | null; occurredAt: string }
+export type DashboardLabSummaryDto = {
+  id: string
+  memberDisplayName: string
+  fileName: string
+  collectedAt?: string | null
+  belowRange: number
+  withinRange: number
+  aboveRange: number
+  rangeUnavailable: number
+  confirmed: boolean
+}
+export type DashboardVitalDto = { vitalType: string; value: number; unit: string; measuredAt: string }
+export type DoctorFamilyRowDto = { familyId: string; familyName: string; memberCount: number; lastVisit?: string | null; nextAppointment?: string | null }
 export type DoctorDashboardSummaryDto = {
   todayAppointments: AppointmentDto[]
   pendingApprovals: number
@@ -158,6 +181,12 @@ export type DoctorDashboardSummaryDto = {
   pendingFamilyRequests: number
   assignedFamilies: number
   unreadNotifications: number
+  doctorDisplayName?: string
+  specialty?: string | null
+  verificationStatus?: string
+  priorityOpenCases?: number
+  families?: DoctorFamilyRowDto[]
+  activity?: DashboardActivityDto[]
 }
 
 export const threePortalApi = {

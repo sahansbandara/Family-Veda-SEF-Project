@@ -4,6 +4,7 @@ using FamilyVeda.Application.Common;
 using FamilyVeda.Application.Portal;
 using FamilyVeda.Domain.Common;
 using FamilyVeda.Domain.Portal;
+using FamilyVeda.Domain.Records;
 using FamilyVeda.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -83,7 +84,7 @@ public sealed class PortalDashboardService(AppDbContext dbContext, ICurrentUser 
             .Where(x => relevantMemberIds.Contains(x.MemberId))
             .Select(x => x.Id)
             .ToListAsync(cancellationToken);
-        var activityEvents = await dbContext.AuditLogs.AsNoTracking()
+        var activityRows = await dbContext.AuditLogs.AsNoTracking()
             .Where(x =>
                 (x.SubjectMemberId.HasValue && relevantMemberIds.Contains(x.SubjectMemberId.Value)
                     && (x.EventType == "CASE_STATUS_CHANGED" || x.EventType == "LAB_REPORT_MANUAL_REVIEW"))
@@ -95,19 +96,64 @@ public sealed class PortalDashboardService(AppDbContext dbContext, ICurrentUser 
                         || x.EventType == "FAMILY_DOCTOR_REQUESTED")))
             .OrderByDescending(x => x.CreatedAt)
             .Take(5)
-            .Select(x => x.EventType)
+            .Select(x => new { x.EventType, x.SubjectMemberId, x.CreatedAt })
             .ToListAsync(cancellationToken);
-        var recentActivity = activityEvents.Select(eventType => eventType switch
+        var memberNames = family.Members.ToDictionary(x => x.Id, x => x.DisplayName);
+        var recentActivity = activityRows.Select(x => ActivityLabel(x.EventType)).ToList();
+        var activity = activityRows.Select(x => new DashboardActivityDto(
+            ActivityLabel(x.EventType),
+            x.SubjectMemberId.HasValue && memberNames.TryGetValue(x.SubjectMemberId.Value, out var name) ? name : null,
+            x.CreatedAt)).ToList();
+
+        // Member cards: another adult's card never carries health counts (adult privacy, blueprint §Privacy).
+        var now = DateTimeOffset.UtcNow;
+        var upcomingByMember = await dbContext.Appointments.AsNoTracking()
+            .Where(x => relevantMemberIds.Contains(x.MemberId) && x.StartsAt > now &&
+                        (x.Status == AppointmentStatus.Requested || x.Status == AppointmentStatus.Confirmed))
+            .GroupBy(x => x.MemberId)
+            .Select(g => new { MemberId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.MemberId, x => x.Count, cancellationToken);
+        var members = family.Members
+            .OrderBy(x => x.Role).ThenBy(x => x.DisplayName)
+            .Select(x =>
+            {
+                var isSelf = x.UserId == currentUser.UserId;
+                var isMinor = x.DateOfBirth > adultCutoff;
+                var upcoming = upcomingByMember.GetValueOrDefault(x.Id);
+                var appointments = upcoming == 0 ? "no upcoming appointments" : $"{upcoming} upcoming appointment{(upcoming == 1 ? "" : "s")}";
+                var summary = isSelf ? $"You · {appointments}"
+                    : isHead && isMinor ? $"Guardian managed · {appointments}"
+                    : isHead ? "Adult · private by default"
+                    : "Family member";
+                return new DashboardMemberDto(x.Id, x.DisplayName, x.Role.ToString(), isSelf, isMinor, summary);
+            })
+            .ToList();
+
+        var visibleReports = await dbContext.LabReports.AsNoTracking()
+            .Where(x => relevantMemberIds.Contains(x.MemberId))
+            .Include(x => x.Values)
+            .OrderByDescending(x => x.CollectedAt ?? x.CreatedAt)
+            .ToListAsync(cancellationToken);
+        DashboardLabSummaryDto? latestLab = null;
+        if (visibleReports.Count > 0)
         {
-            "CASE_STATUS_CHANGED" => "Case updated",
-            "LAB_REPORT_MANUAL_REVIEW" => "Lab report reviewed",
-            "APPOINTMENT_REQUESTED" => "Appointment requested",
-            "APPOINTMENT_STATUS_CHANGED" => "Appointment updated",
-            "FAMILY_JOIN_ACCEPTED" => "Family join request accepted",
-            "FAMILY_JOIN_DECLINED" => "Family join request declined",
-            "FAMILY_DOCTOR_REQUESTED" => "Family doctor requested",
-            _ => "Activity updated"
-        }).ToList();
+            var report = visibleReports[0];
+            var statuses = report.Values.Select(v => LabRangeClassifier.Classify(v.Value, v.ReferenceLow, v.ReferenceHigh)).ToList();
+            latestLab = new DashboardLabSummaryDto(report.Id, memberNames.GetValueOrDefault(report.MemberId, "Member"), report.OriginalFileName,
+                report.CollectedAt,
+                statuses.Count(x => x == LabRangeStatus.BelowRange),
+                statuses.Count(x => x == LabRangeStatus.WithinRange),
+                statuses.Count(x => x == LabRangeStatus.AboveRange),
+                statuses.Count(x => x == LabRangeStatus.RangeUnavailable),
+                report.Values.Count > 0 && report.Values.All(v => v.WasManuallyConfirmed));
+        }
+
+        var latestVital = await dbContext.Vitals.AsNoTracking()
+            .Where(x => ownMemberIds.Contains(x.MemberId))
+            .OrderByDescending(x => x.MeasuredAt)
+            .Select(x => new DashboardVitalDto(x.VitalType, x.Value, x.Unit, x.MeasuredAt))
+            .FirstOrDefaultAsync(cancellationToken);
+        var viewerName = family.Members.FirstOrDefault(x => x.UserId == currentUser.UserId)?.DisplayName ?? family.Name;
 
         return new FamilyDashboardDto(
             isHead ? "Head" : "AdultMember",
@@ -122,12 +168,31 @@ public sealed class PortalDashboardService(AppDbContext dbContext, ICurrentUser 
             approvedGuidance,
             doctorSummary,
             unread,
-            recentActivity);
+            recentActivity,
+            viewerName,
+            members,
+            activity,
+            visibleReports.Count,
+            latestLab,
+            latestVital,
+            upcomingByMember.Values.Sum());
     }
+
+    private static string ActivityLabel(string eventType) => eventType switch
+    {
+        "CASE_STATUS_CHANGED" => "Case updated",
+        "LAB_REPORT_MANUAL_REVIEW" => "Lab report reviewed",
+        "APPOINTMENT_REQUESTED" => "Appointment requested",
+        "APPOINTMENT_STATUS_CHANGED" => "Appointment updated",
+        "FAMILY_JOIN_ACCEPTED" => "Family join request accepted",
+        "FAMILY_JOIN_DECLINED" => "Family join request declined",
+        "FAMILY_DOCTOR_REQUESTED" => "Family doctor requested",
+        _ => "Activity updated"
+    };
 
     public async Task<DoctorDashboardDto> GetDoctorDashboardAsync(CancellationToken cancellationToken)
     {
-        var doctor = await dbContext.Doctors.SingleOrDefaultAsync(x => x.UserId == currentUser.UserId, cancellationToken) ?? throw new NotFoundException();
+        var doctor = await dbContext.Doctors.Include(x => x.User).SingleOrDefaultAsync(x => x.UserId == currentUser.UserId, cancellationToken) ?? throw new NotFoundException();
         var today = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero);
         var tomorrow = today.AddDays(1);
         var todayAppointmentEntities = await dbContext.Appointments.AsNoTracking()
@@ -156,6 +221,54 @@ public sealed class PortalDashboardService(AppDbContext dbContext, ICurrentUser 
         var assignedFamilies = await dbContext.FamilyDoctorAssignments.CountAsync(x => x.DoctorId == doctor.Id && x.IsPrimary && x.EndedAt == null, cancellationToken);
         var unread = await dbContext.PortalNotifications.CountAsync(x => x.UserId == currentUser.UserId && x.ReadAt == null, cancellationToken);
 
-        return new DoctorDashboardDto(todayAppointments, pendingApprovals, openCases, pendingFamilyRequests, assignedFamilies, unread);
+        var priorityOpenCases = await dbContext.TriageCases.CountAsync(x => grantedCaseIds.Contains(x.Id) && !ClosedStatuses.Contains(x.Status)
+            && x.Priority != TriagePriority.Routine, cancellationToken);
+
+        // Families table: active primary assignments only; visit dates come from this doctor's own appointments.
+        var assignedFamilyRows = await dbContext.FamilyDoctorAssignments.AsNoTracking()
+            .Where(x => x.DoctorId == doctor.Id && x.IsPrimary && x.EndedAt == null)
+            .Select(x => new { x.FamilyId, x.Family!.Name, MemberCount = x.Family.Members.Count })
+            .ToListAsync(cancellationToken);
+        var familyIds = assignedFamilyRows.Select(x => x.FamilyId).ToList();
+        var familyAppointments = await dbContext.Appointments.AsNoTracking()
+            .Where(x => x.DoctorId == doctor.Id && familyIds.Contains(x.Member!.FamilyId))
+            .Select(x => new { x.Member!.FamilyId, x.StartsAt, x.Status })
+            .ToListAsync(cancellationToken);
+        var families = assignedFamilyRows.Select(f =>
+        {
+            var rows = familyAppointments.Where(a => a.FamilyId == f.FamilyId).ToList();
+            var last = rows.Where(a => a.Status == AppointmentStatus.Completed).Select(a => (DateTimeOffset?)a.StartsAt).Max();
+            var next = rows.Where(a => a.StartsAt > now && (a.Status == AppointmentStatus.Requested || a.Status == AppointmentStatus.Confirmed))
+                .Select(a => (DateTimeOffset?)a.StartsAt).Min();
+            return new DoctorFamilyRowDto(f.FamilyId, f.Name, f.MemberCount, last, next);
+        }).OrderBy(x => x.NextAppointment ?? DateTimeOffset.MaxValue).ToList();
+
+        // Timeline: only this doctor's appointments and granted cases (permitted activity).
+        var appointmentActivity = await dbContext.Appointments.AsNoTracking()
+            .Where(x => x.DoctorId == doctor.Id && x.UpdatedAt <= now)
+            .OrderByDescending(x => x.UpdatedAt).Take(5)
+            .Select(x => new DashboardActivityDto("Appointment " + x.Status.ToString().ToLower(), x.Member!.DisplayName, x.UpdatedAt))
+            .ToListAsync(cancellationToken);
+        var caseActivity = await dbContext.TriageCases.AsNoTracking()
+            .Where(x => grantedCaseIds.Contains(x.Id))
+            .OrderByDescending(x => x.UpdatedAt).Take(5)
+            .Select(x => new { x.Status, x.Member!.DisplayName, x.UpdatedAt })
+            .ToListAsync(cancellationToken);
+        var activity = appointmentActivity
+            .Concat(caseActivity.Select(x => new DashboardActivityDto($"Triage case {HumanStatus(x.Status)}", x.DisplayName, x.UpdatedAt)))
+            .OrderByDescending(x => x.OccurredAt).Take(6).ToList();
+
+        return new DoctorDashboardDto(todayAppointments, pendingApprovals, openCases, pendingFamilyRequests, assignedFamilies, unread,
+            doctor.User?.DisplayName ?? "Doctor", doctor.Specialty, doctor.VerificationStatus.ToString(), priorityOpenCases, families, activity);
     }
+
+    private static string HumanStatus(TriageStatus status) => status switch
+    {
+        TriageStatus.PendingDoctorReview => "awaiting review",
+        TriageStatus.Claimed => "claimed",
+        TriageStatus.Approved or TriageStatus.ApprovedRevised => "approved",
+        TriageStatus.Rejected => "rejected",
+        TriageStatus.Escalated => "escalated",
+        _ => "updated"
+    };
 }

@@ -28,11 +28,30 @@ public sealed record PortalNotificationDto(Guid Id, string Type, string Title, s
 public sealed record FamilyDashboardDto(
     string Role, Guid FamilyId, string FamilyName, string? FamilyCode, int MemberCount, int MinorCount, int? PendingJoinRequests,
     AppointmentDto? NextAppointment, int OpenCases, int ApprovedGuidanceCount, DoctorSummaryDto? FamilyDoctor,
-    int UnreadNotifications, IReadOnlyList<string> RecentActivity);
+    int UnreadNotifications, IReadOnlyList<string> RecentActivity,
+    // Mockup-aligned additions (2026-09-28). Appended so older clients keep working.
+    string ViewerDisplayName, IReadOnlyList<DashboardMemberDto> Members, IReadOnlyList<DashboardActivityDto> Activity,
+    int VisibleReportCount, DashboardLabSummaryDto? LatestLab, DashboardVitalDto? LatestVital, int UpcomingAppointments);
+
+/// <summary>A member card. Summary never reveals another adult's private health data.</summary>
+public sealed record DashboardMemberDto(Guid Id, string DisplayName, string Role, bool IsSelf, bool IsMinor, string Summary);
+
+public sealed record DashboardActivityDto(string Title, string? Subject, DateTimeOffset OccurredAt);
+
+/// <summary>Range counts come from the deterministic <c>LabRangeClassifier</c> (RULE 4).</summary>
+public sealed record DashboardLabSummaryDto(Guid Id, string MemberDisplayName, string FileName, DateTimeOffset? CollectedAt,
+    int BelowRange, int WithinRange, int AboveRange, int RangeUnavailable, bool Confirmed);
+
+public sealed record DashboardVitalDto(string VitalType, decimal Value, string Unit, DateTimeOffset MeasuredAt);
+
+public sealed record DoctorFamilyRowDto(Guid FamilyId, string FamilyName, int MemberCount, DateTimeOffset? LastVisit, DateTimeOffset? NextAppointment);
 
 public sealed record DoctorDashboardDto(
     IReadOnlyList<AppointmentDto> TodayAppointments, int PendingApprovals, int OpenCases,
-    int PendingFamilyRequests, int AssignedFamilies, int UnreadNotifications);
+    int PendingFamilyRequests, int AssignedFamilies, int UnreadNotifications,
+    // Mockup-aligned additions (2026-09-28).
+    string DoctorDisplayName, string? Specialty, string VerificationStatus, int PriorityOpenCases,
+    IReadOnlyList<DoctorFamilyRowDto> Families, IReadOnlyList<DashboardActivityDto> Activity);
 
 public interface IJoinRequestService
 {

@@ -15,6 +15,8 @@ vi.mock('../services/apiClient', () => ({
     }),
     post: vi.fn().mockResolvedValue({ data: {} }),
   },
+  // The family dashboard stays in its loading state for routing assertions.
+  threePortalApi: { getFamilyDashboard: vi.fn(() => new Promise(() => {})) },
 }))
 
 import authReducer, { signedIn } from '../store/slices/authSlice'
@@ -59,7 +61,9 @@ describe('AppRoutes', () => {
   it('blocks family users from doctor case routes and redirects to dashboard', () => {
     renderRoute('/cases', 'FAMILY_HEAD')
 
-    expect(screen.getByRole('heading', { name: /good day/i })).toBeInTheDocument()
+    // Redirected to the family dashboard, which starts by loading GET /dashboard/family.
+    expect(screen.getByText(/loading your family dashboard/i)).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /triage cases/i })).not.toBeInTheDocument()
   })
 
   it('allows verified doctors to view triage cases', () => {

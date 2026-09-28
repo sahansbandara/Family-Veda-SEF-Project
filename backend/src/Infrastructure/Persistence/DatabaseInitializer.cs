@@ -35,9 +35,14 @@ public static class DatabaseInitializer
         var password = configuration["Seed:DefaultPassword"];
         if (string.IsNullOrWhiteSpace(password) || password.Length < 12)
             throw new InvalidOperationException("Seed:DefaultPassword must contain at least 12 characters when synthetic seed is enabled.");
-        if (await dbContext.Users.AnyAsync(x => x.Email == "demo-head@example.invalid", cancellationToken)) return;
-
         var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<UserAccount>>();
+        // ===== S4 — dashboard demo data (DemoDataSeeder, idempotent) =====
+        if (await dbContext.Users.AnyAsync(x => x.Email == "demo-head@example.invalid", cancellationToken))
+        {
+            await DemoDataSeeder.SeedAsync(dbContext, hasher, password, cancellationToken);
+            return;
+        }
+        // ===== end S4 =====
         UserAccount User(string email, string name, UserType type)
         {
             var user = new UserAccount { Email = email, DisplayName = name, UserType = type, PasswordHash = string.Empty };
@@ -88,5 +93,8 @@ public static class DatabaseInitializer
         dbContext.Doctors.AddRange(verifiedDoctor, pendingDoctor);
         dbContext.FamilyDoctorAssignments.Add(new FamilyDoctorAssignment { Family = family, Doctor = verifiedDoctor, IsPrimary = true });
         await dbContext.SaveChangesAsync(cancellationToken);
+        // ===== S4 — dashboard demo data =====
+        await DemoDataSeeder.SeedAsync(dbContext, hasher, password, cancellationToken);
+        // ===== end S4 =====
     }
 }
