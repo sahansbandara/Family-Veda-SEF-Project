@@ -49,7 +49,7 @@ The intended integrated workflow is a synthetic user journey through the API and
 |---|---|---|---|---|---|
 | A2-BE-01 | Backend unit | Backend unit test suite with synthetic fixtures | Unit tests complete without failures | 91/91 passed | Pass |
 | A2-DB-01 | PostgreSQL integration | Local PostgreSQL integration environment and synthetic data | Integration tests complete without failures | 11/11 passed, including synthetic golden and safe-failure tests | Pass |
-| A2-WEB-01 | React | Web test suite | Web tests complete without failures | 40/40 passed | Pass |
+| A2-WEB-01 | React | Web test suite | Web tests complete without failures | 41/41 passed after doctor dashboard contract regression test | Pass (local) |
 | A2-WEB-02 | React quality gate | Web source and production configuration | Lint and build complete successfully | Lint and build passed | Pass |
 | A2-API-01 | Synthetic API journey | Synthetic accounts and local API/PostgreSQL 16 | Family Head, Adult Member and Doctor journey completes with privacy denial | Repeatable local script passed join by code, doctor acceptance, 45-minute booking/confirmation, dashboards, notifications and Head 404 on adult records after local fixes | Pass |
 | A2-API-02 | Doctor acceptance regression | PostgreSQL 16 integration fixture with an already assigned doctor and legacy pending request | Acceptance succeeds without inserting a duplicate assignment | HTTP 200, one assignment and Accepted request status; included in 11/11 passing integration tests | Pass |
@@ -74,6 +74,7 @@ The intended integrated workflow is a synthetic user journey through the API and
 | D-003 — doctor dashboard HTTP 500 | In the first local synthetic journey, `GET /api/v1/dashboard/doctor` failed after appointment confirmation. A non-UTC `DateTimeOffset` day boundary was passed to Npgsql. | High: doctor dashboard unavailable | Changed the query boundary to UTC; PostgreSQL dashboard integration check and repeat local journey passed. |
 | D-004 — Android appointment time displayed in UTC | Booking form selected Sep 30 at 10:00 AM, but appointment list showed 4:30 AM in the Sri Lanka emulator. The API returned the same instant in UTC. | Medium: misleading appointment time | Parse the API timestamp into device-local time in the Flutter appointment model. Unit test, rebuild and emulator retest show 10:00 AM; synthetic PostgreSQL row retains the correct instant and 45-minute duration. |
 | D-005 — golden-case test used wrong doctor path | Deterministic PostgreSQL test submitted a synthetic episode, ran the three agents, then called the shared-pool `/claim` route after triage had already granted the primary doctor access. The route returned 409. The web doctor portal labels such cases “Granted” and offers Claim only to pool cases. | Test design error; no production defect established | Corrected test expects 409 for redundant claim and approves through existing grant. Focused 2/2 and full integration 11/11 passed. |
+| D-006 — live doctor dashboard blank | Sign in as synthetic verified doctor on the hosted web app; `/dashboard` renders blank and browser console reports `pendingFamilyRequests.map is not a function`. Backend dashboard DTO returns an integer count; React assumed an array. | High: doctor portal dashboard unusable | Local fix fetches the pending-request list from `/doctors/me/family-requests` and renders that list while preserving the summary count. Regression test was red before fix; local web tests 41/41, lint and build pass. Production retest pending merge/deploy. |
 
 ## 6. Execution summary
 
@@ -81,7 +82,7 @@ Executed evidence currently supports:
 
 - Backend unit tests: **91/91 passed**.
 - PostgreSQL integration tests: **11/11 passed** including the doctor-acceptance, concurrency, populated-migration, synthetic golden-case and safe-failure checks.
-- React tests: **40/40 passed**.
+- React tests: **41/41 passed** after D-006 local fix.
 - React lint and production build: **passed**.
 - Flutter analysis: **no issues**; Flutter tests: **69/69 passed** on Flutter 3.47.5/Dart 3.13.4.
 - Android API 36 emulator: **debug APK installed**; synthetic 45-minute booking passed and local appointment time displayed correctly. Screenshots: `docs/evidence/android_duration_picker.png`, `docs/evidence/android_appointment_local_time.png`.

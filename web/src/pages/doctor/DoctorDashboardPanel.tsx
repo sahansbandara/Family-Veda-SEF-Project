@@ -10,14 +10,19 @@ import { extractErrorMessage, formatDateTime } from '../family/threePortalUtils'
 
 export function DoctorDashboardPanel() {
   const [data, setData] = useState<DoctorDashboardSummaryDto | null>(null)
+  const [pendingRequests, setPendingRequests] = useState<DoctorRequestDto[]>([])
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [message, setMessage] = useState('')
 
   const load = useCallback(async () => {
     setStatus('loading')
     try {
-      const { data: dashboard } = await threePortalApi.getDoctorDashboard()
+      const [{ data: dashboard }, { data: requests }] = await Promise.all([
+        threePortalApi.getDoctorDashboard(),
+        threePortalApi.getMyFamilyDoctorRequests(),
+      ])
       setData(dashboard)
+      setPendingRequests(requests)
       setStatus('ready')
     } catch {
       setStatus('error')
@@ -87,7 +92,7 @@ export function DoctorDashboardPanel() {
 
       <section className="panel">
         <h2>Family doctor requests</h2>
-        {data.pendingFamilyRequests.length === 0 ? (
+        {pendingRequests.length === 0 ? (
           <EmptyState title="No pending requests" message="Families that request you as their doctor appear here." />
         ) : (
           <div className="table-scroll">
@@ -100,7 +105,7 @@ export function DoctorDashboardPanel() {
                 </tr>
               </thead>
               <tbody>
-                {data.pendingFamilyRequests.map((request) => (
+                {pendingRequests.map((request) => (
                   <tr key={request.id}>
                     <td>{request.familyName}</td>
                     <td>{request.memberCount}</td>
