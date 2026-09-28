@@ -52,8 +52,29 @@ function problemDetailsErrors(error: unknown): FieldErrors {
 }
 
 function normaliseField(field: string) {
-  const key = field.replace(/^.*\./, '').toLowerCase()
-  return key === 'fullname' ? 'displayname' : key
+  const path = field.toLowerCase()
+  const key = path.replace(/^.*\./, '')
+  if (path.startsWith('connection.')) return `connection.${key}`
+  if (key === 'fullname') return 'displayname'
+  if (key === 'confirmpassword') return 'confirm'
+  return key
+}
+
+// Which wizard step shows each server-side field error, so a rejected submit can
+// send the user back to the field instead of leaving a generic message on Review.
+const fieldStep: Record<string, 'account' | 'personal' | 'address' | 'connection'> = {
+  displayname: 'account', email: 'account', mobilenumber: 'account', password: 'account', confirm: 'account',
+  dateofbirth: 'personal', sexforclinicalreference: 'personal', familyname: 'personal', nationalid: 'personal',
+  addressline1: 'address', addressline2: 'address', city: 'address', district: 'address', postalcode: 'address',
+}
+
+function failureMessage(error: unknown): string | undefined {
+  if (error instanceof Error) return error.message
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    const message = (error as { message?: unknown }).message
+    if (typeof message === 'string' && message) return message
+  }
+  return undefined
 }
 
 const PasswordEye = ({ show, toggle }: { show: boolean, toggle: () => void }) => (
@@ -267,8 +288,15 @@ export function AuthPage() {
       }
     } catch (err) {
       const errors = problemDetailsErrors(err)
+      const firstField = Object.keys(errors).find((field) => field !== 'form')
+      const target = firstField && (firstField.startsWith('connection.') ? 'connection' : fieldStep[firstField])
+      const targetIndex = target ? steps.findIndex((step) => step.key === target) : -1
+      if (targetIndex > 0) setRegStep(targetIndex)
       setFieldErrors(errors)
-      setRegError(errors.form ?? (err instanceof Error ? err.message : 'Registration failed. Check details.'))
+      const detail = errors.form ?? (firstField ? errors[firstField] : undefined) ?? failureMessage(err)
+      setRegError(detail
+        ? `Registration failed: ${detail}`
+        : 'Registration failed. The server could not be reached — check your connection and try again.')
     }
   }
 
