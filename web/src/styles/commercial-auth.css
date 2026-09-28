@@ -74,13 +74,17 @@
   padding: 40px clamp(24px, 5vw, 64px);
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* Centre with auto margins, not justify-content: center — centring an overflowing flex box
+     pushes the top of long wizard steps (e.g. Date of Birth) above the scroll area. */
+  justify-content: flex-start;
   transition: opacity 0.4s ease, transform 0.4s ease;
   overflow-y: auto;
   color: white !important;
 }
-.auth-form-content::-webkit-scrollbar { display: none; }
-.auth-form-content { -ms-overflow-style: none; scrollbar-width: none; }
+.auth-form-content > :first-child { margin-top: auto; }
+.auth-form-content > :last-child { margin-bottom: auto; }
+/* Thin visible scrollbar so long steps visibly scroll. */
+.auth-form-content { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.35) transparent; }
 
 .auth-form-register {
   opacity: 1;

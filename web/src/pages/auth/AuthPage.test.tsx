@@ -35,10 +35,14 @@ function completeAccount() {
 function completePersonal() {
   change('Date of Birth', '1985-06-15')
   fireEvent.change(screen.getByLabelText('Clinical Sex Reference'), { target: { value: 'Female' } })
+}
+
+function completeAddress() {
   change('Address Line 1', '12 Synthetic Lane')
   change('City', 'Kandy')
   fireEvent.change(screen.getByLabelText('District'), { target: { value: 'Kandy' } })
   change('Postal Code (optional)', '20000')
+  continueRegistration()
 }
 
 describe('AuthPage', () => {
@@ -65,6 +69,19 @@ describe('AuthPage', () => {
     await waitFor(() => expect(document.activeElement).toBe(screen.getAllByLabelText('Date of Birth')[0]))
   })
 
+  it('keeps address on its own step after personal details', () => {
+    renderAuth('/register')
+    continueRegistration()
+    completeAccount()
+    expect(screen.queryByLabelText('Address Line 1')).not.toBeInTheDocument()
+    completePersonal()
+    change('Family Workspace Name', 'Synthetic Registration Family')
+    change('Synthetic NIC', '200012345678')
+    continueRegistration()
+    expect(screen.getByLabelText('Address Line 1')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Date of Birth')).not.toBeInTheDocument()
+  })
+
   it('renders the existing login controls', () => {
     renderAuth()
     expect(screen.getByRole('heading', { name: /Sign in/i, level: 2 })).toBeInTheDocument()
@@ -80,6 +97,7 @@ describe('AuthPage', () => {
     change('Family Workspace Name', 'Synthetic Registration Family')
     change('Synthetic NIC', '200012345678')
     continueRegistration()
+    completeAddress()
     fireEvent.click(screen.getByRole('checkbox'))
     fireEvent.click(screen.getByRole('button', { name: 'Create Account' }))
 
@@ -99,6 +117,7 @@ describe('AuthPage', () => {
     completeAccount()
     completePersonal()
     continueRegistration()
+    completeAddress()
     fireEvent.click(screen.getByText('Option B — I have a Family Code'))
     change('Family Code', 'FV-ABC234')
     fireEvent.change(screen.getByLabelText('Relationship'), { target: { value: 'Sibling' } })
@@ -120,6 +139,7 @@ describe('AuthPage', () => {
     change('Family Workspace Name', 'Synthetic Registration Family')
     change('Synthetic NIC', '200012345678')
     continueRegistration()
+    completeAddress()
     fireEvent.click(screen.getByRole('checkbox'))
     fireEvent.click(screen.getByRole('button', { name: 'Create Account' }))
 
