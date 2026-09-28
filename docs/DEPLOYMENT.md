@@ -25,7 +25,8 @@ a store-signed release APK/IPA.
 
 1. Create a Neon project, Postgres 16, region close to Render's (Singapore recommended to match `render.yaml`).
 2. Copy the connection string — give it to me (or paste directly into Render's env vars, see below), and I'll apply the EF Core migration against it (`docs/adr` + `backend/src/Infrastructure/Persistence/Migrations`).
-3. **Do not** rely on `Database__MigrateOnStartup=true` — the installed Npgsql 8.0.11 EF provider has a real bug that throws on that path (documented in `agent/MEMORY.md`). Apply migrations with:
+3. **Automatic:** `.github/workflows/migrate-db.yml` applies pending migrations to production whenever a migration lands on `develop` (needs repo secret `PRODUCTION_DATABASE_URL`; also runnable by hand from the Actions tab). The manual steps below remain the fallback.
+4. **Do not** rely on `Database__MigrateOnStartup=true` — the installed Npgsql 8.0.11 EF provider has a real bug that throws on that path (documented in `agent/MEMORY.md`). Apply migrations with:
    ```bash
    cd backend
    dotnet ef migrations script --project src/Infrastructure --startup-project src/Api --output /tmp/migration.sql --idempotent

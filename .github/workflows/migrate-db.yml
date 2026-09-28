@@ -1,0 +1,71 @@
+name: Migrate production database
+
+# Owner: S1. Applies pending EF Core migrations to the production (Neon) database
+# whenever a migration lands on develop — the branch Render auto-deploys.
+#
+# Why: MigrateOnStartup is disabled (Npgsql provider bug, agent/MEMORY.md), so a
+# deploy with a new migration used to reach Render while the schema lagged behind,
+# e.g. registration failing with `relation "user_profiles" does not exist`.
+#
+# The script is idempotent: migrations already in __EFMigrationsHistory are skipped,
+# and each migration runs in its own transaction. Render's Docker build takes
+# minutes, so this job normally finishes before the new API version goes live.
+#
+# Requires repository secret PRODUCTION_DATABASE_URL (a libpq/postgres:// URL).
+# Without it the job skips with a warning instead of failing.
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'backend/src/Infrastructure/Persistence/Migrations/**'
+  workflow_dispatch:
+
+concurrency:
+  group: migrate-production-db
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: Apply EF Core migrations
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+    steps:
+      - name: Check secret
+        id: secret
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::warning::PRODUCTION_DATABASE_URL is not set — skipping migration."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.secret.outputs.present == 'true'
+
+      - uses: actions/setup-dotnet@v4
+        if: steps.secret.outputs.present == 'true'
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Generate idempotent migration script
+        if: steps.secret.outputs.present == 'true'
+        working-directory: backend
+        run: |
+          dotnet tool install --global dotnet-ef --version 8.*
+          dotnet ef migrations script \
+            --project src/Infrastructure --startup-project src/Api \
+            --idempotent --output "$RUNNER_TEMP/migration.sql"
+
+      - name: Apply to production
+        if: steps.secret.outputs.present == 'true'
+        run: |
+          sudo apt-get install -y -qq postgresql-client > /dev/null
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q -f "$RUNNER_TEMP/migration.sql"
+
+      - name: Report applied migrations
+        if: steps.secret.outputs.present == 'true'
+        run: psql "$DATABASE_URL" -At -c 'select migration_id from "__EFMigrationsHistory" order by 1'
