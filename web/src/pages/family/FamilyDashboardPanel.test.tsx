@@ -37,4 +37,12 @@ describe('FamilyDashboardPanel (Head)', () => {
     expect(screen.getByText('3')).toBeInTheDocument()
     expect(screen.getByText('Add minor')).toBeInTheDocument()
   })
+
+  it('renders recent activity strings from the dashboard API', async () => {
+    mocks.getFamilyDashboard.mockResolvedValue({ data: { ...baseDashboard, recentActivity: ['Appointment requested'] } })
+
+    render(<MemoryRouter><FamilyDashboardPanel /></MemoryRouter>)
+
+    expect(await screen.findByText('Appointment requested')).toBeInTheDocument()
+  })
 })

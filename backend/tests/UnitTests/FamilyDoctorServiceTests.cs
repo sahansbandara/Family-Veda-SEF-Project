@@ -65,6 +65,65 @@ public sealed class FamilyDoctorServiceTests
         newAssignment.EndedAt.Should().BeNull();
     }
 
+    [Fact]
+    public async Task Request_AlreadyAssignedDoctor_ReturnsConflict()
+    {
+        await using var db = NewDb();
+        var head = new UserAccount { Email = "head-current@example.invalid", PasswordHash = "x", DisplayName = "Head", UserType = UserType.FamilyUser };
+        var family = new Family { Name = "F", CreatedByUser = head, FamilyCode = "FV-CCC222" };
+        var doctorUser = new UserAccount { Email = "doc-current@example.invalid", PasswordHash = "x", DisplayName = "Doc", UserType = UserType.Doctor };
+        var doctor = new Doctor { User = doctorUser, RegistrationNumberHash = "h", RegistrationNumberLastFour = "0000", VerificationStatus = VerificationStatus.Verified };
+        db.AddRange(head, family, doctorUser, doctor, new FamilyDoctorAssignment { Family = family, Doctor = doctor, IsPrimary = true });
+        await db.SaveChangesAsync();
+
+        var service = new FamilyDoctorService(db, new StubCurrentUser(head.Id, UserType.FamilyUser));
+        var act = () => service.RequestAsync(family.Id, new CreateDoctorRequest(doctor.Id, null), CancellationToken.None);
+
+        await act.Should().ThrowAsync<ConflictException>();
+    }
+
+    [Fact]
+    public async Task Accept_LegacyRequestForCurrentDoctor_DoesNotDuplicateAssignment()
+    {
+        await using var db = NewDb();
+        var head = new UserAccount { Email = "head-legacy@example.invalid", PasswordHash = "x", DisplayName = "Head", UserType = UserType.FamilyUser };
+        var family = new Family { Name = "F", CreatedByUser = head, FamilyCode = "FV-DDD222" };
+        var doctorUser = new UserAccount { Email = "doc-legacy@example.invalid", PasswordHash = "x", DisplayName = "Doc", UserType = UserType.Doctor };
+        var doctor = new Doctor { User = doctorUser, RegistrationNumberHash = "h", RegistrationNumberLastFour = "0000", VerificationStatus = VerificationStatus.Verified };
+        var request = new FamilyDoctorRequest { Family = family, Doctor = doctor, RequestedByUserId = head.Id };
+        db.AddRange(head, family, doctorUser, doctor, request, new FamilyDoctorAssignment { Family = family, Doctor = doctor, IsPrimary = true });
+        await db.SaveChangesAsync();
+
+        var service = new FamilyDoctorService(db, new StubCurrentUser(doctorUser.Id, UserType.Doctor));
+        var accepted = await service.AcceptAsync(request.Id, CancellationToken.None);
+
+        accepted.Status.Should().Be(PortalRequestStatus.Accepted);
+        (await db.FamilyDoctorAssignments.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Accept_PreviouslyAssignedDoctor_PreservesHistoryAndCreatesNewActivePeriod()
+    {
+        await using var db = NewDb();
+        var head = new UserAccount { Email = "head-return@example.invalid", PasswordHash = "x", DisplayName = "Head", UserType = UserType.FamilyUser };
+        var family = new Family { Name = "F", CreatedByUser = head, FamilyCode = "FV-EEE222" };
+        var doctorUser = new UserAccount { Email = "doc-return@example.invalid", PasswordHash = "x", DisplayName = "Doc", UserType = UserType.Doctor };
+        var doctor = new Doctor { User = doctorUser, RegistrationNumberHash = "h-return", RegistrationNumberLastFour = "0000", VerificationStatus = VerificationStatus.Verified };
+        var ended = new FamilyDoctorAssignment { Family = family, Doctor = doctor, IsPrimary = true, EndedAt = DateTimeOffset.UtcNow.AddDays(-1) };
+        db.AddRange(head, family, doctorUser, doctor, ended);
+        await db.SaveChangesAsync();
+
+        var headService = new FamilyDoctorService(db, new StubCurrentUser(head.Id, UserType.FamilyUser));
+        var request = await headService.RequestAsync(family.Id, new CreateDoctorRequest(doctor.Id, null), CancellationToken.None);
+        var doctorService = new FamilyDoctorService(db, new StubCurrentUser(doctorUser.Id, UserType.Doctor));
+        await doctorService.AcceptAsync(request.Id, CancellationToken.None);
+
+        var periods = await db.FamilyDoctorAssignments.Where(x => x.FamilyId == family.Id && x.DoctorId == doctor.Id).ToListAsync();
+        periods.Should().HaveCount(2);
+        periods.Count(x => x.EndedAt == null && x.IsPrimary).Should().Be(1);
+        periods.Count(x => x.EndedAt != null).Should().Be(1);
+    }
+
     private sealed class StubCurrentUser(Guid userId, UserType userType) : ICurrentUser
     {
         public bool IsAuthenticated => true;

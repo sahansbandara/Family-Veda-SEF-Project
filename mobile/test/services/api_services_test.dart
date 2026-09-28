@@ -118,7 +118,7 @@ class _JsonAdapter implements HttpClientAdapter {
           },
         ],
       ),
-      '/api/v1/notifications' => (
+      '/api/v1/notifications/inbox' => (
         200,
         [
           {
@@ -127,6 +127,19 @@ class _JsonAdapter implements HttpClientAdapter {
             'isRead': false,
             'caseId': 'case-1',
             'caseStatus': 'APPROVED',
+          },
+        ],
+      ),
+      '/api/v1/notifications' => (
+        200,
+        [
+          {
+            'id': 'portal-notification-1',
+            'createdAt': '2026-08-05T00:00:00Z',
+            'type': 'APPOINTMENT_REQUESTED',
+            'title': 'Appointment requested',
+            'body': 'Synthetic appointment update.',
+            'readAt': null,
           },
         ],
       ),
@@ -267,7 +280,14 @@ void main() {
       (await api.getCaseStatus('case-1'))['failureCode'],
       'AGENT_UNAVAILABLE',
     );
-    expect((await api.getNotifications()).single.caseStatus, 'APPROVED');
+    final notifications = await api.getNotifications();
+    expect(notifications.map((item) => item.id), [
+      'portal-notification-1',
+      'notification-1',
+    ]);
+    expect(notifications.first.isRead, isFalse);
+    expect(notifications.last.caseStatus, 'APPROVED');
+    expect(notifications.last.isRead, isTrue);
     final guidance = await api.getApprovedGuidance(
       caseId: 'case-1',
       memberId: 'member-1',

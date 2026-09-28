@@ -55,7 +55,7 @@ class Appointment {
     doctor: json['doctor'] == null
         ? null
         : DoctorSummary.fromJson(json['doctor'] as Map<String, dynamic>),
-    startsAt: DateTime.parse(json['startsAt'] as String),
+    startsAt: DateTime.parse(json['startsAt'] as String).toLocal(),
     durationMinutes: (json['durationMinutes'] as num?)?.toInt() ?? 30,
     reason: (json['reason'] as String?) ?? '',
     status: AppointmentStatus.fromApi(json['status'] as String?),

@@ -50,7 +50,10 @@ internal sealed class FamilyDoctorAssignmentConfiguration : IEntityTypeConfigura
         builder.HasKey(x => x.Id);
         builder.HasOne(x => x.Family).WithMany().HasForeignKey(x => x.FamilyId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(x => x.Doctor).WithMany().HasForeignKey(x => x.DoctorId).OnDelete(DeleteBehavior.Cascade);
-        builder.HasIndex(x => new { x.FamilyId, x.DoctorId }).IsUnique();
+        builder.HasIndex(x => new { x.FamilyId, x.DoctorId });
+        builder.HasIndex(x => x.FamilyId).IsUnique()
+            .HasDatabaseName("ux_family_doctor_assignments_active_primary")
+            .HasFilter("is_primary = TRUE AND ended_at IS NULL");
     }
 }
 

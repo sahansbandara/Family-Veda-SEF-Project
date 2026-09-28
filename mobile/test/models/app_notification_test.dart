@@ -31,7 +31,7 @@ void main() {
     expect(notification.isRead, isTrue);
   });
 
-  test('still parses legacy case-status notifications unchanged', () {
+  test('treats legacy case-status history as already read', () {
     final notification = AppNotification.fromJson({
       'id': 'notif-3',
       'createdAt': '2026-09-28T08:00:00Z',
@@ -42,5 +42,6 @@ void main() {
     expect(notification.caseId, 'case-1');
     expect(notification.caseStatus, 'APPROVED');
     expect(notification.title, isNull);
+    expect(notification.isRead, isTrue);
   });
 }

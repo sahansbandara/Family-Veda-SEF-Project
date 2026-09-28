@@ -55,7 +55,7 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
   String? _selectedMemberId;
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
-  final int _durationMinutes = 30;
+  int _durationMinutes = 30;
   bool _submitting = false;
 
   @override
@@ -177,6 +177,22 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
                   ),
                   trailing: const Icon(Icons.calendar_today_outlined),
                   onTap: _pickDateTime,
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<int>(
+                  initialValue: _durationMinutes,
+                  decoration: const InputDecoration(labelText: 'Duration'),
+                  items: const [15, 30, 45, 60, 90, 120]
+                      .map(
+                        (minutes) => DropdownMenuItem(
+                          value: minutes,
+                          child: Text('$minutes minutes'),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    if (value != null) setState(() => _durationMinutes = value);
+                  },
                 ),
                 const SizedBox(height: 8),
                 TextField(

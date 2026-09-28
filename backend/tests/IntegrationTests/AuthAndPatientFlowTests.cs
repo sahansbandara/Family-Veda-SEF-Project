@@ -5,8 +5,14 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using FluentAssertions;
+using FamilyVeda.Domain.Clinical;
+using FamilyVeda.Domain.Common;
+using FamilyVeda.Domain.Portal;
+using FamilyVeda.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 
 namespace FamilyVeda.IntegrationTests;
@@ -38,6 +44,183 @@ public sealed class AuthAndPatientFlowTests : IAsyncLifetime
         _client?.Dispose();
         if (_factory is not null) await _factory.DisposeAsync();
         await _database.DisposeAsync();
+    }
+
+    [Fact]
+    public async Task LegacyRequestForCurrentDoctor_AcceptsWithoutDuplicateAssignment()
+    {
+        var headClient = _factory!.CreateClient();
+        var doctorClient = _factory.CreateClient();
+        var headRegistration = await headClient.PostAsJsonAsync("/api/v1/auth/register", new
+        {
+            email = "synthetic-legacy-head@example.invalid", password = "Synthetic-Test-Password-42!",
+            displayName = "Synthetic Legacy Head", userType = "FamilyUser"
+        });
+        headRegistration.StatusCode.Should().Be(HttpStatusCode.Created);
+        var headAuth = await headRegistration.Content.ReadFromJsonAsync<JsonElement>();
+        headClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", headAuth.GetProperty("accessToken").GetString());
+        var familyResponse = await headClient.PostAsJsonAsync("/api/v1/families", new { name = "Synthetic Legacy Family" });
+        familyResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+        var familyId = (await familyResponse.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+
+        var doctorRegistration = await doctorClient.PostAsJsonAsync("/api/v1/auth/register", new
+        {
+            email = "synthetic-legacy-doctor@example.invalid", password = "Synthetic-Test-Password-42!",
+            displayName = "Synthetic Legacy Doctor", userType = "Doctor"
+        });
+        doctorRegistration.StatusCode.Should().Be(HttpStatusCode.Created);
+        var doctorAuth = await doctorRegistration.Content.ReadFromJsonAsync<JsonElement>();
+        doctorClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", doctorAuth.GetProperty("accessToken").GetString());
+        var profileResponse = await doctorClient.PostAsJsonAsync("/api/v1/doctors/register", new
+        {
+            registrationNumber = "SYNTHETIC-LEGACY-DOCTOR", specialty = "Synthetic specialty"
+        });
+        profileResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+
+        Guid requestId, doctorId;
+        await using (var scope = _factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var doctor = await db.Doctors.SingleAsync(x => x.UserId == doctorAuth.GetProperty("userId").GetGuid());
+            doctorId = doctor.Id;
+            doctor.VerificationStatus = VerificationStatus.Verified;
+            db.FamilyDoctorAssignments.Add(new FamilyDoctorAssignment { FamilyId = familyId, DoctorId = doctor.Id, IsPrimary = true });
+            var request = new FamilyDoctorRequest
+            {
+                FamilyId = familyId, DoctorId = doctor.Id,
+                RequestedByUserId = headAuth.GetProperty("userId").GetGuid()
+            };
+            db.FamilyDoctorRequests.Add(request);
+            await db.SaveChangesAsync();
+            requestId = request.Id;
+        }
+
+        var acceptance = await doctorClient.PostAsync($"/api/v1/doctors/me/family-requests/{requestId}/accept", null);
+        acceptance.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await doctorClient.GetAsync("/api/v1/dashboard/doctor")).StatusCode.Should().Be(HttpStatusCode.OK);
+        await using (var scope = _factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            (await db.FamilyDoctorAssignments.CountAsync(x => x.FamilyId == familyId)).Should().Be(1);
+            (await db.FamilyDoctorRequests.SingleAsync(x => x.Id == requestId)).Status.Should().Be(PortalRequestStatus.Accepted);
+        }
+
+        async Task<string?> AttemptPendingRequestAsync()
+        {
+            await using var scope = _factory.Services.CreateAsyncScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.FamilyDoctorRequests.Add(new FamilyDoctorRequest
+            {
+                FamilyId = familyId, DoctorId = doctorId,
+                RequestedByUserId = headAuth.GetProperty("userId").GetGuid()
+            });
+            try { await db.SaveChangesAsync(); return null; }
+            catch (DbUpdateException ex) { return (ex.InnerException as Npgsql.PostgresException)?.ConstraintName; }
+        }
+
+        var pendingWrites = await Task.WhenAll(AttemptPendingRequestAsync(), AttemptPendingRequestAsync());
+        pendingWrites.Count(result => result is null).Should().Be(1);
+        pendingWrites.Count(result => result == "ux_family_doctor_requests_pending").Should().Be(1);
+
+        Guid competingRequestId;
+        await using (var scope = _factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            competingRequestId = await db.FamilyDoctorRequests
+                .Where(x => x.FamilyId == familyId && x.Status == PortalRequestStatus.Pending)
+                .Select(x => x.Id).SingleAsync();
+        }
+        var competingAccepts = await Task.WhenAll(
+            doctorClient.PostAsync($"/api/v1/doctors/me/family-requests/{competingRequestId}/accept", null),
+            doctorClient.PostAsync($"/api/v1/doctors/me/family-requests/{competingRequestId}/accept", null));
+        competingAccepts.Count(response => response.StatusCode == HttpStatusCode.OK).Should().Be(1);
+        competingAccepts.Count(response => response.StatusCode == HttpStatusCode.Conflict).Should().Be(1);
+        await using (var scope = _factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            (await db.AuditLogs.CountAsync(x => x.EventType == "FAMILY_DOCTOR_ACCEPTED" && x.ResourceId == competingRequestId)).Should().Be(1);
+            (await db.FamilyDoctorAssignments.CountAsync(x => x.FamilyId == familyId && x.IsPrimary && x.EndedAt == null)).Should().Be(1);
+        }
+
+        await using (var scope = _factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var active = await db.FamilyDoctorAssignments.SingleAsync(x => x.FamilyId == familyId && x.EndedAt == null);
+            active.EndedAt = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync();
+        }
+
+        async Task<string?> AttemptActiveAssignmentAsync()
+        {
+            await using var scope = _factory.Services.CreateAsyncScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.FamilyDoctorAssignments.Add(new FamilyDoctorAssignment { FamilyId = familyId, DoctorId = doctorId, IsPrimary = true });
+            try { await db.SaveChangesAsync(); return null; }
+            catch (DbUpdateException ex) { return (ex.InnerException as Npgsql.PostgresException)?.ConstraintName; }
+        }
+
+        var activeWrites = await Task.WhenAll(AttemptActiveAssignmentAsync(), AttemptActiveAssignmentAsync());
+        activeWrites.Count(result => result is null).Should().Be(1);
+        activeWrites.Count(result => result == "ux_family_doctor_assignments_active_primary").Should().Be(1);
+        await using (var scope = _factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            (await db.FamilyDoctorAssignments.CountAsync(x => x.FamilyId == familyId && x.IsPrimary && x.EndedAt == null)).Should().Be(1);
+            (await db.FamilyDoctorAssignments.CountAsync(x => x.FamilyId == familyId && x.DoctorId == doctorId)).Should().Be(2);
+        }
+
+        Guid decisionRequestId;
+        await using (var scope = _factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var request = new FamilyDoctorRequest
+            {
+                FamilyId = familyId, DoctorId = doctorId,
+                RequestedByUserId = headAuth.GetProperty("userId").GetGuid()
+            };
+            db.FamilyDoctorRequests.Add(request);
+            await db.SaveChangesAsync();
+            decisionRequestId = request.Id;
+        }
+        var decisions = await Task.WhenAll(
+            doctorClient.PostAsync($"/api/v1/doctors/me/family-requests/{decisionRequestId}/accept", null),
+            doctorClient.PostAsync($"/api/v1/doctors/me/family-requests/{decisionRequestId}/decline", null));
+        decisions.Count(response => response.StatusCode == HttpStatusCode.OK).Should().Be(1);
+        decisions.Count(response => response.StatusCode == HttpStatusCode.Conflict).Should().Be(1);
+        await using (var scope = _factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var status = (await db.FamilyDoctorRequests.SingleAsync(x => x.Id == decisionRequestId)).Status;
+            var eventType = status == PortalRequestStatus.Accepted ? "FAMILY_DOCTOR_ACCEPTED" : "FAMILY_DOCTOR_DECLINED";
+            (await db.AuditLogs.CountAsync(x => x.ResourceId == decisionRequestId && x.EventType == eventType)).Should().Be(1);
+            (await db.AuditLogs.CountAsync(x => x.ResourceId == decisionRequestId)).Should().Be(1);
+        }
+        headClient.Dispose();
+        doctorClient.Dispose();
+    }
+
+    [Fact]
+    public async Task NotificationRoutes_ReturnDistinctPortalAndTriageResponses()
+    {
+        var client = _client!;
+        var register = await client.PostAsJsonAsync("/api/v1/auth/register", new
+        {
+            email = "synthetic-notification-routes@example.invalid",
+            password = "Synthetic-Test-Password-42!",
+            displayName = "Synthetic Notification User",
+            userType = "FamilyUser"
+        });
+        register.StatusCode.Should().Be(HttpStatusCode.Created);
+        var auth = await register.Content.ReadFromJsonAsync<JsonElement>();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.GetProperty("accessToken").GetString());
+
+        var portal = await client.GetAsync("/api/v1/notifications");
+        var triage = await client.GetAsync("/api/v1/notifications/inbox?page=1&pageSize=20");
+
+        portal.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await portal.Content.ReadFromJsonAsync<JsonElement>()).ValueKind.Should().Be(JsonValueKind.Array);
+        triage.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await triage.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("items").ValueKind.Should().Be(JsonValueKind.Array);
     }
 
     [Fact]

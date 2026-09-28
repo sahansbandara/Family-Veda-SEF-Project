@@ -3,7 +3,7 @@
 import '@testing-library/jest-dom/vitest'
 
 import { configureStore } from '@reduxjs/toolkit'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
@@ -11,10 +11,11 @@ import { describe, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({
   get: vi.fn(),
   getMyAppointments: vi.fn(),
+  bookAppointment: vi.fn(),
 }))
 vi.mock('../../services/apiClient', () => ({
   apiClient: { get: mocks.get },
-  threePortalApi: { getMyAppointments: mocks.getMyAppointments },
+  threePortalApi: { getMyAppointments: mocks.getMyAppointments, bookAppointment: mocks.bookAppointment },
 }))
 
 import authReducer, { signedIn } from '../../store/slices/authSlice'
@@ -67,5 +68,19 @@ describe('AppointmentsPage booking form', () => {
     expect(options).toContain('Me')
     expect(options).not.toContain('My Sibling')
     expect(options).not.toContain('Young Kid')
+  })
+
+  it('shows success after a booking response', async () => {
+    renderAsAdult()
+    mocks.bookAppointment.mockResolvedValue({ data: { id: 'appointment-1' } })
+
+    await waitFor(() => expect(screen.getByText('Book an appointment')).toBeInTheDocument())
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'self-1' } })
+    fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2027-01-01' } })
+    fireEvent.change(screen.getByLabelText('Time'), { target: { value: '10:00' } })
+    fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Synthetic follow-up' } })
+    fireEvent.submit(screen.getByRole('button', { name: 'Book appointment' }).closest('form')!)
+
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Appointment requested.'))
   })
 })
