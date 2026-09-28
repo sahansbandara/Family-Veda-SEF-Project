@@ -121,7 +121,7 @@ export function AuthPage() {
     }
   }
 
-  const bgImage = mode === 'login' ? loginBg : registerBg
+  const bgImage = mode === 'login' ? registerBg : loginBg
 
   return (
     <main aria-label={mode === 'login' ? 'Sign in' : 'Create account'} 
