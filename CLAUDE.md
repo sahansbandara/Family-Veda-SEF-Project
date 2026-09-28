@@ -3,7 +3,9 @@
 STATUS: **PROJECT_MODE**
 
 **Family Veda** — longitudinal family health context and agentic clinical triage platform.
-SE3090 Software Engineering Frameworks · SLIIT · Assignment 1 · Group SE_016 · submission `SE3090_SE016` · due 30 Sep 2026.
+SE3090 Software Engineering Frameworks · SLIIT · Assignment 1 · Group SE_016 · submission `SE3090_SE016` · due 6 Oct 2026.
+
+> **Current mode (2026-09-28):** we deliver the whole project — all components, not only one member's. See `agent/DECISIONS.md` 2026-09-28b and the phase plan in `agent/TODO.md`.
 
 Source of truth: [`docs/Family_Veda_Project_Blueprint.md`](docs/Family_Veda_Project_Blueprint.md). Everything else summarises it. If they disagree, the blueprint wins.
 
@@ -98,7 +100,7 @@ Report one line: `Preflight: superpowers=[…] · headroom=[on|absent] · cavema
 | **S3** | IT24100551 | Karunathilaka K.D.J.C — **Group Leader** | Triage & Agent Orchestration | Coordinator, Context, Analysis |
 | **S4** | IT24100559 | W.M.S.S.B. Wasala | Familial Risk & Clinical Approval | Familial Risk, Safety/Validation |
 
-**Ownership is binding.** Never edit a file tagged with another member's ref. The seven `⚠ SHARED` files follow the labelled-block convention — add lines inside your own block, never reorder or reformat.
+**Ownership is binding** — except under the whole-project waiver (DECISIONS 2026-09-28b), where any component may be edited; tags then mark attribution. The seven `⚠ SHARED` files follow the labelled-block convention — add lines inside your own block, never reorder or reformat.
 
 Full matrix: `agent/BRIEF.md` and blueprint §1.3.
 
