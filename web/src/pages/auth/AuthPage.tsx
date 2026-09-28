@@ -55,6 +55,18 @@ function normaliseField(field: string) {
   return key === 'fullname' ? 'displayname' : key
 }
 
+const PasswordEye = ({ show, toggle }: { show: boolean, toggle: () => void }) => (
+  <button type="button" onClick={toggle} style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.6)", padding: "4px" }}>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {show ? (
+        <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></>
+      ) : (
+        <><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></>
+      )}
+    </svg>
+  </button>
+)
+
 export function AuthPage() {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -67,6 +79,8 @@ export function AuthPage() {
 
   const [loginEmail, setLoginEmail] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
+  const [showLoginPassword, setShowLoginPassword] = useState(false)
+
   const [loginError, setLoginError] = useState('')
 
   // Wizard State
@@ -79,6 +93,8 @@ export function AuthPage() {
   const [mobileNumber, setMobileNumber] = useState('')
   const [regPassword, setRegPassword] = useState('')
   const [regConfirm, setRegConfirm] = useState('')
+  const [showRegPassword, setShowRegPassword] = useState(false)
+
   
   // Role Details
   const [familyName, setFamilyName] = useState('')
@@ -272,13 +288,16 @@ export function AuthPage() {
           style={{ backgroundImage: `url(${textBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
         >
           <div className="auth-text-overlay"></div>
-          <div style={{ position: 'relative', zIndex: 10 }}>
+          <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
             <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '24px', letterSpacing: '-0.02em', color: 'white' }}>
               Let's Get Started
             </h1>
             <p style={{ fontSize: '1.1rem', opacity: 0.9, lineHeight: 1.6, maxWidth: '85%', color: 'white' }}>
               Secure access to your health, family and clinical care. Create a unified workspace for seamless clinical decision support and familial risk mapping.
             </p>
+            <button type="button" className="auth-mode-switch-btn" onClick={toggleMode}>
+              Already a Member? Sign In
+            </button>
           </div>
         </div>
 
@@ -288,13 +307,16 @@ export function AuthPage() {
           style={{ backgroundImage: `url(${textBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
         >
           <div className="auth-text-overlay"></div>
-          <div style={{ position: 'relative', zIndex: 10 }}>
+          <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', textAlign: 'right' }}>
             <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '24px', letterSpacing: '-0.02em', color: 'white' }}>
               Welcome Back
             </h1>
             <p style={{ fontSize: '1.1rem', opacity: 0.9, lineHeight: 1.6, maxWidth: '85%', color: 'white' }}>
               Sign in to continue to FamilyVeda. Access your authorized clinical or family workspace to continue where you left off.
             </p>
+            <button type="button" className="auth-mode-switch-btn" onClick={toggleMode}>
+              Not a member? Sign Up
+            </button>
           </div>
         </div>
 
@@ -303,9 +325,9 @@ export function AuthPage() {
           
           {/* Register Form */}
           <div className="auth-form-content auth-form-register">
-            <h2 style={{ fontSize: '2rem', marginBottom: '16px' }}>Sign up</h2>
+            <h2 style={{ fontSize: '2.4rem', fontWeight: 700, marginBottom: '24px', color: 'white' }}>Sign up</h2>
             
-            <AuthStepper steps={steps} currentStep={regStep} />
+            {regStep > 0 && <AuthStepper steps={steps} currentStep={regStep} />}
             
             <form onSubmit={isFinalStep ? handleRegister : (e) => { e.preventDefault(); handleNextStep() }} noValidate>
               
@@ -346,7 +368,7 @@ export function AuthPage() {
                   </div>
                   <div className="auth-form-group">
                     <label htmlFor="reg-email">Email Address</label>
-                    <input id="reg-email" type="email" className="auth-form-input" value={regEmail} required autoComplete="email" onChange={(e) => setRegEmail(e.target.value)} />
+                    <input id="reg-email" type="email" className="auth-form-input" placeholder="e.g. name@example.invalid" value={regEmail} required autoComplete="email" onChange={(e) => setRegEmail(e.target.value)} />
                     {fieldError('email')}
                   </div>
                   <div className="auth-form-group">
@@ -356,12 +378,18 @@ export function AuthPage() {
                   </div>
                   <div className="auth-form-group">
                     <label htmlFor="reg-password">Create Password</label>
-                    <input id="reg-password" type="password" className="auth-form-input" value={regPassword} required minLength={8} onChange={(e) => setRegPassword(e.target.value)} />
+                    <div style={{ position: 'relative' }}>
+                      <input id="reg-password" type={showRegPassword ? 'text' : 'password'} className="auth-form-input" style={{ paddingRight: "40px" }} placeholder="At least 8 characters" value={regPassword} required minLength={8} onChange={(e) => setRegPassword(e.target.value)} />
+                      <PasswordEye show={showRegPassword} toggle={() => setShowRegPassword(!showRegPassword)} />
+                    </div>
                     {fieldError('password')}
                   </div>
                   <div className="auth-form-group">
                     <label htmlFor="reg-confirm">Confirm Password</label>
-                    <input id="reg-confirm" type="password" className="auth-form-input" value={regConfirm} required onChange={(e) => setRegConfirm(e.target.value)} />
+                    <div style={{ position: 'relative' }}>
+                      <input id="reg-confirm" type={showRegPassword ? 'text' : 'password'} className="auth-form-input" style={{ paddingRight: "40px" }} placeholder="Confirm your password" value={regConfirm} required onChange={(e) => setRegConfirm(e.target.value)} />
+                      <PasswordEye show={showRegPassword} toggle={() => setShowRegPassword(!showRegPassword)} />
+                    </div>
                     {fieldError('confirm')}
                   </div>
                 </div>
@@ -569,24 +597,24 @@ export function AuthPage() {
               </div>
             </form>
 
-            <div className="auth-form-switch">
-              Already a Member? <button type="button" onClick={toggleMode}>Sign in here</button>
-            </div>
           </div>
 
           {/* Login Form */}
           <div className="auth-form-content auth-form-login">
-            <h2 style={{ fontSize: '2rem', marginBottom: '32px' }}>Sign in</h2>
+            <h2 style={{ fontSize: '2.4rem', fontWeight: 700, marginBottom: '32px', color: 'white' }}>Sign in</h2>
             
             <form onSubmit={handleLogin} noValidate>
               <div className="auth-form-group">
                 <label htmlFor="login-email">Email Address</label>
-                <input id="login-email" type="email" className="auth-form-input" value={loginEmail} required autoComplete="email" onChange={(e) => setLoginEmail(e.target.value)} />
+                <input id="login-email" type="email" className="auth-form-input" placeholder="e.g. name@example.invalid" value={loginEmail} required autoComplete="email" onChange={(e) => setLoginEmail(e.target.value)} />
               </div>
 
               <div className="auth-form-group">
                 <label htmlFor="login-password">Password</label>
-                <input id="login-password" type="password" className="auth-form-input" value={loginPassword} required autoComplete="current-password" onChange={(e) => setLoginPassword(e.target.value)} />
+                <div style={{ position: 'relative' }}>
+                  <input id="login-password" type={showLoginPassword ? 'text' : 'password'} className="auth-form-input" style={{ paddingRight: "40px" }} placeholder="At least 8 characters" value={loginPassword} required autoComplete="current-password" onChange={(e) => setLoginPassword(e.target.value)} />
+                  <PasswordEye show={showLoginPassword} toggle={() => setShowLoginPassword(!showLoginPassword)} />
+                </div>
               </div>
 
               {(loginError || (mode === 'login' && authError)) && (
@@ -598,9 +626,6 @@ export function AuthPage() {
               </button>
             </form>
 
-            <div className="auth-form-switch">
-              Not a member? <button type="button" onClick={toggleMode}>Sign up here</button>
-            </div>
           </div>
 
         </div>
