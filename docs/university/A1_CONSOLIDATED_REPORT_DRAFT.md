@@ -92,10 +92,10 @@ Items explicitly marked `[FUTURE]` in the portal blueprint remain future work fo
 
 ## 9. Submission links and appendices
 
-- Repository: **NEEDS VERIFIED LINK**
-- Deployed React web: **NEEDS VERIFIED LINK**
-- API health: **NEEDS VERIFIED LINK**
-- Swagger: **NEEDS VERIFIED LINK**
+- Repository: [Family Veda on GitHub](https://github.com/sahansbandara/Family-Veda-SEF-Project) (HTTP 200 on 2026-09-28)
+- Deployed React web: [Family Veda web](https://family-veda-web.vercel.app/) (HTTP 200 on 2026-09-28)
+- API health: [Render health endpoint](https://family-veda-api.onrender.com/health) (HTTP 200 on 2026-09-28)
+- Swagger: [API reference](https://family-veda-api.onrender.com/swagger/index.html) (HTTP 200 on 2026-09-28)
 - Database/migration evidence: **NEEDS VERIFIED LINK**
 - Android APK and installation instructions: **NEEDS VERIFIED LINK**
 - Demonstration video (no access request): **NEEDS VERIFIED LINK**
