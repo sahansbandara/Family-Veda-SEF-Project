@@ -12,7 +12,7 @@
 - [ ] [human] Create Render account, deploy from `render.yaml` (Blueprint), set the `sync: false` secrets in its dashboard
 - [ ] [human] Create Vercel account, import `web/`, set `VITE_API_BASE_URL` once the Render URL exists
 - [ ] [human] Get a Gemini API key (aistudio.google.com/apikey) and a Groq API key (console.groq.com/keys) — both free tier, no card
-- [ ] Apply the EF Core migration to the hosted Neon DB once it exists (`docs/DEPLOYMENT.md` §1 has the exact commands — do NOT rely on `Database__MigrateOnStartup`, the installed Npgsql provider has a real bug on that path, see agent/MEMORY.md)
+- [x] Apply the EF Core migration to the hosted Neon DB once it exists (`docs/DEPLOYMENT.md` §1 has the exact commands — do NOT rely on `Database__MigrateOnStartup`, the installed Npgsql provider has a real bug on that path, see agent/MEMORY.md)
 - [ ] [human, only if needed] Apple Developer account for a distributable iOS build beyond simulator; Android release keystore for a signed APK (docs/DEPLOYMENT.md §5–6)
 
 ## Three-portal blueprint (2026-09-28) — see docs/Three_Portal_Implementation_Blueprint.md
@@ -34,7 +34,7 @@ Due 2026-09-30. CORE first; FUTURE only if time remains, otherwise it goes in th
 - [x] Appointments: book/cancel (family), confirm/complete/no-show (doctor), overlap + privacy rules
 - [x] In-app notifications + bell
 - [x] Family Head / Adult Member / Doctor dashboards
-- [ ] [human] Apply migration `20260927200627_20260928_S4_ThreePortalFeatures` to Neon via `dotnet ef migrations script --idempotent` + psql (see DEPLOYMENT.md)
+- [x] Applied migration `20260927200627_20260928_S4_ThreePortalFeatures` to Neon (2026-09-28) via `dotnet ef migrations script --idempotent` + psql (see DEPLOYMENT.md)
 - [ ] Book-appointment on Flutter: add duration picker (fixed 30 min now)
 - [ ] Dashboard `recentActivity` list is empty — wire from audit rows (own + minors only)
 - [ ] [human] Announce migration lock for `20260928_S4_ThreePortalFeatures`

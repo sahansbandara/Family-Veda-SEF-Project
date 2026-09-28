@@ -74,3 +74,4 @@ Thumbs.db
 
 # ── Agent tooling ──────────────────────────────────────────
 .claude/settings.local.json
+neon-backup-*.sql
