@@ -43,6 +43,26 @@ public sealed class PortalDashboardAndNotificationTests
     }
 
     [Fact]
+    public async Task FamilyDashboard_RecentActivity_ExcludesOtherAdultsClinicalEvents()
+    {
+        await using var db = NewDb();
+        var head = new UserAccount { Email = "head-activity@example.invalid", PasswordHash = "x", DisplayName = "Head", UserType = UserType.FamilyUser };
+        var adult = new UserAccount { Email = "adult-activity@example.invalid", PasswordHash = "x", DisplayName = "Adult", UserType = UserType.FamilyUser };
+        var family = new Family { Name = "Synthetic Family", CreatedByUser = head, FamilyCode = "FV-ABC222" };
+        var headMember = new Member { Family = family, User = head, DisplayName = "Head", DateOfBirth = new DateOnly(1980, 1, 1), Role = FamilyRole.Head };
+        var adultMember = new Member { Family = family, User = adult, DisplayName = "Adult", DateOfBirth = new DateOnly(1990, 1, 1), Role = FamilyRole.AdultMember };
+        db.AddRange(head, adult, family, headMember, adultMember);
+        db.Add(new AuditLog { ActorUser = head, SubjectMember = headMember, EventType = "CASE_STATUS_CHANGED", ResourceType = "TriageCase", Outcome = "SUCCESS" });
+        db.Add(new AuditLog { ActorUser = adult, SubjectMember = adultMember, EventType = "LAB_REPORT_MANUAL_REVIEW", ResourceType = "LabReport", Outcome = "SUCCESS" });
+        await db.SaveChangesAsync();
+
+        var dashboard = await new PortalDashboardService(db, new StubCurrentUser(head.Id))
+            .GetFamilyDashboardAsync(CancellationToken.None);
+
+        dashboard.RecentActivity.Should().ContainSingle().Which.Should().Contain("Case updated");
+    }
+
+    [Fact]
     public async Task Notifications_OnlyReturnOwn()
     {
         await using var db = NewDb();

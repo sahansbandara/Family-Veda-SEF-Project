@@ -106,10 +106,9 @@ export function FamilyDashboardPanel() {
           <EmptyState title="No recent activity" message="Activity for you and your minors will appear here." />
         ) : (
           <ul className="activity-list">
-            {data.recentActivity.map((entry) => (
-              <li key={entry.id}>
-                <span>{entry.description}</span>
-                <small>{formatDateTime(entry.createdAt)}</small>
+            {data.recentActivity.map((entry, index) => (
+              <li key={`${entry}-${index}`}>
+                <span>{entry}</span>
               </li>
             ))}
           </ul>

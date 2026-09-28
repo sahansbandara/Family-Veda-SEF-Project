@@ -79,6 +79,35 @@ public sealed class PortalDashboardService(AppDbContext dbContext, ICurrentUser 
         var ownMemberIds = family.Members.Where(x => x.UserId == currentUser.UserId).Select(x => x.Id).ToList();
         var approvedGuidance = await dbContext.TriageCases.CountAsync(x => ownMemberIds.Contains(x.MemberId) &&
             (x.Status == TriageStatus.Approved || x.Status == TriageStatus.ApprovedRevised), cancellationToken);
+        var visibleAppointmentIds = await dbContext.Appointments.AsNoTracking()
+            .Where(x => relevantMemberIds.Contains(x.MemberId))
+            .Select(x => x.Id)
+            .ToListAsync(cancellationToken);
+        var activityEvents = await dbContext.AuditLogs.AsNoTracking()
+            .Where(x =>
+                (x.SubjectMemberId.HasValue && relevantMemberIds.Contains(x.SubjectMemberId.Value)
+                    && (x.EventType == "CASE_STATUS_CHANGED" || x.EventType == "LAB_REPORT_MANUAL_REVIEW"))
+                || (x.ResourceType == "Appointment" && x.ResourceId.HasValue
+                    && visibleAppointmentIds.Contains(x.ResourceId.Value)
+                    && (x.EventType == "APPOINTMENT_REQUESTED" || x.EventType == "APPOINTMENT_STATUS_CHANGED"))
+                || (isHead && x.ActorUserId == currentUser.UserId && x.SubjectMemberId == null
+                    && (x.EventType == "FAMILY_JOIN_ACCEPTED" || x.EventType == "FAMILY_JOIN_DECLINED"
+                        || x.EventType == "FAMILY_DOCTOR_REQUESTED")))
+            .OrderByDescending(x => x.CreatedAt)
+            .Take(5)
+            .Select(x => x.EventType)
+            .ToListAsync(cancellationToken);
+        var recentActivity = activityEvents.Select(eventType => eventType switch
+        {
+            "CASE_STATUS_CHANGED" => "Case updated",
+            "LAB_REPORT_MANUAL_REVIEW" => "Lab report reviewed",
+            "APPOINTMENT_REQUESTED" => "Appointment requested",
+            "APPOINTMENT_STATUS_CHANGED" => "Appointment updated",
+            "FAMILY_JOIN_ACCEPTED" => "Family join request accepted",
+            "FAMILY_JOIN_DECLINED" => "Family join request declined",
+            "FAMILY_DOCTOR_REQUESTED" => "Family doctor requested",
+            _ => "Activity updated"
+        }).ToList();
 
         return new FamilyDashboardDto(
             isHead ? "Head" : "AdultMember",
@@ -93,13 +122,13 @@ public sealed class PortalDashboardService(AppDbContext dbContext, ICurrentUser 
             approvedGuidance,
             doctorSummary,
             unread,
-            new List<string>());
+            recentActivity);
     }
 
     public async Task<DoctorDashboardDto> GetDoctorDashboardAsync(CancellationToken cancellationToken)
     {
         var doctor = await dbContext.Doctors.SingleOrDefaultAsync(x => x.UserId == currentUser.UserId, cancellationToken) ?? throw new NotFoundException();
-        var today = DateTimeOffset.UtcNow.Date;
+        var today = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero);
         var tomorrow = today.AddDays(1);
         var todayAppointmentEntities = await dbContext.Appointments.AsNoTracking()
             .Where(x => x.DoctorId == doctor.Id && x.StartsAt >= today && x.StartsAt < tomorrow)

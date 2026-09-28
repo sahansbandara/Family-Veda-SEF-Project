@@ -38,3 +38,15 @@ What is already decided. Record at the moment of decision, including rejected al
 **Consequences:** these commits appear under S4's `git log --author`, not the file owners'. Individual reports must describe this honestly. Migration `20260928_S4_ThreePortalFeatures` — announce the migration lock in the group chat.
 
 **Status:** Accepted 2026-09-28.
+
+## 2026-09-28 — Preserve doctor assignment history and enforce one active decision
+
+**Decision:** Replace the unique `(family_id, doctor_id)` assignment index with a non-unique history index plus a partial unique index for one active primary assignment per family. Add a partial unique index for one pending family-doctor request per family. Keep past assignment rows when a family returns to a previous doctor. Use conditional request-status updates inside transactions so simultaneous accept/decline decisions record one outcome; map named PostgreSQL uniqueness conflicts to HTTP 409.
+
+**Reason:** the original pairwise index prevented return visits to a prior doctor, while service-level `AnyAsync` checks could race and leave multiple active doctors or pending requests. A previous pending request for the current doctor also produced an HTTP 500 on acceptance.
+
+**Alternatives considered:** reusing and reopening an ended assignment row (rejected because it erases separate assignment periods); service-only existence checks (rejected because concurrent requests can pass both checks); deleting duplicate legacy rows during migration (rejected because it would lose audit history).
+
+**Consequences:** the migration checks for preexisting conflicts and aborts without data cleanup. Once repeated doctor periods exist, rollback to the old pairwise index is refused; recovery uses the Neon branch backup and a reviewed roll-forward fix. The user reported the prior migration applied and its lock released before this migration was generated. Local PostgreSQL upgrade, concurrency, idempotency and unsafe-rollback checks passed; Neon application remains pending.
+
+**Status:** Implemented locally on `codex/portal-e2e-fixes`; deployment pending.

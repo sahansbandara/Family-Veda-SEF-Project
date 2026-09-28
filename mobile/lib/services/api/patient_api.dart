@@ -72,13 +72,20 @@ class DioPatientApi implements PatientApi {
 
   @override
   Future<List<AppNotification>> getNotifications() async {
-    final response = await _client.dio.get<dynamic>(
-      '/notifications',
-      queryParameters: {'page': 1, 'pageSize': 50},
-    );
-    return _listFrom(
-      response.data,
-    ).map(AppNotification.fromJson).toList(growable: false);
+    final portal = await _client.dio.get<dynamic>('/notifications');
+    final items = _listFrom(portal.data).map(AppNotification.fromJson).toList();
+    try {
+      final triage = await _client.dio.get<dynamic>(
+        '/notifications/inbox',
+        queryParameters: {'page': 1, 'pageSize': 50},
+      );
+      items.addAll(_listFrom(triage.data).map(AppNotification.fromJson));
+    } on Object {
+      // The triage inbox is available to family users only. Keep portal
+      // notifications visible for doctors and when the legacy inbox fails.
+    }
+    items.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return items;
   }
 
   @override

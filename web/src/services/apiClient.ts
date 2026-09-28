@@ -149,7 +149,7 @@ export type FamilyDashboardSummaryDto = {
   approvedGuidanceCount: number
   familyDoctor?: DoctorSummaryDto | null
   unreadNotifications: number
-  recentActivity: Array<{ id: string; description: string; createdAt: string }>
+  recentActivity: string[]
 }
 export type DoctorDashboardSummaryDto = {
   todayAppointments: AppointmentDto[]

@@ -52,7 +52,7 @@ class NotificationsScreen extends ConsumerWidget {
                           ),
                           isThreeLine: true,
                           onTap: () async {
-                            if (!item.isRead) {
+                            if (item.type != null && !item.isRead) {
                               try {
                                 await ref
                                     .read(familyPortalApiProvider)
@@ -63,7 +63,8 @@ class NotificationsScreen extends ConsumerWidget {
                                 // failing silently on the user's screen.
                               }
                             }
-                            final link = item.linkPath;
+                            final link = item.linkPath ??
+                                (item.caseId == null ? null : '/cases/${item.caseId}');
                             if (link != null && link.isNotEmpty && context.mounted) {
                               context.push(link);
                             }

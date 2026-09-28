@@ -2,8 +2,8 @@
 
 ## Immediate — branch hygiene (2026-09-23)
 
-- [ ] [human] Enable branch protection on `main` (require PR + 1 approving review, enforce for admins) — GitHub → Settings → Branches. Agent's API attempt was sandbox-blocked.
-- [ ] [S3] Open a PR from `feature/s3-agent-orchestration` into `develop` (work wasn't lost, just reverted off `main` — needs the same route S1/S2/S4 already used)
+- [ ] Branch protection deferred by user on 2026-09-28; continue using reviewed PRs into `develop`.
+- [x] [S3] Agent orchestration PRs #4 and #12–15 merged into `develop` (verified 2026-09-28)
 - [ ] [all] PR into `develop` only from here on; never push or merge directly to `main`
 
 ## Hosting (2026-09-23) — see docs/DEPLOYMENT.md for the full walkthrough
@@ -12,7 +12,8 @@
 - [ ] [human] Create Render account, deploy from `render.yaml` (Blueprint), set the `sync: false` secrets in its dashboard
 - [ ] [human] Create Vercel account, import `web/`, set `VITE_API_BASE_URL` once the Render URL exists
 - [ ] [human] Get a Gemini API key (aistudio.google.com/apikey) and a Groq API key (console.groq.com/keys) — both free tier, no card
-- [x] Apply the EF Core migration to the hosted Neon DB once it exists (`docs/DEPLOYMENT.md` §1 has the exact commands — do NOT rely on `Database__MigrateOnStartup`, the installed Npgsql provider has a real bug on that path, see agent/MEMORY.md)
+- [x] Initial EF Core migration applied to hosted Neon (reported 2026-09-28; see `docs/DEPLOYMENT.md`).
+- [ ] Capture direct hosted Neon migration-history evidence, then apply the follow-up doctor-constraint migration using `docs/release/DOCTOR_CONSTRAINT_RELEASE.md`. Keep `Database__MigrateOnStartup=false` in production (see agent/MEMORY.md).
 - [ ] [human, only if needed] Apple Developer account for a distributable iOS build beyond simulator; Android release keystore for a signed APK (docs/DEPLOYMENT.md §5–6)
 
 ## Three-portal blueprint (2026-09-28) — see docs/Three_Portal_Implementation_Blueprint.md
@@ -34,10 +35,14 @@ Due 2026-09-30. CORE first; FUTURE only if time remains, otherwise it goes in th
 - [x] Appointments: book/cancel (family), confirm/complete/no-show (doctor), overlap + privacy rules
 - [x] In-app notifications + bell
 - [x] Family Head / Adult Member / Doctor dashboards
-- [x] Applied migration `20260927200627_20260928_S4_ThreePortalFeatures` to Neon (2026-09-28) via `dotnet ef migrations script --idempotent` + psql (see DEPLOYMENT.md)
-- [ ] Book-appointment on Flutter: add duration picker (fixed 30 min now)
-- [ ] Dashboard `recentActivity` list is empty — wire from audit rows (own + minors only)
-- [ ] [human] Announce migration lock for `20260928_S4_ThreePortalFeatures`
+- [x] Applied migration `20260927200627_20260928_S4_ThreePortalFeatures` to Neon (reported 2026-09-28); direct migration-history evidence remains to be captured.
+- [x] [pending PR] Flutter booking duration picker: 15–120 minutes. Flutter 3.47.5 analysis and 69/69 tests passed.
+- [x] [pending PR] Dashboard `recentActivity` from audit rows, scoped to own records and minors for a Head.
+- [x] [pending PR] Add database constraints for one pending request and one active primary doctor per family; preserve assignment history and return conflict on concurrent writes. PostgreSQL 16 integration and idempotent script tests passed.
+- [x] [pending PR] Repeat synthetic API journey across Family Head, Adult Member and Doctor: join by code, doctor request, appointment confirmation, dashboards, notifications and adult privacy 404 passed. Full Flutter/React/agent golden-case trace remains outstanding.
+- [ ] [human] Apply follow-up migration `20260928010813_20260928_S4_DoctorAssignmentConstraints` to Neon after backup; verify migration history and redeploy compatible backend.
+- [ ] Merge, deploy and verify the booking, notification, dashboard and doctor-flow fixes; current deployed notifications endpoint returns 500.
+- [x] [human-reported 2026-09-28] Released migration lock for `20260928_S4_ThreePortalFeatures`.
 
 ### FUTURE
 - [ ] [S1+S2] Opt-in "Share with Family Head" per adult report (needs migration lock)

@@ -20,7 +20,9 @@ class AppNotification {
       AppNotification(
         id: json['id'] as String,
         createdAt: DateTime.parse(json['createdAt'] as String),
-        isRead: (json['isRead'] as bool?) ?? (json['readAt'] != null),
+        // Triage audit entries have no read state; only portal notifications
+        // can be marked read through /notifications/{id}/read.
+        isRead: json['type'] == null ? true : json['readAt'] != null,
         caseId: json['caseId'] as String?,
         caseStatus: (json['caseStatus'] ?? json['status']) as String?,
         type: json['type'] as String?,

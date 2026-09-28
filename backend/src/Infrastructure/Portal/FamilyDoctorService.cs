@@ -7,6 +7,7 @@ using FamilyVeda.Domain.Common;
 using FamilyVeda.Domain.Portal;
 using FamilyVeda.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace FamilyVeda.Infrastructure.Portal;
 
@@ -49,6 +50,10 @@ public sealed class FamilyDoctorService(AppDbContext dbContext, ICurrentUser cur
         {
             throw new ConflictException("A pending doctor request already exists for this family.");
         }
+        if (await dbContext.FamilyDoctorAssignments.AnyAsync(x => x.FamilyId == familyId && x.DoctorId == doctor.Id && x.IsPrimary && x.EndedAt == null, cancellationToken))
+        {
+            throw new ConflictException("This doctor is already assigned to this family.");
+        }
 
         var doctorRequest = new FamilyDoctorRequest
         {
@@ -60,7 +65,14 @@ public sealed class FamilyDoctorService(AppDbContext dbContext, ICurrentUser cur
         dbContext.FamilyDoctorRequests.Add(doctorRequest);
         AddAudit("FAMILY_DOCTOR_REQUESTED", doctorRequest.Id);
         AddNotification(doctor.UserId, "FAMILY_DOCTOR_REQUESTED", "New family request", "A family has requested you as their family doctor.", "/doctor/requests");
-        await dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (IsUniqueConflict(ex, "ux_family_doctor_requests_pending"))
+        {
+            throw new ConflictException("A pending doctor request already exists for this family.");
+        }
         return await MapRequestAsync(doctorRequest, cancellationToken);
     }
 
@@ -79,7 +91,20 @@ public sealed class FamilyDoctorService(AppDbContext dbContext, ICurrentUser cur
         return results;
     }
 
-    public async Task<DoctorRequestDto> AcceptAsync(Guid id, CancellationToken cancellationToken)
+    public Task<DoctorRequestDto> AcceptAsync(Guid id, CancellationToken cancellationToken)
+    {
+        if (!dbContext.Database.IsRelational())
+        {
+            return AcceptCoreAsync(id, cancellationToken);
+        }
+        return dbContext.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        {
+            dbContext.ChangeTracker.Clear();
+            return await AcceptCoreAsync(id, cancellationToken);
+        });
+    }
+
+    private async Task<DoctorRequestDto> AcceptCoreAsync(Guid id, CancellationToken cancellationToken)
     {
         var doctor = await RequireDoctorAsync(cancellationToken);
         var request = await dbContext.FamilyDoctorRequests.SingleOrDefaultAsync(x => x.Id == id && x.DoctorId == doctor.Id, cancellationToken)
@@ -87,27 +112,73 @@ public sealed class FamilyDoctorService(AppDbContext dbContext, ICurrentUser cur
         if (request.Status != PortalRequestStatus.Pending)
         {
             throw new ConflictException("This request has already been resolved.");
+        }
+
+        // Claim the request inside the same transaction as the assignment and audit.
+        // A second acceptance waits for this row, then receives a conflict.
+        await using var transaction = dbContext.Database.IsRelational()
+            ? await dbContext.Database.BeginTransactionAsync(cancellationToken)
+            : null;
+        var respondedAt = DateTimeOffset.UtcNow;
+        if (transaction is not null)
+        {
+            var claimed = await dbContext.FamilyDoctorRequests
+                .Where(x => x.Id == request.Id && x.Status == PortalRequestStatus.Pending)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.Status, PortalRequestStatus.Accepted)
+                    .SetProperty(x => x.RespondedAt, respondedAt), cancellationToken);
+            if (claimed != 1)
+            {
+                throw new ConflictException("This request has already been resolved.");
+            }
         }
 
         var current = await dbContext.FamilyDoctorAssignments
             .Where(x => x.FamilyId == request.FamilyId && x.IsPrimary && x.EndedAt == null)
             .ToListAsync(cancellationToken);
-        foreach (var assignment in current)
+        foreach (var assignment in current.Where(x => x.DoctorId != doctor.Id))
         {
             assignment.EndedAt = DateTimeOffset.UtcNow;
         }
 
-        dbContext.FamilyDoctorAssignments.Add(new FamilyDoctorAssignment { FamilyId = request.FamilyId, DoctorId = doctor.Id, IsPrimary = true });
+        if (!current.Any(x => x.DoctorId == doctor.Id))
+        {
+            dbContext.FamilyDoctorAssignments.Add(new FamilyDoctorAssignment { FamilyId = request.FamilyId, DoctorId = doctor.Id, IsPrimary = true });
+        }
         request.Status = PortalRequestStatus.Accepted;
-        request.RespondedAt = DateTimeOffset.UtcNow;
+        request.RespondedAt = respondedAt;
         AddAudit("FAMILY_DOCTOR_ACCEPTED", request.Id);
         var family = await dbContext.Families.AsNoTracking().SingleAsync(x => x.Id == request.FamilyId, cancellationToken);
         AddNotification(family.CreatedByUserId, "FAMILY_DOCTOR_ACCEPTED", "Family doctor confirmed", "Your family doctor request was accepted.", "/family/doctor");
-        await dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (IsUniqueConflict(ex, "ux_family_doctor_assignments_active_primary"))
+        {
+            throw new ConflictException("The family doctor changed while this request was being accepted.");
+        }
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+        }
         return await MapRequestAsync(request, cancellationToken);
     }
 
-    public async Task<DoctorRequestDto> DeclineAsync(Guid id, CancellationToken cancellationToken)
+    public Task<DoctorRequestDto> DeclineAsync(Guid id, CancellationToken cancellationToken)
+    {
+        if (!dbContext.Database.IsRelational())
+        {
+            return DeclineCoreAsync(id, cancellationToken);
+        }
+        return dbContext.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        {
+            dbContext.ChangeTracker.Clear();
+            return await DeclineCoreAsync(id, cancellationToken);
+        });
+    }
+
+    private async Task<DoctorRequestDto> DeclineCoreAsync(Guid id, CancellationToken cancellationToken)
     {
         var doctor = await RequireDoctorAsync(cancellationToken);
         var request = await dbContext.FamilyDoctorRequests.SingleOrDefaultAsync(x => x.Id == id && x.DoctorId == doctor.Id, cancellationToken)
@@ -117,12 +188,33 @@ public sealed class FamilyDoctorService(AppDbContext dbContext, ICurrentUser cur
             throw new ConflictException("This request has already been resolved.");
         }
 
+        await using var transaction = dbContext.Database.IsRelational()
+            ? await dbContext.Database.BeginTransactionAsync(cancellationToken)
+            : null;
+        var respondedAt = DateTimeOffset.UtcNow;
+        if (transaction is not null)
+        {
+            var claimed = await dbContext.FamilyDoctorRequests
+                .Where(x => x.Id == request.Id && x.Status == PortalRequestStatus.Pending)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.Status, PortalRequestStatus.Declined)
+                    .SetProperty(x => x.RespondedAt, respondedAt), cancellationToken);
+            if (claimed != 1)
+            {
+                throw new ConflictException("This request has already been resolved.");
+            }
+        }
+
         request.Status = PortalRequestStatus.Declined;
-        request.RespondedAt = DateTimeOffset.UtcNow;
+        request.RespondedAt = respondedAt;
         AddAudit("FAMILY_DOCTOR_DECLINED", request.Id);
         var family = await dbContext.Families.AsNoTracking().SingleAsync(x => x.Id == request.FamilyId, cancellationToken);
         AddNotification(family.CreatedByUserId, "FAMILY_DOCTOR_DECLINED", "Family doctor request declined", "The doctor declined your family doctor request.", "/family/doctor");
         await dbContext.SaveChangesAsync(cancellationToken);
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+        }
         return await MapRequestAsync(request, cancellationToken);
     }
 
@@ -155,6 +247,11 @@ public sealed class FamilyDoctorService(AppDbContext dbContext, ICurrentUser cur
 
     private static DoctorSummaryDto Map(Doctor doctor) =>
         new(doctor.Id, doctor.User?.DisplayName ?? "Unknown", doctor.Specialty, doctor.HospitalClinic, doctor.District, doctor.City, doctor.Languages);
+
+    private static bool IsUniqueConflict(DbUpdateException exception, string indexName) =>
+        exception.InnerException is PostgresException postgres &&
+        postgres.SqlState == PostgresErrorCodes.UniqueViolation &&
+        postgres.ConstraintName == indexName;
 
     private void AddAudit(string eventType, Guid resourceId) => dbContext.AuditLogs.Add(new AuditLog
     {

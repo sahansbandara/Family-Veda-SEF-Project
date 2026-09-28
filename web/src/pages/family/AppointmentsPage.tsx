@@ -54,7 +54,8 @@ export function AppointmentsPage() {
 
   async function book(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const form = new FormData(event.currentTarget)
+    const formElement = event.currentTarget
+    const form = new FormData(formElement)
     const memberId = String(form.get('memberId') || '')
     const date = String(form.get('date') || '')
     const time = String(form.get('time') || '')
@@ -68,7 +69,7 @@ export function AppointmentsPage() {
     setMessage('')
     try {
       await threePortalApi.bookAppointment({ memberId, startsAt, reason, durationMinutes: 30 })
-      event.currentTarget.reset()
+      formElement.reset()
       setMessage('Appointment requested. You will be notified once the doctor confirms it.')
       await load()
     } catch (error) {

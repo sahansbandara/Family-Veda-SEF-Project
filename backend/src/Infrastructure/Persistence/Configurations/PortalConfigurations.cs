@@ -34,6 +34,9 @@ internal sealed class FamilyDoctorRequestConfiguration : IEntityTypeConfiguratio
         builder.HasOne(x => x.Doctor).WithMany().HasForeignKey(x => x.DoctorId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(x => new { x.DoctorId, x.Status });
         builder.HasIndex(x => new { x.FamilyId, x.Status });
+        builder.HasIndex(x => x.FamilyId).IsUnique()
+            .HasDatabaseName("ux_family_doctor_requests_pending")
+            .HasFilter("status = 'Pending'");
     }
 }
 

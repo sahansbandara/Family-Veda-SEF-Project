@@ -21,6 +21,8 @@ void main() {
     expect(appointment.durationMinutes, 45);
     expect(appointment.doctor?.displayName, 'Nadeesha Fernando');
     expect(appointment.status, AppointmentStatus.confirmed);
+    expect(appointment.startsAt.isUtc, isFalse);
+    expect(appointment.startsAt.toUtc(), DateTime.utc(2026, 10, 5, 9, 30));
   });
 
   test('friendly status labels are patient-facing, not raw enum names', () {
