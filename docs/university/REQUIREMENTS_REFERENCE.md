@@ -23,7 +23,7 @@ Use this page-linked checklist when planning, building, testing, or documenting 
 
 ## Assignment 1 submission and academic integrity
 
-- One group-leader Course Web submission by **30 September 2026, 11:50 PM**. Use `SE3090_SE016` for this group's submission name (A1 pp. 1, 10).
+- The authenticated CourseWeb Assignment 1 submission item displayed **6 October 2026, 11:00 AM** on 2026-09-28, superseding the PDF's **30 September 2026, 11:50 PM** date for operational planning. An older announcement on the course page still shows 30 September. Recheck the submission item before uploading. Use `SE3090_SE016` for this group's submission name (A1 pp. 1, 10).
 - One consolidated PDF includes group and individual sections, technical/testing/agent/performance/deployment reports, ADRs, diagrams, evidence, individual AI usage and reflections. Include repository, web, API/health, Swagger and video links, database evidence and runnable Android APK with instructions (A1 p. 10).
 - Video link must work without access request; test links privately. Keep repository, video and deployed services accessible until **21 October 2026** (A1 p. 10).
 - Group marks 30 and individual marks 70. Each student must explain, test, modify and debug own work. No fabricated commits, AI logs or test results (A1 pp. 3–4, 11–14, 16–17).

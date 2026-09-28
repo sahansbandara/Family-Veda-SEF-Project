@@ -13,7 +13,7 @@
 - [ ] [human] Create Vercel account, import `web/`, set `VITE_API_BASE_URL` once the Render URL exists
 - [ ] [human] Get a Gemini API key (aistudio.google.com/apikey) and a Groq API key (console.groq.com/keys) — both free tier, no card
 - [x] Initial EF Core migration applied to hosted Neon (reported 2026-09-28; see `docs/DEPLOYMENT.md`).
-- [ ] Capture direct hosted Neon migration-history evidence, then apply the follow-up doctor-constraint migration using `docs/release/DOCTOR_CONSTRAINT_RELEASE.md`. Keep `Database__MigrateOnStartup=false` in production (see agent/MEMORY.md).
+- [x] Captured Neon migration history and applied the doctor-constraint migration on 2026-09-28; see `docs/university/RELEASE_EVIDENCE_2026-09-28.md`. Keep `Database__MigrateOnStartup=false` in production (see agent/MEMORY.md).
 - [ ] [human, only if needed] Apple Developer account for a distributable iOS build beyond simulator; Android release keystore for a signed APK (docs/DEPLOYMENT.md §5–6)
 
 ## Three-portal blueprint (2026-09-28) — see docs/Three_Portal_Implementation_Blueprint.md
@@ -40,8 +40,13 @@ Due 2026-09-30. CORE first; FUTURE only if time remains, otherwise it goes in th
 - [x] [pending PR] Dashboard `recentActivity` from audit rows, scoped to own records and minors for a Head.
 - [x] [pending PR] Add database constraints for one pending request and one active primary doctor per family; preserve assignment history and return conflict on concurrent writes. PostgreSQL 16 integration and idempotent script tests passed.
 - [x] [pending PR] Repeat synthetic API journey across Family Head, Adult Member and Doctor: join by code, doctor request, appointment confirmation, dashboards, notifications and adult privacy 404 passed. Full Flutter/React/agent golden-case trace remains outstanding.
-- [ ] [human] Apply follow-up migration `20260928010813_20260928_S4_DoctorAssignmentConstraints` to Neon after backup; verify migration history and redeploy compatible backend.
-- [ ] Merge, deploy and verify the booking, notification, dashboard and doctor-flow fixes; current deployed notifications endpoint returns 500.
+- [x] Applied follow-up migration `20260928010813_20260928_S4_DoctorAssignmentConstraints` to Neon after a recovery branch; verified migration history and indexes.
+- [x] Built and installed hosted-API debug APK on Android API 36 emulator; launched to the sign-in screen and retained `docs/evidence/2026-09-28/android-launch.png`.
+- [x] Deterministic synthetic PostgreSQL API golden case and invalid-schema safe-failure tests passed; full integration suite 11/11. Doctor approves through the assigned case grant, then family reads allowlisted guidance.
+- [ ] Capture a full Flutter → API/agents → React approval → Flutter visual trace with synthetic accounts.
+- [x] Synthetic demo Head authenticated through the hosted-API APK; dashboard, appointments and notifications rendered on Android API 36 with retained screenshots.
+- [ ] Publish a stable APK download link with checksum and installation instructions; verify hosted doctor approval and family guidance on Android.
+- [ ] Verify the exact Render backend revision and complete a synthetic doctor-account flow. The live Family Head dashboard, appointments, and notifications pages loaded on 2026-09-28; the previous notification error did not recur in this smoke check.
 - [x] [human-reported 2026-09-28] Released migration lock for `20260928_S4_ThreePortalFeatures`.
 
 ### FUTURE

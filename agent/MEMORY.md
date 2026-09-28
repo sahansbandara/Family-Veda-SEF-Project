@@ -1,5 +1,9 @@
 # Memory — Family Veda
 
+## 2026-09-28 production release check
+
+CourseWeb's authenticated Assignment 1 submission item showed 6 October 2026 at 11:00 AM (Asia/Colombo), while an older announcement still showed 30 September. At `develop` commit `49face54`, CI and CodeQL succeeded and Vercel reported a successful production deployment. Production Neon migration history had the first two migrations and no doctor-assignment conflicts. A non-expiring data-and-schema recovery branch `backup-2026-09-28-pre-doctor-constraints-1208` was created, then the reviewed doctor-constraint SQL was applied. Fresh Neon queries confirmed all three migrations and the two new partial unique indexes. The live synthetic Family Head dashboard, appointments and notifications pages loaded; exact Render revision and doctor-account workflow remain unverified. Full non-secret evidence is in `docs/university/RELEASE_EVIDENCE_2026-09-28.md`.
+
 ## User communication and assessment reference
 
 - Explain work in a natural Sinhala and English mix by default; avoid fully Sinhala explanations. A later explicit user language request takes precedence.
