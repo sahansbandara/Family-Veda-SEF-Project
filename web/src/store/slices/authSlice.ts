@@ -156,6 +156,9 @@ const authSlice = createSlice({
       state.error = null
       setSessionTokens(null)
     },
+    clearAuthError(state) {
+      state.error = null
+    },
   },
   extraReducers: (builder) => builder
     .addCase(signIn.pending, (state) => { state.status = 'loading'; state.error = null })
@@ -186,5 +189,5 @@ const authSlice = createSlice({
     .addCase(completeRegistration.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload?.message ?? 'Registration failed.' }),
 })
 
-export const { signedIn, signedOut } = authSlice.actions
+export const { signedIn, signedOut, clearAuthError } = authSlice.actions
 export default authSlice.reducer

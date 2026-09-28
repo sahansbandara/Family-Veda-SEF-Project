@@ -7,7 +7,7 @@ import { isAxiosError } from 'axios'
 
 import { apiClient } from '../../services/apiClient'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
-import { completeRegistration, signIn, registerDoctorUser } from '../../store/slices/authSlice'
+import { completeRegistration, signIn, registerDoctorUser, clearAuthError } from '../../store/slices/authSlice'
 import { AuthStepper, type StepDef } from '../../components/auth/AuthStepper'
 import loginBg from '../../assets/Loging.webp'
 import registerBg from '../../assets/Register.webp'
@@ -121,7 +121,9 @@ export function AuthPage() {
 
   useEffect(() => {
     setMode(location.pathname.includes('/register') ? 'register' : 'login')
-  }, [location])
+    dispatch(clearAuthError())
+    setRegError('')
+  }, [location, dispatch])
 
   if (isAuthenticated && authStatus !== 'loading') {
     if (mode === 'login' || (user && user.role !== 'ONBOARDING')) {
@@ -288,15 +290,18 @@ export function AuthPage() {
           style={{ backgroundImage: `url(${textBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
         >
           <div className="auth-text-overlay"></div>
-          <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
+          <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', textAlign: 'right', width: '100%' }}>
             <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '24px', letterSpacing: '-0.02em', color: 'white' }}>
-              Let's Get Started
+              Let's Get<br />Started
             </h1>
-            <p style={{ fontSize: '1.1rem', opacity: 0.9, lineHeight: 1.6, maxWidth: '85%', color: 'white' }}>
-              Secure access to your health, family and clinical care. Create a unified workspace for seamless clinical decision support and familial risk mapping.
+            <p style={{ fontSize: '1.1rem', opacity: 0.9, lineHeight: 1.6, color: 'white' }}>
+              Secure access to your health, family and<br />
+              clinical care. Create a unified workspace<br />
+              for seamless clinical decision support<br />
+              and familial risk mapping.
             </p>
-            <button type="button" className="auth-mode-switch-btn" onClick={toggleMode}>
-              Already a Member? Sign In
+            <button type="button" className="auth-mode-switch-btn" onClick={toggleMode} style={{ marginTop: '48px' }}>
+              Already a Member? Sign In <span className="switch-arrow right-arrow">→</span>
             </button>
           </div>
         </div>
@@ -307,15 +312,18 @@ export function AuthPage() {
           style={{ backgroundImage: `url(${textBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
         >
           <div className="auth-text-overlay"></div>
-          <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', textAlign: 'right' }}>
+          <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', width: '100%' }}>
             <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '24px', letterSpacing: '-0.02em', color: 'white' }}>
-              Welcome Back
+              Welcome<br />Back
             </h1>
-            <p style={{ fontSize: '1.1rem', opacity: 0.9, lineHeight: 1.6, maxWidth: '85%', color: 'white' }}>
-              Sign in to continue to FamilyVeda. Access your authorized clinical or family workspace to continue where you left off.
+            <p style={{ fontSize: '1.1rem', opacity: 0.9, lineHeight: 1.6, color: 'white' }}>
+              Sign in to continue to FamilyVeda.<br />
+              Access your authorized clinical or<br />
+              family workspace to continue<br />
+              where you left off.
             </p>
-            <button type="button" className="auth-mode-switch-btn" onClick={toggleMode}>
-              Not a member? Sign Up
+            <button type="button" className="auth-mode-switch-btn" onClick={toggleMode} style={{ marginTop: '48px' }}>
+              <span className="switch-arrow left-arrow">←</span> Not a member? Sign Up
             </button>
           </div>
         </div>
@@ -325,7 +333,7 @@ export function AuthPage() {
           
           {/* Register Form */}
           <div className="auth-form-content auth-form-register">
-            <h2 style={{ fontSize: '2.4rem', fontWeight: 700, marginBottom: '24px', color: 'white' }}>Sign up</h2>
+
             
             {regStep > 0 && <AuthStepper steps={steps} currentStep={regStep} />}
             
@@ -334,26 +342,36 @@ export function AuthPage() {
               {/* STEP 0: ROLE */}
               {regStep === 0 && (
                 <div>
+                  <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '24px', color: 'white' }}>Select Role</h2>
                   <div 
-                    className={`auth-role-card ${role === 'FAMILY_HEAD' ? 'selected' : ''}`}
+                    className={`auth-role-card-modern ${role === 'FAMILY_HEAD' ? 'selected' : ''}`}
                     onClick={() => setRole('FAMILY_HEAD')}
                   >
-                    <div className="auth-role-title">Family Head</div>
-                    <div className="auth-role-desc">Create and manage a new family workspace.</div>
+                    <div className="role-card-content">
+                      <div className="auth-role-title">Family Head</div>
+                      <div className="auth-role-desc">Create and manage a new family workspace.</div>
+                    </div>
+                    <div className="role-card-radio"></div>
                   </div>
                   <div 
-                    className={`auth-role-card ${role === 'MEMBER' ? 'selected' : ''}`}
+                    className={`auth-role-card-modern ${role === 'MEMBER' ? 'selected' : ''}`}
                     onClick={() => setRole('MEMBER')}
                   >
-                    <div className="auth-role-title">Adult Member</div>
-                    <div className="auth-role-desc">Join an existing family using an invitation token.</div>
+                    <div className="role-card-content">
+                      <div className="auth-role-title">Adult Member</div>
+                      <div className="auth-role-desc">Join an existing family using an invitation token.</div>
+                    </div>
+                    <div className="role-card-radio"></div>
                   </div>
                   <div 
-                    className={`auth-role-card ${role === 'DOCTOR' ? 'selected' : ''}`}
+                    className={`auth-role-card-modern ${role === 'DOCTOR' ? 'selected' : ''}`}
                     onClick={() => setRole('DOCTOR')}
                   >
-                    <div className="auth-role-title">Medical Practitioner</div>
-                    <div className="auth-role-desc">Provide clinical care with verifiable credentials.</div>
+                    <div className="role-card-content">
+                      <div className="auth-role-title">Medical Practitioner</div>
+                      <div className="auth-role-desc">Provide clinical care with verifiable credentials.</div>
+                    </div>
+                    <div className="role-card-radio"></div>
                   </div>
                 </div>
               )}
@@ -363,7 +381,7 @@ export function AuthPage() {
                 <div>
                   <div className="auth-form-group">
                     <label htmlFor="reg-name">Full Name</label>
-                    <input id="reg-name" className="auth-form-input" value={regName} required autoComplete="name" onChange={(e) => setRegName(e.target.value)} />
+                    <input id="reg-name" className="auth-form-input" placeholder="e.g. Sahan Sandaruwan" value={regName} required autoComplete="name" onChange={(e) => setRegName(e.target.value)} />
                     {fieldError('displayname')}
                   </div>
                   <div className="auth-form-group">
@@ -479,25 +497,31 @@ export function AuthPage() {
                   {role === 'MEMBER' && (
                     <>
                       <div
-                        className={`auth-role-card ${connectionMethod === 'INVITATION' ? 'selected' : ''}`}
+                        className={`auth-role-card-modern ${connectionMethod === 'INVITATION' ? 'selected' : ''}`}
                         onClick={() => setConnectionMethod('INVITATION')}
                       >
-                        <div className="auth-role-title">Option A — I have an Invitation</div>
-                        <div className="auth-role-desc">Enter a token provided by a Family Head.</div>
+                        <div className="role-card-content">
+                          <div className="auth-role-title">Option A — I have an Invitation</div>
+                          <div className="auth-role-desc">Enter a token provided by a Family Head.</div>
+                        </div>
+                        <div className="role-card-radio"></div>
                       </div>
                       <div
-                        className={`auth-role-card ${connectionMethod === 'FAMILY_CODE' ? 'selected' : ''}`}
+                        className={`auth-role-card-modern ${connectionMethod === 'FAMILY_CODE' ? 'selected' : ''}`}
                         onClick={() => setConnectionMethod('FAMILY_CODE')}
                       >
                         <div className="auth-role-title">Option B — I have a Family Code</div>
                         <div className="auth-role-desc">Request to join a family using its shared code.</div>
                       </div>
                       <div
-                        className={`auth-role-card ${connectionMethod === 'LATER' ? 'selected' : ''}`}
+                        className={`auth-role-card-modern ${connectionMethod === 'LATER' ? 'selected' : ''}`}
                         onClick={() => setConnectionMethod('LATER')}
                       >
-                        <div className="auth-role-title">Option C — Join Later</div>
-                        <div className="auth-role-desc">Create independent account and join a family later.</div>
+                        <div className="role-card-content">
+                          <div className="auth-role-title">Option C — Join Later</div>
+                          <div className="auth-role-desc">Create independent account and join a family later.</div>
+                        </div>
+                        <div className="role-card-radio"></div>
                       </div>
 
                       {connectionMethod === 'INVITATION' && (
@@ -537,10 +561,10 @@ export function AuthPage() {
                   )}
                   {role === 'FAMILY_HEAD' && (
                     <div className="auth-review-list">
-                      <p><strong>Account:</strong> {regName} ({regEmail})</p>
-                      <p><strong>Workspace:</strong> {familyName}</p>
-                      <p><strong>Date of Birth:</strong> {dateOfBirth}</p>
-                      <label style={{ display: 'flex', gap: '8px', marginTop: '12px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>
+                      <p className="auth-review-item"><strong>Account:</strong> <span>{regName} <br/><span style={{ opacity: 0.7, fontSize: '0.85rem' }}>({regEmail})</span></span></p>
+                      <p className="auth-review-item"><strong>Workspace:</strong> <span>{familyName}</span></p>
+                      <p className="auth-review-item"><strong>Date of Birth:</strong> <span>{dateOfBirth}</span></p>
+                      <label style={{ display: 'flex', gap: '8px', marginTop: '24px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>
                         <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} />
                         I accept the Terms of Service and Privacy Policy.
                       </label>
@@ -555,10 +579,10 @@ export function AuthPage() {
                 <div>
                   {role === 'MEMBER' && (
                     <div className="auth-review-list">
-                      <p><strong>Account:</strong> {regName} ({regEmail})</p>
-                      <p><strong>Date of Birth:</strong> {dateOfBirth}</p>
-                      <p><strong>Connection:</strong> {connectionMethod === 'INVITATION' ? `Joining via Token (${invitationToken})` : connectionMethod === 'FAMILY_CODE' ? `Requesting via Family Code (${familyCode})` : 'Joining Later'}</p>
-                      <label style={{ display: 'flex', gap: '8px', marginTop: '12px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>
+                      <p className="auth-review-item"><strong>Account:</strong> <span>{regName} <br/><span style={{ opacity: 0.7, fontSize: '0.85rem' }}>({regEmail})</span></span></p>
+                      <p className="auth-review-item"><strong>Date of Birth:</strong> <span>{dateOfBirth}</span></p>
+                      <p className="auth-review-item"><strong>Connection:</strong> <span>{connectionMethod === 'INVITATION' ? `Joining via Token (${invitationToken})` : connectionMethod === 'FAMILY_CODE' ? `Requesting via Family Code (${familyCode})` : 'Joining Later'}</span></p>
+                      <label style={{ display: 'flex', gap: '8px', marginTop: '24px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>
                         <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} />
                         I accept the Terms of Service and Privacy Policy.
                       </label>
@@ -567,10 +591,10 @@ export function AuthPage() {
                   )}
                   {role === 'DOCTOR' && (
                     <div className="auth-review-list">
-                      <p><strong>Account:</strong> {regName} ({regEmail})</p>
-                      <p><strong>SLMC Registration:</strong> {regNum}</p>
-                      {specialty && <p><strong>Specialty:</strong> {specialty}</p>}
-                      <div style={{ marginTop: '16px', fontSize: '0.9rem', color: '#f59e0b' }}>
+                      <p className="auth-review-item"><strong>Account:</strong> <span>{regName} <br/><span style={{ opacity: 0.7, fontSize: '0.85rem' }}>({regEmail})</span></span></p>
+                      <p className="auth-review-item"><strong>SLMC Registration:</strong> <span>{regNum}</span></p>
+                      {specialty && <p className="auth-review-item"><strong>Specialty:</strong> <span>{specialty}</span></p>}
+                      <div style={{ marginTop: '24px', fontSize: '0.9rem', color: '#f59e0b', lineHeight: 1.5 }}>
                         ⚠️ Clinical access will remain blocked until your credentials are verified.
                       </div>
                     </div>

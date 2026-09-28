@@ -13,21 +13,15 @@ export interface AuthStepperProps {
 
 export function AuthStepper({ steps, currentStep }: AuthStepperProps) {
   return (
-    <nav className="auth-stepper" aria-label="Registration progress">
+    <nav className="auth-stepper-modern" aria-label="Registration progress">
       {steps.map((step, i) => {
         const state = i < currentStep ? 'done' : i === currentStep ? 'active' : 'pending'
         return (
-          <div key={step.label} style={{ display: 'contents' }}>
-            <div className={`auth-step ${state}`} aria-current={state === 'active' ? 'step' : undefined}>
-              <div className="auth-step-badge" aria-hidden="true">
-                {state === 'done' ? '✓' : i + 1}
-              </div>
-              <span className="sr-only">{step.label}{state === 'active' ? ' (current)' : state === 'done' ? ' (complete)' : ''}</span>
-              <span aria-hidden="true">{step.label}</span>
+          <div key={`step-${i}`} className="auth-stepper-segment">
+            <div className={`auth-stepper-label ${state}`}>
+              {step.label}
             </div>
-            {i < steps.length - 1 && (
-              <div className={`auth-step-connector ${i < currentStep ? 'done' : ''}`} aria-hidden="true" />
-            )}
+            <div className={`auth-stepper-bar ${state}`} />
           </div>
         )
       })}
