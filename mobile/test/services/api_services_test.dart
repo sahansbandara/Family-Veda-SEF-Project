@@ -238,7 +238,7 @@ void main() {
     );
 
     expect(userFacingApiError(errorFor(401)), contains('incorrect'));
-    expect(userFacingApiError(errorFor(403)), contains('cannot access'));
+    expect(userFacingApiError(errorFor(403)), 'Email or password is incorrect.');
     expect(
       userFacingApiError(errorFor(500)),
       contains('temporarily unavailable'),

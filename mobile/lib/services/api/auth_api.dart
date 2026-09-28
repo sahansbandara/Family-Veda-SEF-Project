@@ -114,7 +114,11 @@ String userFacingApiError(Object error) {
     if (fields.isNotEmpty) {
       return 'Please correct the highlighted fields.';
     }
-    if (status == 401) return 'Email or password is incorrect.';
+    // The API answers a failed sign-in with 403, so treat it as bad credentials on /auth/login.
+    final isLogin = error.requestOptions.path.endsWith('/auth/login');
+    if (status == 401 || (status == 403 && isLogin)) {
+      return 'Email or password is incorrect.';
+    }
     if (status == 403) return 'Your account cannot access this feature.';
     if (status != null && status >= 500) {
       return 'Service is temporarily unavailable. Please try again.';
