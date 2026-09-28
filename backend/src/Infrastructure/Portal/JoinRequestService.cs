@@ -100,12 +100,15 @@ public sealed class JoinRequestService(AppDbContext dbContext, ICurrentUser curr
         }
 
         var requestingUser = await dbContext.Users.SingleAsync(x => x.Id == request.RequestingUserId, cancellationToken);
+        // Use the details captured at registration; older accounts without a profile keep the adult placeholder.
+        var profile = await dbContext.UserProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == requestingUser.Id, cancellationToken);
         var member = new Member
         {
             FamilyId = request.FamilyId,
             UserId = requestingUser.Id,
             DisplayName = requestingUser.DisplayName,
-            DateOfBirth = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-18),
+            DateOfBirth = profile?.DateOfBirth ?? DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-18),
+            SexForClinicalReference = profile?.SexForClinicalReference ?? Domain.Common.ClinicalSex.NotSpecified,
             Role = Domain.Common.FamilyRole.AdultMember
         };
         dbContext.Members.Add(member);

@@ -16,7 +16,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace FamilyVeda.Infrastructure.Auth;
 
-public sealed class AuthService(
+public sealed partial class AuthService(
     AppDbContext dbContext,
     IPasswordHasher<UserAccount> passwordHasher,
     IOptions<JwtOptions> options,
@@ -44,11 +44,11 @@ public sealed class AuthService(
 
         if (request.UserType == UserType.FamilyUser && (!string.IsNullOrWhiteSpace(request.Nic) || !string.IsNullOrWhiteSpace(request.Address)))
         {
+            // Never persist the raw NIC or home address in the audit trail; masked display only.
             var metadata = System.Text.Json.JsonSerializer.Serialize(new
             {
-                Nic = request.Nic?.Trim(),
-                Address = request.Address?.Trim(),
-                NicLastFour = request.Nic?.Trim().Length >= 4 ? request.Nic.Trim()[^4..] : request.Nic?.Trim()
+                Nic = request.Nic?.Trim().Length >= 4 ? $"••••{request.Nic.Trim()[^4..]}" : null,
+                NicLastFour = request.Nic?.Trim().Length >= 4 ? request.Nic.Trim()[^4..] : null
             });
             dbContext.AuditLogs.Add(new Domain.Clinical.AuditLog
             {
@@ -84,7 +84,6 @@ public sealed class AuthService(
 
             var doctorMetadata = System.Text.Json.JsonSerializer.Serialize(new
             {
-                RegistrationNumber = request.RegistrationNumber?.Trim(),
                 Specialization = request.Specialty?.Trim(),
                 HospitalClinic = request.HospitalClinic?.Trim(),
                 PhoneNumber = request.PhoneNumber?.Trim(),

@@ -24,6 +24,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<HealthRecord> HealthRecords => Set<HealthRecord>();
     public DbSet<LabReport> LabReports => Set<LabReport>();
     public DbSet<LabReportFile> LabReportFiles => Set<LabReportFile>();
+    public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
+    public DbSet<DoctorLicenseDocument> DoctorLicenseDocuments => Set<DoctorLicenseDocument>();
     public DbSet<LabValue> LabValues => Set<LabValue>();
     public DbSet<Vital> Vitals => Set<Vital>();
     public DbSet<HereditaryFlag> HereditaryFlags => Set<HereditaryFlag>();
