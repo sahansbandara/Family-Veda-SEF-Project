@@ -265,7 +265,7 @@ export function AuthPage() {
           <div className="auth-form-content auth-form-register">
             <h2 style={{ fontSize: '2.4rem', fontWeight: 700, marginBottom: '24px', color: 'white' }}>Sign up</h2>
             
-            <AuthStepper steps={steps} currentStep={regStep} />
+            {regStep > 0 && <AuthStepper steps={steps} currentStep={regStep} />}
             
             <form onSubmit={isFinalStep ? handleRegister : (e) => { e.preventDefault(); handleNextStep() }} noValidate>
               
