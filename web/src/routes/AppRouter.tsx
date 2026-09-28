@@ -4,8 +4,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import { AppLayout } from '../components/layout/AppLayout'
 import { AuditPage } from '../pages/audit/AuditPage'
-import { LoginPage } from '../pages/auth/LoginPage'
-import { RegisterPage } from '../pages/auth/RegisterPage'
+import { AuthPage } from '../pages/auth/AuthPage'
 import { DoctorRegisterPage } from '../pages/auth/DoctorRegisterPage'
 import { ForgotPasswordPage } from '../pages/auth/ForgotPasswordPage'
 import { ResetPasswordPage } from '../pages/auth/ResetPasswordPage'
@@ -36,8 +35,8 @@ export function AppRoutes() {
   return (
     <Routes>
       {/* ===== S1 — Public and identity routes ===== */}
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/login" element={<AuthPage />} />
+      <Route path="/register" element={<AuthPage />} />
       <Route path="/register/doctor" element={<DoctorRegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />

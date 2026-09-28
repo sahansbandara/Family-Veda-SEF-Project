@@ -68,6 +68,7 @@ S1	backend/tests/IntegrationTests/FamilyVeda.IntegrationTests.csproj
 S1	web/src/App.tsx
 S1	web/src/main.tsx
 S1	web/src/pages/auth/LoginPage.tsx
+S1	web/src/pages/auth/LoginPage.test.tsx
 S1	web/src/pages/auth/RegisterPage.tsx
 S1	web/src/pages/family/FamilyPage.tsx
 S1	web/src/pages/family/OnboardingPage.tsx
@@ -212,6 +213,7 @@ S4	backend/tests/UnitTests/ClinicalRuleTableTests.cs
 S4	backend/tests/UnitTests/FamilialRiskPolicyTests.cs
 S4	backend/tests/UnitTests/SafetyValidationServiceTests.cs
 S4	web/src/pages/auth/DoctorRegisterPage.tsx
+S4	web/src/pages/auth/DoctorRegisterPage.test.tsx
 S4	web/src/pages/admin/DoctorVerificationPage.tsx
 S4	web/src/pages/audit/AuditPage.tsx
 S4	web/src/pages/doctor/ApprovalsPage.tsx
@@ -223,6 +225,12 @@ S4	web/src/pages/family/FamilyRiskPage.tsx
 S4	web/src/pages/family/FamilyRiskPage.test.tsx
 S4	web/src/pages/doctor/CasesPage.tsx
 S4	web/src/pages/doctor/DoctorStatusPage.tsx
+S4	web/src/components/auth/AuthShell.tsx
+S4	web/src/components/auth/AuthHero.tsx
+S4	web/src/components/auth/AuthStepper.tsx
+S4	web/src/components/auth/AuthRoleSelector.tsx
+S4	web/src/components/auth/PasswordField.tsx
+S4	web/src/styles/auth-shell.css
 S4	web/src/pages/system/SystemPages.tsx
 S4	mobile/lib/models/approved_guidance.dart
 S4	mobile/lib/providers/guidance_provider.dart

@@ -43,46 +43,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // Verify Clinical Workspace and Workspace Access text hierarchy
-    expect(find.text('Family Veda'), findsOneWidget);
-    expect(find.text('CLINICAL WORKSPACE'), findsOneWidget);
-    expect(find.text('WORKSPACE ACCESS'), findsOneWidget);
-    expect(find.text('Sign in'), findsOneWidget);
-    expect(find.text('⚡ QUICK FILL DEMO ROLE'), findsOneWidget);
-
-    // Verify Theme buttons
-    expect(find.text('Light'), findsOneWidget);
-    expect(find.text('Dark'), findsOneWidget);
-
-    // Verify Continue securely CTA button
-    expect(find.text('Continue securely'), findsOneWidget);
-
-    // Verify Accordion exists
-    expect(
-      find.text('View demo credentials & permitted pages'),
-      findsOneWidget,
-    );
-
-    // Test tapping a demo credential
-    await tester.tap(find.text('View demo credentials & permitted pages'));
-    await tester.pumpAndSettle();
-
-    // Verify demo roles are present in the accordion
-    expect(find.text('Family Head'), findsOneWidget);
-    expect(find.text('Verified Doctor'), findsOneWidget);
-
-    // Tap Family Head demo credential to auto fill
-    await tester.tap(find.text('Family Head'));
-    await tester.pumpAndSettle();
-
-    // Verify email and password text fields are populated
-    expect(
-      find.widgetWithText(TextFormField, 'demo-head@example.invalid'),
-      findsOneWidget,
-    );
-    expect(
-      find.widgetWithText(TextFormField, 'Demo@123456!!'),
-      findsOneWidget,
-    );
+    // Redesigned glass login (feat/auth-redesign-s4): no layout overflow, core controls present.
+    expect(tester.takeException(), isNull);
+    expect(find.text('☀️ Light'), findsOneWidget);
+    expect(find.text('🌙 Dark'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Email Address'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Password'), findsOneWidget);
+    expect(find.text('Sign up'), findsOneWidget);
+    expect(find.textContaining(RegExp('diagnos', caseSensitive: false)), findsNothing);
   });
 }

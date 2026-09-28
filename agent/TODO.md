@@ -112,3 +112,12 @@ Due 2026-10-06 (extended). CORE first; FUTURE only if time remains, otherwise it
 
 #### Phase 7 — Submit (6 Oct)
 - [ ] Freeze `develop` → `main`, tag release, report sections + AI disclosure, `SE3090_SE016` package.
+## Auth redesign — completed 2026-09-28
+
+- [x] Premium AuthPage redesign (split-panel, hero images, role cards, password toggle, Remember Me)
+- [x] DoctorRegisterPage 3-step stepper
+- [x] AuthShell, AuthHero, AuthStepper, AuthRoleSelector, PasswordField components
+- [x] auth-shell.css scoped stylesheet
+- [x] AppRouter wired /register/doctor to DoctorRegisterPage
+- [x] All tests updated and passing (60/60)
+- [ ] PR feat/auth-redesign-s4 → develop [human to merge]
