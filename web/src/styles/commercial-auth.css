@@ -1,0 +1,242 @@
+/* Commercial Sliding Auth Layout (Inspired by Image 1) */
+.auth-page-root {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  transition: background-image 0.8s ease-in-out;
+  background-size: cover;
+  background-position: center;
+}
+
+.auth-overlay {
+  position: absolute;
+  inset: 0;
+  /* Darken the background slightly for readability */
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.auth-main-container {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  height: 100vh;
+  display: flex;
+  z-index: 2;
+}
+
+/* On desktop, it takes full height. Mobile can scroll. */
+@media (min-width: 768px) {
+  .auth-main-container {
+    height: 80vh;
+    min-height: 600px;
+    margin: auto;
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    /* The container itself doesn't need a background, it's transparent to let the page background show */
+  }
+}
+
+/* The sliding glass form panel */
+.auth-glass-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50%;
+  height: 100%;
+  /* Liquid glass look */
+  background: rgba(10, 15, 25, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 10;
+}
+
+/* Register = right side (transform 0). Login = left side (transform -100%) */
+.auth-page-root.mode-login .auth-glass-panel {
+  transform: translateX(-100%);
+  border-left: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Form content area */
+.auth-form-content {
+  position: absolute;
+  inset: 0;
+  padding: 40px clamp(24px, 5vw, 64px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  overflow-y: auto;
+  color: white;
+}
+.auth-form-content::-webkit-scrollbar { display: none; }
+.auth-form-content { -ms-overflow-style: none; scrollbar-width: none; }
+
+.auth-form-register {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+.auth-page-root.mode-login .auth-form-register {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(20px);
+}
+
+.auth-form-login {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-20px);
+}
+.auth-page-root.mode-login .auth-form-login {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+/* Text Panels */
+.auth-text-panel {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  padding: 40px clamp(32px, 5vw, 64px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+  color: white;
+  z-index: 5;
+}
+
+/* Register Mode: Text on Left */
+.auth-text-left {
+  left: 0;
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+.auth-page-root.mode-login .auth-text-left {
+  opacity: 0;
+  transform: translateX(-20%);
+  pointer-events: none;
+}
+
+/* Login Mode: Text on Right */
+.auth-text-right {
+  right: 0;
+  opacity: 0;
+  transform: translateX(20%);
+  pointer-events: none;
+  text-align: right;
+  align-items: flex-end;
+}
+.auth-page-root.mode-login .auth-text-right {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+/* Form Styles */
+.auth-form-group {
+  margin-bottom: 20px;
+}
+.auth-form-group label {
+  display: block;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 8px;
+}
+.auth-form-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 8px 0;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s;
+}
+.auth-form-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+.auth-form-input:focus {
+  border-bottom-color: #146CFF;
+}
+
+select.auth-form-input {
+  background: rgba(10, 15, 25, 0.9);
+}
+select.auth-form-input option {
+  color: white;
+  background: #0A0F19;
+}
+
+.auth-form-button {
+  width: 100%;
+  background: #146CFF;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: background 0.3s;
+}
+.auth-form-button:hover {
+  background: #0f52cc;
+}
+.auth-form-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-form-switch {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+.auth-form-switch button {
+  background: transparent;
+  border: none;
+  color: #38BDF8;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.auth-form-switch button:hover {
+  text-decoration: underline;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .auth-main-container {
+    flex-direction: column;
+    height: 100%;
+  }
+  .auth-glass-panel {
+    position: relative;
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+    transform: none !important;
+  }
+  .auth-text-panel {
+    display: none;
+  }
+  .auth-form-content {
+    position: relative;
+    padding: 60px 24px;
+  }
+}

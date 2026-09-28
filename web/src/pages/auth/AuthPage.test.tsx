@@ -24,17 +24,18 @@ const renderAuth = () => {
 describe('AuthPage', () => {
   it('renders login heading', () => {
     renderAuth()
-    expect(screen.getByRole('heading', { name: /Welcome back/i, level: 1 })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Sign in/i, level: 2 })).toBeInTheDocument()
   })
 
   it('has sign in button', () => {
     renderAuth()
-    expect(screen.getByRole('button', { name: /Sign In/i })).toBeInTheDocument()
+    const buttons = screen.getAllByRole('button', { name: /Sign in/i })
+    expect(buttons.length).toBeGreaterThan(0)
   })
 
-  it('has create account button', () => {
+  it('has sign up button', () => {
     renderAuth()
-    const buttons = screen.getAllByRole('button', { name: /Create an account/i })
+    const buttons = screen.getAllByRole('button', { name: /Sign up/i })
     expect(buttons.length).toBeGreaterThan(0)
   })
 })
