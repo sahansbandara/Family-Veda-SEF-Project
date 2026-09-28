@@ -119,6 +119,17 @@ export function AuthPage() {
   const [regError, setRegError] = useState('')
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
 
+  // Long steps scroll: bring the first invalid field into view and focus it, so
+  // "Check the highlighted details." always points at something visible.
+  useEffect(() => {
+    if (Object.keys(fieldErrors).length === 0) return
+    const firstError = document.querySelector('.auth-form-register [data-field-error]')
+    const group = firstError?.closest('.auth-form-group') ?? firstError?.parentElement
+    group?.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
+    group?.querySelector<HTMLElement>('input, select, textarea')?.focus({ preventScroll: true })
+  }, [fieldErrors])
+
+
   useEffect(() => {
     setMode(location.pathname.includes('/register') ? 'register' : 'login')
     dispatch(clearAuthError())
@@ -259,7 +270,7 @@ export function AuthPage() {
     return { account, personal, address, connection: { method: connectionMethod === 'FAMILY_CODE' ? 'FamilyCode' : connectionMethod === 'INVITATION' ? 'Invitation' : 'Later', invitationToken: connectionMethod === 'INVITATION' ? invitationToken.trim() : null, familyCode: connectionMethod === 'FAMILY_CODE' ? familyCode.trim().toUpperCase() : null, relationship: connectionMethod === 'FAMILY_CODE' ? relationship : null }, acceptTerms }
   }
 
-  const fieldError = (field: string) => fieldErrors[field] && <p role="alert" style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '4px' }}>{fieldErrors[field]}</p>
+  const fieldError = (field: string) => fieldErrors[field] && <p role="alert" data-field-error style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '4px' }}>{fieldErrors[field]}</p>
 
   const mainBg = mode === 'login' ? loginBg : registerBg;
   const textBg = mode === 'login' ? registerBg : loginBg;

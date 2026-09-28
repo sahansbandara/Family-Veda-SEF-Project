@@ -52,6 +52,19 @@ describe('AuthPage', () => {
     expect(screen.queryByText(/Coming Soon/i)).not.toBeInTheDocument()
   })
 
+  it('moves focus to the first invalid field when a step fails validation', async () => {
+    renderAuth('/register')
+    continueRegistration()
+    completeAccount()
+    completePersonal()
+    change('Date of Birth', '2015-01-01')
+    change('Family Workspace Name', 'Synthetic Registration Family')
+    change('Synthetic NIC', '200012345678')
+    continueRegistration()
+    expect(await screen.findByText('You must be at least 18 years old to register.')).toBeInTheDocument()
+    await waitFor(() => expect(document.activeElement).toBe(screen.getAllByLabelText('Date of Birth')[0]))
+  })
+
   it('renders the existing login controls', () => {
     renderAuth()
     expect(screen.getByRole('heading', { name: /Sign in/i, level: 2 })).toBeInTheDocument()
