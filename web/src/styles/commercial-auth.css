@@ -240,3 +240,10 @@ select.auth-form-input option {
     padding: 60px 24px;
   }
 }
+
+.auth-text-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1;
+}

@@ -121,37 +121,50 @@ export function AuthPage() {
     }
   }
 
-  const bgImage = mode === 'login' ? registerBg : loginBg
+  const mainBg = mode === 'login' ? loginBg : registerBg;
+  const textBg = mode === 'login' ? registerBg : loginBg;
 
   return (
     <main aria-label={mode === 'login' ? 'Sign in' : 'Create account'} 
       className={`auth-page-root mode-${mode}`} 
-      style={{ backgroundImage: `url(${bgImage})` }}
+      style={{ backgroundImage: `url(${mainBg})` }}
     >
       <div className="auth-overlay"></div>
       
       <div className="auth-main-container">
         
         {/* Left Text Panel (Register Mode) */}
-        <div className="auth-text-panel auth-text-left">
-          <img src={logoUrl} alt="Logo" width={48} height={48} style={{ borderRadius: '12px', marginBottom: '24px' }} />
-          <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '24px', letterSpacing: '-0.02em' }}>
-            Let's Get Started
-          </h1>
-          <p style={{ fontSize: '1.1rem', opacity: 0.9, lineHeight: 1.6, maxWidth: '85%' }}>
-            Secure access to your health, family and clinical care. Create a unified workspace for seamless clinical decision support and familial risk mapping.
-          </p>
+        <div 
+          className="auth-text-panel auth-text-left"
+          style={{ backgroundImage: `url(${textBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+        >
+          <div className="auth-text-overlay"></div>
+          <div style={{ position: 'relative', zIndex: 10 }}>
+            <img src={logoUrl} alt="Logo" width={48} height={48} style={{ borderRadius: '12px', marginBottom: '24px' }} />
+            <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '24px', letterSpacing: '-0.02em', color: 'white' }}>
+              Let's Get Started
+            </h1>
+            <p style={{ fontSize: '1.1rem', opacity: 0.9, lineHeight: 1.6, maxWidth: '85%', color: 'white' }}>
+              Secure access to your health, family and clinical care. Create a unified workspace for seamless clinical decision support and familial risk mapping.
+            </p>
+          </div>
         </div>
 
         {/* Right Text Panel (Login Mode) */}
-        <div className="auth-text-panel auth-text-right">
-          <img src={logoUrl} alt="Logo" width={48} height={48} style={{ borderRadius: '12px', marginBottom: '24px' }} />
-          <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '24px', letterSpacing: '-0.02em' }}>
-            Welcome Back
-          </h1>
-          <p style={{ fontSize: '1.1rem', opacity: 0.9, lineHeight: 1.6, maxWidth: '85%' }}>
-            Sign in to continue to FamilyVeda. Access your authorized clinical or family workspace to continue where you left off.
-          </p>
+        <div 
+          className="auth-text-panel auth-text-right"
+          style={{ backgroundImage: `url(${textBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+        >
+          <div className="auth-text-overlay"></div>
+          <div style={{ position: 'relative', zIndex: 10 }}>
+            <img src={logoUrl} alt="Logo" width={48} height={48} style={{ borderRadius: '12px', marginBottom: '24px' }} />
+            <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '24px', letterSpacing: '-0.02em', color: 'white' }}>
+              Welcome Back
+            </h1>
+            <p style={{ fontSize: '1.1rem', opacity: 0.9, lineHeight: 1.6, maxWidth: '85%', color: 'white' }}>
+              Sign in to continue to FamilyVeda. Access your authorized clinical or family workspace to continue where you left off.
+            </p>
+          </div>
         </div>
 
         {/* Sliding Glass Panel */}
