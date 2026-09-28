@@ -202,7 +202,7 @@ Load only the rules matching the component being touched.
 5. **Code review** — `code-reviewer` agent. Fix CRITICAL and HIGH before merge.
 6. **Security review** — `security-reviewer` agent for anything touching auth, consent, grants, user input, API endpoints, agent tools, or audit.
 7. **Commit** — conventional commits: `feat(s3): add coordinator planning step`.
-8. **PR** — into `develop`, 1 approving review from another member, green CI.
+8. **PR** — into `develop`, green CI. The agent may open **and merge** its own PRs into `develop` without asking (DECISIONS 2026-09-28c); human review otherwise.
 
 ### Migration protocol ⚠
 

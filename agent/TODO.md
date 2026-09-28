@@ -4,7 +4,7 @@
 
 - [ ] Branch protection deferred by user on 2026-09-28; continue using reviewed PRs into `develop`.
 - [x] [S3] Agent orchestration PRs #4 and #12–15 merged into `develop` (verified 2026-09-28)
-- [ ] [all] PR into `develop` only from here on; never push or merge directly to `main`
+- [ ] [all] PR into `develop` only from here on; never push or merge directly to `main`. Agent may self-merge its PRs into `develop` (DECISIONS 2026-09-28c)
 
 ## Hosting (2026-09-23) — see docs/DEPLOYMENT.md for the full walkthrough
 

@@ -27,3 +27,4 @@ What we already know and must not repeat.
 - **2026-09-28 live doctor dashboard regression** — The hosted web dashboard crashed after synthetic verified-doctor sign-in: `pendingFamilyRequests.map is not a function`. The API dashboard DTO supplies an integer count, while the web component assumed request records. The protected `/doctors/me/family-requests` endpoint supplies the actual pending list. A local React fix fetches both, with a red-to-green regression test; hosted retest is needed after deployment.
 
 - 2026-09-28: Deadline is 2026-10-06. We build the WHOLE project (all S1–S4 components), not only S4 — DECISIONS 2026-09-28b. Rich synthetic seed data is Phase 1b in TODO.
+- 2026-09-28: Agent opens and merges its own PRs into `develop` without asking (DECISIONS 2026-09-28c). Never `main` without explicit instruction.
