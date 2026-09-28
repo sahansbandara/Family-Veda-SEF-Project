@@ -56,9 +56,9 @@ Due 2026-10-06 (extended). CORE first; FUTURE only if time remains, otherwise it
 **Scope: we complete the entire project — every component (S1–S4), backend, web, Flutter, agents, docs — not only S4's part.** See DECISIONS 2026-09-28b. `[Sx]` tags below mark the *component* (for report attribution), not who must implement it. Each phase: take the migration lock for schema changes, TDD first, PR into `develop`, and tell the component owner what changed.
 
 #### Phase 1 — Stabilise and baseline (29 Sep)
-- [ ] Retest the hosted doctor dashboard after the #49 deploy; confirm the Render revision matches `develop`.
-- [ ] Record baseline results for backend unit and integration tests, web (41/41) and Flutter (69/69) in `docs/university/`.
-- [ ] Publish the APK link with checksum and install steps.
+- [x] Render live revision `a6b64af` (PR #54) matches `develop` head (2026-09-28). Found and fixed hosted Swagger 500 (duplicate `FamilyDashboardDto` schemaId) — PR `feature/phase-1-baseline`.
+- [x] Baseline recorded in `docs/university/BASELINE_TESTS_2026-09-28.md`: unit 91/91, integration 11/11, web 42/42, Flutter 69/69.
+- [x] APK published as GitHub pre-release https://github.com/sahansbandara/Family-Veda-SEF-Project/releases/tag/apk-2026-09-28 with SHA-256 and install steps.
 
 #### Phase 1b — Synthetic test data (29–30 Sep) · RULE 7: synthetic only, `example.invalid` emails
 - [x] 2026-09-28: Three dashboards were rebuilt to match the mockups, using live API data. `DemoDataSeeder` adds 4 families, 5 doctors, appointments, labs, vitals and triage cases (see `docs/DEMO_DATA.md`). Backend unit tests 95/95; web tests 43/43, lint and build pass.

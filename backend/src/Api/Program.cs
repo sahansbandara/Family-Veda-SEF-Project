@@ -104,6 +104,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "Family Veda API", Version = "v1" });
+    // Shared fix: DTOs with the same class name in different namespaces (e.g. Triage vs Portal
+    // FamilyDashboardDto) collide on the default schemaId and make swagger.json return 500.
+    options.CustomSchemaIds(type => type.FullName?.Replace("+", ".") ?? type.Name);
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Type = SecuritySchemeType.Http,
