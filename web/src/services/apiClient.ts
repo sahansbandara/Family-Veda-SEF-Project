@@ -155,7 +155,7 @@ export type DoctorDashboardSummaryDto = {
   todayAppointments: AppointmentDto[]
   pendingApprovals: number
   openCases: number
-  pendingFamilyRequests: DoctorRequestDto[]
+  pendingFamilyRequests: number
   assignedFamilies: number
   unreadNotifications: number
 }

@@ -4,11 +4,12 @@ import '@testing-library/jest-dom/vitest'
 
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
   getDoctorDashboard: vi.fn(),
-  acceptFamilyDoctorRequest: vi.fn().mockResolvedValue({ data: {} }),
+  getMyFamilyDoctorRequests: vi.fn(),
+  acceptFamilyDoctorRequest: vi.fn(),
   declineFamilyDoctorRequest: vi.fn(),
 }))
 vi.mock('../../services/apiClient', () => ({ threePortalApi: mocks }))
@@ -31,7 +32,7 @@ function dashboard(overrides = {}) {
     todayAppointments: [],
     pendingApprovals: 0,
     openCases: 0,
-    pendingFamilyRequests: [pendingRequest],
+    pendingFamilyRequests: 1,
     assignedFamilies: 2,
     unreadNotifications: 0,
     ...overrides,
@@ -39,10 +40,18 @@ function dashboard(overrides = {}) {
 }
 
 describe('DoctorDashboardPanel family requests', () => {
+  beforeEach(() => {
+    vi.resetAllMocks()
+    mocks.acceptFamilyDoctorRequest.mockResolvedValue({ data: {} })
+  })
+
   it('accepts a pending family request and refreshes the list', async () => {
     mocks.getDoctorDashboard
       .mockResolvedValueOnce({ data: dashboard() })
-      .mockResolvedValueOnce({ data: dashboard({ pendingFamilyRequests: [] }) })
+      .mockResolvedValueOnce({ data: dashboard({ pendingFamilyRequests: 0 }) })
+    mocks.getMyFamilyDoctorRequests
+      .mockResolvedValueOnce({ data: [pendingRequest] })
+      .mockResolvedValueOnce({ data: [] })
 
     render(<MemoryRouter><DoctorDashboardPanel /></MemoryRouter>)
 
@@ -51,5 +60,16 @@ describe('DoctorDashboardPanel family requests', () => {
 
     await waitFor(() => expect(mocks.acceptFamilyDoctorRequest).toHaveBeenCalledWith('req-1'))
     await waitFor(() => expect(screen.getByText(/Accepted request from Silva Family/)).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('No pending requests')).toBeInTheDocument())
+    expect(mocks.getMyFamilyDoctorRequests).toHaveBeenCalledTimes(2)
+  })
+
+  it('shows the empty state when the protected request list is empty', async () => {
+    mocks.getDoctorDashboard.mockResolvedValue({ data: dashboard({ pendingFamilyRequests: 0 }) })
+    mocks.getMyFamilyDoctorRequests.mockResolvedValue({ data: [] })
+
+    render(<MemoryRouter><DoctorDashboardPanel /></MemoryRouter>)
+
+    expect(await screen.findByText('No pending requests')).toBeInTheDocument()
   })
 })

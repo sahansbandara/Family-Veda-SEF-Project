@@ -72,7 +72,7 @@ The currently reported executed results are:
 |---|---:|---|
 | Backend unit tests | 91/91 passed | Retain command output and revision |
 | PostgreSQL integration tests | 11/11 passed, including synthetic approval and safe failure | Retained output: `docs/evidence/2026-09-28/backend-integration.txt` |
-| React tests | 40/40 passed | Retain command output |
+| React tests | 41/41 passed locally after doctor dashboard contract fix | Retained output: `docs/evidence/2026-09-28/web-tests.txt` |
 | React lint and production build | Passed | Retain command output |
 | Full cross-portal golden case | Backend API sequence passed; full cross-platform visual trace not executed | Pending visual evidence; no cross-platform pass claim |
 | Flutter verification | Analyze clean; 69/69 tests passed on Flutter 3.47.5/Dart 3.13.4; local 45-minute booking checked on Android API 36 emulator; hosted-API debug APK signed in as synthetic Head and loaded dashboard, appointments and notifications | Hosted approved-guidance journey, stable share link and physical-device evidence pending |
