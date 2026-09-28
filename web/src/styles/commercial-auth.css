@@ -471,3 +471,31 @@ input[type="password"].auth-form-input::placeholder {
     font-size: 1rem !important;
     letter-spacing: normal;
 }
+
+/* Registration review — matches the underline form fields instead of dark boxes. */
+.reg-review-heading { font-size: 1.15rem; font-weight: 700; margin: 0 0 18px; color: #fff; }
+.reg-review-section { margin-bottom: 20px; }
+.reg-review-section-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6); margin-bottom: 6px;
+}
+.reg-review-edit {
+  background: none; border: none; padding: 0; cursor: pointer;
+  color: #7fb4ff; font-size: 0.8rem; font-weight: 600; text-transform: none; letter-spacing: 0;
+}
+.reg-review-edit:hover { text-decoration: underline; }
+.reg-review-rows { margin: 0; }
+.reg-review-row {
+  display: grid; grid-template-columns: 38% 1fr; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+.reg-review-row dt { color: rgba(255, 255, 255, 0.65); font-size: 0.88rem; }
+.reg-review-row dd { margin: 0; color: #fff; font-size: 0.95rem; overflow-wrap: anywhere; }
+.reg-review-empty { color: rgba(255, 255, 255, 0.4); font-style: italic; }
+.reg-review-terms {
+  display: flex; gap: 10px; align-items: flex-start; margin-top: 8px;
+  font-size: 0.88rem; color: rgba(255, 255, 255, 0.85); line-height: 1.5; cursor: pointer;
+}
+.reg-review-terms input { margin-top: 3px; accent-color: #146cff; width: 16px; height: 16px; }
+@media (max-width: 480px) { .reg-review-row { grid-template-columns: 1fr; gap: 2px; } }

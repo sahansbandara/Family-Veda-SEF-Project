@@ -9,6 +9,7 @@ import { apiClient } from '../../services/apiClient'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { completeRegistration, signIn, registerDoctorUser, clearAuthError } from '../../store/slices/authSlice'
 import { AuthStepper, type StepDef } from '../../components/auth/AuthStepper'
+import { RegistrationReview, type ReviewSection } from '../../components/auth/RegistrationReview'
 import loginBg from '../../assets/Loging.webp'
 import registerBg from '../../assets/Register.webp'
 import '../../styles/commercial-auth.css'
@@ -285,6 +286,47 @@ export function AuthPage() {
   const textBg = mode === 'login' ? registerBg : loginBg;
 
   const isFinalStep = regStep === steps.length - 1
+
+  const sexLabels: Record<string, string> = { Male: 'Male', Female: 'Female', NotSpecified: 'Not specified' }
+  const stepIndex = (key: WizardStep['key']) => steps.findIndex((item) => item.key === key)
+  const renderReview = () => {
+    const sections: ReviewSection[] = [
+      { title: 'Account', step: stepIndex('account'), rows: [['Full name', regName], ['Email', regEmail], ['Mobile', mobileNumber]] },
+      {
+        title: 'Personal',
+        step: stepIndex('personal'),
+        rows: [
+          ['Date of birth', dateOfBirth],
+          ['Clinical sex', sexLabels[sexForClinicalReference] ?? ''],
+          ...(role === 'FAMILY_HEAD'
+            ? [['Family workspace', familyName], ['NIC', nationalId ? `•••• ${nationalId.trim().slice(-4)}` : '']] as ReviewSection['rows']
+            : []),
+        ],
+      },
+      {
+        title: 'Address',
+        step: stepIndex('address'),
+        rows: [['Address', [addressLine1, addressLine2].filter(Boolean).join(', ')], ['City', city], ['District', district], ['Postal code', postalCode]],
+      },
+      ...(role === 'MEMBER'
+        ? [{
+            title: 'Family connection',
+            step: stepIndex('connection'),
+            rows: [['Method', connectionMethod === 'INVITATION' ? 'Invitation' : connectionMethod === 'FAMILY_CODE' ? `Family code ${familyCode.toUpperCase()}` : 'Join later'],
+              ...(connectionMethod === 'FAMILY_CODE' ? [['Relationship', relationship]] : [])],
+          } as ReviewSection]
+        : []),
+    ]
+    return (
+      <RegistrationReview
+        sections={sections}
+        onEdit={(step) => { setRegError(''); setFieldErrors({}); setRegStep(step) }}
+        acceptTerms={acceptTerms}
+        onAcceptTermsChange={setAcceptTerms}
+        termsError={fieldError('acceptterms')}
+      />
+    )
+  }
 
   return (
     <main aria-label={mode === 'login' ? 'Sign in' : 'Create account'} 
@@ -580,36 +622,14 @@ export function AuthPage() {
                       </p>
                     </div>
                   )}
-                  {role === 'FAMILY_HEAD' && (
-                    <div className="auth-review-list">
-                      <p className="auth-review-item"><strong>Account:</strong> <span>{regName} <br/><span style={{ opacity: 0.7, fontSize: '0.85rem' }}>({regEmail})</span></span></p>
-                      <p className="auth-review-item"><strong>Workspace:</strong> <span>{familyName}</span></p>
-                      <p className="auth-review-item"><strong>Date of Birth:</strong> <span>{dateOfBirth}</span></p>
-                      <label style={{ display: 'flex', gap: '8px', marginTop: '24px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>
-                        <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} />
-                        I accept the Terms of Service and Privacy Policy.
-                      </label>
-                      {fieldError('acceptterms')}
-                    </div>
-                  )}
+                  {role === 'FAMILY_HEAD' && stepKey === 'review' && renderReview()}
                 </div>
               )}
 
               {/* STEP 4: FINAL REVIEW (Member / Doctor) */}
               {stepKey === 'review' && role !== 'FAMILY_HEAD' && (
                 <div>
-                  {role === 'MEMBER' && (
-                    <div className="auth-review-list">
-                      <p className="auth-review-item"><strong>Account:</strong> <span>{regName} <br/><span style={{ opacity: 0.7, fontSize: '0.85rem' }}>({regEmail})</span></span></p>
-                      <p className="auth-review-item"><strong>Date of Birth:</strong> <span>{dateOfBirth}</span></p>
-                      <p className="auth-review-item"><strong>Connection:</strong> <span>{connectionMethod === 'INVITATION' ? `Joining via Token (${invitationToken})` : connectionMethod === 'FAMILY_CODE' ? `Requesting via Family Code (${familyCode})` : 'Joining Later'}</span></p>
-                      <label style={{ display: 'flex', gap: '8px', marginTop: '24px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>
-                        <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} />
-                        I accept the Terms of Service and Privacy Policy.
-                      </label>
-                      {fieldError('acceptterms')}
-                    </div>
-                  )}
+                  {role === 'MEMBER' && renderReview()}
                   {role === 'DOCTOR' && (
                     <div className="auth-review-list">
                       <p className="auth-review-item"><strong>Account:</strong> <span>{regName} <br/><span style={{ opacity: 0.7, fontSize: '0.85rem' }}>({regEmail})</span></span></p>
@@ -620,9 +640,6 @@ export function AuthPage() {
                       </div>
                     </div>
                   )}
-                  <p style={{ marginTop: '12px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)' }}>
-                    By clicking submit, you agree to our Terms of Service and Privacy Policy.
-                  </p>
                 </div>
               )}
 
