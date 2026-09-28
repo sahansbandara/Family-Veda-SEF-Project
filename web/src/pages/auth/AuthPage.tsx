@@ -7,7 +7,7 @@ import { isAxiosError } from 'axios'
 
 import { apiClient } from '../../services/apiClient'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
-import { completeRegistration, signIn, registerDoctorUser } from '../../store/slices/authSlice'
+import { completeRegistration, signIn, registerDoctorUser, clearAuthError } from '../../store/slices/authSlice'
 import { AuthStepper, type StepDef } from '../../components/auth/AuthStepper'
 import loginBg from '../../assets/Loging.webp'
 import registerBg from '../../assets/Register.webp'
@@ -55,6 +55,18 @@ function normaliseField(field: string) {
   return key === 'fullname' ? 'displayname' : key
 }
 
+const PasswordEye = ({ show, toggle }: { show: boolean, toggle: () => void }) => (
+  <button type="button" onClick={toggle} style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.6)", padding: "4px" }}>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {show ? (
+        <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></>
+      ) : (
+        <><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></>
+      )}
+    </svg>
+  </button>
+)
+
 export function AuthPage() {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -67,6 +79,8 @@ export function AuthPage() {
 
   const [loginEmail, setLoginEmail] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
+  const [showLoginPassword, setShowLoginPassword] = useState(false)
+
   const [loginError, setLoginError] = useState('')
 
   // Wizard State
@@ -79,6 +93,8 @@ export function AuthPage() {
   const [mobileNumber, setMobileNumber] = useState('')
   const [regPassword, setRegPassword] = useState('')
   const [regConfirm, setRegConfirm] = useState('')
+  const [showRegPassword, setShowRegPassword] = useState(false)
+
   
   // Role Details
   const [familyName, setFamilyName] = useState('')
@@ -105,7 +121,9 @@ export function AuthPage() {
 
   useEffect(() => {
     setMode(location.pathname.includes('/register') ? 'register' : 'login')
-  }, [location])
+    dispatch(clearAuthError())
+    setRegError('')
+  }, [location, dispatch])
 
   if (isAuthenticated && authStatus !== 'loading') {
     if (mode === 'login' || (user && user.role !== 'ONBOARDING')) {
@@ -272,13 +290,19 @@ export function AuthPage() {
           style={{ backgroundImage: `url(${textBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
         >
           <div className="auth-text-overlay"></div>
-          <div style={{ position: 'relative', zIndex: 10 }}>
+          <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', textAlign: 'right', width: '100%' }}>
             <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '24px', letterSpacing: '-0.02em', color: 'white' }}>
-              Let's Get Started
+              Let's Get<br />Started
             </h1>
-            <p style={{ fontSize: '1.1rem', opacity: 0.9, lineHeight: 1.6, maxWidth: '85%', color: 'white' }}>
-              Secure access to your health, family and clinical care. Create a unified workspace for seamless clinical decision support and familial risk mapping.
+            <p style={{ fontSize: '1.1rem', opacity: 0.9, lineHeight: 1.6, color: 'white' }}>
+              Secure access to your health, family and<br />
+              clinical care. Create a unified workspace<br />
+              for seamless clinical decision support<br />
+              and familial risk mapping.
             </p>
+            <button type="button" className="auth-mode-switch-btn" onClick={toggleMode} style={{ marginTop: '48px' }}>
+              Already a Member? Sign In <span className="switch-arrow right-arrow">→</span>
+            </button>
           </div>
         </div>
 
@@ -288,13 +312,19 @@ export function AuthPage() {
           style={{ backgroundImage: `url(${textBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
         >
           <div className="auth-text-overlay"></div>
-          <div style={{ position: 'relative', zIndex: 10 }}>
+          <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', width: '100%' }}>
             <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '24px', letterSpacing: '-0.02em', color: 'white' }}>
-              Welcome Back
+              Welcome<br />Back
             </h1>
-            <p style={{ fontSize: '1.1rem', opacity: 0.9, lineHeight: 1.6, maxWidth: '85%', color: 'white' }}>
-              Sign in to continue to FamilyVeda. Access your authorized clinical or family workspace to continue where you left off.
+            <p style={{ fontSize: '1.1rem', opacity: 0.9, lineHeight: 1.6, color: 'white' }}>
+              Sign in to continue to FamilyVeda.<br />
+              Access your authorized clinical or<br />
+              family workspace to continue<br />
+              where you left off.
             </p>
+            <button type="button" className="auth-mode-switch-btn" onClick={toggleMode} style={{ marginTop: '48px' }}>
+              <span className="switch-arrow left-arrow">←</span> Not a member? Sign Up
+            </button>
           </div>
         </div>
 
@@ -303,35 +333,45 @@ export function AuthPage() {
           
           {/* Register Form */}
           <div className="auth-form-content auth-form-register">
-            <h2 style={{ fontSize: '2rem', marginBottom: '16px' }}>Sign up</h2>
+
             
-            <AuthStepper steps={steps} currentStep={regStep} />
+            {regStep > 0 && <AuthStepper steps={steps} currentStep={regStep} />}
             
             <form onSubmit={isFinalStep ? handleRegister : (e) => { e.preventDefault(); handleNextStep() }} noValidate>
               
               {/* STEP 0: ROLE */}
               {regStep === 0 && (
                 <div>
+                  <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '24px', color: 'white' }}>Select Role</h2>
                   <div 
-                    className={`auth-role-card ${role === 'FAMILY_HEAD' ? 'selected' : ''}`}
+                    className={`auth-role-card-modern ${role === 'FAMILY_HEAD' ? 'selected' : ''}`}
                     onClick={() => setRole('FAMILY_HEAD')}
                   >
-                    <div className="auth-role-title">Family Head</div>
-                    <div className="auth-role-desc">Create and manage a new family workspace.</div>
+                    <div className="role-card-content">
+                      <div className="auth-role-title">Family Head</div>
+                      <div className="auth-role-desc">Create and manage a new family workspace.</div>
+                    </div>
+                    <div className="role-card-radio"></div>
                   </div>
                   <div 
-                    className={`auth-role-card ${role === 'MEMBER' ? 'selected' : ''}`}
+                    className={`auth-role-card-modern ${role === 'MEMBER' ? 'selected' : ''}`}
                     onClick={() => setRole('MEMBER')}
                   >
-                    <div className="auth-role-title">Adult Member</div>
-                    <div className="auth-role-desc">Join an existing family using an invitation token.</div>
+                    <div className="role-card-content">
+                      <div className="auth-role-title">Adult Member</div>
+                      <div className="auth-role-desc">Join an existing family using an invitation token.</div>
+                    </div>
+                    <div className="role-card-radio"></div>
                   </div>
                   <div 
-                    className={`auth-role-card ${role === 'DOCTOR' ? 'selected' : ''}`}
+                    className={`auth-role-card-modern ${role === 'DOCTOR' ? 'selected' : ''}`}
                     onClick={() => setRole('DOCTOR')}
                   >
-                    <div className="auth-role-title">Medical Practitioner</div>
-                    <div className="auth-role-desc">Provide clinical care with verifiable credentials.</div>
+                    <div className="role-card-content">
+                      <div className="auth-role-title">Medical Practitioner</div>
+                      <div className="auth-role-desc">Provide clinical care with verifiable credentials.</div>
+                    </div>
+                    <div className="role-card-radio"></div>
                   </div>
                 </div>
               )}
@@ -341,12 +381,12 @@ export function AuthPage() {
                 <div>
                   <div className="auth-form-group">
                     <label htmlFor="reg-name">Full Name</label>
-                    <input id="reg-name" className="auth-form-input" value={regName} required autoComplete="name" onChange={(e) => setRegName(e.target.value)} />
+                    <input id="reg-name" className="auth-form-input" placeholder="e.g. Sahan Sandaruwan" value={regName} required autoComplete="name" onChange={(e) => setRegName(e.target.value)} />
                     {fieldError('displayname')}
                   </div>
                   <div className="auth-form-group">
                     <label htmlFor="reg-email">Email Address</label>
-                    <input id="reg-email" type="email" className="auth-form-input" value={regEmail} required autoComplete="email" onChange={(e) => setRegEmail(e.target.value)} />
+                    <input id="reg-email" type="email" className="auth-form-input" placeholder="e.g. name@example.invalid" value={regEmail} required autoComplete="email" onChange={(e) => setRegEmail(e.target.value)} />
                     {fieldError('email')}
                   </div>
                   <div className="auth-form-group">
@@ -356,12 +396,18 @@ export function AuthPage() {
                   </div>
                   <div className="auth-form-group">
                     <label htmlFor="reg-password">Create Password</label>
-                    <input id="reg-password" type="password" className="auth-form-input" value={regPassword} required minLength={8} onChange={(e) => setRegPassword(e.target.value)} />
+                    <div style={{ position: 'relative' }}>
+                      <input id="reg-password" type={showRegPassword ? 'text' : 'password'} className="auth-form-input" style={{ paddingRight: "40px" }} placeholder="At least 8 characters" value={regPassword} required minLength={8} onChange={(e) => setRegPassword(e.target.value)} />
+                      <PasswordEye show={showRegPassword} toggle={() => setShowRegPassword(!showRegPassword)} />
+                    </div>
                     {fieldError('password')}
                   </div>
                   <div className="auth-form-group">
                     <label htmlFor="reg-confirm">Confirm Password</label>
-                    <input id="reg-confirm" type="password" className="auth-form-input" value={regConfirm} required onChange={(e) => setRegConfirm(e.target.value)} />
+                    <div style={{ position: 'relative' }}>
+                      <input id="reg-confirm" type={showRegPassword ? 'text' : 'password'} className="auth-form-input" style={{ paddingRight: "40px" }} placeholder="Confirm your password" value={regConfirm} required onChange={(e) => setRegConfirm(e.target.value)} />
+                      <PasswordEye show={showRegPassword} toggle={() => setShowRegPassword(!showRegPassword)} />
+                    </div>
                     {fieldError('confirm')}
                   </div>
                 </div>
@@ -451,25 +497,31 @@ export function AuthPage() {
                   {role === 'MEMBER' && (
                     <>
                       <div
-                        className={`auth-role-card ${connectionMethod === 'INVITATION' ? 'selected' : ''}`}
+                        className={`auth-role-card-modern ${connectionMethod === 'INVITATION' ? 'selected' : ''}`}
                         onClick={() => setConnectionMethod('INVITATION')}
                       >
-                        <div className="auth-role-title">Option A — I have an Invitation</div>
-                        <div className="auth-role-desc">Enter a token provided by a Family Head.</div>
+                        <div className="role-card-content">
+                          <div className="auth-role-title">Option A — I have an Invitation</div>
+                          <div className="auth-role-desc">Enter a token provided by a Family Head.</div>
+                        </div>
+                        <div className="role-card-radio"></div>
                       </div>
                       <div
-                        className={`auth-role-card ${connectionMethod === 'FAMILY_CODE' ? 'selected' : ''}`}
+                        className={`auth-role-card-modern ${connectionMethod === 'FAMILY_CODE' ? 'selected' : ''}`}
                         onClick={() => setConnectionMethod('FAMILY_CODE')}
                       >
                         <div className="auth-role-title">Option B — I have a Family Code</div>
                         <div className="auth-role-desc">Request to join a family using its shared code.</div>
                       </div>
                       <div
-                        className={`auth-role-card ${connectionMethod === 'LATER' ? 'selected' : ''}`}
+                        className={`auth-role-card-modern ${connectionMethod === 'LATER' ? 'selected' : ''}`}
                         onClick={() => setConnectionMethod('LATER')}
                       >
-                        <div className="auth-role-title">Option C — Join Later</div>
-                        <div className="auth-role-desc">Create independent account and join a family later.</div>
+                        <div className="role-card-content">
+                          <div className="auth-role-title">Option C — Join Later</div>
+                          <div className="auth-role-desc">Create independent account and join a family later.</div>
+                        </div>
+                        <div className="role-card-radio"></div>
                       </div>
 
                       {connectionMethod === 'INVITATION' && (
@@ -509,10 +561,10 @@ export function AuthPage() {
                   )}
                   {role === 'FAMILY_HEAD' && (
                     <div className="auth-review-list">
-                      <p><strong>Account:</strong> {regName} ({regEmail})</p>
-                      <p><strong>Workspace:</strong> {familyName}</p>
-                      <p><strong>Date of Birth:</strong> {dateOfBirth}</p>
-                      <label style={{ display: 'flex', gap: '8px', marginTop: '12px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>
+                      <p className="auth-review-item"><strong>Account:</strong> <span>{regName} <br/><span style={{ opacity: 0.7, fontSize: '0.85rem' }}>({regEmail})</span></span></p>
+                      <p className="auth-review-item"><strong>Workspace:</strong> <span>{familyName}</span></p>
+                      <p className="auth-review-item"><strong>Date of Birth:</strong> <span>{dateOfBirth}</span></p>
+                      <label style={{ display: 'flex', gap: '8px', marginTop: '24px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>
                         <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} />
                         I accept the Terms of Service and Privacy Policy.
                       </label>
@@ -527,10 +579,10 @@ export function AuthPage() {
                 <div>
                   {role === 'MEMBER' && (
                     <div className="auth-review-list">
-                      <p><strong>Account:</strong> {regName} ({regEmail})</p>
-                      <p><strong>Date of Birth:</strong> {dateOfBirth}</p>
-                      <p><strong>Connection:</strong> {connectionMethod === 'INVITATION' ? `Joining via Token (${invitationToken})` : connectionMethod === 'FAMILY_CODE' ? `Requesting via Family Code (${familyCode})` : 'Joining Later'}</p>
-                      <label style={{ display: 'flex', gap: '8px', marginTop: '12px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>
+                      <p className="auth-review-item"><strong>Account:</strong> <span>{regName} <br/><span style={{ opacity: 0.7, fontSize: '0.85rem' }}>({regEmail})</span></span></p>
+                      <p className="auth-review-item"><strong>Date of Birth:</strong> <span>{dateOfBirth}</span></p>
+                      <p className="auth-review-item"><strong>Connection:</strong> <span>{connectionMethod === 'INVITATION' ? `Joining via Token (${invitationToken})` : connectionMethod === 'FAMILY_CODE' ? `Requesting via Family Code (${familyCode})` : 'Joining Later'}</span></p>
+                      <label style={{ display: 'flex', gap: '8px', marginTop: '24px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>
                         <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} />
                         I accept the Terms of Service and Privacy Policy.
                       </label>
@@ -539,10 +591,10 @@ export function AuthPage() {
                   )}
                   {role === 'DOCTOR' && (
                     <div className="auth-review-list">
-                      <p><strong>Account:</strong> {regName} ({regEmail})</p>
-                      <p><strong>SLMC Registration:</strong> {regNum}</p>
-                      {specialty && <p><strong>Specialty:</strong> {specialty}</p>}
-                      <div style={{ marginTop: '16px', fontSize: '0.9rem', color: '#f59e0b' }}>
+                      <p className="auth-review-item"><strong>Account:</strong> <span>{regName} <br/><span style={{ opacity: 0.7, fontSize: '0.85rem' }}>({regEmail})</span></span></p>
+                      <p className="auth-review-item"><strong>SLMC Registration:</strong> <span>{regNum}</span></p>
+                      {specialty && <p className="auth-review-item"><strong>Specialty:</strong> <span>{specialty}</span></p>}
+                      <div style={{ marginTop: '24px', fontSize: '0.9rem', color: '#f59e0b', lineHeight: 1.5 }}>
                         ⚠️ Clinical access will remain blocked until your credentials are verified.
                       </div>
                     </div>
@@ -569,24 +621,24 @@ export function AuthPage() {
               </div>
             </form>
 
-            <div className="auth-form-switch">
-              Already a Member? <button type="button" onClick={toggleMode}>Sign in here</button>
-            </div>
           </div>
 
           {/* Login Form */}
           <div className="auth-form-content auth-form-login">
-            <h2 style={{ fontSize: '2rem', marginBottom: '32px' }}>Sign in</h2>
+            <h2 style={{ fontSize: '2.4rem', fontWeight: 700, marginBottom: '32px', color: 'white' }}>Sign in</h2>
             
             <form onSubmit={handleLogin} noValidate>
               <div className="auth-form-group">
                 <label htmlFor="login-email">Email Address</label>
-                <input id="login-email" type="email" className="auth-form-input" value={loginEmail} required autoComplete="email" onChange={(e) => setLoginEmail(e.target.value)} />
+                <input id="login-email" type="email" className="auth-form-input" placeholder="e.g. name@example.invalid" value={loginEmail} required autoComplete="email" onChange={(e) => setLoginEmail(e.target.value)} />
               </div>
 
               <div className="auth-form-group">
                 <label htmlFor="login-password">Password</label>
-                <input id="login-password" type="password" className="auth-form-input" value={loginPassword} required autoComplete="current-password" onChange={(e) => setLoginPassword(e.target.value)} />
+                <div style={{ position: 'relative' }}>
+                  <input id="login-password" type={showLoginPassword ? 'text' : 'password'} className="auth-form-input" style={{ paddingRight: "40px" }} placeholder="At least 8 characters" value={loginPassword} required autoComplete="current-password" onChange={(e) => setLoginPassword(e.target.value)} />
+                  <PasswordEye show={showLoginPassword} toggle={() => setShowLoginPassword(!showLoginPassword)} />
+                </div>
               </div>
 
               {(loginError || (mode === 'login' && authError)) && (
@@ -598,9 +650,6 @@ export function AuthPage() {
               </button>
             </form>
 
-            <div className="auth-form-switch">
-              Not a member? <button type="button" onClick={toggleMode}>Sign up here</button>
-            </div>
           </div>
 
         </div>
