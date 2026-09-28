@@ -44,7 +44,8 @@ Due 2026-09-30. CORE first; FUTURE only if time remains, otherwise it goes in th
 - [x] Built and installed hosted-API debug APK on Android API 36 emulator; launched to the sign-in screen and retained `docs/evidence/2026-09-28/android-launch.png`.
 - [x] Deterministic synthetic PostgreSQL API golden case and invalid-schema safe-failure tests passed; full integration suite 11/11. Doctor approves through the assigned case grant, then family reads allowlisted guidance.
 - [ ] Capture a full Flutter → API/agents → React approval → Flutter visual trace with synthetic accounts.
-- [ ] Verify an authenticated hosted-API journey from the APK and publish a stable APK download link with checksum and installation instructions.
+- [x] Synthetic demo Head authenticated through the hosted-API APK; dashboard, appointments and notifications rendered on Android API 36 with retained screenshots.
+- [ ] Publish a stable APK download link with checksum and installation instructions; verify hosted doctor approval and family guidance on Android.
 - [ ] Verify the exact Render backend revision and complete a synthetic doctor-account flow. The live Family Head dashboard, appointments, and notifications pages loaded on 2026-09-28; the previous notification error did not recur in this smoke check.
 - [x] [human-reported 2026-09-28] Released migration lock for `20260928_S4_ThreePortalFeatures`.
 

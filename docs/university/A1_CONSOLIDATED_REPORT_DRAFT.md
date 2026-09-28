@@ -54,7 +54,7 @@ The deterministic PostgreSQL API golden case and invalid-schema safe-failure tes
 
 The repository contains Render/Vercel deployment configuration and deployment instructions. On 2026-09-28, `develop` CI and CodeQL passed at `49face54`, Vercel reported a successful production deployment of that commit, and the public web, API health and Swagger URLs returned HTTP 200. The synthetic Family Head portal loaded its dashboard, appointments and notifications; the earlier notifications error did not recur in this smoke check. Neon production migration history now contains all three migrations, including the doctor constraints, and the new indexes were verified. The exact Render backend revision, doctor-account journey and retained authenticated API output remain outstanding. See [`RELEASE_EVIDENCE_2026-09-28.md`](RELEASE_EVIDENCE_2026-09-28.md).
 
-An Android debug-signed APK targeting the hosted API was built, installed and launched to its sign-in screen on an API 36 emulator on 2026-09-28; its stable public share link, authenticated use evidence, release signing if chosen, public video URL and exact Render revision are **NEEDS VERIFIED LINK/evidence**. Never include credentials or secret values in this report.
+An Android debug-signed APK targeting the hosted API was built and installed on an API 36 emulator on 2026-09-28. A synthetic demo Head signed in and loaded dashboard, appointments and notifications; screenshots are retained in `docs/evidence/2026-09-28/`. Its stable public share link, hosted doctor-approved guidance journey, release signing if chosen, public video URL and exact Render revision are **NEEDS VERIFIED LINK/evidence**. Never include credentials or secret values in this report.
 
 ## 6. Architecture decisions
 
@@ -75,7 +75,7 @@ The currently reported executed results are:
 | React tests | 40/40 passed | Retain command output |
 | React lint and production build | Passed | Retain command output |
 | Full cross-portal golden case | Backend API sequence passed; full cross-platform visual trace not executed | Pending visual evidence; no cross-platform pass claim |
-| Flutter verification | Analyze clean; 69/69 tests passed on Flutter 3.47.5/Dart 3.13.4; local 45-minute booking checked on Android API 36 emulator; hosted-API debug APK built, installed and launched to sign-in | Authenticated hosted workflow, stable share link and physical-device evidence pending |
+| Flutter verification | Analyze clean; 69/69 tests passed on Flutter 3.47.5/Dart 3.13.4; local 45-minute booking checked on Android API 36 emulator; hosted-API debug APK signed in as synthetic Head and loaded dashboard, appointments and notifications | Hosted approved-guidance journey, stable share link and physical-device evidence pending |
 | Local synthetic portal API journey | Passed across Head, Adult Member and Doctor with privacy 404 | `scripts/e2e/synthetic_portal_journey.py`; not the full agent golden case |
 | Performance testing | Local ApacheBench baseline: 200/200 requests, 0 failures, 1.827 ms mean and 4 ms p99 | Broader workflow load and retained tool output pending |
 | Dependency vulnerability audits and access control | npm production and API NuGet: no known vulnerabilities reported; focused xUnit security tests and unauthenticated/CORS smoke checks passed | Wider application security testing pending |
@@ -84,7 +84,7 @@ Add Assignment 2 test plan, completed cases, actual results, defect/retest recor
 
 ## 8. Limitations and future work
 
-Report as limitations: missing full cross-platform visual golden-case evidence; exact Render revision and doctor-account deployment proof; broader application-security execution; and missing public APK link, authenticated APK workflow and physical-device proof. The existing APK is debug-signed.
+Report as limitations: missing full cross-platform visual golden-case evidence; exact Render revision and doctor-account deployment proof; broader application-security execution; and missing public APK link and physical-device proof. A synthetic Head authenticated in the debug-signed APK; doctor approval and family guidance still need hosted visual evidence.
 
 Items explicitly marked `[FUTURE]` in the portal blueprint remain future work for the submission-first plan, including opt-in adult report sharing, remaining family lifecycle controls, AI doctor discovery, doctor-gated report explanation, handwriting reader, image observations, personal health search and doctor-only Pre-Visit Brief. Concurrent family-doctor request/accept constraints passed local PostgreSQL tests and the follow-up migration is installed on Neon; the live doctor workflow still requires an authenticated retest.
 
