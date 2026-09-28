@@ -45,6 +45,7 @@ internal sealed class MemberConfiguration : IEntityTypeConfiguration<Member>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.DisplayName).HasMaxLength(120).IsRequired();
         builder.Property(x => x.Role).HasConversion<string>().HasMaxLength(32);
+        builder.Property(x => x.SexForClinicalReference).HasConversion<string>().HasMaxLength(16).HasDefaultValue(FamilyVeda.Domain.Common.ClinicalSex.NotSpecified);
         builder.HasOne(x => x.Family).WithMany(x => x.Members).HasForeignKey(x => x.FamilyId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.SetNull);
         builder.HasIndex(x => new { x.FamilyId, x.DisplayName });

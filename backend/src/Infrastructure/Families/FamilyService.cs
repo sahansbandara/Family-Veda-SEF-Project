@@ -90,7 +90,7 @@ public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUs
 
         var total = await query.CountAsync(cancellationToken);
         var items = await query.OrderBy(x => x.DisplayName).Skip((page - 1) * pageSize).Take(pageSize)
-            .Select(x => new MemberDto(x.Id, x.FamilyId, x.DisplayName, x.DateOfBirth, x.Role, x.UserId == currentUser.UserId))
+            .Select(x => new MemberDto(x.Id, x.FamilyId, x.DisplayName, x.DateOfBirth, x.Role, x.UserId == currentUser.UserId, x.SexForClinicalReference))
             .ToListAsync(cancellationToken);
         return new PagedResult<MemberDto>(items, page, pageSize, total);
     }
@@ -116,7 +116,8 @@ public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUs
             DisplayName = request.DisplayName.Trim(),
             DateOfBirth = request.DateOfBirth,
             Role = request.Role,
-            UserId = request.UserId
+            UserId = request.UserId,
+            SexForClinicalReference = request.SexForClinicalReference
         };
         dbContext.Members.Add(member);
         foreach (var category in Enum.GetValues<ConsentCategory>())
@@ -149,6 +150,7 @@ public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUs
             });
         }
         member.DisplayName = request.DisplayName.Trim();
+        if (request.SexForClinicalReference is { } sex) member.SexForClinicalReference = RequireKnownSex(sex);
         await MoveGuardianConsentsToReaffirmationAsync(member, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return MapMember(member);
@@ -317,7 +319,8 @@ public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUs
             UserId = user.Id,
             DisplayName = user.DisplayName,
             DateOfBirth = request.DateOfBirth,
-            Role = FamilyRole.AdultMember
+            Role = FamilyRole.AdultMember,
+            SexForClinicalReference = RequireKnownSex(request.SexForClinicalReference)
         };
         dbContext.Members.Add(member);
         foreach (var category in Enum.GetValues<ConsentCategory>())
@@ -393,7 +396,9 @@ public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUs
     private static readonly System.Linq.Expressions.Expression<Func<Domain.Identity.Consent, ConsentDto>> MapConsentExpression =
         x => new ConsentDto(x.Id, x.MemberId, x.Category, x.Status, x.GrantedByGuardian);
     private static ConsentDto MapConsent(Domain.Identity.Consent consent) => new(consent.Id, consent.MemberId, consent.Category, consent.Status, consent.GrantedByGuardian);
-    private MemberDto MapMember(Member member) => new(member.Id, member.FamilyId, member.DisplayName, member.DateOfBirth, member.Role, member.UserId == currentUser.UserId);
+    private static ClinicalSex RequireKnownSex(ClinicalSex sex) => Enum.IsDefined(sex) ? sex
+        : throw new ValidationException(new Dictionary<string, string[]> { ["sexForClinicalReference"] = ["Choose Male, Female or Not specified."] });
+    private MemberDto MapMember(Member member) => new(member.Id, member.FamilyId, member.DisplayName, member.DateOfBirth, member.Role, member.UserId == currentUser.UserId, member.SexForClinicalReference);
     private FamilyDto MapFamily(Family family, IEnumerable<Member>? members = null) =>
         new(family.Id, family.Name, (members ?? family.Members).Select(MapMember).ToList(), family.FamilyCode);
     private static (int Page, int PageSize) NormalizePage(int page, int pageSize) => (Math.Max(page, 1), Math.Clamp(pageSize, 1, 100));

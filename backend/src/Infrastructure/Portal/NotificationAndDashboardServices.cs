@@ -129,8 +129,12 @@ public sealed class PortalDashboardService(AppDbContext dbContext, ICurrentUser 
             })
             .ToList();
 
+        // Adults' reports reach the Head only when the adult shared that specific report (Phase 2 privacy).
+        var sharingAdultIds = isHead
+            ? family.Members.Where(x => x.UserId != currentUser.UserId && x.DateOfBirth <= adultCutoff).Select(x => x.Id).ToList()
+            : [];
         var visibleReports = await dbContext.LabReports.AsNoTracking()
-            .Where(x => relevantMemberIds.Contains(x.MemberId))
+            .Where(x => relevantMemberIds.Contains(x.MemberId) || (sharingAdultIds.Contains(x.MemberId) && x.SharedWithFamilyHead))
             .Include(x => x.Values)
             .OrderByDescending(x => x.CollectedAt ?? x.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -138,6 +142,20 @@ public sealed class PortalDashboardService(AppDbContext dbContext, ICurrentUser 
         if (visibleReports.Count > 0)
         {
             var report = visibleReports[0];
+            if (sharingAdultIds.Contains(report.MemberId))
+            {
+                dbContext.AuditLogs.Add(new FamilyVeda.Domain.Clinical.AuditLog
+                {
+                    ActorUserId = currentUser.UserId,
+                    SubjectMemberId = report.MemberId,
+                    EventType = "ADULT_SHARED_REPORT_ACCESS",
+                    ResourceType = "LabReportSummary",
+                    ResourceId = report.Id,
+                    Outcome = "SUCCESS",
+                    MetadataJson = "{}"
+                });
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
             var statuses = report.Values.Select(v => LabRangeClassifier.Classify(v.Value, v.ReferenceLow, v.ReferenceHigh)).ToList();
             latestLab = new DashboardLabSummaryDto(report.Id, memberNames.GetValueOrDefault(report.MemberId, "Member"), report.OriginalFileName,
                 report.CollectedAt,

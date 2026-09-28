@@ -6,15 +6,20 @@ using FamilyVeda.Domain.Records;
 
 namespace FamilyVeda.Application.Records;
 
-public sealed record HealthRecordDto(Guid Id, Guid MemberId, RecordType RecordType, string Title, string? Summary, DateOnly OccurredOn);
+public sealed record HealthRecordDto(Guid Id, Guid MemberId, RecordType RecordType, string Title, string? Summary, DateOnly OccurredOn, bool SharedWithFamilyHead = false);
 public sealed record UpsertHealthRecordRequest(RecordType RecordType, string Title, string? Summary, DateOnly OccurredOn);
 public sealed record VitalDto(Guid Id, Guid MemberId, string VitalType, decimal Value, string Unit, DateTimeOffset MeasuredAt);
 public sealed record CreateVitalRequest(string VitalType, decimal Value, string Unit, DateTimeOffset MeasuredAt);
 public sealed record VitalTrendDto(string VitalType, IReadOnlyList<VitalPointDto> Points);
 public sealed record VitalPointDto(DateTimeOffset MeasuredAt, decimal Value, string Unit);
-public sealed record LabReportDto(Guid Id, Guid MemberId, string OriginalFileName, OcrStatus OcrStatus, DateTimeOffset? CollectedAt);
+public sealed record LabReportDto(Guid Id, Guid MemberId, string OriginalFileName, OcrStatus OcrStatus, DateTimeOffset? CollectedAt,
+    bool SharedWithFamilyHead = false, bool HasOriginalFile = false, LabRangeSummaryDto? RangeSummary = null);
+/// <summary>Counts only — range position against the printed reference, never an interpretation (RULE 1).</summary>
+public sealed record LabRangeSummaryDto(int BelowRange, int WithinRange, int AboveRange, int RangeUnavailable);
+/// <summary>Owner-only toggle: keep an adult's item private from the Family Head (default) or share it.</summary>
+public sealed record UpdateSharingRequest(bool SharedWithFamilyHead);
 public sealed record LabValueDto(Guid Id, string Analyte, decimal Value, string Unit, decimal? ReferenceLow, decimal? ReferenceHigh, bool WasManuallyConfirmed, LabRangeStatus RangeStatus);
-public sealed record LabReportDetailDto(Guid Id, Guid MemberId, string OriginalFileName, OcrStatus OcrStatus, DateTimeOffset? CollectedAt, IReadOnlyList<LabValueDto> Values, IReadOnlyList<HereditaryFlagDto> Flags);
+public sealed record LabReportDetailDto(Guid Id, Guid MemberId, string OriginalFileName, OcrStatus OcrStatus, DateTimeOffset? CollectedAt, IReadOnlyList<LabValueDto> Values, IReadOnlyList<HereditaryFlagDto> Flags, bool SharedWithFamilyHead = false);
 public sealed record ConfirmLabValueRequest(Guid Id, string Analyte, decimal Value, string Unit, decimal? ReferenceLow, decimal? ReferenceHigh);
 public sealed record ConfirmLabReportRequest(IReadOnlyList<ConfirmLabValueRequest> Values, IReadOnlyList<Guid> ConfirmedFlagIds);
 public sealed record LabExtractionResultDto(Guid ReportId, OcrStatus Status, int ValuesExtracted, int FlagsExtracted, bool RequiresManualReview);
@@ -38,6 +43,8 @@ public interface IRecordService
     Task<LabReportDetailDto> GetLabReportDetailAsync(Guid reportId, CancellationToken cancellationToken);
     Task<LabReportDetailDto> ConfirmLabReportAsync(Guid reportId, ConfirmLabReportRequest request, CancellationToken cancellationToken);
     Task<IReadOnlyList<HereditaryFlagDto>> GetHereditaryFlagsAsync(Guid memberId, CancellationToken cancellationToken);
+    Task<HealthRecordDto> SetRecordSharingAsync(Guid recordId, bool sharedWithFamilyHead, CancellationToken cancellationToken);
+    Task<LabReportDto> SetLabReportSharingAsync(Guid reportId, bool sharedWithFamilyHead, CancellationToken cancellationToken);
 }
 
 public interface ILabExtractionService

@@ -4,6 +4,7 @@ namespace FamilyVeda.Domain.Common;
 
 public enum UserType { FamilyUser, Doctor, Admin }
 public enum FamilyRole { Head, AdultMember, MinorMember }
+public enum ClinicalSex { NotSpecified, Male, Female }
 public enum ConsentCategory { HereditaryFlags, VitalsSummary, Conditions }
 public enum ConsentStatus { NotSet, Granted, Revoked, PendingReaffirmation }
 public enum RecordType { Condition, Allergy, Medication, Surgery, Note }

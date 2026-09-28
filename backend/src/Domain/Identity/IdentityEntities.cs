@@ -37,6 +37,7 @@ public sealed class Member : Entity
     public required string DisplayName { get; set; }
     public DateOnly DateOfBirth { get; set; }
     public FamilyRole Role { get; set; }
+    public ClinicalSex SexForClinicalReference { get; set; } = ClinicalSex.NotSpecified;
     public ICollection<Consent> Consents { get; set; } = [];
 }
 

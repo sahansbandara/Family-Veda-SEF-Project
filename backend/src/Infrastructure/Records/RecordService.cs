@@ -23,9 +23,13 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
         string sort,
         CancellationToken cancellationToken)
     {
-        await RequireMemberAccessAsync(memberId, ConsentCategory.Conditions, cancellationToken);
+        var access = await ResolveAccessAsync(memberId, ConsentCategory.Conditions, allowSharedRead: true, cancellationToken);
         (page, pageSize) = NormalizePage(page, pageSize);
         var query = dbContext.HealthRecords.AsNoTracking().Where(x => x.MemberId == memberId);
+        if (access == MemberAccess.SharedWithHead)
+        {
+            query = query.Where(x => x.SharedWithFamilyHead);
+        }
         if (type is not null)
         {
             query = query.Where(x => x.RecordType == type);
@@ -41,6 +45,10 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
             : query.OrderByDescending(x => x.OccurredOn);
         var total = await query.CountAsync(cancellationToken);
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize).Select(MapRecordExpression).ToListAsync(cancellationToken);
+        if (access == MemberAccess.SharedWithHead && items.Count > 0)
+        {
+            await AuditSharedReadAsync(memberId, "HealthRecordList", memberId, cancellationToken);
+        }
         return new PagedResult<HealthRecordDto>(items, page, pageSize, total);
     }
 
@@ -115,16 +123,28 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
 
     public async Task<IReadOnlyList<LabReportDto>> GetLabReportsAsync(Guid memberId, CancellationToken cancellationToken)
     {
-        await RequireMemberAccessAsync(memberId, ConsentCategory.Conditions, cancellationToken);
-        return await dbContext.LabReports.AsNoTracking().Where(x => x.MemberId == memberId)
-            .OrderByDescending(x => x.CollectedAt).Select(MapLabReportExpression).ToListAsync(cancellationToken);
+        var access = await ResolveAccessAsync(memberId, ConsentCategory.Conditions, allowSharedRead: true, cancellationToken);
+        var query = dbContext.LabReports.AsNoTracking().Where(x => x.MemberId == memberId);
+        if (access == MemberAccess.SharedWithHead)
+        {
+            query = query.Where(x => x.SharedWithFamilyHead);
+        }
+        var reports = await query.Include(x => x.Values).OrderByDescending(x => x.CollectedAt).ToListAsync(cancellationToken);
+        var reportIds = reports.Select(x => x.Id).ToList();
+        var withFile = (await dbContext.LabReportFiles.AsNoTracking().Where(x => reportIds.Contains(x.LabReportId))
+            .Select(x => x.LabReportId).ToListAsync(cancellationToken)).ToHashSet();
+        if (access == MemberAccess.SharedWithHead && reports.Count > 0)
+        {
+            await AuditSharedReadAsync(memberId, "LabReportList", memberId, cancellationToken);
+        }
+        return reports.Select(x => MapLabReport(x, withFile.Contains(x.Id))).ToList();
     }
 
     public async Task<LabReportDto> GetLabReportAsync(Guid reportId, CancellationToken cancellationToken)
     {
-        var report = await dbContext.LabReports.AsNoTracking().SingleOrDefaultAsync(x => x.Id == reportId, cancellationToken) ?? throw new NotFoundException();
-        await RequireMemberAccessAsync(report.MemberId, ConsentCategory.Conditions, cancellationToken);
-        return MapLabReport(report);
+        var report = await dbContext.LabReports.AsNoTracking().Include(x => x.Values).SingleOrDefaultAsync(x => x.Id == reportId, cancellationToken) ?? throw new NotFoundException();
+        await RequireItemReadAsync(report.MemberId, report.SharedWithFamilyHead, "LabReport", report.Id, cancellationToken);
+        return MapLabReport(report, await dbContext.LabReportFiles.AnyAsync(x => x.LabReportId == reportId, cancellationToken));
     }
 
     public async Task<LabReportDto> UploadLabReportAsync(Guid memberId, string originalFileName, string contentType, long sizeBytes, Stream content, DateTimeOffset? collectedAt, CancellationToken cancellationToken)
@@ -167,14 +187,19 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
         report.File = new LabReportFile { LabReport = report, Content = buffer.ToArray() };
         dbContext.LabReports.Add(report);
         await dbContext.SaveChangesAsync(cancellationToken);
-        return MapLabReport(report);
+        return MapLabReport(report, hasOriginalFile: true);
     }
 
     public async Task<LabReportDetailDto> GetLabReportDetailAsync(Guid reportId, CancellationToken cancellationToken)
     {
         var report = await dbContext.LabReports.AsNoTracking().Include(x => x.Values)
             .SingleOrDefaultAsync(x => x.Id == reportId, cancellationToken) ?? throw new NotFoundException();
-        await RequireMemberAccessAsync(report.MemberId, ConsentCategory.Conditions, cancellationToken);
+        var access = await RequireItemReadAsync(report.MemberId, report.SharedWithFamilyHead, "LabReport", report.Id, cancellationToken);
+        if (access == MemberAccess.SharedWithHead)
+        {
+            // Sharing a report does not share the adult's hereditary flags (separate consent category).
+            return MapLabDetail(report, []);
+        }
         var flags = await dbContext.HereditaryFlags.AsNoTracking().Where(x => x.LabReportId == reportId).OrderBy(x => x.ConditionCode)
             .Select(x => new HereditaryFlagDto(x.Id, x.MemberId, x.ConditionCode, x.Finding, x.Confidence, x.ManuallyConfirmed)).ToListAsync(cancellationToken);
         return MapLabDetail(report, flags);
@@ -226,7 +251,84 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
             .ToListAsync(cancellationToken);
     }
 
-    private async Task RequireMemberAccessAsync(Guid memberId, ConsentCategory category, CancellationToken cancellationToken)
+    public async Task<HealthRecordDto> SetRecordSharingAsync(Guid recordId, bool sharedWithFamilyHead, CancellationToken cancellationToken)
+    {
+        var record = await dbContext.HealthRecords.SingleOrDefaultAsync(x => x.Id == recordId, cancellationToken) ?? throw new NotFoundException();
+        await RequireAdultOwnerAsync(record.MemberId, cancellationToken);
+        record.SharedWithFamilyHead = sharedWithFamilyHead;
+        AddSharingAudit(record.MemberId, "HealthRecord", record.Id, sharedWithFamilyHead);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return MapRecord(record);
+    }
+
+    public async Task<LabReportDto> SetLabReportSharingAsync(Guid reportId, bool sharedWithFamilyHead, CancellationToken cancellationToken)
+    {
+        var report = await dbContext.LabReports.Include(x => x.Values).SingleOrDefaultAsync(x => x.Id == reportId, cancellationToken) ?? throw new NotFoundException();
+        await RequireAdultOwnerAsync(report.MemberId, cancellationToken);
+        report.SharedWithFamilyHead = sharedWithFamilyHead;
+        AddSharingAudit(report.MemberId, "LabReport", report.Id, sharedWithFamilyHead);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return MapLabReport(report, await dbContext.LabReportFiles.AnyAsync(x => x.LabReportId == reportId, cancellationToken));
+    }
+
+    private enum MemberAccess { Owner, Guardian, SharedWithHead }
+
+    /// <summary>Only the adult who owns the item may change who can see it. Everyone else gets 404.</summary>
+    private async Task RequireAdultOwnerAsync(Guid memberId, CancellationToken cancellationToken)
+    {
+        if (currentUser.UserType != UserType.FamilyUser) throw new NotFoundException();
+        var member = await dbContext.Members.AsNoTracking().SingleOrDefaultAsync(x => x.Id == memberId, cancellationToken) ?? throw new NotFoundException();
+        var isMinor = member.DateOfBirth.AddYears(18) > DateOnly.FromDateTime(DateTime.UtcNow);
+        if (member.UserId != currentUser.UserId || isMinor) throw new NotFoundException();
+    }
+
+    private void AddSharingAudit(Guid memberId, string resourceType, Guid resourceId, bool shared) =>
+        dbContext.AuditLogs.Add(new AuditLog
+        {
+            ActorUserId = currentUser.UserId,
+            SubjectMemberId = memberId,
+            EventType = shared ? "ADULT_ITEM_SHARED_WITH_HEAD" : "ADULT_ITEM_UNSHARED_FROM_HEAD",
+            ResourceType = resourceType,
+            ResourceId = resourceId,
+            Outcome = "SUCCESS",
+            MetadataJson = "{}"
+        });
+
+    /// <summary>Single-item read: the Head may read an adult's item only when that item is shared; audited.</summary>
+    private async Task<MemberAccess> RequireItemReadAsync(Guid memberId, bool itemShared, string resourceType, Guid resourceId, CancellationToken cancellationToken)
+    {
+        var access = await ResolveAccessAsync(memberId, ConsentCategory.Conditions, allowSharedRead: true, cancellationToken);
+        if (access == MemberAccess.SharedWithHead)
+        {
+            if (!itemShared) throw new NotFoundException();
+            await AuditSharedReadAsync(memberId, resourceType, resourceId, cancellationToken);
+        }
+        return access;
+    }
+
+    private async Task AuditSharedReadAsync(Guid memberId, string resourceType, Guid resourceId, CancellationToken cancellationToken)
+    {
+        dbContext.AuditLogs.Add(new AuditLog
+        {
+            ActorUserId = currentUser.UserId,
+            SubjectMemberId = memberId,
+            EventType = "ADULT_SHARED_REPORT_ACCESS",
+            ResourceType = resourceType,
+            ResourceId = resourceId,
+            Outcome = "SUCCESS",
+            MetadataJson = "{}"
+        });
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private Task RequireMemberAccessAsync(Guid memberId, ConsentCategory category, CancellationToken cancellationToken) =>
+        ResolveAccessAsync(memberId, category, allowSharedRead: false, cancellationToken);
+
+    /// <summary>
+    /// Owner: the member themselves. Guardian: Head reading a minor with guardian consent (audited).
+    /// SharedWithHead: Head reading an adult — only on read paths that then filter to shared items.
+    /// </summary>
+    private async Task<MemberAccess> ResolveAccessAsync(Guid memberId, ConsentCategory category, bool allowSharedRead, CancellationToken cancellationToken)
     {
         if (currentUser.UserType != UserType.FamilyUser)
         {
@@ -236,11 +338,15 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
         var member = await dbContext.Members.AsNoTracking().SingleOrDefaultAsync(x => x.Id == memberId, cancellationToken) ?? throw new NotFoundException();
         if (member.UserId == currentUser.UserId)
         {
-            return;
+            return MemberAccess.Owner;
         }
 
         var isMinor = member.DateOfBirth.AddYears(18) > DateOnly.FromDateTime(DateTime.UtcNow);
         var isHead = await dbContext.Families.AnyAsync(x => x.Id == member.FamilyId && x.CreatedByUserId == currentUser.UserId, cancellationToken);
+        if (isHead && !isMinor && allowSharedRead)
+        {
+            return MemberAccess.SharedWithHead;
+        }
         if (!isMinor || !isHead)
         {
             throw new NotFoundException();
@@ -260,21 +366,30 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
             MetadataJson = "{}"
         });
         await dbContext.SaveChangesAsync(cancellationToken);
+        return MemberAccess.Guardian;
     }
 
     private static readonly System.Linq.Expressions.Expression<Func<HealthRecord, HealthRecordDto>> MapRecordExpression =
-        x => new HealthRecordDto(x.Id, x.MemberId, x.RecordType, x.Title, x.Summary, x.OccurredOn);
+        x => new HealthRecordDto(x.Id, x.MemberId, x.RecordType, x.Title, x.Summary, x.OccurredOn, x.SharedWithFamilyHead);
     private static readonly System.Linq.Expressions.Expression<Func<Vital, VitalDto>> MapVitalExpression =
         x => new VitalDto(x.Id, x.MemberId, x.VitalType, x.Value, x.Unit, x.MeasuredAt);
-    private static readonly System.Linq.Expressions.Expression<Func<LabReport, LabReportDto>> MapLabReportExpression =
-        x => new LabReportDto(x.Id, x.MemberId, x.OriginalFileName, x.OcrStatus, x.CollectedAt);
-    private static HealthRecordDto MapRecord(HealthRecord x) => new(x.Id, x.MemberId, x.RecordType, x.Title, x.Summary, x.OccurredOn);
+    private static HealthRecordDto MapRecord(HealthRecord x) => new(x.Id, x.MemberId, x.RecordType, x.Title, x.Summary, x.OccurredOn, x.SharedWithFamilyHead);
     private static VitalDto MapVital(Vital x) => new(x.Id, x.MemberId, x.VitalType, x.Value, x.Unit, x.MeasuredAt);
-    private static LabReportDto MapLabReport(LabReport x) => new(x.Id, x.MemberId, x.OriginalFileName, x.OcrStatus, x.CollectedAt);
+    private static LabReportDto MapLabReport(LabReport x, bool hasOriginalFile)
+    {
+        var statuses = x.Values.Select(v => LabRangeClassifier.Classify(v.Value, v.ReferenceLow, v.ReferenceHigh)).ToList();
+        var summary = new LabRangeSummaryDto(
+            statuses.Count(s => s == LabRangeStatus.BelowRange),
+            statuses.Count(s => s == LabRangeStatus.WithinRange),
+            statuses.Count(s => s == LabRangeStatus.AboveRange),
+            statuses.Count(s => s == LabRangeStatus.RangeUnavailable));
+        return new(x.Id, x.MemberId, x.OriginalFileName, x.OcrStatus, x.CollectedAt, x.SharedWithFamilyHead, hasOriginalFile, summary);
+    }
     private static HereditaryFlagDto MapFlag(HereditaryFlag x) => new(x.Id, x.MemberId, x.ConditionCode, x.Finding, x.Confidence, x.ManuallyConfirmed);
     private static LabReportDetailDto MapLabDetail(LabReport report, IReadOnlyList<HereditaryFlagDto> flags) => new(
         report.Id, report.MemberId, report.OriginalFileName, report.OcrStatus, report.CollectedAt,
-        report.Values.OrderBy(x => x.Analyte).Select(x => new LabValueDto(x.Id, x.Analyte, x.Value, x.Unit, x.ReferenceLow, x.ReferenceHigh, x.WasManuallyConfirmed, LabRangeClassifier.Classify(x.Value, x.ReferenceLow, x.ReferenceHigh))).ToList(), flags);
+        report.Values.OrderBy(x => x.Analyte).Select(x => new LabValueDto(x.Id, x.Analyte, x.Value, x.Unit, x.ReferenceLow, x.ReferenceHigh, x.WasManuallyConfirmed, LabRangeClassifier.Classify(x.Value, x.ReferenceLow, x.ReferenceHigh))).ToList(), flags,
+        report.SharedWithFamilyHead);
     private static async Task<bool> HasSafeImageDimensionsAsync(Stream stream, string contentType, CancellationToken cancellationToken)
     {
         var dimensions = contentType switch
