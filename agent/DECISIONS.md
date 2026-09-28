@@ -80,3 +80,11 @@ What is already decided. Record at the moment of decision, including rejected al
 **Consequences:** commits appear under our author, not the component owners'; individual reports must state this honestly. The six invariants, ten clinical safety rules, migration lock and PR-into-`develop` flow still apply unchanged. Only synthetic data is used, including for the extended test seed.
 
 **Status:** Accepted 2026-09-28.
+
+## 2026-09-28c — Agent may open and merge PRs into `develop`
+
+**Decision:** At Sahan's (repo owner) explicit instruction, the coding agent may open PRs into `develop` and merge them itself, without asking for permission each time. This replaces the "1 approving review from another member" requirement for agent PRs until 2026-10-06.
+
+**Guardrails:** merge only into `develop` (never `main` without explicit instruction); CI must be green when the PR touches code (docs-only PRs may merge without waiting); no force-push to shared branches; the six invariants and ten clinical safety rules still apply; each PR description states what was verified.
+
+**Status:** Accepted 2026-09-28.
