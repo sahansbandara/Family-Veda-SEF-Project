@@ -44,7 +44,7 @@ public sealed class MigrationTests : IAsyncLifetime
         var applicationTableCount = await dbContext.Database.SqlQueryRaw<int>(
                 "SELECT COUNT(*)::int AS \"Value\" FROM information_schema.tables WHERE table_schema = 'public' AND table_name <> '__EFMigrationsHistory'")
             .SingleAsync();
-        Assert.Equal(27, applicationTableCount); // +family_join_requests, family_doctor_requests, appointments, portal_notifications (three-portal)
+        Assert.Equal(29, applicationTableCount); // +family_join_requests, family_doctor_requests, appointments, portal_notifications (three-portal); +user_profiles, doctor_license_documents (registration flows)
         var grantIndex = await dbContext.Database.SqlQueryRaw<string>(
                 "SELECT indexdef AS \"Value\" FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'ix_case_access_grants_triage_case_id'")
             .SingleAsync();

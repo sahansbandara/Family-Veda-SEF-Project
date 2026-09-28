@@ -22,6 +22,17 @@ public sealed class Doctor : Entity
     public string? Languages { get; set; }
 }
 
+/// <summary>Synthetic licence / registration document uploaded at doctor sign-up; reviewed by admins only.</summary>
+public sealed class DoctorLicenseDocument : Entity
+{
+    public Guid DoctorId { get; set; }
+    public Doctor? Doctor { get; set; }
+    public required string FileName { get; set; }
+    public required string ContentType { get; set; }
+    public long SizeBytes { get; set; }
+    public required byte[] Content { get; set; }
+}
+
 public sealed class DoctorVerificationLog : Entity
 {
     public Guid DoctorId { get; set; }

@@ -3,10 +3,11 @@ import { useState, useEffect } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { z } from 'zod'
+import { isAxiosError } from 'axios'
 
-import { apiClient, type FamilyDto } from '../../services/apiClient'
+import { apiClient } from '../../services/apiClient'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
-import { signIn, registerFamilyUser, registerDoctorUser, signedIn } from '../../store/slices/authSlice'
+import { completeRegistration, signIn, registerDoctorUser } from '../../store/slices/authSlice'
 import { AuthStepper, type StepDef } from '../../components/auth/AuthStepper'
 import loginBg from '../../assets/Loging.webp'
 import registerBg from '../../assets/Register.webp'
@@ -18,14 +19,41 @@ const signInSchema = z.object({
 })
 
 const accountSchema = z.object({
-  displayName: z.string().trim().min(1, 'Enter your display name.').max(120),
+  displayName: z.string().trim().regex(/^[\p{L}][\p{L} .'-]{1,119}$/u, 'Enter your full name (2–120 letters; spaces, dots, apostrophes and hyphens allowed).'),
   email: z.string().email('Enter a valid email address.'),
-  password: z.string().min(12, 'Use at least 12 characters.').max(128),
+  mobileNumber: z.string().trim().regex(/^(?:0|\+94)7\d{8}$/, 'Enter a Sri Lankan mobile number, e.g. 0771234567 or +94771234567.'),
+  password: z.string().min(8, 'Password must be 8–128 characters with upper and lower case letters, a number and a symbol.').max(128)
+    .regex(/[A-Z]/, 'Password must include an uppercase letter.')
+    .regex(/[a-z]/, 'Password must include a lowercase letter.')
+    .regex(/\d/, 'Password must include a number.')
+    .regex(/[^A-Za-z0-9]/, 'Password must include a symbol.'),
   confirm: z.string().min(1, 'Confirm your password.'),
 }).refine((d) => d.password === d.confirm, {
   message: 'Passwords do not match.',
   path: ['confirm'],
 })
+
+const districts = ['Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo', 'Galle', 'Gampaha', 'Hambantota', 'Jaffna', 'Kalutara', 'Kandy', 'Kegalle', 'Kilinochchi', 'Kurunegala', 'Mannar', 'Matale', 'Matara', 'Monaragala', 'Mullaitivu', 'Nuwara Eliya', 'Polonnaruwa', 'Puttalam', 'Ratnapura', 'Trincomalee', 'Vavuniya'] as const
+const relationships = ['Spouse', 'Son', 'Daughter', 'Parent', 'Sibling', 'Other'] as const
+const clinicalSexes = ['Male', 'Female', 'NotSpecified'] as const
+type FieldErrors = Record<string, string>
+
+function problemDetailsErrors(error: unknown): FieldErrors {
+  if (typeof error === 'object' && error !== null && 'fields' in error) {
+    const fields = (error as { fields?: Record<string, string[]> }).fields
+    if (fields) return Object.fromEntries(Object.entries(fields).map(([field, messages]) => [normaliseField(field), messages[0] ?? 'Check this field.']))
+  }
+  if (!isAxiosError(error)) return {}
+  const data = error.response?.data as { errors?: Record<string, string[]>; detail?: string; title?: string } | undefined
+  if (!data) return {}
+  if (data.errors) return Object.fromEntries(Object.entries(data.errors).map(([field, messages]) => [normaliseField(field), messages[0] ?? 'Check this field.']))
+  return data.detail || data.title ? { form: data.detail ?? data.title ?? 'Registration failed.' } : {}
+}
+
+function normaliseField(field: string) {
+  const key = field.replace(/^.*\./, '').toLowerCase()
+  return key === 'fullname' ? 'displayname' : key
+}
 
 export function AuthPage() {
   const dispatch = useAppDispatch()
@@ -48,20 +76,32 @@ export function AuthPage() {
   // Account Details
   const [regName, setRegName] = useState('')
   const [regEmail, setRegEmail] = useState('')
+  const [mobileNumber, setMobileNumber] = useState('')
   const [regPassword, setRegPassword] = useState('')
   const [regConfirm, setRegConfirm] = useState('')
   
   // Role Details
   const [familyName, setFamilyName] = useState('')
   const [dateOfBirth, setDateOfBirth] = useState('')
+  const [sexForClinicalReference, setSexForClinicalReference] = useState('')
+  const [addressLine1, setAddressLine1] = useState('')
+  const [addressLine2, setAddressLine2] = useState('')
+  const [city, setCity] = useState('')
+  const [district, setDistrict] = useState('')
+  const [postalCode, setPostalCode] = useState('')
+  const [nationalId, setNationalId] = useState('')
+  const [acceptTerms, setAcceptTerms] = useState(false)
   
-  const [connectionMethod, setConnectionMethod] = useState<'INVITATION' | 'LATER'>('INVITATION')
+  const [connectionMethod, setConnectionMethod] = useState<'INVITATION' | 'FAMILY_CODE' | 'LATER'>('INVITATION')
   const [invitationToken, setInvitationToken] = useState('')
+  const [familyCode, setFamilyCode] = useState('')
+  const [relationship, setRelationship] = useState('')
   
   const [regNum, setRegNum] = useState('')
   const [specialty, setSpecialty] = useState('')
   
   const [regError, setRegError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
 
   useEffect(() => {
     setMode(location.pathname.includes('/register') ? 'register' : 'login')
@@ -102,28 +142,54 @@ export function AuthPage() {
 
   const handleNextStep = () => {
     setRegError('')
+    setFieldErrors({})
+    // Doctors use the dedicated multi-step form: professional details, licence upload and review.
+    if (regStep === 0 && role === 'DOCTOR') {
+      navigate('/register/doctor')
+      return
+    }
     if (regStep === 1) {
-      const parsed = accountSchema.safeParse({ displayName: regName, email: regEmail, password: regPassword, confirm: regConfirm })
+      const parsed = accountSchema.safeParse({ displayName: regName, email: regEmail, mobileNumber, password: regPassword, confirm: regConfirm })
       if (!parsed.success) {
-        setRegError(parsed.error.issues[0]?.message ?? 'Check your details.')
+        setFieldErrors(Object.fromEntries(parsed.error.issues.map((issue) => [issue.path[0]?.toString().toLowerCase() ?? 'form', issue.message])))
+        setRegError('Check the highlighted details.')
         return
       }
     }
     
     if (regStep === 2) {
       if (role === 'FAMILY_HEAD') {
-        if (!dateOfBirth) { setRegError('Date of birth is required.'); return }
-        if (!familyName) { setRegError('Family workspace name is required.'); return }
-      } else if (role === 'MEMBER') {
-        if (!dateOfBirth) { setRegError('Date of birth is required.'); return }
+        if (!familyName.trim()) { setFieldErrors({ familyname: 'Family name is required.' }); setRegError('Check the highlighted details.'); return }
       } else if (role === 'DOCTOR') {
         if (!regNum || regNum.length < 4) { setRegError('Enter a valid SLMC registration number.'); return }
+      }
+
+      if (role !== 'DOCTOR') {
+        const errors: FieldErrors = {}
+        const dob = new Date(`${dateOfBirth}T00:00:00`)
+        const adultCutoff = new Date()
+        adultCutoff.setFullYear(adultCutoff.getFullYear() - 18)
+        if (!dateOfBirth || Number.isNaN(dob.valueOf()) || dob < new Date('1900-01-01') || dob >= new Date()) errors.dateofbirth = 'Enter a valid date of birth.'
+        else if (dob > adultCutoff) errors.dateofbirth = 'You must be at least 18 years old to register.'
+        if (!clinicalSexes.includes(sexForClinicalReference as typeof clinicalSexes[number])) errors.sexforclinicalreference = 'Choose Male, Female or Not specified.'
+        if (!addressLine1.trim()) errors.addressline1 = 'Address line 1 is required.'
+        else if (addressLine1.trim().length > 120) errors.addressline1 = 'Address line 1 must be 120 characters or fewer.'
+        if (addressLine2.length > 120) errors.addressline2 = 'Address line 2 must be 120 characters or fewer.'
+        if (!city.trim()) errors.city = 'City is required.'
+        else if (city.trim().length > 80) errors.city = 'City must be 80 characters or fewer.'
+        if (!districts.includes(district as typeof districts[number])) errors.district = 'Choose a district.'
+        if (postalCode && !/^\d{5}$/.test(postalCode.trim())) errors.postalcode = 'Postal code must be 5 digits.'
+        if (role === 'FAMILY_HEAD' && !/^(?:\d{9}[VvXx]|\d{12})$/.test(nationalId.trim())) errors.nationalid = 'Enter a synthetic NIC: 9 digits followed by V or X, or 12 digits.'
+        if (Object.keys(errors).length) { setFieldErrors(errors); setRegError('Check the highlighted details.'); return }
       }
     }
 
     if (regStep === 3 && role === 'MEMBER') {
       if (connectionMethod === 'INVITATION' && !invitationToken) {
-        setRegError('Invitation token is required.'); return
+        setFieldErrors({ 'connection.invitationtoken': 'Enter your invitation token.' }); setRegError('Check the highlighted details.'); return
+      }
+      if (connectionMethod === 'FAMILY_CODE' && (!/^FV-[A-HJ-NP-Z2-9]{6}$/.test(familyCode.trim().toUpperCase()) || !relationship)) {
+        setFieldErrors({ ...(familyCode ? {} : { 'connection.familycode': 'Family codes look like FV-ABC234.' }), ...(relationship ? {} : { 'connection.relationship': 'Choose your relationship to the family.' }) }); setRegError('Check the highlighted details.'); return
       }
     }
 
@@ -133,23 +199,17 @@ export function AuthPage() {
   async function handleRegister(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setRegError('')
+    setFieldErrors({})
+
+    if (role !== 'DOCTOR' && !acceptTerms) {
+      setFieldErrors({ acceptterms: 'Accept the terms and privacy notice to continue.' })
+      setRegError('Check the highlighted details.')
+      return
+    }
 
     try {
-      // Step 1: Create Identity
-      let currentUser = user
-      if (!currentUser) {
-        if (role === 'DOCTOR') {
-          const res = await dispatch(registerDoctorUser({ displayName: regName, email: regEmail, password: regPassword })).unwrap()
-          currentUser = res
-        } else {
-          const res = await dispatch(registerFamilyUser({ displayName: regName, email: regEmail, password: regPassword })).unwrap()
-          currentUser = res
-        }
-      }
-      if (!currentUser) throw new Error('Account creation failed')
-
-      // Step 2: Role Specific Onboarding
       if (role === 'DOCTOR') {
+        if (!user) await dispatch(registerDoctorUser({ displayName: regName, email: regEmail, password: regPassword })).unwrap()
         try { 
           await apiClient.post('/doctors/register', { registrationNumber: regNum.trim(), specialty: specialty.trim() || null }) 
         } catch { 
@@ -159,27 +219,29 @@ export function AuthPage() {
         navigate('/doctor-status', { replace: true })
       } 
       else if (role === 'FAMILY_HEAD') {
-        let family: FamilyDto
-        try { family = (await apiClient.get<FamilyDto>('/families/me')).data } 
-        catch { family = (await apiClient.post<FamilyDto>('/families', { name: familyName })).data }
-        await apiClient.post(`/families/${family.id}/members`, { displayName: currentUser.name, dateOfBirth, role: 'Head', userId: currentUser.id })
-        dispatch(signedIn({ ...currentUser, role: 'FAMILY_HEAD' }))
+        await dispatch(completeRegistration({ path: '/auth/register/family-head', body: registrationBody() })).unwrap()
         navigate('/dashboard', { replace: true })
       } 
       else if (role === 'MEMBER') {
-        if (connectionMethod === 'INVITATION') {
-          await apiClient.post('/families/invitations/accept', { token: invitationToken.trim(), dateOfBirth })
-          dispatch(signedIn({ ...currentUser, role: 'MEMBER' }))
-          navigate('/dashboard', { replace: true })
-        } else {
-          // Join Later
-          navigate('/onboarding', { replace: true })
-        }
+        await dispatch(completeRegistration({ path: '/auth/register/adult-member', body: registrationBody() })).unwrap()
+        navigate(connectionMethod === 'LATER' ? '/onboarding' : '/dashboard', { replace: true })
       }
     } catch (err) {
-      setRegError(err instanceof Error ? err.message : 'Registration failed. Check details.')
+      const errors = problemDetailsErrors(err)
+      setFieldErrors(errors)
+      setRegError(errors.form ?? (err instanceof Error ? err.message : 'Registration failed. Check details.'))
     }
   }
+
+  function registrationBody() {
+    const account = { fullName: regName.trim(), email: regEmail.trim(), mobileNumber: mobileNumber.trim(), password: regPassword, confirmPassword: regConfirm }
+    const personal = { dateOfBirth, sexForClinicalReference }
+    const address = { addressLine1: addressLine1.trim(), addressLine2: addressLine2.trim() || null, city: city.trim(), district, postalCode: postalCode.trim() || null }
+    if (role === 'FAMILY_HEAD') return { account, personal, familyName: familyName.trim(), nationalId: nationalId.trim(), address, acceptTerms }
+    return { account, personal, address, connection: { method: connectionMethod === 'FAMILY_CODE' ? 'FamilyCode' : connectionMethod === 'INVITATION' ? 'Invitation' : 'Later', invitationToken: connectionMethod === 'INVITATION' ? invitationToken.trim() : null, familyCode: connectionMethod === 'FAMILY_CODE' ? familyCode.trim().toUpperCase() : null, relationship: connectionMethod === 'FAMILY_CODE' ? relationship : null }, acceptTerms }
+  }
+
+  const fieldError = (field: string) => fieldErrors[field] && <p role="alert" style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '4px' }}>{fieldErrors[field]}</p>
 
   const mainBg = mode === 'login' ? loginBg : registerBg;
   const textBg = mode === 'login' ? registerBg : loginBg;
@@ -280,22 +342,27 @@ export function AuthPage() {
                   <div className="auth-form-group">
                     <label htmlFor="reg-name">Full Name</label>
                     <input id="reg-name" className="auth-form-input" value={regName} required autoComplete="name" onChange={(e) => setRegName(e.target.value)} />
+                    {fieldError('displayname')}
                   </div>
                   <div className="auth-form-group">
                     <label htmlFor="reg-email">Email Address</label>
                     <input id="reg-email" type="email" className="auth-form-input" value={regEmail} required autoComplete="email" onChange={(e) => setRegEmail(e.target.value)} />
+                    {fieldError('email')}
                   </div>
-                  <div className="auth-form-group" style={{ opacity: 0.5 }}>
-                    <label>Mobile Number <em>(Coming Soon)</em></label>
-                    <input className="auth-form-input" disabled placeholder="Not currently supported by API" />
+                  <div className="auth-form-group">
+                    <label htmlFor="reg-mobile">Mobile Number</label>
+                    <input id="reg-mobile" type="tel" className="auth-form-input" value={mobileNumber} required autoComplete="tel" placeholder="0771234567" onChange={(e) => setMobileNumber(e.target.value)} />
+                    {fieldError('mobilenumber')}
                   </div>
                   <div className="auth-form-group">
                     <label htmlFor="reg-password">Create Password</label>
-                    <input id="reg-password" type="password" className="auth-form-input" value={regPassword} required minLength={12} onChange={(e) => setRegPassword(e.target.value)} />
+                    <input id="reg-password" type="password" className="auth-form-input" value={regPassword} required minLength={8} onChange={(e) => setRegPassword(e.target.value)} />
+                    {fieldError('password')}
                   </div>
                   <div className="auth-form-group">
                     <label htmlFor="reg-confirm">Confirm Password</label>
                     <input id="reg-confirm" type="password" className="auth-form-input" value={regConfirm} required onChange={(e) => setRegConfirm(e.target.value)} />
+                    {fieldError('confirm')}
                   </div>
                 </div>
               )}
@@ -313,26 +380,65 @@ export function AuthPage() {
                         <label htmlFor="reg-specialty">Specialty / Designation</label>
                         <input id="reg-specialty" className="auth-form-input" value={specialty} onChange={(e) => setSpecialty(e.target.value)} />
                       </div>
-                      <div className="auth-form-group" style={{ opacity: 0.5 }}>
-                        <label>Hospital / Practice City / District <em>(Coming Soon)</em></label>
-                        <input className="auth-form-input" disabled placeholder="Fields require API support" />
-                      </div>
                     </>
                   ) : (
                     <>
                       <div className="auth-form-group">
                         <label htmlFor="reg-dob">Date of Birth</label>
                         <input id="reg-dob" type="date" className="auth-form-input" value={dateOfBirth} required onChange={(e) => setDateOfBirth(e.target.value)} />
+                        {fieldError('dateofbirth')}
+                      </div>
+                      <div className="auth-form-group">
+                        <label htmlFor="reg-sex">Clinical Sex Reference</label>
+                        <select id="reg-sex" className="auth-form-input" value={sexForClinicalReference} required onChange={(e) => setSexForClinicalReference(e.target.value)}>
+                          <option value="">Select an option</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="NotSpecified">Not specified</option>
+                        </select>
+                        {fieldError('sexforclinicalreference')}
                       </div>
                       {role === 'FAMILY_HEAD' && (
-                        <div className="auth-form-group">
-                          <label htmlFor="reg-fam-name">Family Workspace Name</label>
-                          <input id="reg-fam-name" className="auth-form-input" value={familyName} required onChange={(e) => setFamilyName(e.target.value)} />
-                        </div>
+                        <>
+                          <div className="auth-form-group">
+                            <label htmlFor="reg-fam-name">Family Workspace Name</label>
+                            <input id="reg-fam-name" className="auth-form-input" value={familyName} required onChange={(e) => setFamilyName(e.target.value)} />
+                            {fieldError('familyname')}
+                          </div>
+                          <div className="auth-form-group">
+                            <label htmlFor="reg-nic">Synthetic NIC</label>
+                            <input id="reg-nic" className="auth-form-input" value={nationalId} required onChange={(e) => setNationalId(e.target.value)} />
+                            {fieldError('nationalid')}
+                          </div>
+                        </>
                       )}
-                      <div className="auth-form-group" style={{ opacity: 0.5 }}>
-                        <label>Address & NIC <em>(Coming Soon)</em></label>
-                        <input className="auth-form-input" disabled placeholder="Fields require API support" />
+                      <div className="auth-form-group">
+                        <label htmlFor="reg-address1">Address Line 1</label>
+                        <input id="reg-address1" className="auth-form-input" value={addressLine1} required autoComplete="address-line1" onChange={(e) => setAddressLine1(e.target.value)} />
+                        {fieldError('addressline1')}
+                      </div>
+                      <div className="auth-form-group">
+                        <label htmlFor="reg-address2">Address Line 2 <em>(optional)</em></label>
+                        <input id="reg-address2" className="auth-form-input" value={addressLine2} autoComplete="address-line2" onChange={(e) => setAddressLine2(e.target.value)} />
+                        {fieldError('addressline2')}
+                      </div>
+                      <div className="auth-form-group">
+                        <label htmlFor="reg-city">City</label>
+                        <input id="reg-city" className="auth-form-input" value={city} required autoComplete="address-level2" onChange={(e) => setCity(e.target.value)} />
+                        {fieldError('city')}
+                      </div>
+                      <div className="auth-form-group">
+                        <label htmlFor="reg-district">District</label>
+                        <select id="reg-district" className="auth-form-input" value={district} required onChange={(e) => setDistrict(e.target.value)}>
+                          <option value="">Select district</option>
+                          {districts.map((item) => <option key={item} value={item}>{item}</option>)}
+                        </select>
+                        {fieldError('district')}
+                      </div>
+                      <div className="auth-form-group">
+                        <label htmlFor="reg-postal">Postal Code <em>(optional)</em></label>
+                        <input id="reg-postal" inputMode="numeric" className="auth-form-input" value={postalCode} autoComplete="postal-code" onChange={(e) => setPostalCode(e.target.value)} />
+                        {fieldError('postalcode')}
                       </div>
                     </>
                   )}
@@ -344,26 +450,51 @@ export function AuthPage() {
                 <div>
                   {role === 'MEMBER' && (
                     <>
-                      <div 
+                      <div
                         className={`auth-role-card ${connectionMethod === 'INVITATION' ? 'selected' : ''}`}
                         onClick={() => setConnectionMethod('INVITATION')}
                       >
                         <div className="auth-role-title">Option A — I have an Invitation</div>
                         <div className="auth-role-desc">Enter a token provided by a Family Head.</div>
                       </div>
-                      <div 
+                      <div
+                        className={`auth-role-card ${connectionMethod === 'FAMILY_CODE' ? 'selected' : ''}`}
+                        onClick={() => setConnectionMethod('FAMILY_CODE')}
+                      >
+                        <div className="auth-role-title">Option B — I have a Family Code</div>
+                        <div className="auth-role-desc">Request to join a family using its shared code.</div>
+                      </div>
+                      <div
                         className={`auth-role-card ${connectionMethod === 'LATER' ? 'selected' : ''}`}
                         onClick={() => setConnectionMethod('LATER')}
                       >
                         <div className="auth-role-title">Option C — Join Later</div>
                         <div className="auth-role-desc">Create independent account and join a family later.</div>
                       </div>
-                      
+
                       {connectionMethod === 'INVITATION' && (
                         <div className="auth-form-group" style={{ marginTop: '16px' }}>
                           <label htmlFor="reg-token">Invitation Token</label>
                           <input id="reg-token" className="auth-form-input" value={invitationToken} required onChange={(e) => setInvitationToken(e.target.value)} />
+                          {fieldError('connection.invitationtoken')}
                         </div>
+                      )}
+                      {connectionMethod === 'FAMILY_CODE' && (
+                        <>
+                          <div className="auth-form-group" style={{ marginTop: '16px' }}>
+                            <label htmlFor="reg-family-code">Family Code</label>
+                            <input id="reg-family-code" className="auth-form-input" value={familyCode} required placeholder="FV-ABC234" onChange={(e) => setFamilyCode(e.target.value)} />
+                            {fieldError('connection.familycode')}
+                          </div>
+                          <div className="auth-form-group">
+                            <label htmlFor="reg-relationship">Relationship</label>
+                            <select id="reg-relationship" className="auth-form-input" value={relationship} required onChange={(e) => setRelationship(e.target.value)}>
+                              <option value="">Select relationship</option>
+                              {relationships.map((item) => <option key={item} value={item}>{item}</option>)}
+                            </select>
+                            {fieldError('connection.relationship')}
+                          </div>
+                        </>
                       )}
                     </>
                   )}
@@ -374,10 +505,6 @@ export function AuthPage() {
                         Your professional profile will be reviewed by an administrator before clinical access is enabled. 
                         Do not expect immediate access.
                       </p>
-                      <div style={{ marginTop: '16px', opacity: 0.5 }}>
-                        <label>Medical License Upload <em>(Coming Soon)</em></label>
-                        <input className="auth-form-input" disabled placeholder="Document upload requires API support" />
-                      </div>
                     </div>
                   )}
                   {role === 'FAMILY_HEAD' && (
@@ -385,9 +512,11 @@ export function AuthPage() {
                       <p><strong>Account:</strong> {regName} ({regEmail})</p>
                       <p><strong>Workspace:</strong> {familyName}</p>
                       <p><strong>Date of Birth:</strong> {dateOfBirth}</p>
-                      <p style={{ marginTop: '12px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)' }}>
-                        By creating an account, you agree to our Terms of Service and Privacy Policy.
-                      </p>
+                      <label style={{ display: 'flex', gap: '8px', marginTop: '12px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>
+                        <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} />
+                        I accept the Terms of Service and Privacy Policy.
+                      </label>
+                      {fieldError('acceptterms')}
                     </div>
                   )}
                 </div>
@@ -400,7 +529,12 @@ export function AuthPage() {
                     <div className="auth-review-list">
                       <p><strong>Account:</strong> {regName} ({regEmail})</p>
                       <p><strong>Date of Birth:</strong> {dateOfBirth}</p>
-                      <p><strong>Connection:</strong> {connectionMethod === 'INVITATION' ? `Joining via Token (${invitationToken})` : 'Joining Later'}</p>
+                      <p><strong>Connection:</strong> {connectionMethod === 'INVITATION' ? `Joining via Token (${invitationToken})` : connectionMethod === 'FAMILY_CODE' ? `Requesting via Family Code (${familyCode})` : 'Joining Later'}</p>
+                      <label style={{ display: 'flex', gap: '8px', marginTop: '12px', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>
+                        <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} />
+                        I accept the Terms of Service and Privacy Policy.
+                      </label>
+                      {fieldError('acceptterms')}
                     </div>
                   )}
                   {role === 'DOCTOR' && (

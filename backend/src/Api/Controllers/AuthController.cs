@@ -26,6 +26,53 @@ public sealed class AuthController(IAuthService authService) : ApiControllerBase
         return Created($"/api/v1/users/{response.UserId}", response);
     }
 
+    // ===== Role-specific atomic registration (FamilyVeda Registration Flows) =====
+    [HttpPost("register/family-head")]
+    [AllowAnonymous]
+    [ProducesResponseType<AuthResponse>(StatusCodes.Status201Created)]
+    public async Task<ActionResult<AuthResponse>> RegisterFamilyHead(
+        RegisterFamilyHeadRequest request, IValidator<RegisterFamilyHeadRequest> validator,
+        [FromServices] IRegistrationService registrationService, CancellationToken cancellationToken)
+    {
+        await ValidateAsync(validator, request, cancellationToken);
+        var response = await registrationService.RegisterFamilyHeadAsync(request, cancellationToken);
+        return Created($"/api/v1/users/{response.UserId}", response);
+    }
+
+    [HttpPost("register/adult-member")]
+    [AllowAnonymous]
+    [ProducesResponseType<RegistrationResult>(StatusCodes.Status201Created)]
+    public async Task<ActionResult<RegistrationResult>> RegisterAdultMember(
+        RegisterAdultMemberRequest request, IValidator<RegisterAdultMemberRequest> validator,
+        [FromServices] IRegistrationService registrationService, CancellationToken cancellationToken)
+    {
+        await ValidateAsync(validator, request, cancellationToken);
+        var response = await registrationService.RegisterAdultMemberAsync(request, cancellationToken);
+        return Created($"/api/v1/users/{response.Auth.UserId}", response);
+    }
+
+    [HttpPost("register/doctor")]
+    [AllowAnonymous]
+    [Consumes("multipart/form-data")]
+    [RequestFormLimits(MultipartBodyLengthLimit = RegistrationReference.MaxLicenseBytes + 65_536)]
+    [ProducesResponseType<AuthResponse>(StatusCodes.Status201Created)]
+    public async Task<ActionResult<AuthResponse>> RegisterDoctor(
+        [FromForm] DoctorRegistrationForm form, IValidator<RegisterDoctorAccountRequest> validator,
+        [FromServices] IRegistrationService registrationService, CancellationToken cancellationToken)
+    {
+        var request = form.ToRequest();
+        await ValidateAsync(validator, request, cancellationToken);
+        if (form.LicenseDocument is null)
+        {
+            throw new Application.Common.ValidationException(new Dictionary<string, string[]> { ["licenseDocument"] = ["Upload your licence or registration document."] });
+        }
+        await using var stream = form.LicenseDocument.OpenReadStream();
+        var response = await registrationService.RegisterDoctorAsync(request,
+            new LicenseDocumentUpload(form.LicenseDocument.FileName, form.LicenseDocument.ContentType, form.LicenseDocument.Length, stream),
+            cancellationToken);
+        return Created($"/api/v1/users/{response.UserId}", response);
+    }
+
     [HttpPost("login")]
     [AllowAnonymous]
     public async Task<ActionResult<AuthResponse>> Login(
@@ -114,4 +161,26 @@ public sealed class AuthController(IAuthService authService) : ApiControllerBase
     {
         return Ok(await authService.AdminToggleUserStatusAsync(userId, request, cancellationToken));
     }
+}
+
+/// <summary>Multipart shape for doctor registration (licence document + fields).</summary>
+public sealed class DoctorRegistrationForm
+{
+    public string FullName { get; init; } = string.Empty;
+    public string Email { get; init; } = string.Empty;
+    public string MobileNumber { get; init; } = string.Empty;
+    public string Password { get; init; } = string.Empty;
+    public string ConfirmPassword { get; init; } = string.Empty;
+    public string RegistrationNumber { get; init; } = string.Empty;
+    public string Specialization { get; init; } = string.Empty;
+    public string HospitalClinic { get; init; } = string.Empty;
+    public string PracticeCity { get; init; } = string.Empty;
+    public string District { get; init; } = string.Empty;
+    public List<string> Languages { get; init; } = [];
+    public bool AcceptTerms { get; init; }
+    public IFormFile? LicenseDocument { get; init; }
+
+    public RegisterDoctorAccountRequest ToRequest() => new(
+        new AccountDetails(FullName, Email, MobileNumber, Password, ConfirmPassword),
+        RegistrationNumber, Specialization, HospitalClinic, PracticeCity, District, Languages, AcceptTerms);
 }

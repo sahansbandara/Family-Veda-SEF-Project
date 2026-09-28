@@ -16,10 +16,17 @@ class AuthTokens {
   final String refreshToken;
 }
 
-abstract interface class AuthApi {
+abstract class AuthApi {
   Future<AuthTokens> login({required String email, required String password});
   Future<AuthTokens> refresh(String refreshToken);
   Future<void> logout();
+
+  Future<AuthTokens> registerFamilyHead(Map<String, dynamic> body) =>
+      throw UnsupportedError('Role registration is unavailable.');
+  Future<AuthTokens> registerAdultMember(Map<String, dynamic> body) =>
+      throw UnsupportedError('Role registration is unavailable.');
+  Future<AuthTokens> registerDoctor(FormData body) =>
+      throw UnsupportedError('Role registration is unavailable.');
 }
 
 class DioAuthApi implements AuthApi {
@@ -62,11 +69,51 @@ class DioAuthApi implements AuthApi {
 
   @override
   Future<void> logout() => _client.dio.post<void>('/auth/logout');
+
+  AuthTokens _tokens(Map<String, dynamic>? data) {
+    if (data == null) {
+      throw const FormatException('Empty registration response');
+    }
+    return AuthTokens(
+      userId: data['userId'] as String,
+      accessToken: data['accessToken'] as String,
+      refreshToken: data['refreshToken'] as String,
+    );
+  }
+
+  @override
+  Future<AuthTokens> registerFamilyHead(Map<String, dynamic> body) async =>
+      _tokens(
+        (await _client.dio.post<Map<String, dynamic>>(
+          '/auth/register/family-head',
+          data: body,
+        )).data,
+      );
+  @override
+  Future<AuthTokens> registerAdultMember(Map<String, dynamic> body) async {
+    final data = (await _client.dio.post<Map<String, dynamic>>(
+      '/auth/register/adult-member',
+      data: body,
+    )).data;
+    return _tokens(data?['auth'] as Map<String, dynamic>?);
+  }
+
+  @override
+  Future<AuthTokens> registerDoctor(FormData body) async => _tokens(
+    (await _client.dio.post<Map<String, dynamic>>(
+      '/auth/register/doctor',
+      data: body,
+    )).data,
+  );
 }
 
 String userFacingApiError(Object error) {
   if (error is DioException) {
     final status = error.response?.statusCode;
+    final fields = apiValidationErrors(error);
+    if (fields.isNotEmpty) {
+      return 'Please correct the highlighted fields.';
+    }
     if (status == 401) return 'Email or password is incorrect.';
     if (status == 403) return 'Your account cannot access this feature.';
     if (status != null && status >= 500) {
@@ -74,4 +121,18 @@ String userFacingApiError(Object error) {
     }
   }
   return 'Could not connect. Check your connection and try again.';
+}
+
+/// Extracts ASP.NET ProblemDetails validation messages without exposing server
+/// internals. Keys are kept so the registration form can place them by field.
+Map<String, String> apiValidationErrors(Object error) {
+  if (error is! DioException || error.response?.statusCode != 400) return {};
+  final data = error.response?.data;
+  if (data is! Map) return {};
+  final errors = data['errors'];
+  if (errors is! Map) return {};
+  return errors.map<String, String>((key, value) {
+    final messages = value is List ? value : [value];
+    return MapEntry(key.toString().toLowerCase(), messages.first.toString());
+  });
 }

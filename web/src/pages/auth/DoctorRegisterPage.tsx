@@ -11,9 +11,8 @@ import { useState, useId } from 'react'
 import { Navigate, useNavigate, Link } from 'react-router-dom'
 import { z } from 'zod'
 
-import { apiClient } from '../../services/apiClient'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
-import { registerDoctorUser } from '../../store/slices/authSlice'
+import { completeRegistration } from '../../store/slices/authSlice'
 import { AuthHero } from '../../components/auth/AuthHero'
 import { AuthStepper } from '../../components/auth/AuthStepper'
 import { PasswordField } from '../../components/auth/PasswordField'
@@ -21,6 +20,8 @@ import logoUrl from '../../assets/logo.png'
 import registerBg from '../../assets/Register.webp'
 
 import '../../styles/auth-shell.css'
+
+const districts = ['Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo', 'Galle', 'Gampaha', 'Hambantota', 'Jaffna', 'Kalutara', 'Kandy', 'Kegalle', 'Kilinochchi', 'Kurunegala', 'Mannar', 'Matale', 'Matara', 'Monaragala', 'Mullaitivu', 'Nuwara Eliya', 'Polonnaruwa', 'Puttalam', 'Ratnapura', 'Trincomalee', 'Vavuniya']
 
 // ── Validation schemas ────────────────────────────────────────────────────────
 
@@ -73,6 +74,10 @@ export function DoctorRegisterPage() {
   const [specialty,          setSpecialty]          = useState('')
   const [hospitalClinic,     setHospitalClinic]     = useState('')
   const [phoneNumber,        setPhoneNumber]        = useState('')
+  const [practiceCity, setPracticeCity] = useState('')
+  const [district, setDistrict] = useState('')
+  const [licenseDocument, setLicenseDocument] = useState<File | null>(null)
+  const [languages, setLanguages] = useState<string[]>(['English'])
 
   // Error + loading
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
@@ -140,36 +145,14 @@ export function DoctorRegisterPage() {
     setSubmitting(true)
 
     try {
-      // Phase 1: create the user account
-      const authResult = await dispatch(
-        registerDoctorUser({ displayName, email, password })
-      )
-
-      if (!registerDoctorUser.fulfilled.match(authResult)) {
-        setApiError(authResult.payload ?? 'Account creation failed. Check your details and try again.')
-        setStep(0)
-        setSubmitting(false)
-        return
-      }
-
-      // Phase 2: POST doctor professional profile
-      try {
-        await apiClient.post('/doctors/register', {
-          registrationNumber: registrationNumber.trim(),
-          specialty:     specialty.trim()     || null,
-          hospitalClinic: hospitalClinic.trim() || null,
-          phoneNumber:   phoneNumber.trim()   || null,
-        })
-      } catch {
-        // Account created but profile incomplete — surface non-fatal error
-        setApiError(
-          'Your account was created, but the professional profile could not be saved. ' +
-          'You can complete it after verification.'
-        )
-        navigate('/doctor-status', { replace: true })
-        return
-      }
-
+      if (!licenseDocument) { setApiError('Upload a PDF, PNG or JPEG licence document (up to 5 MB).'); return }
+      const form = new FormData()
+      form.append('fullName', displayName); form.append('email', email); form.append('mobileNumber', phoneNumber)
+      form.append('password', password); form.append('confirmPassword', confirm); form.append('registrationNumber', registrationNumber)
+      form.append('specialization', specialty); form.append('hospitalClinic', hospitalClinic); form.append('practiceCity', practiceCity)
+      form.append('district', district); languages.forEach((language) => form.append('languages', language)); form.append('acceptTerms', 'true'); form.append('licenseDocument', licenseDocument)
+      const result = await dispatch(completeRegistration({ path: '/auth/register/doctor', body: form }))
+      if (!completeRegistration.fulfilled.match(result)) { setApiError(result.payload?.message ?? 'Registration failed.'); return }
       navigate('/doctor-status', { replace: true })
     } finally {
       setSubmitting(false)
@@ -252,6 +235,10 @@ export function DoctorRegisterPage() {
                     </span>
                   )}
                 </div>
+                <div className="auth-field"><label htmlFor={`${uid}-city`}>Practice city</label><input id={`${uid}-city`} value={practiceCity} required onChange={(e) => setPracticeCity(e.target.value)} /></div>
+                <div className="auth-field"><label htmlFor={`${uid}-district`}>District</label><select id={`${uid}-district`} value={district} required onChange={(e) => setDistrict(e.target.value)}><option value="">Choose a district</option>{districts.map((item) => <option key={item}>{item}</option>)}</select></div>
+                <fieldset className="auth-field auth-field-full"><legend>Languages (choose 1–3)</legend>{['Sinhala', 'Tamil', 'English'].map((language) => <label key={language}><input type="checkbox" checked={languages.includes(language)} onChange={() => setLanguages((current) => current.includes(language) ? current.filter((item) => item !== language) : current.length < 3 ? [...current, language] : current)} />{language}</label>)}</fieldset>
+                <div className="auth-field auth-field-full"><label htmlFor={`${uid}-license`}>Licence document (PDF, PNG or JPEG; max 5 MB)</label><input id={`${uid}-license`} type="file" accept="application/pdf,image/png,image/jpeg" required onChange={(e) => setLicenseDocument(e.target.files?.[0] ?? null)} /></div>
 
                 {/* Email */}
                 <div className="auth-field auth-field-full">

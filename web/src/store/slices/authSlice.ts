@@ -16,7 +16,7 @@ export type SessionUser = {
   familyCode?: string | null
 }
 
-function mapAuthResponse(data: AuthResponse): SessionUser {
+export function mapAuthResponse(data: AuthResponse): SessionUser {
   const role: UserRole = data.userType === 'Doctor'
     ? 'DOCTOR'
     : data.userType === 'Admin'
@@ -124,6 +124,23 @@ export const registerDoctorUser = createAsyncThunk<
   },
 )
 
+export type RegistrationFailure = { message: string; fields?: Record<string, string[]> }
+
+export const completeRegistration = createAsyncThunk<SessionUser, { path: string; body: unknown }, { rejectValue: RegistrationFailure }>(
+  'auth/completeRegistration',
+  async ({ path, body }, { rejectWithValue }) => {
+    try {
+      const { data } = await apiClient.post<AuthResponse | { auth: AuthResponse }>(path, body)
+      const auth = 'auth' in data ? data.auth : data
+      setSessionTokens({ accessToken: auth.accessToken, refreshToken: auth.refreshToken })
+      return mapAuthResponse(auth)
+    } catch (error: unknown) {
+      const data = (error as { response?: { data?: { errors?: Record<string, string[]>; detail?: string; title?: string } } }).response?.data
+      return rejectWithValue({ message: data?.detail ?? data?.title ?? Object.values(data?.errors ?? {}).flat()[0] ?? 'Registration failed. Check the highlighted details.', fields: data?.errors })
+    }
+  },
+)
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -163,7 +180,10 @@ const authSlice = createSlice({
     })
     .addCase(registerDoctorUser.pending, (state) => { state.status = 'loading'; state.error = null })
     .addCase(registerDoctorUser.fulfilled, (state, action) => { state.status = 'idle'; state.isAuthenticated = true; state.user = action.payload })
-    .addCase(registerDoctorUser.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload ?? 'Doctor registration failed.' }),
+    .addCase(registerDoctorUser.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload ?? 'Doctor registration failed.' })
+    .addCase(completeRegistration.pending, (state) => { state.status = 'loading'; state.error = null })
+    .addCase(completeRegistration.fulfilled, (state, action) => { state.status = 'idle'; state.isAuthenticated = true; state.user = action.payload })
+    .addCase(completeRegistration.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload?.message ?? 'Registration failed.' }),
 })
 
 export const { signedIn, signedOut } = authSlice.actions

@@ -13,7 +13,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 enum AuthStatus { loading, authenticated, unauthenticated, cleanupRequired }
 
 class AuthState {
-  const AuthState({required this.status, this.userId, this.errorMessage});
+  const AuthState({
+    required this.status,
+    this.userId,
+    this.errorMessage,
+    this.fieldErrors = const {},
+  });
 
   const AuthState.loading() : this(status: AuthStatus.loading);
   const AuthState.authenticated({required String userId})
@@ -31,6 +36,7 @@ class AuthState {
   final AuthStatus status;
   final String? userId;
   final String? errorMessage;
+  final Map<String, String> fieldErrors;
 }
 
 class AuthController extends StateNotifier<AuthState> {
@@ -110,6 +116,27 @@ class AuthController extends StateNotifier<AuthState> {
       await _clearTokensBestEffort();
       state = AuthState.unauthenticated(
         errorMessage: userFacingApiError(error),
+      );
+      return false;
+    }
+  }
+
+  Future<bool> register(Future<AuthTokens> Function() request) async {
+    state = const AuthState.loading();
+    try {
+      final tokens = await request();
+      await _tokenStore.writeTokens(
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+      );
+      state = AuthState.authenticated(userId: tokens.userId);
+      return true;
+    } on Object catch (error) {
+      await _clearTokensBestEffort();
+      state = AuthState(
+        status: AuthStatus.unauthenticated,
+        errorMessage: userFacingApiError(error),
+        fieldErrors: apiValidationErrors(error),
       );
       return false;
     }

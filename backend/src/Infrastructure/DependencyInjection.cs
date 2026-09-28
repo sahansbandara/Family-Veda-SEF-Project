@@ -32,6 +32,7 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString, npgsql => npgsql.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorCodesToAdd: null)).UseSnakeCaseNamingConvention());
         services.AddScoped<IPasswordHasher<UserAccount>, PasswordHasher<UserAccount>>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IRegistrationService>(sp => (AuthService)sp.GetRequiredService<IAuthService>());
         services.AddScoped<IFamilyService, FamilyService>();
         services.AddScoped<IRecordService, RecordService>();
         services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));

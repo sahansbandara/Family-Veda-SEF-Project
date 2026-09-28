@@ -276,6 +276,14 @@ public sealed class ClinicalService(
             catch { }
         }
 
+        // Registration profile is the source of truth; the NIC is only ever shown masked.
+        var profile = await dbContext.UserProfiles.AsNoTracking().SingleOrDefaultAsync(p => p.UserId == user.Id, cancellationToken);
+        if (profile is not null)
+        {
+            nic = MaskNationalId(profile.NationalIdLastFour);
+            address = FormatAddress(profile);
+        }
+
         if (status == VerificationStatus.Verified && string.IsNullOrEmpty(familyCode))
         {
             familyCode = $"FV-{Math.Abs(user.Id.GetHashCode()) % 9000 + 1000}";
@@ -337,6 +345,9 @@ public sealed class ClinicalService(
             .Where(a => a.ResourceType == "FamilyHead" && a.ResourceId.HasValue && userIds.Contains(a.ResourceId.Value))
             .OrderByDescending(a => a.CreatedAt)
             .ToListAsync(cancellationToken);
+        var profiles = await dbContext.UserProfiles.AsNoTracking()
+            .Where(p => userIds.Contains(p.UserId))
+            .ToDictionaryAsync(p => p.UserId, cancellationToken);
 
         var auditsByUser = auditLogs
             .GroupBy(a => a.ResourceId!.Value)
@@ -393,6 +404,12 @@ public sealed class ClinicalService(
                     if (address == null && doc.RootElement.TryGetProperty("Address", out var addrElem)) address = addrElem.GetString();
                 }
                 catch { }
+            }
+
+            if (profiles.TryGetValue(user.Id, out var profile))
+            {
+                nic = MaskNationalId(profile.NationalIdLastFour);
+                address = FormatAddress(profile);
             }
 
             if (status == VerificationStatus.Verified && string.IsNullOrEmpty(familyCode))
@@ -797,4 +814,14 @@ public sealed class ClinicalService(
         new(x.Id, x.UserId, x.RegistrationNumberLastFour, x.VerificationStatus, x.Specialty, x.HospitalClinic, x.PhoneNumber, x.User?.DisplayName, x.User?.Email, registrationNumber);
     private static ApprovalDto MapApproval(Approval x) => new(x.Id, x.TriageCaseId, x.DoctorId, x.Action, x.DecidedAt);
     private static (int Page, int PageSize) NormalizePage(int page, int pageSize) => (Math.Max(page, 1), Math.Clamp(pageSize, 1, 100));
+
+    private static string? MaskNationalId(string? lastFour) => string.IsNullOrEmpty(lastFour) ? null : $"••••{lastFour}";
+
+    private static string? FormatAddress(Domain.Identity.UserProfile profile)
+    {
+        var parts = new[] { profile.AddressLine1, profile.AddressLine2, profile.City, profile.District, profile.PostalCode }
+            .Where(x => !string.IsNullOrWhiteSpace(x));
+        var text = string.Join(", ", parts);
+        return text.Length == 0 ? null : text;
+    }
 }
