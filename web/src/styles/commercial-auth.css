@@ -393,3 +393,24 @@ select.auth-form-input option {
 .auth-page-root, .auth-page-root * {
   font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol' !important;
 }
+
+.auth-form-input:-webkit-autofill,
+.auth-form-input:-webkit-autofill:hover, 
+.auth-form-input:-webkit-autofill:focus, 
+.auth-form-input:-webkit-autofill:active {
+    transition: background-color 5000s ease-in-out 0s;
+    -webkit-text-fill-color: white !important;
+}
+
+input[type="password"].auth-form-input {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    font-size: 1.25rem !important;
+    letter-spacing: 0.15em;
+    padding-top: 8px;
+}
+
+input[type="password"].auth-form-input::placeholder {
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: 1rem !important;
+    letter-spacing: normal;
+}
