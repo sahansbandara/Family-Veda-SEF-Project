@@ -82,6 +82,23 @@ describe('AuthPage', () => {
     expect(screen.queryByLabelText('Date of Birth')).not.toBeInTheDocument()
   })
 
+  it('reviews every step with a masked NIC and edit links back to each step', () => {
+    renderAuth('/register')
+    continueRegistration()
+    completeAccount()
+    completePersonal()
+    change('Family Workspace Name', 'Synthetic Registration Family')
+    change('Synthetic NIC', '200012345678')
+    continueRegistration()
+    completeAddress()
+    expect(screen.getByText('Review your details')).toBeInTheDocument()
+    expect(screen.getByText('•••• 5678')).toBeInTheDocument()
+    expect(screen.queryByText('200012345678')).not.toBeInTheDocument()
+    expect(screen.getByText('12 Synthetic Lane')).toBeInTheDocument()
+    fireEvent.click(screen.getAllByRole('button', { name: 'Edit' })[2])
+    expect(screen.getByLabelText('Address Line 1')).toBeInTheDocument()
+  })
+
   it('renders the existing login controls', () => {
     renderAuth()
     expect(screen.getByRole('heading', { name: /Sign in/i, level: 2 })).toBeInTheDocument()
