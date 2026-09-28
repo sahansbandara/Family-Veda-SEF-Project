@@ -8,6 +8,7 @@ class Member {
     required this.displayName,
     required this.relationshipLabel,
     this.dateOfBirth,
+    this.sexForClinicalReference = 'NotSpecified',
   });
 
   factory Member.fromJson(Map<String, dynamic> json) => Member(
@@ -17,10 +18,14 @@ class Member {
         (json['relationshipLabel'] ?? json['relationship'] ?? json['role'] ?? 'Member')
             as String,
     dateOfBirth: (json['dateOfBirth'] ?? json['dob']) as String?,
+    sexForClinicalReference:
+        (json['sexForClinicalReference'] ?? 'NotSpecified') as String,
   );
 
   final String id;
   final String displayName;
   final String relationshipLabel;
   final String? dateOfBirth;
+  /// Selects the printed lab reference range only; never used to infer anything.
+  final String sexForClinicalReference;
 }

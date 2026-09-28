@@ -8,6 +8,7 @@ class HealthRecord {
     required this.type,
     required this.title,
     required this.recordedAt,
+    this.sharedWithFamilyHead = false,
   });
 
   factory HealthRecord.fromJson(Map<String, dynamic> json) => HealthRecord(
@@ -16,6 +17,7 @@ class HealthRecord {
     type: (json['type'] ?? json['recordType'] ?? 'Record') as String,
     title: (json['title'] ?? json['name'] ?? 'Health record') as String,
     recordedAt: DateTime.parse((json['recordedAt'] ?? json['occurredOn']) as String),
+    sharedWithFamilyHead: json['sharedWithFamilyHead'] == true,
   );
 
   final String id;
@@ -23,4 +25,6 @@ class HealthRecord {
   final String type;
   final String title;
   final DateTime recordedAt;
+  /// Adult owner chose to let the Family Head see this record (Phase 2). Default private.
+  final bool sharedWithFamilyHead;
 }
