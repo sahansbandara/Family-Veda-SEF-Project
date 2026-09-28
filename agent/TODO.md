@@ -4,7 +4,7 @@
 
 - [ ] Branch protection deferred by user on 2026-09-28; continue using reviewed PRs into `develop`.
 - [x] [S3] Agent orchestration PRs #4 and #12–15 merged into `develop` (verified 2026-09-28)
-- [ ] [all] PR into `develop` only from here on; never push or merge directly to `main`
+- [ ] [all] PR into `develop` only from here on; never push or merge directly to `main`. Agent may self-merge its PRs into `develop` (DECISIONS 2026-09-28c)
 
 ## Hosting (2026-09-23) — see docs/DEPLOYMENT.md for the full walkthrough
 
@@ -18,7 +18,7 @@
 
 ## Three-portal blueprint (2026-09-28) — see docs/Three_Portal_Implementation_Blueprint.md
 
-Due 2026-09-30. CORE first; FUTURE only if time remains, otherwise it goes in the report's future-work section.
+Due 2026-10-06 (extended). CORE first; FUTURE only if time remains, otherwise it goes in the report's future-work section.
 
 ### CORE
 - [x] [S4] Keep approval gate covering every patient-visible AI output; approval screen shows full draft + rule results (already true in ApprovalsPage — add a regression test)
@@ -51,12 +51,58 @@ Due 2026-09-30. CORE first; FUTURE only if time remains, otherwise it goes in th
 - [ ] Verify the exact Render backend revision and complete a synthetic doctor-account flow. The live Family Head dashboard, appointments, and notifications pages loaded on 2026-09-28; the previous notification error did not recur in this smoke check.
 - [x] [human-reported 2026-09-28] Released migration lock for `20260928_S4_ThreePortalFeatures`.
 
-### FUTURE
-- [ ] [S1+S2] Opt-in "Share with Family Head" per adult report (needs migration lock)
-- [ ] [S1] Family Code + join requests; Head transfer; Start My Own Family; leave/remove
-- [ ] [S1] Lifecycle gaps: revoke old doctor grants on leaving; minor turning 18; inactive Head recovery; sharing for vitals/cases/appointments
-- [ ] [S1/S4] Family Doctor request/change; AI doctor discovery (suggest, never "best")
-- [ ] [TBD] Appointments, availability, calendar, notifications (FCM backend-only)
-- [ ] [S2/S3] AI report explanation (doctor-gated); handwriting reader (doctor-only, RULE 6); image observations (doctor-only); health search (records-only, ACL-filtered)
-- [ ] [S3] Pre-Visit Brief (doctor-only, case-grant scoped)
-- [ ] [design] Apply mockup fixes listed in the blueprint before reusing mockups
+### REMAINING WORK AFTER PR #49 — WHOLE PROJECT, deadline 2026-10-06 (supersedes the old FUTURE list)
+
+**Scope: we complete the entire project — every component (S1–S4), backend, web, Flutter, agents, docs — not only S4's part.** See DECISIONS 2026-09-28b. `[Sx]` tags below mark the *component* (for report attribution), not who must implement it. Each phase: take the migration lock for schema changes, TDD first, PR into `develop`, and tell the component owner what changed.
+
+#### Phase 1 — Stabilise and baseline (29 Sep)
+- [ ] Retest the hosted doctor dashboard after the #49 deploy; confirm the Render revision matches `develop`.
+- [ ] Record baseline results for backend unit and integration tests, web (41/41) and Flutter (69/69) in `docs/university/`.
+- [ ] Publish the APK link with checksum and install steps.
+
+#### Phase 1b — Synthetic test data (29–30 Sep) · RULE 7: synthetic only, `example.invalid` emails
+- [ ] Extend `DatabaseInitializer` seed (still gated by `Seed:Enabled`): 3 families; Head + 2 adults + 2 minors each; 1 adult in a second family (for Start My Own Family / join flows).
+- [ ] Doctors: 3 verified (different districts, languages, Saturday availability), 1 pending, 1 suspended — for directory, discovery and verification tests.
+- [ ] Records per member: conditions, vitals series (≥6 months), lab reports with values below/within/above range and one with no range; a private and a shared adult report.
+- [ ] Family history: hereditary flags + consents in granted/revoked/not-set states.
+- [ ] Triage: one routine, one priority, one emergency (red-flag) case; cases in each approval state (pending, approved, request-info, rejected, escalated).
+- [ ] Appointments in every status; pending join request, pending doctor request, pending head transfer; unread notifications.
+- [ ] Synthetic lab-report images (typed + handwritten-style) under `docs/evidence/synthetic-inputs/` for OCR and AI-tool tests.
+- [ ] Document all demo accounts and what each one demonstrates in `docs/TESTING.md`; reset script to reseed a clean demo DB.
+- [ ] Every later phase adds its own seed rows for the feature it builds.
+
+#### Phase 2 — Member profile + adult privacy (30 Sep–1 Oct) · needs migration lock
+- [ ] [S1+S4] `Member.SexForClinicalReference` (`ClinicalSex = Male|Female|NotSpecified`) in registration, add-minor and invite-accept flows (web + Flutter).
+- [ ] [S2+S4] Per-report family sharing: `Keep Private from Family Head` by default, or `Share with Family Head`. Keep it separate from doctor consent.
+- [ ] [S4] Head sees shared adult reports only; dashboard counts and activity leak nothing. Add negative tests.
+- [ ] [S4] Report-library card: owner, collected date, visibility, extraction state, original-file status, range summary.
+
+#### Phase 3 — Family lifecycle (1–2 Oct) · needs migration lock
+- [ ] [S1] `Family.HeadMemberId`; keep `CreatedByUserId` as history.
+- [ ] [S1] `FamilyHeadTransfer`: the Head selects an adult, the adult accepts or declines, and the change applies in one transaction with audit and notifications.
+- [ ] [S1] Start My Own Family: end the old membership, keep the account and history, create a new family and code.
+- [ ] [S1] Leave Family (adult) and Remove from Family (Head); the Head must transfer the role first; revoke the old doctor grants.
+- [ ] [S1] Join requests: `Expired` status, rate limit on code attempts. Invitations: resend and cancel.
+
+#### Phase 4 — Doctor & appointments completion (2–3 Oct) · needs migration lock
+- [ ] [S4] `DoctorAvailability` + `DoctorUnavailablePeriod`; slot picker only offers free slots.
+- [ ] [S4] Doctor reschedule plus an appointment reminder notification.
+- [ ] [S4] Change Family Doctor: end the current assignment and keep its history.
+- [ ] [S4] Doctor member workspace tabs (Overview · Records · Labs · Vitals · Triage · Visits · Notes) + `ClinicalNote`. Every load checks verification, grant and consent.
+- [ ] [all] Align the navigation of all three portals with the blueprint's final menus.
+
+#### Phase 5 — Controlled AI tools (3–4 Oct) · pick the minimum; the rest goes to future work
+- [ ] [S3] Doctor Pre-Visit Brief: doctor-only, grant-scoped, schema-validated, audited, labelled "AI-generated context only".
+- [ ] [S2] AI plain-language lab explanation. Uses deterministic range status only and goes through the doctor-approval gate (RULES 1, 2, 6).
+- [ ] [S3] Ask My Health Records: structured query over allow-listed read-only tools; never reads another adult's data.
+- [ ] [S4] AI Doctor Discovery: parse preferences, apply hard filters on the backend, show "Suggested based on…", and the Head chooses.
+- [ ] [FUTURE-WORK if no time] Image observations, handwritten reader, report comparison.
+
+#### Phase 6 — Hardening + evidence (5 Oct)
+- [ ] Authorization-negative tests for every new endpoint; audit rows for every cross-profile read.
+- [ ] E2E golden flows: new household, join request, Family Doctor, private appointment, private lab report, triage, emergency (1990).
+- [ ] Full Flutter → API/agents → React approval → Flutter visual trace (synthetic accounts).
+- [ ] CI green, secret scan clean, and the blueprint's final checklist ticked.
+
+#### Phase 7 — Submit (6 Oct)
+- [ ] Freeze `develop` → `main`, tag release, report sections + AI disclosure, `SE3090_SE016` package.
