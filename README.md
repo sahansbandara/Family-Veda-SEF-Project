@@ -10,6 +10,34 @@ Longitudinal family health context and agentic clinical triage platform.
 
 **SE3090 — Software Engineering Frameworks** · SLIIT Faculty of Computing · Assignment 1 · Group **SE_016** · submission `SE3090_SE016`
 
+## Download and try
+
+| | |
+|---|---|
+| 📱 **Android APK** | [Download latest release](https://github.com/sahansbandara/Family-Veda-SEF-Project/releases/tag/apk-2026-09-28) · 159 MB · [install guide](DOWNLOAD.md) |
+| 🌐 **Web app** | <https://family-veda-web.vercel.app> |
+| 📘 **API docs** | [Swagger](https://family-veda-api.onrender.com/swagger/index.html) |
+
+Demo accounts: [Live demo access](#live-demo-access). All data is synthetic.
+
+## Table of contents
+
+1. [What it does](#what-it-does)
+2. [Architecture](#architecture)
+3. [The agentic workflow](#the-agentic-workflow)
+4. [Safety position](#safety-position)
+5. [Repository layout](#repository-layout)
+6. [Tech stack](#tech-stack)
+7. [New to .NET? Start here](#new-to-net-start-here)
+8. [Architecture in depth](#architecture-in-depth)
+9. [Run the full project locally](#run-the-full-project-locally)
+10. [Live demo access](#live-demo-access)
+11. [Testing](#testing)
+12. [Team](#team)
+13. [Documentation](#documentation)
+14. [AI use disclosure](#ai-use-disclosure)
+15. [Licence and data policy](#licence-and-data-policy)
+
 ---
 
 ## What it does
@@ -531,5 +559,7 @@ Development uses AI assistance at Level 4 (permitted, disclosed, verified). The 
 Each member maintains `docs/ai-disclosure/S<n>.md`. Individual reflections are **never AI-generated**.
 
 ## Licence and data policy
+
+See [LICENSE](LICENSE) — all rights reserved to Group SE_016; SLIIT assessors may view and run it for marking only.
 
 Academic coursework. All clinical framing is for a university software engineering project and **does not constitute medical guidance**. All data used is synthetic.
