@@ -8,6 +8,7 @@ import { z } from 'zod'
 import { apiClient, type FamilyDto } from '../../services/apiClient'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { signedIn } from '../../store/slices/authSlice'
+import { ClinicalSexSelect, type ClinicalSex } from '../../components/shared/ClinicalSexSelect'
 
 const onboardingSchema = z.object({
   familyName: z.string().trim().min(1, 'Enter a family name.').max(120),
@@ -24,6 +25,7 @@ export function OnboardingPage() {
   const user = useAppSelector((state) => state.auth.user)
   const [familyName, setFamilyName] = useState('')
   const [dateOfBirth, setDateOfBirth] = useState('')
+  const [sex, setSex] = useState<ClinicalSex>('NotSpecified')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -40,7 +42,7 @@ export function OnboardingPage() {
       } catch {
         family = (await apiClient.post<FamilyDto>('/families', { name: parsed.data.familyName })).data
       }
-      await apiClient.post(`/families/${family.id}/members`, { displayName: user.name, dateOfBirth: parsed.data.dateOfBirth, role: 'Head', userId: user.id })
+      await apiClient.post(`/families/${family.id}/members`, { displayName: user.name, dateOfBirth: parsed.data.dateOfBirth, role: 'Head', userId: user.id, sexForClinicalReference: sex })
       dispatch(signedIn({ ...user, role: 'FAMILY_HEAD' }))
       navigate('/dashboard', { replace: true })
     } catch { setError('Family setup could not be completed. Retry to resume the existing setup safely.') }
@@ -66,6 +68,7 @@ export function OnboardingPage() {
             <span>Your synthetic date of birth</span>
             <input type="date" value={dateOfBirth} onChange={(event) => setDateOfBirth(event.target.value)} />
           </label>
+          <ClinicalSexSelect value={sex} onChange={setSex} />
           {error && <p className="form-error" role="alert">{error}</p>}
           <button className="button button--primary" type="submit" disabled={saving}>
             {saving ? 'Setting up…' : 'Complete setup'}

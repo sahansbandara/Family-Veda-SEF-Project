@@ -7,6 +7,7 @@ import { apiClient } from '../../services/apiClient'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { registerFamilyUser, signedIn } from '../../store/slices/authSlice'
 import logoUrl from '../../assets/logo.png'
+import { ClinicalSexSelect, type ClinicalSex } from '../../components/shared/ClinicalSexSelect'
 
 const SRI_LANKAN_NIC_REGEX = /^([0-9]{9}[vVxX]|[0-9]{12})$/
 
@@ -80,6 +81,7 @@ export function RegisterPage() {
   const [address, setAddress] = useState('')
   const [invitationToken, setInvitationToken] = useState('')
   const [dateOfBirth, setDateOfBirth] = useState('')
+  const [sex, setSex] = useState<ClinicalSex>('NotSpecified')
   const [password, setPassword] = useState('')
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FieldKey, string>>>({})
   const [generalError, setGeneralError] = useState('')
@@ -168,6 +170,7 @@ export function RegisterPage() {
           await apiClient.post('/families/invitations/accept', {
             token: parsed.data.invitationToken.trim(),
             dateOfBirth: parsed.data.dateOfBirth,
+            sexForClinicalReference: sex,
           })
           dispatch(signedIn({ ...result.payload, role: 'MEMBER' }))
           navigate('/dashboard', { replace: true })
@@ -359,6 +362,7 @@ export function RegisterPage() {
                     <span className="field-error-text" role="alert">{fieldErrors.dateOfBirth}</span>
                   )}
                 </label>
+                <ClinicalSexSelect value={sex} onChange={setSex} />
               </>
             )}
 

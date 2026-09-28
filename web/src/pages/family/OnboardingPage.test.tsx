@@ -33,7 +33,7 @@ describe('OnboardingPage', () => {
     await waitFor(() => expect(screen.getByText('/dashboard')).toBeInTheDocument())
     expect(mocks.get).toHaveBeenCalledWith('/families/me')
     expect(mocks.post).toHaveBeenNthCalledWith(1, '/families', { name: 'Synthetic Family' })
-    expect(mocks.post).toHaveBeenNthCalledWith(2, '/families/synthetic-family-01/members', { displayName: 'Synthetic User', dateOfBirth: '1990-01-01', role: 'Head', userId: 'synthetic-user-01' })
+    expect(mocks.post).toHaveBeenNthCalledWith(2, '/families/synthetic-family-01/members', { displayName: 'Synthetic User', dateOfBirth: '1990-01-01', role: 'Head', userId: 'synthetic-user-01', sexForClinicalReference: 'NotSpecified' })
     expect(store.getState().auth.user?.role).toBe('FAMILY_HEAD')
   })
 

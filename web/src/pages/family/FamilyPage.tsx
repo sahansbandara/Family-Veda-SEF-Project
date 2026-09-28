@@ -6,6 +6,7 @@ import { isAxiosError } from 'axios'
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { StatusBadge } from '../../components/shared/StatusBadge'
 import { apiClient, type ConsentDto, type FamilyDto, type MemberDto, type RelationshipDto } from '../../services/apiClient'
+import { ClinicalSexSelect } from '../../components/shared/ClinicalSexSelect'
 
 export function FamilyPage() {
   const [family, setFamily] = useState<FamilyDto | null>(null)
@@ -80,6 +81,7 @@ export function FamilyPage() {
         dateOfBirth,
         role: 'MinorMember',
         userId: null,
+        sexForClinicalReference: String(form.get('sexForClinicalReference') || 'NotSpecified'),
       })
       formElement.reset()
       setMessage('Minor member added successfully. Category consents default to not set.')
@@ -241,6 +243,7 @@ export function FamilyPage() {
             Date of birth
             <input name="dateOfBirth" type="date" max={todayStr} required />
           </label>
+          <ClinicalSexSelect />
           <input name="role" type="hidden" value="MinorMember" />
           <button className="button button--primary" type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Adding minor…' : 'Add minor'}
