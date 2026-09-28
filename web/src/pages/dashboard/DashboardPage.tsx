@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 
 import { StatusBadge } from '../../components/shared/StatusBadge'
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
-import { DoctorPortal } from '../doctor/DoctorPortal'
+import { DoctorDashboardPanel } from '../doctor/DoctorDashboardPanel'
 import { ClinicAdminPortal } from '../admin/ClinicAdminPortal'
 // ===== S4 Feature: Family Head / Adult Member dashboard (docs/Three_Portal_Feature_Spec.md) =====
 import { FamilyDashboardPanel } from '../family/FamilyDashboardPanel'
@@ -29,7 +29,7 @@ export function DashboardPage() {
   const isAdmin = user?.role === 'ADMIN'
 
   if (isDoctor) {
-    return <DoctorPortal initialTab="dashboard" />
+    return <DoctorDashboardPanel />
   }
 
   if (isAdmin) {
@@ -584,4 +584,3 @@ function FamilyUserDashboard() {
     </div>
   )
 }
-
