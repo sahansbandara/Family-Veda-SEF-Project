@@ -10,8 +10,6 @@ Longitudinal family health context and agentic clinical triage platform.
 
 **SE3090 — Software Engineering Frameworks** · SLIIT Faculty of Computing · Assignment 1 · Group **SE_016** · submission `SE3090_SE016`
 
-**Try it:** [Web app](https://family-veda-web.vercel.app) · [Android APK](https://github.com/sahansbandara/Family-Veda-SEF-Project/releases/tag/apk-2026-09-28) · [API docs (Swagger)](https://family-veda-api.onrender.com/swagger/index.html) — details in [Live demo access](#live-demo-access).
-
 ---
 
 ## What it does
@@ -453,11 +451,6 @@ Sign in with a seeded synthetic account (see *Live demo access* for emails) usin
 - Web: <https://family-veda-web.vercel.app>
 - API health: <https://family-veda-api.onrender.com/health>
 - Mobile API base URL: `https://family-veda-api.onrender.com/api/v1`
-- API docs: <https://family-veda-api.onrender.com/swagger/index.html>
-- Android APK: <https://github.com/sahansbandara/Family-Veda-SEF-Project/releases/tag/apk-2026-09-28> (debug-signed, hosted API)
-  - SHA-256: `ac493f51f19a23a75f6d3b49b76fecb0f390e9172569ea4adb404edfdafd7d3d`
-  - Install on a phone: allow *Install unknown apps* for your browser or file manager, then open the downloaded file. With a PC: `adb install -r FamilyVeda-debug-hosted-api-2026-09-28.apk`.
-  - The free Render instance sleeps when idle; the first request can take about 50 seconds.
 
 All accounts below are synthetic and use the same demo password.
 
