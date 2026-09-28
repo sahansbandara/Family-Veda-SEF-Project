@@ -14,3 +14,13 @@
 - [ ] [human] Get a Gemini API key (aistudio.google.com/apikey) and a Groq API key (console.groq.com/keys) — both free tier, no card
 - [ ] Apply the EF Core migration to the hosted Neon DB once it exists (`docs/DEPLOYMENT.md` §1 has the exact commands — do NOT rely on `Database__MigrateOnStartup`, the installed Npgsql provider has a real bug on that path, see agent/MEMORY.md)
 - [ ] [human, only if needed] Apple Developer account for a distributable iOS build beyond simulator; Android release keystore for a signed APK (docs/DEPLOYMENT.md §5–6)
+
+## Auth redesign — completed 2026-09-28
+
+- [x] Premium AuthPage redesign (split-panel, hero images, role cards, password toggle, Remember Me)
+- [x] DoctorRegisterPage 3-step stepper
+- [x] AuthShell, AuthHero, AuthStepper, AuthRoleSelector, PasswordField components
+- [x] auth-shell.css scoped stylesheet
+- [x] AppRouter wired /register/doctor to DoctorRegisterPage
+- [x] All tests updated and passing (60/60)
+- [ ] PR feat/auth-redesign-s4 → develop [human to merge]

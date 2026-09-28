@@ -5,8 +5,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from '../components/layout/AppLayout'
 import { AuditPage } from '../pages/audit/AuditPage'
 import { DoctorVerificationPage } from '../pages/admin/DoctorVerificationPage'
-import { LoginPage } from '../pages/auth/LoginPage'
-import { RegisterPage } from '../pages/auth/RegisterPage'
+import { AuthPage } from '../pages/auth/AuthPage'
 import { DoctorRegisterPage } from '../pages/auth/DoctorRegisterPage'
 import { DashboardPage } from '../pages/dashboard/DashboardPage'
 import { ApprovalsPage } from '../pages/doctor/ApprovalsPage'
@@ -26,10 +25,12 @@ export function AppRoutes() {
   return (
     <Routes>
       {/* ===== S1 — Public and identity routes ===== */}
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/login" element={<AuthPage />} />
+      <Route path="/register" element={<AuthPage />} />
       <Route path="/register/doctor" element={<DoctorRegisterPage />} />
+      <Route path="/forgot-password" element={<Navigate to="/login" replace />} />
       <Route path="/access-denied" element={<AccessDeniedPage />} />
+
 
       <Route element={<RouteGuard allowedRoles={[...allRoles]} allowUnverifiedDoctor><AppLayout /></RouteGuard>}>
         <Route path="/onboarding" element={<RouteGuard allowedRoles={['ONBOARDING']}><OnboardingPage /></RouteGuard>} />

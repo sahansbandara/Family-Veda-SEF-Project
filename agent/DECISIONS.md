@@ -20,3 +20,19 @@ What is already decided. Record at the moment of decision, including rejected al
 |---|---|---|---|
 | 1 | Turn on branch protection on `main` | Sahan (human) | ASAP |
 | 2 | S3 to open PR of `feature/s3-agent-orchestration` into `develop` | S3 | Next session |
+
+## 2026-09-28 — Premium auth redesign: AuthShell component pattern + owner-authorized full implementation
+
+**Decision:** Auth redesign delivered as new S4-created components (`AuthShell`, `AuthHero`, `AuthStepper`, `AuthRoleSelector`, `PasswordField`, `auth-shell.css`) plus full rewrites of `AuthPage.tsx`, `AuthPage.test.tsx`, `AppRouter.tsx`, `AppRouter.test.tsx`. `index.css` updated to import `auth-shell.css`.
+
+**Pattern chosen:** `auth-shell.css` as a standalone scoped stylesheet (not merged into S3's `components.css`) to keep auth styles clearly bounded and owned by S4. `AuthPage.tsx` adopts the new components inline — no compound `AuthShell` wrapper needed since `AuthPage` already handles mode state.
+
+**Doctor registration:** separated into `DoctorRegisterPage` (3-step stepper, S4-owned). `AuthPage` register form shows role cards; selecting Doctor routes to `/register/doctor`. This keeps the inline register form compact (Family/Member only) and gives Doctor its dedicated stepped flow.
+
+**Reason for touching S1/S3 files:** explicit repo owner (S4) instruction overriding the ownership boundary rule for this task. AGENTS.md conflict priority §1 (latest explicit user instruction) applied.
+
+**Alternatives considered:** Keep AuthPage unchanged, only add DoctorRegisterPage (rejected — leaves login/register still showing demo text and old split-panel). Use compound AuthShell wrapper (rejected — adds indirection without benefit since AuthPage owns its own mode state).
+
+**Consequences:** `AuthPage.tsx` and `AppRouter.tsx` now have S4-authored content. S1 must be aware of the changes to auth logic if they make future edits. Branch `feat/auth-redesign-s4` to be PRed into `develop`.
+
+**Status:** Accepted and executed 2026-09-28 at Sahan's (repo owner) explicit instruction.
