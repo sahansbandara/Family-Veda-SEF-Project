@@ -60,11 +60,26 @@ public sealed class RegistrationFlowTests : IAsyncLifetime
             profile.SexForClinicalReference.Should().Be(ClinicalSex.Female);
             profile.NationalIdLastFour.Should().Be("5678");
             profile.NationalIdHash.Should().NotContain("200012345678");
+            var family = await db.Families.SingleAsync(x => x.CreatedByUserId == user.Id);
+            family.Name.Should().Be("Synthetic Registration Family");
+            family.FamilyCode.Should().MatchRegex("^FV-[A-HJ-NP-Z2-9]{6}$");
+            var head = await db.Members.SingleAsync(x => x.UserId == user.Id);
+            head.FamilyId.Should().Be(family.Id);
+            head.Role.Should().Be(FamilyRole.Head);
+            (await db.Consents.CountAsync(x => x.MemberId == head.Id)).Should().Be(Enum.GetValues<ConsentCategory>().Length);
             (await db.AuditLogs.Select(x => x.MetadataJson).ToListAsync()).Should().NotContain(m => m.Contains("200012345678"));
         }
 
         var duplicateNic = await client.PostAsJsonAsync("/api/v1/auth/register/family-head", HeadBody("synthetic-reg-head-2@example.invalid", "200012345678"));
         duplicateNic.StatusCode.Should().Be(HttpStatusCode.Conflict);
+        await using (var rollbackScope = _factory.Services.CreateAsyncScope())
+        {
+            var rollbackDb = rollbackScope.ServiceProvider.GetRequiredService<AppDbContext>();
+            (await rollbackDb.Users.AnyAsync(x => x.Email == "synthetic-reg-head-2@example.invalid")).Should().BeFalse();
+            (await rollbackDb.Families.CountAsync()).Should().Be(1);
+            (await rollbackDb.Members.CountAsync()).Should().Be(1);
+            (await rollbackDb.Consents.CountAsync()).Should().Be(Enum.GetValues<ConsentCategory>().Length);
+        }
         var invalid = await client.PostAsJsonAsync("/api/v1/auth/register/family-head", HeadBody("synthetic-reg-head-3@example.invalid", "12345"));
         invalid.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
@@ -149,19 +164,18 @@ public sealed class RegistrationFlowTests : IAsyncLifetime
         register.StatusCode.Should().Be(HttpStatusCode.Created);
         var auth = await register.Content.ReadFromJsonAsync<JsonElement>();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.GetProperty("accessToken").GetString());
-        var family = await (await client.PostAsJsonAsync("/api/v1/families", new { name = "Synthetic Registration Family" })).Content.ReadFromJsonAsync<JsonElement>();
-        var familyId = family.GetProperty("id").GetGuid();
-        (await client.PostAsJsonAsync($"/api/v1/families/{familyId}/members", new
-        {
-            displayName = "Synthetic Head", dateOfBirth = "1980-02-02", role = "Head", userId = auth.GetProperty("userId").GetGuid()
-        })).StatusCode.Should().Be(HttpStatusCode.Created);
-        return (client, familyId, family.GetProperty("familyCode").GetString()!);
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var userId = auth.GetProperty("userId").GetGuid();
+        var family = await db.Families.SingleAsync(x => x.CreatedByUserId == userId);
+        return (client, family.Id, family.FamilyCode!);
     }
 
     private static object HeadBody(string email, string nic) => new
     {
         account = new { fullName = "Synthetic Head", email, mobileNumber = "+94 771234567", password = Password, confirmPassword = Password },
         personal = new { dateOfBirth = "1985-06-15", sexForClinicalReference = "Female" },
+        familyName = "Synthetic Registration Family",
         nationalId = nic,
         address = new { addressLine1 = "12 Synthetic Lane", addressLine2 = (string?)null, city = "Kandy", district = "Kandy", postalCode = "20000" },
         acceptTerms = true

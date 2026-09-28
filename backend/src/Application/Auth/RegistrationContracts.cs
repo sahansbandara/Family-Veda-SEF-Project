@@ -9,7 +9,7 @@ public sealed record PersonalDetails(DateOnly DateOfBirth, ClinicalSex SexForCli
 public sealed record AddressDetails(string AddressLine1, string? AddressLine2, string City, string District, string? PostalCode);
 
 public sealed record RegisterFamilyHeadRequest(
-    AccountDetails Account, PersonalDetails Personal, string NationalId, AddressDetails Address, bool AcceptTerms);
+    AccountDetails Account, PersonalDetails Personal, string FamilyName, string NationalId, AddressDetails Address, bool AcceptTerms);
 
 public enum FamilyConnectionMethod { Invitation, FamilyCode, Later }
 

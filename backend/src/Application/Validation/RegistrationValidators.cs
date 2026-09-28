@@ -68,6 +68,7 @@ public sealed class RegisterFamilyHeadRequestValidator : AbstractValidator<Regis
         RuleFor(x => x.Account).NotNull().SetValidator(new AccountDetailsValidator());
         RuleFor(x => x.Personal).NotNull().SetValidator(new PersonalDetailsValidator());
         RuleFor(x => x.Address).NotNull().SetValidator(new AddressDetailsValidator());
+        RuleFor(x => x.FamilyName).NotEmpty().WithMessage("Family name is required.").MaximumLength(120);
         RuleFor(x => x.NationalId).Must(v => v is not null && RegistrationRules.NationalId().IsMatch(v.Trim()))
             .WithMessage("Enter a synthetic NIC: 9 digits followed by V or X, or 12 digits.");
         RuleFor(x => x.AcceptTerms).Equal(true).WithMessage("Accept the terms and privacy notice to continue.");

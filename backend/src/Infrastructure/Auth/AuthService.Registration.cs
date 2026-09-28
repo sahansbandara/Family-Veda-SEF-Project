@@ -35,6 +35,25 @@ public sealed partial class AuthService : IRegistrationService
         var profile = StageProfile(user, request.Account, request.Personal, request.Address);
         profile.NationalIdHash = nationalIdHash;
         profile.NationalIdLastFour = nationalId[^4..];
+        var family = new Family
+        {
+            Name = request.FamilyName.Trim(),
+            CreatedByUserId = user.Id,
+            FamilyCode = await GenerateFamilyCodeAsync(cancellationToken)
+        };
+        var member = new Member
+        {
+            Family = family,
+            User = user,
+            DisplayName = user.DisplayName,
+            DateOfBirth = request.Personal.DateOfBirth,
+            SexForClinicalReference = request.Personal.SexForClinicalReference,
+            Role = FamilyRole.Head
+        };
+        dbContext.Families.Add(family);
+        dbContext.Members.Add(member);
+        foreach (var category in Enum.GetValues<ConsentCategory>())
+            dbContext.Consents.Add(new Consent { Member = member, Category = category });
         AddRegistrationAudit(user.Id, "FAMILY_HEAD_REGISTERED", "FamilyHead", user.Id, "PENDING", new { NicLastFour = profile.NationalIdLastFour });
         return await CommitAsync(user, cancellationToken);
     }
@@ -198,6 +217,19 @@ public sealed partial class AuthService : IRegistrationService
         if (bytes.Length != document.SizeBytes || !signatures.Any(sig => bytes.AsSpan().StartsWith(sig)))
             throw Invalid("The file content does not match a PDF, PNG or JPEG document.");
         return bytes;
+    }
+
+    private async Task<string> GenerateFamilyCodeAsync(CancellationToken cancellationToken)
+    {
+        const string alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        for (var attempt = 0; attempt < 20; attempt++)
+        {
+            var chars = new char[6];
+            for (var i = 0; i < chars.Length; i++) chars[i] = alphabet[RandomNumberGenerator.GetInt32(alphabet.Length)];
+            var code = "FV-" + new string(chars);
+            if (!await dbContext.Families.AnyAsync(x => x.FamilyCode == code, cancellationToken)) return code;
+        }
+        throw new InvalidOperationException("Unable to generate a unique family code.");
     }
 
     private void AddRegistrationAudit(Guid actor, string eventType, string resourceType, Guid resourceId, string outcome, object metadata) =>

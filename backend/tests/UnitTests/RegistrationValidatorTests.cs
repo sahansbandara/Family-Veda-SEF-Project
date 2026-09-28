@@ -17,7 +17,7 @@ public sealed class RegistrationValidatorTests
         string password = Password, string? confirm = null, DateOnly? dob = null, string nic = "200012345678",
         string district = "Kandy", string? postal = "20000", bool terms = true, ClinicalSex sex = ClinicalSex.NotSpecified) =>
         new(new AccountDetails(name, email, mobile, password, confirm ?? password),
-            new PersonalDetails(dob ?? AdultDob, sex), nic,
+            new PersonalDetails(dob ?? AdultDob, sex), "Synthetic Family", nic,
             new AddressDetails("12 Synthetic Lane", null, "Kandy", district, postal), terms);
 
     private static IEnumerable<string> Errors(RegisterFamilyHeadRequest request) =>
@@ -25,6 +25,13 @@ public sealed class RegistrationValidatorTests
 
     [Fact]
     public void ValidFamilyHead_Passes() => Errors(Head()).Should().BeEmpty();
+
+    [Fact]
+    public void FamilyHead_RequiresFamilyName()
+    {
+        var request = Head() with { FamilyName = "" };
+        Errors(request).Should().Contain("FamilyName");
+    }
 
     [Theory]
     [InlineData("0771234567")]
