@@ -185,7 +185,7 @@ select.auth-form-input option {
   background: #146CFF;
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 30px;
   padding: 14px;
   font-size: 1rem;
   font-weight: 600;
@@ -351,7 +351,7 @@ select.auth-form-input option {
   background: transparent;
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
+  border-radius: 30px;
   padding: 12px;
   font-size: 1rem;
   font-weight: 600;
