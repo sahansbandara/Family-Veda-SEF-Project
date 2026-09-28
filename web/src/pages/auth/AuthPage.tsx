@@ -217,6 +217,9 @@ export function AuthPage() {
             <p style={{ fontSize: '1.1rem', opacity: 0.9, lineHeight: 1.6, maxWidth: '85%', color: 'white' }}>
               Secure access to your health, family and clinical care. Create a unified workspace for seamless clinical decision support and familial risk mapping.
             </p>
+            <button type="button" className="auth-mode-switch-btn" onClick={toggleMode}>
+              Already a Member? Sign In
+            </button>
           </div>
         </div>
 
@@ -233,6 +236,9 @@ export function AuthPage() {
             <p style={{ fontSize: '1.1rem', opacity: 0.9, lineHeight: 1.6, maxWidth: '85%', color: 'white' }}>
               Sign in to continue to FamilyVeda. Access your authorized clinical or family workspace to continue where you left off.
             </p>
+            <button type="button" className="auth-mode-switch-btn" onClick={toggleMode}>
+              Not a member? Sign Up
+            </button>
           </div>
         </div>
 
@@ -435,9 +441,6 @@ export function AuthPage() {
               </div>
             </form>
 
-            <div className="auth-form-switch">
-              Already a Member? <button type="button" onClick={toggleMode}>Sign in here</button>
-            </div>
           </div>
 
           {/* Login Form */}
@@ -464,9 +467,6 @@ export function AuthPage() {
               </button>
             </form>
 
-            <div className="auth-form-switch">
-              Not a member? <button type="button" onClick={toggleMode}>Sign up here</button>
-            </div>
           </div>
 
         </div>
