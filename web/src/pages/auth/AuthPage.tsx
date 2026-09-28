@@ -8,7 +8,6 @@ import { apiClient, type FamilyDto } from '../../services/apiClient'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { signIn, registerFamilyUser, registerDoctorUser, signedIn } from '../../store/slices/authSlice'
 import { AuthStepper, type StepDef } from '../../components/auth/AuthStepper'
-import logoUrl from '../../assets/logo.png'
 import loginBg from '../../assets/Loging.webp'
 import registerBg from '../../assets/Register.webp'
 import '../../styles/commercial-auth.css'
@@ -177,8 +176,8 @@ export function AuthPage() {
           navigate('/onboarding', { replace: true })
         }
       }
-    } catch (err: any) {
-      setRegError(err.message || 'Registration failed. Check details.')
+    } catch (err) {
+      setRegError(err instanceof Error ? err.message : 'Registration failed. Check details.')
     }
   }
 
@@ -212,7 +211,6 @@ export function AuthPage() {
         >
           <div className="auth-text-overlay"></div>
           <div style={{ position: 'relative', zIndex: 10 }}>
-            <img src={logoUrl} alt="Logo" width={48} height={48} style={{ borderRadius: '12px', marginBottom: '24px' }} />
             <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '24px', letterSpacing: '-0.02em', color: 'white' }}>
               Let's Get Started
             </h1>
@@ -229,7 +227,6 @@ export function AuthPage() {
         >
           <div className="auth-text-overlay"></div>
           <div style={{ position: 'relative', zIndex: 10 }}>
-            <img src={logoUrl} alt="Logo" width={48} height={48} style={{ borderRadius: '12px', marginBottom: '24px' }} />
             <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '24px', letterSpacing: '-0.02em', color: 'white' }}>
               Welcome Back
             </h1>
