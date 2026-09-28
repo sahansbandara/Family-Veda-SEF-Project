@@ -55,6 +55,10 @@
   border-left: 1px solid rgba(255, 255, 255, 0.1);
   transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   z-index: 10;
+  /* Keep the glass on its own compositor layer so Chrome/Safari re-blur the backdrop
+     after the slide; otherwise the sign-up hero image can stay visible unblurred. */
+  will-change: transform, backdrop-filter;
+  isolation: isolate;
 }
 
 /* Register = right side (transform 0). Login = left side (transform -100%) */
