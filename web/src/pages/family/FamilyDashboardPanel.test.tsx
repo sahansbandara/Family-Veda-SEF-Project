@@ -9,6 +9,7 @@ import { describe, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({ getFamilyDashboard: vi.fn() }))
 vi.mock('../../services/apiClient', () => ({ threePortalApi: mocks }))
 
+import { EmergencyHelp } from '../dashboard/dashboardParts'
 import { FamilyDashboardPanel } from './FamilyDashboardPanel'
 
 const baseDashboard = {
@@ -69,9 +70,8 @@ describe('FamilyDashboardPanel (Head)', () => {
   })
 
   it('shows an emergency referral card, not a browser alert', async () => {
-    mocks.getFamilyDashboard.mockResolvedValue({ data: baseDashboard })
-
-    render(<MemoryRouter><FamilyDashboardPanel /></MemoryRouter>)
+    // Emergency Help now lives in AppLayout so it is on every family page (RULE 10).
+    render(<EmergencyHelp />)
 
     ;(await screen.findByText('Emergency Help')).click()
     expect(await screen.findByText(/call 1990/i)).toBeInTheDocument()

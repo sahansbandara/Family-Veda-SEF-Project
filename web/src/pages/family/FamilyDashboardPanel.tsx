@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom'
 
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { threePortalApi, type FamilyDashboardSummaryDto } from '../../services/apiClient'
-import { Badge, EmergencyHelp, Metric } from '../dashboard/dashboardParts'
+import { Badge, Metric } from '../dashboard/dashboardParts'
 import { appointmentTone, greeting, roleLabel, shortDate, shortTime, vitalLabel } from '../dashboard/dashboardFormat'
 
 export function FamilyDashboardPanel() {
@@ -37,7 +37,6 @@ export function FamilyDashboardPanel() {
   return (
     <div className="fv-dash">
       {data.role === 'Head' ? <HeadDashboard data={data} /> : <AdultDashboard data={data} />}
-      <EmergencyHelp />
     </div>
   )
 }

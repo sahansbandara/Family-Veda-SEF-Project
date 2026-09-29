@@ -62,6 +62,8 @@ export function AppRoutes() {
         <Route path="/approvals" element={<RouteGuard allowedRoles={['DOCTOR']}><ApprovalsPage /></RouteGuard>} />
         <Route path="/family-risk" element={<RouteGuard allowedRoles={['FAMILY_HEAD', 'MEMBER']}><FamilyRiskPage /></RouteGuard>} />
         <Route path="/audit" element={<RouteGuard allowedRoles={['ADMIN', 'FAMILY_HEAD']}><AuditPage /></RouteGuard>} />
+        {/* Family Head "Privacy & Access": audit view until the FH-6 privacy page lands. */}
+        <Route path="/privacy" element={<RouteGuard allowedRoles={['FAMILY_HEAD']}><AuditPage /></RouteGuard>} />
         <Route path="/doctor-verification" element={<RouteGuard allowedRoles={['ADMIN']}><ClinicAdminPortal initialTab="doctor-verif" /></RouteGuard>} />
         <Route path="/family-head-verification" element={<RouteGuard allowedRoles={['ADMIN']}><ClinicAdminPortal initialTab="family-verif" /></RouteGuard>} />
         <Route path="/users" element={<RouteGuard allowedRoles={['ADMIN']}><ClinicAdminPortal initialTab="users" /></RouteGuard>} />
