@@ -179,6 +179,8 @@ Nav (web + Flutter): `Dashboard | My Family | Health Records | Symptoms & Triage
 Plan: `docs/Three_Dashboards_Plan.md` (DB linkage §3, disagreements §6). Mockups: `docs/mockups/{family-head,adult-member,doctor}.html`. Doctor spec: `docs/Doctor_Side_Spec.md`.
 Overlaps FH-4..FH-6 above — tick both when done. Each phase: TDD, PR into `develop`, self-merge.
 
+### Build order (DECISIONS 2026-09-29e): Stage 1 = UI shell for all 4 portals with real data or empty states (no sample numbers); Stage 2 = wire tab by tab.
+
 ### U — Clarity fixes first (see `docs/Three_Dashboards_UX_Plan.md`)
 - [ ] U0 Page template: hero (title = nav label, one purpose sentence, one primary button), metric tiles as links, one badge vocabulary, sub-tabs, teaching empty states.
 - [ ] U1 Titles/wording: "AI triage" → "Symptoms & Triage"; "Audit activity" → Privacy summary; adult "My Family" → membership page (join is one option); remove agent/OCR/audit words from family screens (UX plan §7).
@@ -221,7 +223,7 @@ Nav: `Dashboard | My Health | Appointments | Symptoms & Triage | My Family | My 
 ### Section D — Admin (see UX plan §11)
 - [ ] D-A Remove fake fallback numbers on the admin dashboard.
 - [ ] D-B `GET /admin/dashboard` real counts; every tile is a link.
-- [ ] D-C Deactivate/Reactivate instead of hard delete (owner approval needed).
+- [x] D-C Deactivate instead of hard delete: delete endpoints removed; web uses `toggle-status` (DECISIONS 2026-09-29d). Web 79/79 tests, lint and build pass; backend is verified by CI.
 - [ ] D-D Split `ClinicAdminPortal.tsx` (2,150 lines) into per-tab pages.
 - [ ] D-E Safety & System page.
 - [ ] D-F Negative test: admin cannot read member health data.

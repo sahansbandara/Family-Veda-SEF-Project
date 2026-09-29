@@ -244,15 +244,16 @@ export function ClinicAdminPortal({ initialTab = 'dashboard' }: Props) {
     if (!doctorToDelete) return
     setIsDeletingDoctor(true)
     try {
-      await apiClient.delete(`/admin/doctors/${doctorToDelete.id}`)
-      setDoctors((prev) => prev.filter((d) => d.id !== doctorToDelete.id))
-      showToast(`Doctor account "${doctorToDelete.displayName || doctorToDelete.email}" deleted successfully.`)
+      // Accounts are deactivated, never deleted: approvals, grants and audit history must survive.
+      await apiClient.post(`/auth/admin/users/${doctorToDelete.userId}/toggle-status`, { isActive: false, reason: 'Deactivated by admin' })
+      showToast(`Doctor account "${doctorToDelete.displayName || doctorToDelete.email}" deactivated. History is kept.`)
+      await loadDoctors()
       setDoctorToDelete(null)
       if (selectedDoctor?.id === doctorToDelete.id) {
         setSelectedDoctor(null)
       }
     } catch {
-      showToast('Failed to delete doctor account.')
+      showToast('Failed to deactivate doctor account.')
     } finally {
       setIsDeletingDoctor(false)
     }
@@ -285,15 +286,15 @@ export function ClinicAdminPortal({ initialTab = 'dashboard' }: Props) {
     if (!headToDelete) return
     setIsDeletingHead(true)
     try {
-      await apiClient.delete(`/admin/family-heads/${headToDelete.userId}`)
-      setFamilyHeads((prev) => prev.filter((h) => h.userId !== headToDelete.userId))
-      showToast(`Household account "${headToDelete.displayName} (${headToDelete.familyName})" deleted successfully.`)
+      await apiClient.post(`/auth/admin/users/${headToDelete.userId}/toggle-status`, { isActive: false, reason: 'Deactivated by admin' })
+      showToast(`Household account "${headToDelete.displayName} (${headToDelete.familyName})" deactivated. History is kept.`)
+      await loadFamilyHeads()
       setHeadToDelete(null)
       if (selectedHead?.userId === headToDelete.userId) {
         setSelectedHead(null)
       }
     } catch {
-      showToast('Failed to delete household account.')
+      showToast('Failed to deactivate household account.')
     } finally {
       setIsDeletingHead(false)
     }
@@ -1237,10 +1238,10 @@ export function ClinicAdminPortal({ initialTab = 'dashboard' }: Props) {
                             <button
                               type="button"
                               className="btn-action-icon btn-action-icon--danger"
-                              title="Delete doctor account"
+                              title="Deactivate doctor account"
                               onClick={() => setDoctorToDelete(doc)}
                             >
-                              🗑️
+                              ⏸
                             </button>
                           </div>
                         </td>
@@ -1433,10 +1434,10 @@ export function ClinicAdminPortal({ initialTab = 'dashboard' }: Props) {
                             <button
                               type="button"
                               className="btn-action-icon btn-action-icon--danger"
-                              title="Delete family head account"
+                              title="Deactivate family head account"
                               onClick={() => setHeadToDelete(head)}
                             >
-                              🗑️
+                              ⏸
                             </button>
                           </div>
                         </td>
@@ -1956,12 +1957,12 @@ export function ClinicAdminPortal({ initialTab = 'dashboard' }: Props) {
         </div>
       )}
 
-      {/* 3. Delete Doctor Confirmation Modal */}
+      {/* 3. Deactivate Doctor Confirmation Modal */}
       {doctorToDelete && (
         <div className="admin-modal-backdrop" onClick={() => setDoctorToDelete(null)}>
           <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
             <div className="admin-modal-head">
-              <h3 style={{ color: '#f87171' }}>⚠️ Confirm Doctor Account Deletion</h3>
+              <h3 style={{ color: '#f87171' }}>Deactivate Doctor Account</h3>
               <button
                 type="button"
                 className="button button--secondary"
@@ -1973,7 +1974,7 @@ export function ClinicAdminPortal({ initialTab = 'dashboard' }: Props) {
             </div>
 
             <p style={{ margin: '0 0 14px' }}>
-              Are you sure you want to permanently delete clinician <strong>{doctorToDelete.displayName || doctorToDelete.email}</strong> (
+              Deactivate clinician <strong>{doctorToDelete.displayName || doctorToDelete.email}</strong> (
               <span style={{ fontFamily: 'monospace' }}>SLMC-••••{doctorToDelete.registrationNumberLastFour}</span>)?
             </p>
 
@@ -1993,7 +1994,7 @@ export function ClinicAdminPortal({ initialTab = 'dashboard' }: Props) {
                 onClick={() => void confirmDeleteDoctor()}
                 disabled={isDeletingDoctor}
               >
-                {isDeletingDoctor ? 'Deleting...' : '🗑️ Delete Permanently'}
+                {isDeletingDoctor ? 'Deactivating...' : 'Deactivate'}
               </button>
             </div>
           </div>
@@ -2005,7 +2006,7 @@ export function ClinicAdminPortal({ initialTab = 'dashboard' }: Props) {
         <div className="admin-modal-backdrop" onClick={() => setHeadToDelete(null)}>
           <div className="admin-modal" onClick={(e) => e.stopPropagation()}>
             <div className="admin-modal-head">
-              <h3 style={{ color: '#f87171' }}>⚠️ Confirm Household Account Deletion</h3>
+              <h3 style={{ color: '#f87171' }}>Deactivate Household Account</h3>
               <button
                 type="button"
                 className="button button--secondary"
@@ -2017,10 +2018,10 @@ export function ClinicAdminPortal({ initialTab = 'dashboard' }: Props) {
             </div>
 
             <p style={{ margin: '0 0 14px' }}>
-              Are you sure you want to permanently delete household <strong>{headToDelete.displayName}</strong> ({headToDelete.familyName})?
+              Deactivate the account of <strong>{headToDelete.displayName}</strong> ({headToDelete.familyName})?
             </p>
             <p style={{ margin: '0 0 14px', fontSize: '0.85rem', color: 'var(--muted)' }}>
-              This will cascade cleanup registered family members, case grants, and household records.
+              They can no longer sign in. Their records, approvals and audit history are kept, and you can reactivate the account from Users.
             </p>
 
             <div className="modal-actions-footer">
@@ -2039,7 +2040,7 @@ export function ClinicAdminPortal({ initialTab = 'dashboard' }: Props) {
                 onClick={() => void confirmDeleteFamilyHead()}
                 disabled={isDeletingHead}
               >
-                {isDeletingHead ? 'Deleting...' : '🗑️ Delete Permanently'}
+                {isDeletingHead ? 'Deactivating...' : 'Deactivate'}
               </button>
             </div>
           </div>
