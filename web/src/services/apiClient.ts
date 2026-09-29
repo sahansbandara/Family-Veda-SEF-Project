@@ -56,7 +56,7 @@ export type AuthResponse = {
 }
 
 export type MemberDto = { id: string; familyId: string; displayName: string; dateOfBirth: string; role: string; isSelf?: boolean; sexForClinicalReference?: 'NotSpecified' | 'Male' | 'Female' }
-export type FamilyDto = { id: string; name: string; members: MemberDto[] }
+export type FamilyDto = { id: string; name: string; members: MemberDto[]; familyCode?: string | null }
 export type PagedResult<T> = { items: T[]; page: number; pageSize: number; totalCount: number; totalPages: number }
 export type HealthRecordDto = { id: string; memberId: string; recordType: string; title: string; summary?: string; occurredOn: string; sharedWithFamilyHead?: boolean }
 export type EpisodeDto = { id: string; memberId: string; symptoms: string[]; durationDays: number; severity: number; notes?: string; createdAt: string }
@@ -92,7 +92,7 @@ export type JoinRequestDto = {
   requesterEmailMasked: string
   relationshipType: string
   message?: string | null
-  status: 'Pending' | 'Accepted' | 'Declined' | 'Cancelled'
+  status: 'Pending' | 'Accepted' | 'Declined' | 'Cancelled' | 'Expired'
   createdAt: string
   respondedAt?: string | null
 }
@@ -188,6 +188,34 @@ export type DoctorDashboardSummaryDto = {
   priorityOpenCases?: number
   families?: DoctorFamilyRowDto[]
   activity?: DashboardActivityDto[]
+}
+
+// ===== Family lifecycle (FH-2, DECISIONS 2026-09-29c) =====
+/** Family-level roster: names and roles only, never another adult's DOB or health data. */
+export type RosterMemberDto = { id: string; displayName: string; role: 'Head' | 'AdultMember' | 'MinorMember'; isMinor: boolean; isSelf: boolean; hasAccount: boolean }
+export type FamilyInvitationSummaryDto = {
+  id: string
+  emailMasked?: string | null
+  relationshipType?: string | null
+  status: 'Pending' | 'Accepted' | 'Cancelled' | 'Expired'
+  createdAt: string
+  expiresAt: string
+}
+export type FamilyInvitationDto = { id: string; token: string; expiresAt: string }
+export type MembershipChangeDto = { memberId: string; familyId: string; familyName: string; familyCode?: string | null }
+
+export const familyLifecycleApi = {
+  getRoster: (familyId: string) => apiClient.get<RosterMemberDto[]>(`/families/${familyId}/roster`),
+  getInvitations: (familyId: string) => apiClient.get<FamilyInvitationSummaryDto[]>(`/families/${familyId}/invitations`),
+  createInvitation: (familyId: string, body: { email: string; relationshipType?: string }) =>
+    apiClient.post<FamilyInvitationDto>(`/families/${familyId}/invitations`, body),
+  resendInvitation: (familyId: string, invitationId: string, email: string) =>
+    apiClient.post<FamilyInvitationDto>(`/families/${familyId}/invitations/${invitationId}/resend`, { email }),
+  cancelInvitation: (familyId: string, invitationId: string) =>
+    apiClient.post(`/families/${familyId}/invitations/${invitationId}/cancel`),
+  removeFromFamily: (memberId: string) => apiClient.post<MembershipChangeDto>(`/members/${memberId}/remove-from-family`),
+  leaveFamily: (startOwnFamily: boolean) => apiClient.post<MembershipChangeDto>('/families/me/leave', { startOwnFamily }),
+  renameFamily: (familyId: string, name: string) => apiClient.put<FamilyDto>(`/families/${familyId}`, { name }),
 }
 
 export const threePortalApi = {

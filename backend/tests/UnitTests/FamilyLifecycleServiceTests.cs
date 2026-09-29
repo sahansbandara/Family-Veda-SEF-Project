@@ -205,6 +205,22 @@ public sealed class FamilyLifecycleServiceTests
             .Should().ThrowAsync<ConflictException>().WithMessage("*Leave your current family*");
     }
 
+    [Fact]
+    public async Task Roster_ShowsEveryMembersNameAndRole_ButOnlyToFamilyMembers()
+    {
+        await using var db = NewDb();
+        var s = await SeedAsync(db);
+        var other = await SeedAsync(db, "FV-LIF005");
+
+        var roster = await Lifecycle(db, s.Head.Id).GetRosterAsync(s.Family.Id, CancellationToken.None);
+
+        roster.Select(x => x.DisplayName).Should().BeEquivalentTo("Synthetic Head", "Synthetic Adult", "Synthetic Minor");
+        roster.Single(x => x.DisplayName == "Synthetic Adult").Should().Match<RosterMemberDto>(x => !x.IsMinor && x.HasAccount && !x.IsSelf);
+        roster.Single(x => x.DisplayName == "Synthetic Minor").IsMinor.Should().BeTrue();
+        await FluentActions.Awaiting(() => Lifecycle(db, other.Head.Id).GetRosterAsync(s.Family.Id, CancellationToken.None))
+            .Should().ThrowAsync<NotFoundException>();
+    }
+
     private sealed class StubCurrentUser(Guid userId) : ICurrentUser
     {
         public bool IsAuthenticated => true;

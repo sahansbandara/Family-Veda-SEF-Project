@@ -1,0 +1,43 @@
+/* Owner: S1 · whole-project waiver (agent/DECISIONS.md 2026-09-28b). My Family tabs (FH-2c). */
+.tab-bar {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.tab-bar button {
+  border: 0;
+  background: transparent;
+  padding: 10px 12px;
+  font-weight: 700;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.tab-bar button.active,
+.tab-bar button[aria-selected='true'] {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+.tab-count {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  background: var(--primary-subtle);
+  color: var(--primary);
+}
+.family-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.inline-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}

@@ -10,6 +10,11 @@ namespace FamilyVeda.Api.Controllers;
 [Authorize(Policy = "FamilyUser")]
 public sealed class FamilyLifecycleController(IFamilyLifecycleService lifecycleService) : ApiControllerBase
 {
+    /// <summary>Any member of the family. Names and roles only; never another adult's DOB or health data.</summary>
+    [HttpGet("families/{familyId:guid}/roster")]
+    public async Task<ActionResult<IReadOnlyList<RosterMemberDto>>> GetRoster(Guid familyId, CancellationToken cancellationToken) =>
+        Ok(await lifecycleService.GetRosterAsync(familyId, cancellationToken));
+
     [HttpGet("families/{familyId:guid}/invitations")]
     public async Task<ActionResult<IReadOnlyList<FamilyInvitationSummaryDto>>> GetInvitations(Guid familyId, CancellationToken cancellationToken) =>
         Ok(await lifecycleService.GetInvitationsAsync(familyId, cancellationToken));
