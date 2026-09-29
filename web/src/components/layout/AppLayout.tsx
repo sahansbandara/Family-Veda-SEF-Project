@@ -10,6 +10,7 @@ import { apiClient } from '../../services/apiClient'
 import markUrl from '../../assets/mark.svg'
 // ===== S4 Feature: notifications + three-portal nav (docs/Three_Portal_Feature_Spec.md) =====
 import { NotificationBell } from '../shared/NotificationBell'
+import { EmergencyHelp } from '../../pages/dashboard/dashboardParts'
 
 type NavItem = {
   label: string
@@ -17,24 +18,33 @@ type NavItem = {
   roles: UserRole[]
 }
 
+// Menus follow docs/Three_Portal_Implementation_Blueprint.md "FINAL NAVIGATION"; order is per role.
 const navItems: NavItem[] = [
   { label: 'Doctor verification status', path: '/doctor-status', roles: ['DOCTOR'] },
   { label: 'Family head verification status', path: '/family-head-status', roles: ['FAMILY_HEAD', 'ONBOARDING'] },
   { label: 'Dashboard', path: '/dashboard', roles: ['DOCTOR', 'ADMIN', 'FAMILY_HEAD', 'MEMBER'] },
+  // Family Head: Dashboard | My Family | Health Records | Symptoms & Triage | My Doctor | Appointments | Privacy & Access
+  { label: 'My Family', path: '/family', roles: ['FAMILY_HEAD'] },
+  { label: 'Health Records', path: '/records', roles: ['FAMILY_HEAD'] },
+  { label: 'Symptoms & Triage', path: '/triage', roles: ['FAMILY_HEAD'] },
+  { label: 'My Doctor', path: '/my-doctor', roles: ['FAMILY_HEAD'] },
+  { label: 'Appointments', path: '/appointments', roles: ['FAMILY_HEAD'] },
+  { label: 'Privacy & Access', path: '/privacy', roles: ['FAMILY_HEAD'] },
+  // Adult Member: Dashboard | My Health | Appointments | Symptoms & Triage | My Family | My Doctor
+  { label: 'My Health', path: '/records', roles: ['MEMBER'] },
+  { label: 'Appointments', path: '/appointments', roles: ['MEMBER'] },
+  { label: 'Symptoms & Triage', path: '/triage', roles: ['MEMBER'] },
+  { label: 'My Family', path: '/join-family', roles: ['MEMBER'] },
+  { label: 'My Doctor', path: '/my-doctor', roles: ['MEMBER'] },
+  // Doctor
   { label: 'Calendar', path: '/calendar', roles: ['DOCTOR'] },
   { label: 'My Families', path: '/families', roles: ['DOCTOR'] },
-  { label: 'AI triage', path: '/triage', roles: ['FAMILY_HEAD', 'MEMBER'] },
-  { label: 'Records', path: '/records', roles: ['FAMILY_HEAD', 'MEMBER'] },
-  { label: 'Family screening', path: '/family-risk', roles: ['FAMILY_HEAD', 'MEMBER'] },
-  { label: 'Family', path: '/family', roles: ['FAMILY_HEAD'] },
-  { label: 'Join requests', path: '/join-family', roles: ['FAMILY_HEAD', 'MEMBER'] },
-  { label: 'My Doctor', path: '/my-doctor', roles: ['FAMILY_HEAD', 'MEMBER'] },
-  { label: 'Appointments', path: '/appointments', roles: ['FAMILY_HEAD', 'MEMBER'] },
   { label: 'Appointments calendar', path: '/doctor-calendar', roles: ['DOCTOR'] },
   { label: 'Triage cases', path: '/cases', roles: ['DOCTOR'] },
   { label: 'Approvals', path: '/approvals', roles: ['DOCTOR'] },
   { label: 'Profile & Availability', path: '/doctor-profile', roles: ['DOCTOR'] },
-  { label: 'Audit', path: '/audit', roles: ['ADMIN', 'FAMILY_HEAD'] },
+  // Clinic Admin
+  { label: 'Audit', path: '/audit', roles: ['ADMIN'] },
   { label: 'Doctor verification', path: '/doctor-verification', roles: ['ADMIN'] },
   { label: 'Family head verification', path: '/family-head-verification', roles: ['ADMIN'] },
   { label: 'User directory', path: '/users', roles: ['ADMIN'] },
@@ -80,8 +90,10 @@ export function AppLayout() {
   }
 
   const isUnverifiedDoctor = user?.role === 'DOCTOR' && user?.verificationStatus !== 'VERIFIED'
+  // Family heads are auto-approved (PR #73); this now only fires when an admin rejects or suspends one.
   const isUnverifiedFamilyHead =
     (user?.role === 'FAMILY_HEAD' || user?.role === 'ONBOARDING') && user?.familyHeadVerificationStatus !== 'VERIFIED'
+  const showEmergencyHelp = user?.role === 'FAMILY_HEAD' || user?.role === 'MEMBER'
 
   const visibleItems = navItems.filter((item) => {
     if (!user || !item.roles.includes(user.role)) return false
@@ -154,6 +166,7 @@ export function AppLayout() {
       <main id="main-content" className="main-content" tabIndex={-1}>
         <Outlet />
       </main>
+      {showEmergencyHelp && <EmergencyHelp />}
       <footer className="app-footer">
         Clinical decision-support system. Access is controlled and activity is audited.
       </footer>
