@@ -167,6 +167,11 @@ public sealed class AppointmentService(AppDbContext dbContext, ICurrentUser curr
         {
             throw new ConflictException($"Appointment cannot transition from {appointment.Status} to {to}.");
         }
+        // Confirming after the start would open a visit grant for a visit nobody confirmed in advance.
+        if (to == AppointmentStatus.Confirmed && appointment.StartsAt <= DateTimeOffset.UtcNow)
+        {
+            throw new ConflictException("This appointment has already started. Reschedule it or cancel it instead.");
+        }
         appointment.Status = to;
         if (!string.IsNullOrWhiteSpace(request.Note)) appointment.DoctorNote = request.Note.Trim();
         if (to == AppointmentStatus.Confirmed) IssueVisitGrant(appointment);

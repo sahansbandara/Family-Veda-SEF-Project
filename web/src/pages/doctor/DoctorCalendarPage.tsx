@@ -14,7 +14,9 @@ import { extractErrorMessage, formatDateTime, formatDay } from '../family/threeP
 type Action = 'confirm' | 'complete' | 'no-show' | 'cancel'
 type View = 'today' | 'week' | 'all'
 
-const dayKey = (date: Date) => date.toISOString().slice(0, 10)
+// Local calendar date (the same date the page displays), never the UTC prefix of the ISO string.
+const dayKey = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 
 const nextActions: Record<AppointmentDto['status'], Action[]> = {
   Requested: ['confirm', 'cancel'],
@@ -60,11 +62,11 @@ export function DoctorCalendarPage() {
     const today = dayKey(now)
     const weekEnd = dayKey(new Date(now.getTime() + 7 * 86_400_000))
     const visible = appointments.filter((a) => {
-      const key = a.startsAt.slice(0, 10)
+      const key = dayKey(new Date(a.startsAt))
       return view === 'all' || (view === 'today' ? key === today : key >= today && key <= weekEnd)
     })
     for (const appointment of [...visible].sort((a, b) => a.startsAt.localeCompare(b.startsAt))) {
-      const key = appointment.startsAt.slice(0, 10)
+      const key = dayKey(new Date(appointment.startsAt))
       const list = groups.get(key) ?? []
       list.push(appointment)
       groups.set(key, list)

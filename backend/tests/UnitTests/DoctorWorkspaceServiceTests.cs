@@ -249,6 +249,49 @@ public sealed class DoctorWorkspaceServiceTests
             .Should().ThrowAsync<ValidationException>();
     }
 
+    [Fact]
+    public async Task GuardianConsent_StopsCounting_OnceTheMemberIsAnAdult()
+    {
+        await using var db = NewDb();
+        var f = await SeedAsync(db);
+        db.Add(new Consent { MemberId = f.Adult.Id, Category = ConsentCategory.HereditaryFlags, Status = ConsentStatus.Granted, GrantedByGuardian = true });
+        db.Add(new HereditaryFlag { MemberId = f.Adult.Id, ConditionCode = "SYN-1", Finding = "Synthetic flag", Confidence = 0.9m, ManuallyConfirmed = true });
+        await db.SaveChangesAsync();
+        await ConfirmedVisitAsync(db, f, DateTimeOffset.UtcNow.AddHours(2));
+
+        var view = await Workspace(db, f.DoctorUser.Id).GetMemberWorkspaceAsync(f.Adult.Id, CancellationToken.None);
+
+        view.HereditaryFlags.Should().BeNull("a guardian's consent needs reaffirmation once the member is 18");
+        view.ConsentedCategories.Should().NotContain("HereditaryFlags");
+    }
+
+    [Fact]
+    public async Task Confirm_AfterTheStart_IsRejected_AndIssuesNoGrant()
+    {
+        await using var db = NewDb();
+        var f = await SeedAsync(db);
+        var late = new Appointment { MemberId = f.Adult.Id, DoctorId = f.Doctor.Id, BookedByUserId = f.Head.Id, StartsAt = DateTimeOffset.UtcNow.AddHours(-1), Reason = "Synthetic" };
+        db.Add(late);
+        await db.SaveChangesAsync();
+
+        await FluentActions.Awaiting(() => Appointments(db, f.DoctorUser.Id).ConfirmAsync(late.Id, new AppointmentActionRequest(null), CancellationToken.None))
+            .Should().ThrowAsync<ConflictException>().WithMessage("*already started*");
+        (await db.VisitAccessGrants.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task DoctorNotAcceptingNewFamilies_IsHiddenFromTheDirectory_AndCannotBeRequested()
+    {
+        await using var db = NewDb();
+        var f = await SeedAsync(db);
+        var doctor = await db.Doctors.SingleAsync(x => x.Id == f.Doctor.Id);
+        doctor.AcceptingNewFamilies = false;
+        await db.SaveChangesAsync();
+        var directory = new FamilyDoctorService(db, new StubCurrentUser(f.Head.Id));
+
+        (await directory.GetDirectoryAsync(null, null, CancellationToken.None)).Should().NotContain(x => x.Id == f.Doctor.Id);
+    }
+
     private sealed class StubCurrentUser(Guid userId) : ICurrentUser
     {
         public bool IsAuthenticated => true;

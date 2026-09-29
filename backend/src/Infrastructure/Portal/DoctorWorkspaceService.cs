@@ -171,8 +171,11 @@ public sealed class DoctorWorkspaceService(AppDbContext dbContext, ICurrentUser 
                 [], null, null, null, null, visits, notes);
         }
 
+        // A consent a guardian gave while the member was a minor stops counting at 18 until the adult
+        // reaffirms it, even if the adult has not yet opened the consent page that moves it to PendingReaffirmation.
+        var isAdult = member.DateOfBirth.AddYears(18) <= DateOnly.FromDateTime(DateTime.UtcNow);
         var consented = await dbContext.Consents.AsNoTracking()
-            .Where(x => x.MemberId == memberId && x.Status == ConsentStatus.Granted)
+            .Where(x => x.MemberId == memberId && x.Status == ConsentStatus.Granted && !(isAdult && x.GrantedByGuardian))
             .Select(x => x.Category).ToListAsync(cancellationToken);
         var conditions = consented.Contains(ConsentCategory.Conditions);
         var vitalsAllowed = consented.Contains(ConsentCategory.VitalsSummary);
