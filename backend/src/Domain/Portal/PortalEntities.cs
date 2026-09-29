@@ -47,6 +47,7 @@ public sealed class Appointment : Entity
     public required string Reason { get; set; }
     public AppointmentStatus Status { get; set; } = AppointmentStatus.Requested;
     public string? DoctorNote { get; set; }
+    public DateTimeOffset? RescheduledFromStartsAt { get; set; }
 }
 
 public sealed class PortalNotification : Entity

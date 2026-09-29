@@ -153,3 +153,11 @@ What is already decided. Record at the moment of decision, including rejected al
 **Not deleted:** `web/src/pages/doctor/DoctorPortal.tsx` is now unused. Deleting it needs Sahan's approval (the user's rule: explain the impact before any destructive delete).
 
 **Honest gaps (need backend/P3):** doctor availability editor, reschedule, member workspace, visit grants, practice-profile editing, AI Doctor Discovery, Ask My Records. Each page shows an empty state or a plain note, never invented data.
+
+## 2026-09-29h — Visit grant window and DoctorPortal removal (Sahan approved)
+
+**Decision (Sahan, 2026-09-29):**
+1. **Visit grant:** when a doctor confirms an appointment, the backend issues a time-bound grant for that member: from 24 h before the start until 24 h after the end. Cancel or no-show revokes it. Clinical reads in the doctor member workspace need: active family assignment (eligibility) + a valid visit grant or case grant for that member + the member's consent per category + an audit row (extends DECISIONS 2026-09-28).
+2. **`web/src/pages/doctor/DoctorPortal.tsx` is deleted.** It was unused after PR #83 and held sample data.
+
+**Implementation choice:** a sibling `VisitAccessGrant` table rather than making `CaseAccessGrant.TriageCaseId` nullable. Every existing case-grant query stays untouched, so the change carries less regression risk.

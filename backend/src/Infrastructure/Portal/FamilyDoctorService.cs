@@ -16,7 +16,7 @@ public sealed class FamilyDoctorService(AppDbContext dbContext, ICurrentUser cur
 {
     public async Task<IReadOnlyList<DoctorSummaryDto>> GetDirectoryAsync(string? search, string? district, CancellationToken cancellationToken)
     {
-        var query = dbContext.Doctors.AsNoTracking().Where(x => x.VerificationStatus == VerificationStatus.Verified);
+        var query = dbContext.Doctors.AsNoTracking().Where(x => x.VerificationStatus == VerificationStatus.Verified && x.AcceptingNewFamilies);
         if (!string.IsNullOrWhiteSpace(search))
         {
             var term = search.Trim();
@@ -45,7 +45,7 @@ public sealed class FamilyDoctorService(AppDbContext dbContext, ICurrentUser cur
     public async Task<DoctorRequestDto> RequestAsync(Guid familyId, CreateDoctorRequest request, CancellationToken cancellationToken)
     {
         await RequireHeadAsync(familyId, cancellationToken);
-        var doctor = await dbContext.Doctors.SingleOrDefaultAsync(x => x.Id == request.DoctorId && x.VerificationStatus == VerificationStatus.Verified, cancellationToken)
+        var doctor = await dbContext.Doctors.SingleOrDefaultAsync(x => x.Id == request.DoctorId && x.VerificationStatus == VerificationStatus.Verified && x.AcceptingNewFamilies, cancellationToken)
             ?? throw new NotFoundException();
         if (await dbContext.FamilyDoctorRequests.AnyAsync(x => x.FamilyId == familyId && x.Status == PortalRequestStatus.Pending, cancellationToken))
         {

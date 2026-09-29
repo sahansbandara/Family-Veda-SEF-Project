@@ -41,10 +41,11 @@ public sealed class MigrationTests : IAsyncLifetime
         Assert.Contains(applied, migration => migration.EndsWith("_InitialCreate", StringComparison.Ordinal));
         Assert.Contains(applied, migration => migration.EndsWith("_20260928_S4_ThreePortalFeatures", StringComparison.Ordinal));
         Assert.Contains(applied, migration => migration.EndsWith("_20260928_S4_DoctorAssignmentConstraints", StringComparison.Ordinal));
+        Assert.Contains(applied, migration => migration.EndsWith("_20260929_S4_DoctorWorkspace", StringComparison.Ordinal));
         var applicationTableCount = await dbContext.Database.SqlQueryRaw<int>(
                 "SELECT COUNT(*)::int AS \"Value\" FROM information_schema.tables WHERE table_schema = 'public' AND table_name <> '__EFMigrationsHistory'")
             .SingleAsync();
-        Assert.Equal(31, applicationTableCount); // +family_join_requests, family_doctor_requests, appointments, portal_notifications (three-portal); +user_profiles, doctor_license_documents (registration flows); +family_membership_events, family_head_transfers (family lifecycle)
+        Assert.Equal(35, applicationTableCount); // +family_join_requests, family_doctor_requests, appointments, portal_notifications (three-portal); +user_profiles, doctor_license_documents (registration flows); +family_membership_events, family_head_transfers (family lifecycle); +doctor_availability, doctor_unavailable_periods, visit_access_grants, clinical_notes (doctor workspace)
         var grantIndex = await dbContext.Database.SqlQueryRaw<string>(
                 "SELECT indexdef AS \"Value\" FROM pg_indexes WHERE schemaname = 'public' AND indexname = 'ix_case_access_grants_triage_case_id'")
             .SingleAsync();
@@ -71,17 +72,19 @@ public sealed class MigrationTests : IAsyncLifetime
         var head = new UserAccount { Email = "synthetic-migration-head@example.invalid", PasswordHash = "x", DisplayName = "Head", UserType = UserType.FamilyUser };
         var family = new Family { Name = "Synthetic migration family", CreatedByUser = head, FamilyCode = "FV-MIG001" };
         var doctorUser = new UserAccount { Email = "synthetic-migration-doctor@example.invalid", PasswordHash = "x", DisplayName = "Doctor", UserType = UserType.Doctor };
-        var doctor = new Doctor { User = doctorUser, RegistrationNumberHash = "migration-hash", RegistrationNumberLastFour = "0000", VerificationStatus = VerificationStatus.Verified };
-        var assignment = new FamilyDoctorAssignment { Family = family, Doctor = doctor, IsPrimary = true };
-        var request = new FamilyDoctorRequest { Family = family, Doctor = doctor, RequestedByUserId = head.Id };
-        db.AddRange(head, family, doctorUser, doctor, assignment, request);
+        db.AddRange(head, family, doctorUser);
+        await db.SaveChangesAsync();
+        var doctorId = await InsertLegacyDoctorAsync(db, doctorUser.Id, "migration-hash", "0000");
+        var assignment = new FamilyDoctorAssignment { Family = family, DoctorId = doctorId, IsPrimary = true };
+        var request = new FamilyDoctorRequest { Family = family, DoctorId = doctorId, RequestedByUserId = head.Id };
+        db.AddRange(assignment, request);
         await db.SaveChangesAsync();
 
         await db.Database.MigrateAsync();
         Assert.Equal(assignment.Id, (await db.FamilyDoctorAssignments.SingleAsync()).Id);
         Assert.Equal(request.Id, (await db.FamilyDoctorRequests.SingleAsync()).Id);
         assignment.EndedAt = DateTimeOffset.UtcNow;
-        db.FamilyDoctorAssignments.Add(new FamilyDoctorAssignment { FamilyId = family.Id, DoctorId = doctor.Id, IsPrimary = true });
+        db.FamilyDoctorAssignments.Add(new FamilyDoctorAssignment { FamilyId = family.Id, DoctorId = doctorId, IsPrimary = true });
         await db.SaveChangesAsync();
 
         await Assert.ThrowsAnyAsync<Exception>(() => db.GetService<IMigrator>().MigrateAsync(PortalMigration));
@@ -100,11 +103,13 @@ public sealed class MigrationTests : IAsyncLifetime
         var family = new Family { Name = "Synthetic conflict family", CreatedByUser = head, FamilyCode = "FV-MIG002" };
         var firstUser = new UserAccount { Email = "synthetic-conflict-first@example.invalid", PasswordHash = "x", DisplayName = "First", UserType = UserType.Doctor };
         var secondUser = new UserAccount { Email = "synthetic-conflict-second@example.invalid", PasswordHash = "x", DisplayName = "Second", UserType = UserType.Doctor };
-        var first = new Doctor { User = firstUser, RegistrationNumberHash = "conflict-1", RegistrationNumberLastFour = "0001", VerificationStatus = VerificationStatus.Verified };
-        var second = new Doctor { User = secondUser, RegistrationNumberHash = "conflict-2", RegistrationNumberLastFour = "0002", VerificationStatus = VerificationStatus.Verified };
-        db.AddRange(head, family, firstUser, secondUser, first, second,
-            new FamilyDoctorAssignment { Family = family, Doctor = first, IsPrimary = true },
-            new FamilyDoctorAssignment { Family = family, Doctor = second, IsPrimary = true });
+        db.AddRange(head, family, firstUser, secondUser);
+        await db.SaveChangesAsync();
+        var first = await InsertLegacyDoctorAsync(db, firstUser.Id, "conflict-1", "0001");
+        var second = await InsertLegacyDoctorAsync(db, secondUser.Id, "conflict-2", "0002");
+        db.AddRange(
+            new FamilyDoctorAssignment { Family = family, DoctorId = first, IsPrimary = true },
+            new FamilyDoctorAssignment { Family = family, DoctorId = second, IsPrimary = true });
         await db.SaveChangesAsync();
 
         await Assert.ThrowsAnyAsync<Exception>(() => db.Database.MigrateAsync());
@@ -115,6 +120,21 @@ public sealed class MigrationTests : IAsyncLifetime
             .SingleAsync();
         Assert.Equal(0, indexCount);
         Assert.Equal(2, await db.FamilyDoctorAssignments.CountAsync());
+    }
+
+    /// <summary>
+    /// Inserts a doctor using only the columns that existed at <see cref="PortalMigration"/>. The current EF model
+    /// maps columns added by later migrations (e.g. slot_minutes), so a model-based insert fails on a rolled-back schema.
+    /// </summary>
+    private static async Task<Guid> InsertLegacyDoctorAsync(AppDbContext db, Guid userId, string hash, string lastFour)
+    {
+        var id = Guid.NewGuid();
+        var now = DateTimeOffset.UtcNow;
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO doctors (id, user_id, registration_number_hash, registration_number_last_four, verification_status, created_at, updated_at)
+            VALUES ({id}, {userId}, {hash}, {lastFour}, {VerificationStatus.Verified.ToString()}, {now}, {now})
+            """);
+        return id;
     }
 
     private async Task<DbContextOptions<AppDbContext>> NewDatabaseOptionsAsync()

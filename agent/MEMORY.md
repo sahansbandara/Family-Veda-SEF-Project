@@ -44,3 +44,8 @@ What we already know and must not repeat.
 - `RecordsPage` tests render without a redux Provider. Take role info from the API (`/members/me`), not `useAppSelector`, in that page.
 - `RecordsPage.test` asserts no `/diagnos/i` text on the page, so write "not a medical opinion" instead of "does not diagnose" there.
 - The vitest `vi.mock` factory is hoisted: inline its data instead of referencing top-level consts.
+- **The .NET 8 SDK *can* be installed in the cloud container**, from Ubuntu's archive: `apt-get update && apt-get install -y dotnet-sdk-8.0` (the Microsoft CDN is blocked). Then `dotnet tool install --global dotnet-ef --version 8.0.*` and `export PATH="$PATH:$HOME/.dotnet/tools"`. The unit suite runs locally; integration tests (Testcontainers) run in CI.
+- Generate migrations with `dotnet ef migrations add <Name> --project src/Infrastructure/FamilyVeda.Infrastructure.csproj --startup-project src/Api/FamilyVeda.Api.csproj --output-dir Persistence/Migrations`, then check with `dotnet ef migrations has-pending-model-changes`.
+- Doctor clinical access is decided in one place: `DoctorWorkspaceService.FindActiveGrantAsync` (visit grant or case grant) + `RequireAssignmentAsync`. Don't add a second path.
+- Weekly hours are clinic time, UTC+05:30 (`DoctorSchedule.ClinicOffset`). Bookings are checked against the hours only once a doctor has set some.
+- `MigrationTests` pins the table count and rolls back to older migrations before inserting rows. When a migration adds tables, bump the count. When it adds columns to an entity those tests insert, insert that entity with raw SQL using only the legacy columns (`InsertLegacyDoctorAsync`). Docker isn't available in the agent container, so these tests only run in CI.

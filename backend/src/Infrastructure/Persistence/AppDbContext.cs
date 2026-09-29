@@ -50,6 +50,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<FamilyJoinRequest> FamilyJoinRequests => Set<FamilyJoinRequest>();
     public DbSet<FamilyDoctorRequest> FamilyDoctorRequests => Set<FamilyDoctorRequest>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
+    public DbSet<DoctorAvailability> DoctorAvailability => Set<DoctorAvailability>();
+    public DbSet<DoctorUnavailablePeriod> DoctorUnavailablePeriods => Set<DoctorUnavailablePeriod>();
+    public DbSet<VisitAccessGrant> VisitAccessGrants => Set<VisitAccessGrant>();
+    public DbSet<ClinicalNote> ClinicalNotes => Set<ClinicalNote>();
     public DbSet<PortalNotification> PortalNotifications => Set<PortalNotification>();
 
     // S1 — ASP.NET Data Protection key ring, persisted so protected tokens survive restarts (ADR-010)

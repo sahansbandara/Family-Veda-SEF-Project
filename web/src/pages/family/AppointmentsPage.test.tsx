@@ -12,10 +12,12 @@ const mocks = vi.hoisted(() => ({
   get: vi.fn(),
   getMyAppointments: vi.fn(),
   bookAppointment: vi.fn(),
+  getFamilyDoctorSlots: vi.fn(),
 }))
 vi.mock('../../services/apiClient', () => ({
   apiClient: { get: mocks.get },
   threePortalApi: { getMyAppointments: mocks.getMyAppointments, bookAppointment: mocks.bookAppointment },
+  doctorWorkspaceApi: { getFamilyDoctorSlots: mocks.getFamilyDoctorSlots },
 }))
 
 import authReducer, { signedIn } from '../../store/slices/authSlice'
@@ -82,5 +84,25 @@ describe('AppointmentsPage booking form', () => {
     fireEvent.submit(screen.getByRole('button', { name: 'Book appointment' }).closest('form')!)
 
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Appointment requested.'))
+  })
+
+  it('offers only the doctor\'s free slots once weekly hours exist, and books the chosen slot', async () => {
+    mocks.getFamilyDoctorSlots.mockResolvedValue({ data: { date: '2026-10-05', availabilityConfigured: true, slotMinutes: 20, slots: ['2026-10-05T03:30:00+00:00'] } })
+    mocks.bookAppointment.mockResolvedValue({ data: {} })
+    renderAsAdult()
+
+    fireEvent.change(await screen.findByLabelText('Date'), { target: { value: '2026-10-05' } })
+    const slotSelect = await screen.findByLabelText('Free time')
+    expect(mocks.getFamilyDoctorSlots).toHaveBeenCalledWith('family-1', '2026-10-05')
+    expect(screen.queryByLabelText('Time')).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Member'), { target: { value: 'self-1' } })
+    fireEvent.change(slotSelect, { target: { value: '2026-10-05T03:30:00+00:00' } })
+    fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Synthetic follow-up' } })
+    fireEvent.submit(screen.getByRole('button', { name: 'Book appointment' }).closest('form')!)
+
+    await waitFor(() => expect(mocks.bookAppointment).toHaveBeenCalledWith({
+      memberId: 'self-1', startsAt: '2026-10-05T03:30:00+00:00', reason: 'Synthetic follow-up', durationMinutes: 20,
+    }))
   })
 })

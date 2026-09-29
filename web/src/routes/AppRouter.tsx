@@ -11,6 +11,8 @@ import { ResetPasswordPage } from '../pages/auth/ResetPasswordPage'
 import { DashboardPage } from '../pages/dashboard/DashboardPage'
 import { DoctorFamiliesPage } from '../pages/doctor/DoctorFamiliesPage'
 import { DoctorProfilePage } from '../pages/doctor/DoctorProfilePage'
+import { DoctorFamilyDetailPage } from '../pages/doctor/DoctorFamilyDetailPage'
+import { DoctorMemberPage } from '../pages/doctor/DoctorMemberPage'
 import { ClinicAdminPortal } from '../pages/admin/ClinicAdminPortal'
 import { DoctorStatusPage } from '../pages/doctor/DoctorStatusPage'
 import { FamilyHeadStatusPage } from '../pages/family/FamilyHeadStatusPage'
@@ -61,6 +63,8 @@ export function AppRoutes() {
         <Route path="/calendar" element={<RouteGuard allowedRoles={['DOCTOR']}><DoctorCalendarPage /></RouteGuard>} />
         <Route path="/families" element={<RouteGuard allowedRoles={['DOCTOR']}><DoctorFamiliesPage /></RouteGuard>} />
         <Route path="/doctor-profile" element={<RouteGuard allowedRoles={['DOCTOR']}><DoctorProfilePage /></RouteGuard>} />
+        <Route path="/families/:familyId" element={<RouteGuard allowedRoles={['DOCTOR']}><DoctorFamilyDetailPage /></RouteGuard>} />
+        <Route path="/members/:memberId" element={<RouteGuard allowedRoles={['DOCTOR']}><DoctorMemberPage /></RouteGuard>} />
         <Route path="/cases" element={<RouteGuard allowedRoles={['DOCTOR']}><CasesPage /></RouteGuard>} />
         <Route path="/approvals" element={<RouteGuard allowedRoles={['DOCTOR']}><ApprovalsPage /></RouteGuard>} />
         <Route path="/family-risk" element={<RouteGuard allowedRoles={['FAMILY_HEAD', 'MEMBER']}><FamilyRiskPage /></RouteGuard>} />

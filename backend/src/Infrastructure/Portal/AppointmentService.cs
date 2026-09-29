@@ -55,6 +55,7 @@ public sealed class AppointmentService(AppDbContext dbContext, ICurrentUser curr
         {
             throw new ConflictException("The doctor already has an appointment overlapping this time.");
         }
+        await RequireFitsScheduleAsync(assignment.DoctorId, request.StartsAt, duration, cancellationToken);
 
         var appointment = new Appointment
         {
@@ -112,6 +113,7 @@ public sealed class AppointmentService(AppDbContext dbContext, ICurrentUser curr
         }
 
         appointment.Status = AppointmentStatus.Cancelled;
+        await RevokeVisitGrantsAsync(appointment.Id, cancellationToken);
         AddAudit("APPOINTMENT_STATUS_CHANGED", appointment.Id);
         await dbContext.SaveChangesAsync(cancellationToken);
         return await MapAsync(appointment, cancellationToken);
@@ -151,6 +153,7 @@ public sealed class AppointmentService(AppDbContext dbContext, ICurrentUser curr
         }
         appointment.Status = AppointmentStatus.Cancelled;
         if (!string.IsNullOrWhiteSpace(request.Note)) appointment.DoctorNote = request.Note.Trim();
+        await RevokeVisitGrantsAsync(appointment.Id, cancellationToken);
         AddAudit("APPOINTMENT_STATUS_CHANGED", appointment.Id);
         await dbContext.SaveChangesAsync(cancellationToken);
         return await MapAsync(appointment, cancellationToken);
@@ -164,11 +167,101 @@ public sealed class AppointmentService(AppDbContext dbContext, ICurrentUser curr
         {
             throw new ConflictException($"Appointment cannot transition from {appointment.Status} to {to}.");
         }
+        // Confirming after the start would open a visit grant for a visit nobody confirmed in advance.
+        if (to == AppointmentStatus.Confirmed && appointment.StartsAt <= DateTimeOffset.UtcNow)
+        {
+            throw new ConflictException("This appointment has already started. Reschedule it or cancel it instead.");
+        }
         appointment.Status = to;
         if (!string.IsNullOrWhiteSpace(request.Note)) appointment.DoctorNote = request.Note.Trim();
+        if (to == AppointmentStatus.Confirmed) IssueVisitGrant(appointment);
+        if (to == AppointmentStatus.NoShow) await RevokeVisitGrantsAsync(appointment.Id, cancellationToken);
         AddAudit("APPOINTMENT_STATUS_CHANGED", appointment.Id);
         await dbContext.SaveChangesAsync(cancellationToken);
         return await MapAsync(appointment, cancellationToken);
+    }
+
+    /// <summary>Doctor moves a requested or confirmed appointment. The family is notified; a confirmed visit's grant follows the new time.</summary>
+    public async Task<AppointmentDto> RescheduleAsync(Guid id, RescheduleAppointmentRequest request, CancellationToken cancellationToken)
+    {
+        var doctor = await RequireDoctorAsync(cancellationToken);
+        var appointment = await dbContext.Appointments.SingleOrDefaultAsync(x => x.Id == id && x.DoctorId == doctor.Id, cancellationToken) ?? throw new NotFoundException();
+        if (appointment.Status is not (AppointmentStatus.Requested or AppointmentStatus.Confirmed))
+        {
+            throw new ConflictException($"Appointment cannot be rescheduled from status {appointment.Status}.");
+        }
+        if (request.StartsAt <= DateTimeOffset.UtcNow)
+        {
+            throw new Application.Common.ValidationException(new Dictionary<string, string[]> { ["startsAt"] = ["The new time must be in the future."] });
+        }
+        var endsAt = request.StartsAt.AddMinutes(appointment.DurationMinutes);
+        var overlapping = await dbContext.Appointments.AnyAsync(x =>
+            x.Id != appointment.Id && x.DoctorId == doctor.Id &&
+            (x.Status == AppointmentStatus.Requested || x.Status == AppointmentStatus.Confirmed) &&
+            x.StartsAt < endsAt && request.StartsAt < x.StartsAt.AddMinutes(x.DurationMinutes), cancellationToken);
+        if (overlapping) throw new ConflictException("You already have an appointment overlapping this time.");
+        await RequireFitsScheduleAsync(doctor.Id, request.StartsAt, appointment.DurationMinutes, cancellationToken);
+
+        appointment.RescheduledFromStartsAt = appointment.StartsAt;
+        appointment.StartsAt = request.StartsAt;
+        appointment.UpdatedAt = DateTimeOffset.UtcNow;
+        if (!string.IsNullOrWhiteSpace(request.Note)) appointment.DoctorNote = request.Note.Trim();
+        if (appointment.Status == AppointmentStatus.Confirmed)
+        {
+            await RevokeVisitGrantsAsync(appointment.Id, cancellationToken);
+            IssueVisitGrant(appointment);
+        }
+        AddAudit("APPOINTMENT_RESCHEDULED", appointment.Id);
+        AddNotification(appointment.BookedByUserId, "APPOINTMENT_RESCHEDULED", "Appointment moved",
+            "Your doctor moved an appointment to a new time. Open Appointments to see it.", "/appointments");
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return await MapAsync(appointment, cancellationToken);
+    }
+
+    /// <summary>DECISIONS 2026-09-29h: clinical access for this member from 24 h before the start to 24 h after the end.</summary>
+    private void IssueVisitGrant(Appointment appointment)
+    {
+        dbContext.VisitAccessGrants.Add(new VisitAccessGrant
+        {
+            AppointmentId = appointment.Id,
+            DoctorId = appointment.DoctorId,
+            MemberId = appointment.MemberId,
+            StartsAt = appointment.StartsAt - VisitAccessGrant.Margin,
+            ExpiresAt = appointment.StartsAt.AddMinutes(appointment.DurationMinutes) + VisitAccessGrant.Margin
+        });
+        dbContext.AuditLogs.Add(new AuditLog
+        {
+            ActorUserId = currentUser.UserId,
+            SubjectMemberId = appointment.MemberId,
+            EventType = "VISIT_GRANT_ISSUED",
+            ResourceType = "Appointment",
+            ResourceId = appointment.Id,
+            Outcome = "SUCCESS",
+            MetadataJson = "{}"
+        });
+    }
+
+    private async Task RevokeVisitGrantsAsync(Guid appointmentId, CancellationToken cancellationToken)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var grants = await dbContext.VisitAccessGrants.Where(x => x.AppointmentId == appointmentId && x.RevokedAt == null).ToListAsync(cancellationToken);
+        foreach (var grant in grants) { grant.RevokedAt = now; grant.UpdatedAt = now; }
+    }
+
+    /// <summary>Only enforced once the doctor has set weekly hours, so existing bookings keep working.</summary>
+    private async Task RequireFitsScheduleAsync(Guid doctorId, DateTimeOffset startsAt, int durationMinutes, CancellationToken cancellationToken)
+    {
+        var windows = await dbContext.DoctorAvailability.AsNoTracking().Where(x => x.DoctorId == doctorId)
+            .Select(x => new DoctorSchedule.Window(x.DayOfWeek, x.StartTime, x.EndTime)).ToListAsync(cancellationToken);
+        var endsAt = startsAt.AddMinutes(durationMinutes);
+        var blocked = await dbContext.DoctorUnavailablePeriods.AsNoTracking()
+            .Where(x => x.DoctorId == doctorId && x.StartsAt < endsAt && startsAt < x.EndsAt)
+            .Select(x => new DoctorSchedule.Busy(x.StartsAt, x.EndsAt)).ToListAsync(cancellationToken);
+        if (blocked.Count > 0) throw new ConflictException("The doctor is not available at this time.");
+        if (windows.Count > 0 && !DoctorSchedule.Fits(startsAt, durationMinutes, windows, blocked))
+        {
+            throw new ConflictException("This time is outside the doctor's working hours. Pick one of the free slots.");
+        }
     }
 
     private async Task<Doctor> RequireDoctorAsync(CancellationToken cancellationToken) =>

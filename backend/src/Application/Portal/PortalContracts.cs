@@ -82,6 +82,7 @@ public interface IAppointmentService
     Task<AppointmentDto> CompleteAsync(Guid id, AppointmentActionRequest request, CancellationToken cancellationToken);
     Task<AppointmentDto> NoShowAsync(Guid id, AppointmentActionRequest request, CancellationToken cancellationToken);
     Task<AppointmentDto> DoctorCancelAsync(Guid id, AppointmentActionRequest request, CancellationToken cancellationToken);
+    Task<AppointmentDto> RescheduleAsync(Guid id, RescheduleAppointmentRequest request, CancellationToken cancellationToken);
 }
 
 public interface IPortalNotificationService
