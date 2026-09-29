@@ -24,11 +24,205 @@ public static class DatabaseInitializer
         try
         {
             await dbContext.Database.ExecuteSqlRawAsync(
-                "ALTER TABLE doctors ADD COLUMN IF NOT EXISTS hospital_clinic character varying(200); ALTER TABLE doctors ADD COLUMN IF NOT EXISTS phone_number character varying(50);",
-                cancellationToken);
-            // S4 — three-portal columns, in case migrations have not been applied yet on this host
-            await dbContext.Database.ExecuteSqlRawAsync(
-                "ALTER TABLE doctors ADD COLUMN IF NOT EXISTS district character varying(60); ALTER TABLE doctors ADD COLUMN IF NOT EXISTS city character varying(60); ALTER TABLE doctors ADD COLUMN IF NOT EXISTS languages character varying(120); ALTER TABLE families ADD COLUMN IF NOT EXISTS family_code character varying(9);",
+                """
+                ALTER TABLE doctors ADD COLUMN IF NOT EXISTS hospital_clinic character varying(200);
+                ALTER TABLE doctors ADD COLUMN IF NOT EXISTS phone_number character varying(50);
+                ALTER TABLE doctors ADD COLUMN IF NOT EXISTS district character varying(60);
+                ALTER TABLE doctors ADD COLUMN IF NOT EXISTS city character varying(60);
+                ALTER TABLE doctors ADD COLUMN IF NOT EXISTS languages character varying(120);
+                ALTER TABLE doctors ADD COLUMN IF NOT EXISTS accepting_new_families boolean NOT NULL DEFAULT true;
+                ALTER TABLE doctors ADD COLUMN IF NOT EXISTS consultation_modes character varying(60);
+                ALTER TABLE doctors ADD COLUMN IF NOT EXISTS slot_minutes integer NOT NULL DEFAULT 30;
+                ALTER TABLE families ADD COLUMN IF NOT EXISTS family_code character varying(9);
+                ALTER TABLE members ADD COLUMN IF NOT EXISTS sex_for_clinical_reference character varying(16) NOT NULL DEFAULT 'NotSpecified';
+                ALTER TABLE lab_reports ADD COLUMN IF NOT EXISTS shared_with_family_head boolean NOT NULL DEFAULT false;
+                ALTER TABLE health_records ADD COLUMN IF NOT EXISTS shared_with_family_head boolean NOT NULL DEFAULT false;
+                ALTER TABLE appointments ADD COLUMN IF NOT EXISTS rescheduled_from_starts_at timestamp with time zone;
+                ALTER TABLE family_invitations ADD COLUMN IF NOT EXISTS cancelled_at timestamp with time zone;
+                ALTER TABLE family_invitations ADD COLUMN IF NOT EXISTS invited_email_masked character varying(254);
+                ALTER TABLE family_invitations ADD COLUMN IF NOT EXISTS relationship_type character varying(40);
+
+                CREATE TABLE IF NOT EXISTS doctor_license_documents (
+                    id uuid NOT NULL DEFAULT gen_random_uuid(),
+                    doctor_id uuid NOT NULL,
+                    file_name character varying(255) NOT NULL,
+                    content_type character varying(64) NOT NULL,
+                    size_bytes bigint NOT NULL,
+                    content bytea NOT NULL,
+                    created_at timestamp with time zone NOT NULL,
+                    updated_at timestamp with time zone NOT NULL,
+                    CONSTRAINT pk_doctor_license_documents PRIMARY KEY (id),
+                    CONSTRAINT fk_doctor_license_documents_doctors_doctor_id FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS user_profiles (
+                    id uuid NOT NULL DEFAULT gen_random_uuid(),
+                    user_id uuid NOT NULL,
+                    phone_number character varying(16) NOT NULL,
+                    date_of_birth date,
+                    sex_for_clinical_reference character varying(16) NOT NULL DEFAULT 'NotSpecified',
+                    address_line1 character varying(120),
+                    address_line2 character varying(120),
+                    city character varying(80),
+                    district character varying(40),
+                    postal_code character varying(5),
+                    national_id_hash character varying(64),
+                    national_id_last_four character varying(4),
+                    terms_accepted_at timestamp with time zone NOT NULL,
+                    created_at timestamp with time zone NOT NULL,
+                    updated_at timestamp with time zone NOT NULL,
+                    CONSTRAINT pk_user_profiles PRIMARY KEY (id),
+                    CONSTRAINT fk_user_profiles_users_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS family_head_transfers (
+                    id uuid NOT NULL DEFAULT gen_random_uuid(),
+                    family_id uuid NOT NULL,
+                    from_member_id uuid NOT NULL,
+                    to_member_id uuid NOT NULL,
+                    requested_by_user_id uuid NOT NULL,
+                    status character varying(20) NOT NULL,
+                    responded_at timestamp with time zone,
+                    created_at timestamp with time zone NOT NULL,
+                    updated_at timestamp with time zone NOT NULL,
+                    CONSTRAINT pk_family_head_transfers PRIMARY KEY (id),
+                    CONSTRAINT fk_family_head_transfers_families_family_id FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS family_membership_events (
+                    id uuid NOT NULL DEFAULT gen_random_uuid(),
+                    family_id uuid NOT NULL,
+                    member_id uuid,
+                    actor_user_id uuid NOT NULL,
+                    event_type character varying(40) NOT NULL,
+                    details_json character varying(1000),
+                    created_at timestamp with time zone NOT NULL,
+                    updated_at timestamp with time zone NOT NULL,
+                    CONSTRAINT pk_family_membership_events PRIMARY KEY (id),
+                    CONSTRAINT fk_family_membership_events_families_family_id FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS family_join_requests (
+                    id uuid NOT NULL DEFAULT gen_random_uuid(),
+                    family_id uuid NOT NULL,
+                    user_id uuid NOT NULL,
+                    relationship_type character varying(40) NOT NULL,
+                    message character varying(280),
+                    status character varying(20) NOT NULL,
+                    responded_at timestamp with time zone,
+                    created_at timestamp with time zone NOT NULL,
+                    updated_at timestamp with time zone NOT NULL,
+                    CONSTRAINT pk_family_join_requests PRIMARY KEY (id),
+                    CONSTRAINT fk_family_join_requests_families_family_id FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE,
+                    CONSTRAINT fk_family_join_requests_users_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS family_doctor_requests (
+                    id uuid NOT NULL DEFAULT gen_random_uuid(),
+                    family_id uuid NOT NULL,
+                    doctor_id uuid NOT NULL,
+                    requested_by_user_id uuid NOT NULL,
+                    message character varying(280),
+                    status character varying(20) NOT NULL,
+                    responded_at timestamp with time zone,
+                    created_at timestamp with time zone NOT NULL,
+                    updated_at timestamp with time zone NOT NULL,
+                    CONSTRAINT pk_family_doctor_requests PRIMARY KEY (id),
+                    CONSTRAINT fk_family_doctor_requests_doctors_doctor_id FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE,
+                    CONSTRAINT fk_family_doctor_requests_families_family_id FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS appointments (
+                    id uuid NOT NULL DEFAULT gen_random_uuid(),
+                    member_id uuid NOT NULL,
+                    doctor_id uuid NOT NULL,
+                    booked_by_user_id uuid NOT NULL,
+                    starts_at timestamp with time zone NOT NULL,
+                    duration_minutes integer NOT NULL,
+                    reason character varying(200) NOT NULL,
+                    status character varying(20) NOT NULL,
+                    doctor_note character varying(500),
+                    created_at timestamp with time zone NOT NULL,
+                    updated_at timestamp with time zone NOT NULL,
+                    CONSTRAINT pk_appointments PRIMARY KEY (id),
+                    CONSTRAINT fk_appointments_doctors_doctor_id FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE,
+                    CONSTRAINT fk_appointments_members_member_id FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS doctor_availability (
+                    id uuid NOT NULL DEFAULT gen_random_uuid(),
+                    doctor_id uuid NOT NULL,
+                    day_of_week character varying(12) NOT NULL,
+                    start_time time without time zone NOT NULL,
+                    end_time time without time zone NOT NULL,
+                    created_at timestamp with time zone NOT NULL,
+                    updated_at timestamp with time zone NOT NULL,
+                    CONSTRAINT pk_doctor_availability PRIMARY KEY (id),
+                    CONSTRAINT fk_doctor_availability_doctors_doctor_id FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS doctor_unavailable_periods (
+                    id uuid NOT NULL DEFAULT gen_random_uuid(),
+                    doctor_id uuid NOT NULL,
+                    starts_at timestamp with time zone NOT NULL,
+                    ends_at timestamp with time zone NOT NULL,
+                    reason character varying(120),
+                    created_at timestamp with time zone NOT NULL,
+                    updated_at timestamp with time zone NOT NULL,
+                    CONSTRAINT pk_doctor_unavailable_periods PRIMARY KEY (id),
+                    CONSTRAINT fk_doctor_unavailable_periods_doctors_doctor_id FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS visit_access_grants (
+                    id uuid NOT NULL DEFAULT gen_random_uuid(),
+                    appointment_id uuid NOT NULL,
+                    doctor_id uuid NOT NULL,
+                    member_id uuid NOT NULL,
+                    starts_at timestamp with time zone NOT NULL,
+                    expires_at timestamp with time zone NOT NULL,
+                    revoked_at timestamp with time zone,
+                    created_at timestamp with time zone NOT NULL,
+                    updated_at timestamp with time zone NOT NULL,
+                    CONSTRAINT pk_visit_access_grants PRIMARY KEY (id),
+                    CONSTRAINT fk_visit_access_grants_appointments_appointment_id FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE CASCADE,
+                    CONSTRAINT fk_visit_access_grants_doctors_doctor_id FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE,
+                    CONSTRAINT fk_visit_access_grants_members_member_id FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS clinical_notes (
+                    id uuid NOT NULL DEFAULT gen_random_uuid(),
+                    doctor_id uuid NOT NULL,
+                    family_id uuid NOT NULL,
+                    member_id uuid,
+                    appointment_id uuid,
+                    note_type character varying(20) NOT NULL,
+                    content character varying(4000) NOT NULL,
+                    version integer NOT NULL DEFAULT 1,
+                    amends_note_id uuid,
+                    created_at timestamp with time zone NOT NULL,
+                    updated_at timestamp with time zone NOT NULL,
+                    CONSTRAINT pk_clinical_notes PRIMARY KEY (id),
+                    CONSTRAINT fk_clinical_notes_appointments_appointment_id FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE SET NULL,
+                    CONSTRAINT fk_clinical_notes_clinical_notes_amends_note_id FOREIGN KEY (amends_note_id) REFERENCES clinical_notes(id) ON DELETE RESTRICT,
+                    CONSTRAINT fk_clinical_notes_doctors_doctor_id FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE RESTRICT,
+                    CONSTRAINT fk_clinical_notes_families_family_id FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE RESTRICT,
+                    CONSTRAINT fk_clinical_notes_members_member_id FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE RESTRICT
+                );
+
+                CREATE TABLE IF NOT EXISTS notifications (
+                    id uuid NOT NULL DEFAULT gen_random_uuid(),
+                    user_id uuid NOT NULL,
+                    type character varying(60) NOT NULL,
+                    title character varying(120) NOT NULL,
+                    body character varying(400) NOT NULL,
+                    link_path character varying(200),
+                    read_at timestamp with time zone,
+                    created_at timestamp with time zone NOT NULL,
+                    updated_at timestamp with time zone NOT NULL,
+                    CONSTRAINT pk_notifications PRIMARY KEY (id),
+                    CONSTRAINT fk_notifications_users_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                );
+                """,
                 cancellationToken);
         }
         catch { }

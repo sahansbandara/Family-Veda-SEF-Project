@@ -42,10 +42,15 @@ export function FamilyHeadStatusPage() {
         )
       }
       setState('ready')
-    } catch {
+    } catch (error: unknown) {
+      const status = (error as { response?: { status?: number } }).response?.status
+      if (status === 401) {
+        navigate('/login', { replace: true })
+        return
+      }
       setState('error')
     }
-  }, [dispatch, user])
+  }, [dispatch, user, navigate])
 
   useEffect(() => {
     void load()

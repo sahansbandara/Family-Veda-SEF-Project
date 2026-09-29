@@ -63,7 +63,7 @@ describe('FamilyPage', () => {
 
     expect(await screen.findByText('FV-7K4P92')).toBeInTheDocument()
     const members = await screen.findByRole('region', { name: 'Members' })
-    expect(within(members).getByText('Synthetic Adult')).toBeInTheDocument()
+    expect(await within(members).findByText('Synthetic Adult')).toBeInTheDocument()
     expect(within(members).getByText('Adult Member')).toBeInTheDocument()
     expect(within(members).getAllByRole('button', { name: 'Remove from Family' })).toHaveLength(1)
     expect(within(members).getByRole('button', { name: 'Delete profile' })).toBeInTheDocument()
