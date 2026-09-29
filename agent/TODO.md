@@ -185,7 +185,7 @@ Overlaps FH-4..FH-6 above — tick both when done. Each phase: TDD, PR into `dev
 - [ ] U1 Doctor nav: merge "Calendar" + "Appointments calendar" into one Calendar tab.
 - [ ] U1 Records: split single scroll into Records · Vitals · Lab Reports sub-tabs (Head + Adult share the component).
 - [ ] U1 Adult: add Privacy tab (Family Sharing + Clinical Consent).
-- [ ] Membership-move gaps (UX plan §10): G1 close an empty household (end its assignment, cancel its requests), G2 reset `SharedWithFamilyHead` on move, G3 test that the old doctor gets 404 after the move, G4 confirm modal before a solo Head joins another family.
+- [x] G1 + G2 fixed in `FamilyMembershipMover` (2026-09-29). Still open: G3 test that the old doctor gets 404 after a move; G4 confirm modal. Original item: Membership-move gaps (UX plan §10): G1 close an empty household (end its assignment, cancel its requests), G2 reset `SharedWithFamilyHead` on move, G3 test that the old doctor gets 404 after the move, G4 confirm modal before a solo Head joins another family.
 - [ ] Per-page done check: title = nav label · purpose sentence · one primary button · loading/empty/error · test asserts title + button.
 
 ### P0 — Shared design system (29 Sep, no schema)
@@ -217,6 +217,14 @@ Nav: `Dashboard | My Health | Appointments | Symptoms & Triage | My Family | My 
 - [ ] B8 Privacy: Family Sharing list with per-item toggle (`PATCH …/sharing`) + Clinical Consent card for current doctor (existing consent API). New route `/privacy` for MEMBER.
 - [ ] B9 Seed: shared + private adult report rows (open since Phase 2).
 - [ ] B-cut (future work): Explain lab values to patient, image observations, handwritten reader — hidden, listed in report.
+
+### Section D — Admin (see UX plan §11)
+- [ ] D-A Remove fake fallback numbers on the admin dashboard.
+- [ ] D-B `GET /admin/dashboard` real counts; every tile is a link.
+- [ ] D-C Deactivate/Reactivate instead of hard delete (owner approval needed).
+- [ ] D-D Split `ClinicAdminPortal.tsx` (2,150 lines) into per-tab pages.
+- [ ] D-E Safety & System page.
+- [ ] D-F Negative test: admin cannot read member health data.
 
 ### P3 — Doctor schema, one migration (1 Oct) · MIGRATION LOCK
 - [ ] `20261001_S4_DoctorWorkspace`: `DoctorAvailability`, `DoctorUnavailablePeriod`, `ClinicalNote` (append-only, `AmendsNoteId`, `Version`), `PreVisitBrief`; `Doctor` + ConsultationModes, AcceptingNewFamilies, FamilyCapacity, SlotMinutes; `Appointment.RescheduledFromStartsAt`.

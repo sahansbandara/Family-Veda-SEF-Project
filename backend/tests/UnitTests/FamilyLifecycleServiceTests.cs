@@ -4,6 +4,7 @@
 using FamilyVeda.Application.Common;
 using FamilyVeda.Application.Families;
 using FamilyVeda.Application.Portal;
+using FamilyVeda.Domain.Clinical;
 using FamilyVeda.Domain.Common;
 using FamilyVeda.Domain.Identity;
 using FamilyVeda.Domain.Portal;
@@ -219,6 +220,58 @@ public sealed class FamilyLifecycleServiceTests
         roster.Single(x => x.DisplayName == "Synthetic Minor").IsMinor.Should().BeTrue();
         await FluentActions.Awaiting(() => Lifecycle(db, other.Head.Id).GetRosterAsync(s.Family.Id, CancellationToken.None))
             .Should().ThrowAsync<NotFoundException>();
+    }
+
+    [Fact]
+    public async Task Move_ResetsFamilySharing_SoANewHeadNeverInheritsIt()
+    {
+        await using var db = NewDb();
+        var s = await SeedAsync(db, "FV-LIF101");
+        db.AddRange(
+            new LabReport { Member = s.AdultMember, OriginalFileName = "synthetic.jpg", StoredFileName = "s.jpg", ContentType = "image/jpeg", SharedWithFamilyHead = true },
+            new HealthRecord { Member = s.AdultMember, Title = "Synthetic record", SharedWithFamilyHead = true });
+        await db.SaveChangesAsync();
+
+        await Lifecycle(db, s.Head.Id).RemoveAdultAsync(s.AdultMember.Id, CancellationToken.None);
+
+        (await db.LabReports.SingleAsync()).SharedWithFamilyHead.Should().BeFalse();
+        (await db.HealthRecords.SingleAsync()).SharedWithFamilyHead.Should().BeFalse();
+        (await db.Families.SingleAsync(x => x.Id == s.Family.Id)).FamilyCode.Should().Be("FV-LIF101", "the old family still has people, so it stays open");
+    }
+
+    [Fact]
+    public async Task SoloHeadJoiningAnotherFamily_ClosesTheEmptyHousehold_AndKeepsHistory()
+    {
+        await using var db = NewDb();
+        var target = await SeedAsync(db, "FV-LIF201");
+        var solo = User("solo");
+        var household = new Family { Name = "Synthetic Solo Family", CreatedByUser = solo, FamilyCode = "FV-SOLO01" };
+        var soloMember = new Member { Family = household, User = solo, DisplayName = "Synthetic Solo", DateOfBirth = new DateOnly(1990, 1, 1), Role = FamilyRole.Head };
+        var doctorUser = new UserAccount { Email = "doc@example.invalid", PasswordHash = "x", DisplayName = "Synthetic Doctor", UserType = UserType.Doctor };
+        var doctor = new Doctor { User = doctorUser, RegistrationNumberHash = "h", RegistrationNumberLastFour = "0001", VerificationStatus = VerificationStatus.Verified };
+        var otherUser = User("stranger");
+        db.AddRange(solo, household, soloMember, doctorUser, doctor, otherUser,
+            new FamilyDoctorAssignment { Family = household, Doctor = doctor, IsPrimary = true },
+            new FamilyDoctorRequest { Family = household, Doctor = doctor, RequestedByUserId = solo.Id },
+            new FamilyJoinRequest { Family = household, RequestingUserId = otherUser.Id, RelationshipType = "Sibling" },
+            new FamilyInvitation { Family = household, InvitedByUserId = solo.Id, InvitedEmailHash = "e", TokenHash = "t", ExpiresAt = DateTimeOffset.UtcNow.AddDays(3) },
+            new LabReport { Member = soloMember, OriginalFileName = "synthetic.jpg", StoredFileName = "s.jpg", ContentType = "image/jpeg", SharedWithFamilyHead = true });
+        await db.SaveChangesAsync();
+
+        await new FamilyMembershipMover(db).AttachAdultAsync(solo, target.Family.Id, soloMember.DateOfBirth, ClinicalSex.NotSpecified, CancellationToken.None);
+        await db.SaveChangesAsync();
+
+        var moved = await db.Members.SingleAsync(x => x.Id == soloMember.Id);
+        moved.FamilyId.Should().Be(target.Family.Id);
+        moved.Role.Should().Be(FamilyRole.AdultMember);
+        var report = await db.LabReports.SingleAsync(x => x.MemberId == soloMember.Id);
+        report.SharedWithFamilyHead.Should().BeFalse("the new Head must not see items shared in another household");
+
+        (await db.Families.SingleAsync(x => x.Id == household.Id)).FamilyCode.Should().BeNull("nobody may join a family without a Head");
+        (await db.FamilyDoctorAssignments.SingleAsync()).EndedAt.Should().NotBeNull("assignment ends but history is kept");
+        (await db.FamilyDoctorRequests.SingleAsync()).Status.Should().Be(PortalRequestStatus.Cancelled);
+        (await db.FamilyJoinRequests.SingleAsync(x => x.FamilyId == household.Id)).Status.Should().Be(PortalRequestStatus.Cancelled);
+        (await db.FamilyInvitations.SingleAsync(x => x.FamilyId == household.Id)).ExpiresAt.Should().BeOnOrBefore(DateTimeOffset.UtcNow);
     }
 
     private sealed class StubCurrentUser(Guid userId) : ICurrentUser

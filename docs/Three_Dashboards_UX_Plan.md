@@ -202,3 +202,54 @@ Solo Head (household of 1)
 | G4 | The UI never tells a solo Head that joining another family will turn them into an Adult Member. | A surprise role change. | Confirmation modal: "You'll join the X Family as an Adult Member. Your health history comes with you and stays private. Your own household will be closed." |
 
 UX (solo Head, My Family tab): show a card **"Join another family"** with a Family Code input next to "Invite family members". This is the same component the adult uses in My Family.
+
+---
+
+## 11. Section D — Admin (Clinic Administrator) portal
+
+There is no mockup for this portal. It uses the same template (§2) and tokens as the other three, so the product looks like one system.
+
+### 11.1 Problems in the current admin portal (`ClinicAdminPortal.tsx`, 2,150 lines)
+
+| # | Problem | Why it matters |
+|---|---|---|
+| D1 | **Fake fallback numbers**: `verifiedDocsCount > 0 ? verifiedDocsCount : 2`; a hard-coded "Clinical Guardrails 100%" | A made-up number on a governance screen fails the viva instantly |
+| D2 | **Hard delete** of doctor and household accounts (`DELETE /admin/doctors/{id}`, `DELETE /admin/family-heads/{id}`) | Contradicts "never hard-delete history" and RULE 8 audit evidence |
+| D3 | One 2,150-line component with dossiers, deletes, charts and settings | Hard to understand, hard to test |
+| D4 | Technical titles ("Immutable Governance", "Identity Registry", "Multi-Agent Orchestration Status") | Same clarity problem as the family screens |
+
+### 11.2 Principle: the admin runs the platform and never reads health data
+
+The admin verifies people, manages accounts and watches safety/audit. **The admin has no path to any member's records, labs, vitals, triage content or AI drafts.** This is least privilege, and "access by grant, not by role". It is also a strong viva point.
+
+### 11.3 Navigation and pages
+
+Nav: `Dashboard | Doctor Verification | Users | Audit Log | Safety & System`
+
+| Tab | Purpose sentence | What's on it | Primary button |
+|---|---|---|---|
+| **Dashboard** | "Platform health and anything waiting for you." | 4 tiles (all real counts, every tile a link): Doctors awaiting verification · Active families · Open triage cases (count only) · Safety events (last 7 days: emergency referrals, validation failures) · Needs Attention (oldest pending doctor, SLA-breached cases, failed notifications) · Recent admin actions | — |
+| **Doctor Verification** | "Review synthetic doctor applications. Clinical access opens only after you verify." | Sub-tabs: Pending · More Info Requested · Verified · Rejected/Suspended; dossier drawer (name, specialty, district, `SLMC ••••1234`, uploaded synthetic licence); actions Verify · Request Info · Reject · Suspend with a required reason | — |
+| **Users** | "All accounts. Deactivate instead of deleting, so history stays intact." | Search + filter by type (Family / Doctor / Admin) and status; row: name, masked email, type, status, created; actions **Deactivate / Reactivate**, Reset password (one-time token). No health data columns | — |
+| **Audit Log** | "Who accessed or changed what, and when." | Filter by event type, actor, date; rows in plain words; export CSV | Export |
+| **Safety & System** | "The rules that always apply, and whether the system is healthy." | The 10 clinical safety rules (read-only) · deterministic rule-table versions · LLM provider status (Gemini / Groq fallback) · last validation failures · notification delivery stats | — |
+
+Family Head verification drops out of the main nav: Heads are auto-approved (PR #73). Keep the Suspend action on the Users page.
+
+### 11.4 Backend needed
+
+| Endpoint | Returns | Notes |
+|---|---|---|
+| `GET /admin/dashboard` | counts for the 4 tiles + needs-attention list | Aggregates only; no member names or clinical text |
+| `POST /admin/users/{id}/deactivate` / `reactivate` | 204 | Replaces the hard-delete endpoints; revokes refresh tokens; audited |
+| `GET /admin/safety-summary` | emergency referrals, validation failures, LLM fallback count (7 days) | From `AgentTrace` / `AuditLog` aggregates |
+
+The hard-delete endpoints are retired (D2). They go only after the owner confirms, because they exist today and the change is visible to users.
+
+### 11.5 Tasks
+- [ ] D-A Remove fake fallbacks (D1): show real counts, or an empty state.
+- [ ] D-B `GET /admin/dashboard` + tiles as links.
+- [ ] D-C Deactivate/Reactivate instead of delete (D2). **Needs owner approval** before removing the delete endpoints.
+- [ ] D-D Split `ClinicAdminPortal.tsx` into per-tab pages using the shared template.
+- [ ] D-E Safety & System page with the 10 rules + LLM/validation stats.
+- [ ] D-F Test: an admin token gets 403/404 on every member-data endpoint (records, labs, vitals, triage detail, approvals).
