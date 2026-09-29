@@ -179,6 +179,14 @@ Nav (web + Flutter): `Dashboard | My Family | Health Records | Symptoms & Triage
 Plan: `docs/Three_Dashboards_Plan.md` (DB linkage §3, disagreements §6). Mockups: `docs/mockups/{family-head,adult-member,doctor}.html`. Doctor spec: `docs/Doctor_Side_Spec.md`.
 Overlaps FH-4..FH-6 above — tick both when done. Each phase: TDD, PR into `develop`, self-merge.
 
+### U — Clarity fixes first (see `docs/Three_Dashboards_UX_Plan.md`)
+- [ ] U0 Page template: hero (title = nav label, one purpose sentence, one primary button), metric tiles as links, one badge vocabulary, sub-tabs, teaching empty states.
+- [ ] U1 Titles/wording: "AI triage" → "Symptoms & Triage"; "Audit activity" → Privacy summary; adult "My Family" → membership page (join is one option); remove agent/OCR/audit words from family screens (UX plan §7).
+- [ ] U1 Doctor nav: merge "Calendar" + "Appointments calendar" into one Calendar tab.
+- [ ] U1 Records: split single scroll into Records · Vitals · Lab Reports sub-tabs (Head + Adult share the component).
+- [ ] U1 Adult: add Privacy tab (Family Sharing + Clinical Consent).
+- [ ] Per-page done check: title = nav label · purpose sentence · one primary button · loading/empty/error · test asserts title + button.
+
 ### P0 — Shared design system (29 Sep, no schema)
 - [ ] Port mockup tokens (brand `#087b70`, bg, line, badge colours, radii, shadows) into `web/src/styles/tokens.css` + dark-mode variants.
 - [ ] Shared primitives in `web/src/components/portal/`: PortalHero, MetricTile, Panel, StatusBadge, Tabs, Timeline, StepProgress, ReportCard, Modal, EmptyState.
