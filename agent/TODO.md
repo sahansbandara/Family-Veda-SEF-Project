@@ -120,10 +120,10 @@ Order: FH-0 → FH-1 → FH-2 → FH-3 → FH-4 → FH-5 → FH-6. Each step: TD
 Nav (web + Flutter): `Dashboard | My Family | Health Records | Symptoms & Triage | My Doctor | Appointments | Privacy & Access` · top-right Notifications, Profile, Emergency Help.
 
 ### FH-0 — Baseline + cleanup (no schema)
-- [ ] Run unit / integration / web / Flutter tests on `develop`; record counts here.
-- [ ] Web: remove the "Family head verification status" nav item and the `/family-head-status` redirect for heads (dead since PR #73). Keep the page reachable for Rejected/Suspended heads only.
-- [ ] Web `AppLayout`: head nav = the 7 blueprint items. Rename "AI triage" → "Symptoms & Triage", "Records" → "Health Records"; fold "Join requests" and "Family screening" into My Family / Health Records; "Audit" → Privacy & Access.
-- [ ] Web: persistent **Emergency Help** button (card/route, never `alert()`), 1990 referral — RULE 10.
+- [x] Baseline 2026-09-29 on `develop` @ fec93e1: unit 150/150, integration 20/20, web 70/70, Flutter 78/78.
+- [x] Web: family-head status page/redirect now only fires for Rejected/Suspended/More-info heads (backend returns Verified by default since PR #73).
+- [x] Web `AppLayout`: head nav = the 7 blueprint items; adult nav = blueprint order (tested in `AppRouter.test.tsx`). Rename "AI triage" → "Symptoms & Triage", "Records" → "Health Records"; fold "Join requests" and "Family screening" into My Family / Health Records; "Audit" → Privacy & Access.
+- [x] Web: persistent **Emergency Help** button (moved into `AppLayout`) (card/route, never `alert()`), 1990 referral — RULE 10.
 
 ### FH-1 — Dashboard (backend + web + Flutter)
 - [ ] Backend: check `DashboardController` head DTO covers the mockup: member count + minor count, next shared/minor appointment, open family-visible cases, pending join requests, Family Doctor summary, Needs Attention items, members overview (per-member shared-activity line), recent **shared-only** activity. Add missing fields.
@@ -167,9 +167,10 @@ Nav (web + Flutter): `Dashboard | My Family | Health Records | Symptoms & Triage
 - [ ] Seed rows for every new feature; update `docs/TESTING.md` demo walkthrough for the viva (head flow end-to-end).
 - [ ] CI green; screenshots into `docs/evidence/` for the report.
 
-### Open questions for the owner
-- Join-request expiry window (default proposal: 14 days).
-- Does Flutter need Invitations + Transfer, or web-only for those two? (proposal: web full, Flutter read-only + accept banner).
+### Owner decisions (2026-09-29)
+- Join requests expire after **14 days**.
+- Invitations + Head transfer: **web full**; Flutter read-only list + accept banner for the transfer target.
+- Migration lock taken by owner for FH-2/FH-3 schema work.
 
 ## Auth redesign — completed 2026-09-28
 
