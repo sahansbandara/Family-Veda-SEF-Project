@@ -52,4 +52,9 @@ public sealed class AppointmentsController(IAppointmentService appointmentServic
     [Authorize(Policy = "Doctor")]
     public async Task<ActionResult<AppointmentDto>> DoctorCancel(Guid id, AppointmentActionRequest? request, CancellationToken cancellationToken) =>
         Ok(await appointmentService.DoctorCancelAsync(id, request ?? new AppointmentActionRequest(null), cancellationToken));
+
+    [HttpPost("doctors/me/appointments/{id:guid}/reschedule")]
+    [Authorize(Policy = "Doctor")]
+    public async Task<ActionResult<AppointmentDto>> Reschedule(Guid id, RescheduleAppointmentRequest request, CancellationToken cancellationToken) =>
+        Ok(await appointmentService.RescheduleAsync(id, request, cancellationToken));
 }

@@ -20,6 +20,10 @@ public sealed class Doctor : Entity
     public string? District { get; set; }
     public string? City { get; set; }
     public string? Languages { get; set; }
+    // Doctor workspace (DECISIONS 2026-09-29h)
+    public string? ConsultationModes { get; set; }
+    public bool AcceptingNewFamilies { get; set; } = true;
+    public int SlotMinutes { get; set; } = 30;
 }
 
 /// <summary>Synthetic licence / registration document uploaded at doctor sign-up; reviewed by admins only.</summary>

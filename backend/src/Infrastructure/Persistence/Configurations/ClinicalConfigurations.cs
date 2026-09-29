@@ -21,6 +21,9 @@ internal sealed class DoctorConfiguration : IEntityTypeConfiguration<Doctor>
         builder.Property(x => x.District).HasMaxLength(60);
         builder.Property(x => x.City).HasMaxLength(60);
         builder.Property(x => x.Languages).HasMaxLength(120);
+        builder.Property(x => x.ConsultationModes).HasMaxLength(60);
+        builder.Property(x => x.AcceptingNewFamilies).HasDefaultValue(true);
+        builder.Property(x => x.SlotMinutes).HasDefaultValue(30);
         builder.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(x => x.UserId).IsUnique();
         builder.HasIndex(x => x.RegistrationNumberHash).IsUnique();

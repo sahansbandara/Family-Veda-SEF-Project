@@ -70,3 +70,60 @@ internal sealed class PortalNotificationConfiguration : IEntityTypeConfiguration
         builder.HasIndex(x => new { x.UserId, x.CreatedAt });
     }
 }
+
+// Doctor workspace (DECISIONS 2026-09-29h)
+internal sealed class DoctorAvailabilityConfiguration : IEntityTypeConfiguration<DoctorAvailability>
+{
+    public void Configure(EntityTypeBuilder<DoctorAvailability> builder)
+    {
+        builder.ToTable("doctor_availability");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.DayOfWeek).HasConversion<string>().HasMaxLength(12);
+        builder.HasOne(x => x.Doctor).WithMany().HasForeignKey(x => x.DoctorId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(x => new { x.DoctorId, x.DayOfWeek });
+    }
+}
+
+internal sealed class DoctorUnavailablePeriodConfiguration : IEntityTypeConfiguration<DoctorUnavailablePeriod>
+{
+    public void Configure(EntityTypeBuilder<DoctorUnavailablePeriod> builder)
+    {
+        builder.ToTable("doctor_unavailable_periods");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Reason).HasMaxLength(120);
+        builder.HasOne(x => x.Doctor).WithMany().HasForeignKey(x => x.DoctorId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(x => new { x.DoctorId, x.StartsAt });
+    }
+}
+
+internal sealed class VisitAccessGrantConfiguration : IEntityTypeConfiguration<VisitAccessGrant>
+{
+    public void Configure(EntityTypeBuilder<VisitAccessGrant> builder)
+    {
+        builder.ToTable("visit_access_grants");
+        builder.HasKey(x => x.Id);
+        builder.HasOne(x => x.Appointment).WithMany().HasForeignKey(x => x.AppointmentId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(x => x.Doctor).WithMany().HasForeignKey(x => x.DoctorId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(x => x.Member).WithMany().HasForeignKey(x => x.MemberId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(x => new { x.DoctorId, x.MemberId, x.ExpiresAt });
+        builder.HasIndex(x => x.AppointmentId);
+    }
+}
+
+internal sealed class ClinicalNoteConfiguration : IEntityTypeConfiguration<ClinicalNote>
+{
+    public void Configure(EntityTypeBuilder<ClinicalNote> builder)
+    {
+        builder.ToTable("clinical_notes");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Content).HasMaxLength(ClinicalNote.MaxContentLength).IsRequired();
+        builder.Property(x => x.NoteType).HasConversion<string>().HasMaxLength(20);
+        // Restrict: notes are clinical history and must never disappear with a family or member row.
+        builder.HasOne(x => x.Doctor).WithMany().HasForeignKey(x => x.DoctorId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.Family).WithMany().HasForeignKey(x => x.FamilyId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.Member).WithMany().HasForeignKey(x => x.MemberId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasOne(x => x.Appointment).WithMany().HasForeignKey(x => x.AppointmentId).OnDelete(DeleteBehavior.SetNull);
+        builder.HasOne<ClinicalNote>().WithMany().HasForeignKey(x => x.AmendsNoteId).OnDelete(DeleteBehavior.Restrict);
+        builder.HasIndex(x => new { x.FamilyId, x.MemberId, x.CreatedAt });
+    }
+}
