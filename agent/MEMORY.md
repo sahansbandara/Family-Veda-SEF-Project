@@ -40,3 +40,7 @@ What we already know and must not repeat.
 - The admin portal had fake fallback numbers (`verifiedDocsCount > 0 ? … : 2`, hard-coded "100%"). Never add sample or fallback numbers to a dashboard: show the empty state instead.
 - Doctor clinical reads = assignment (eligibility) **and** a valid grant **and** consent (DECISIONS 2026-09-28). An assignment alone is never enough.
 - Update `agent/*` files in the same commit as code (DECISIONS 2026-09-29f).
+- Page template lives in `web/src/pages/dashboard/dashboardParts.tsx` (`PageHero`, `SubTabs<T>`, `Metric to=`). Pass the generic explicitly (`<SubTabs<MyTab> …>`) when the tabs array is built conditionally, or TS widens the id to `string`.
+- `RecordsPage` tests render without a redux Provider. Take role info from the API (`/members/me`), not `useAppSelector`, in that page.
+- `RecordsPage.test` asserts no `/diagnos/i` text on the page, so write "not a medical opinion" instead of "does not diagnose" there.
+- The vitest `vi.mock` factory is hoisted: inline its data instead of referencing top-level consts.
