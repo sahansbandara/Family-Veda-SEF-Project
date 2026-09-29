@@ -112,6 +112,65 @@ Due 2026-10-06 (extended). CORE first; FUTURE only if time remains, otherwise it
 
 #### Phase 7 — Submit (6 Oct)
 - [ ] Freeze `develop` → `main`, tag release, report sections + AI disclosure, `SE3090_SE016` package.
+## Family Head portal — full build (2026-09-29)
+
+Target: the Family Head mockup (`Family_Veda_Family_Head_Mockup.html`) + blueprint "FAMILY HEAD" section, delivered on **backend + web + Flutter**. Family heads are auto-approved (PR #73); only doctors wait for admin verification.
+Order: FH-0 → FH-1 → FH-2 → FH-3 → FH-4 → FH-5 → FH-6. Each step: TDD, PR into `develop`, self-merge. Schema steps take the migration lock.
+
+Nav (web + Flutter): `Dashboard | My Family | Health Records | Symptoms & Triage | My Doctor | Appointments | Privacy & Access` · top-right Notifications, Profile, Emergency Help.
+
+### FH-0 — Baseline + cleanup (no schema)
+- [ ] Run unit / integration / web / Flutter tests on `develop`; record counts here.
+- [ ] Web: remove the "Family head verification status" nav item and the `/family-head-status` redirect for heads (dead since PR #73). Keep the page reachable for Rejected/Suspended heads only.
+- [ ] Web `AppLayout`: head nav = the 7 blueprint items. Rename "AI triage" → "Symptoms & Triage", "Records" → "Health Records"; fold "Join requests" and "Family screening" into My Family / Health Records; "Audit" → Privacy & Access.
+- [ ] Web: persistent **Emergency Help** button (card/route, never `alert()`), 1990 referral — RULE 10.
+
+### FH-1 — Dashboard (backend + web + Flutter)
+- [ ] Backend: check `DashboardController` head DTO covers the mockup: member count + minor count, next shared/minor appointment, open family-visible cases, pending join requests, Family Doctor summary, Needs Attention items, members overview (per-member shared-activity line), recent **shared-only** activity. Add missing fields.
+- [ ] No-leak test: a private adult's appointment / case / report never changes any head count or activity row.
+- [ ] Web: hero (greeting + Family Code + notification count), 4 metric tiles, My Family Doctor card, Needs Attention, Members overview, Quick Actions (Add Minor, Invite Adult, Upload Report, Report Symptoms, Book Appointment), Health Tools (Understand a Report, Search My Records, Check Symptoms), Recent Shared Activity. Loading / empty / error states.
+- [ ] Flutter `home_screen.dart` head variant: same data, one primary task per screen; bottom nav Dashboard · Family · Records · Triage · More (Doctor, Appointments, Privacy).
+
+### FH-2 — My Family: Members · Join Requests · Invitations · Family Settings
+- [ ] Backend: `GET /families/{id}/invitations` (status, relationship, expiry) + `POST …/invitations/{id}/resend` + `POST …/invitations/{id}/cancel`.
+- [ ] Backend: join requests — `Expired` status (auto after N days), rate-limit Family Code attempts, reject duplicate pending / under-18 / already-in-family.
+- [ ] Backend: **Remove from Family** must not hard-delete. `FamilyService.DeleteMemberAsync` currently calls `Members.Remove` → change to end the membership (`EndedAt`/status), keep account + history, revoke doctor grants. Needs migration lock.
+- [ ] Backend: rename family (`PUT /families/{id}`) — verify head-only + audit.
+- [ ] Web `FamilyPage`: 4 tabs per mockup; Add Minor + Invite Adult actions; Accept / Decline with masked email; Family Code read-only with copy button.
+- [ ] Flutter: Members screen gets Add Minor + Invite Adult forms (currently missing), Join Requests tab (exists — wire into tabs), Invitations list, Family Settings.
+
+### FH-3 — Family Head transfer (schema · migration lock)
+- [ ] `Family.HeadMemberId` (keep `CreatedByUserId` as history) — backfill from current `Role == Head`.
+- [ ] `FamilyHeadTransfer` entity: Pending / Accepted / Declined / Cancelled. Head initiates → adult accepts/declines → one transaction swaps roles → audit + notifications.
+- [ ] Head cannot leave or be removed until transferred.
+- [ ] Web Family Settings "Transfer Family Head" + adult accept banner. Flutter same.
+- [ ] Tests: non-head cannot initiate; minor cannot be target; double-accept is idempotent; old head becomes AdultMember.
+
+### FH-4 — Health Records for the Head (self + minors + shared adult)
+- [ ] Backend already enforces sharing (Phase 2). Verify list filter: "All visible members / self / minor / shared adult reports".
+- [ ] Web Records page: tabs Records · Vitals · Lab Reports · Health Insights; report card grid (`ReportLibraryCard`); Upload modal — member picker limited to **self + minors**, notice that adults upload their own.
+- [ ] Report detail: progress Uploaded → Extracted → Manually Confirmed; deterministic range table; "does not diagnose" notice (RULES 1, 4).
+- [ ] Flutter records screen: member filter + same card; upload restricted to self/minor.
+- [ ] Seed: shared + private adult report rows (open item from Phase 2).
+
+### FH-5 — My Doctor · Appointments · Symptoms & Triage
+- [ ] My Doctor: current doctor card, "Manage Family Doctor → Request Change" (end old assignment, keep history — overlaps Phase 4). Head-only.
+- [ ] Find a Doctor: free-text preferences → backend hard filters (verified, active, accepting, language, district, availability) → "Suggested based on location, availability and your preferences." Head chooses. Deterministic parse first; LLM parse only if time (Phase 5).
+- [ ] Appointments: head books for self + minors only; table Member · Date · Doctor · Reason · Status; private adult rows never appear.
+- [ ] Triage: head sees own + minors' cases only, 4 plain steps (already built) — verify minor submission path.
+- [ ] Flutter parity for all three.
+
+### FH-6 — Privacy & Access + hardening
+- [ ] Backend `GET /families/me/privacy`: per-member sharing summary (minor = guardian managed; adult = N items shared / nothing shared) + recent access events for head-visible data only.
+- [ ] Web + Flutter Privacy & Access page (Consent & Sharing, Recent Access).
+- [ ] Authorization-negative tests for every new endpoint (adult, other-family head, doctor, anonymous).
+- [ ] Seed rows for every new feature; update `docs/TESTING.md` demo walkthrough for the viva (head flow end-to-end).
+- [ ] CI green; screenshots into `docs/evidence/` for the report.
+
+### Open questions for the owner
+- Join-request expiry window (default proposal: 14 days).
+- Does Flutter need Invitations + Transfer, or web-only for those two? (proposal: web full, Flutter read-only + accept banner).
+
 ## Auth redesign — completed 2026-09-28
 
 - [x] Premium AuthPage redesign (split-panel, hero images, role cards, password toggle, Remember Me)
