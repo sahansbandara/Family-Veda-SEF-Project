@@ -26,3 +26,20 @@ public interface IFamilyLifecycleService
     Task<MembershipChangeDto> RemoveAdultAsync(Guid memberId, CancellationToken cancellationToken);
     Task<MembershipChangeDto> LeaveFamilyAsync(LeaveFamilyRequest request, CancellationToken cancellationToken);
 }
+
+// ===== Family Head transfer (FH-3): two-person approval =====
+public sealed record CreateHeadTransferRequest(Guid ToMemberId);
+
+/// <summary>Visible to the current Head (outgoing) and to the proposed adult (incoming) only.</summary>
+public sealed record HeadTransferDto(Guid Id, Guid FamilyId, string FamilyName, Guid FromMemberId, string FromDisplayName,
+    Guid ToMemberId, string ToDisplayName, string Status, DateTimeOffset CreatedAt, DateTimeOffset? RespondedAt);
+
+public interface IFamilyHeadTransferService
+{
+    Task<HeadTransferDto> ProposeAsync(Guid familyId, CreateHeadTransferRequest request, CancellationToken cancellationToken);
+    Task<HeadTransferDto?> GetPendingForFamilyAsync(Guid familyId, CancellationToken cancellationToken);
+    Task<HeadTransferDto?> GetIncomingAsync(CancellationToken cancellationToken);
+    Task<HeadTransferDto> AcceptAsync(Guid transferId, CancellationToken cancellationToken);
+    Task<HeadTransferDto> DeclineAsync(Guid transferId, CancellationToken cancellationToken);
+    Task<HeadTransferDto> CancelAsync(Guid transferId, CancellationToken cancellationToken);
+}

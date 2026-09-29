@@ -142,11 +142,11 @@ Nav (web + Flutter): `Dashboard | My Family | Health Records | Symptoms & Triage
 - [ ] Flutter: Members screen gets Add Minor + Invite Adult forms (currently missing), Join Requests tab (exists — wire into tabs), Invitations list, Family Settings.
 
 ### FH-3 — Family Head transfer (schema · migration lock)
-- [ ] `Family.HeadMemberId` (keep `CreatedByUserId` as history) — backfill from current `Role == Head`.
-- [ ] `FamilyHeadTransfer` entity: Pending / Accepted / Declined / Cancelled. Head initiates → adult accepts/declines → one transaction swaps roles → audit + notifications.
-- [ ] Head cannot leave or be removed until transferred.
-- [ ] Web Family Settings "Transfer Family Head" + adult accept banner. Flutter same.
-- [ ] Tests: non-head cannot initiate; minor cannot be target; double-accept is idempotent; old head becomes AdultMember.
+- [x] ~~`Family.HeadMemberId`~~ → `Member.Role == Head` is the source of truth (`FamilyAccess`, DECISIONS 2026-09-29b); `CreatedByUserId` kept as history.
+- [x] `FamilyHeadTransfer` (`FamilyHeadTransferService`, `/families/{id}/head-transfers`, `/families/head-transfers/{id}/accept|decline|cancel`, `/incoming`): one pending per family, one SaveChanges swaps roles, audit + notifications.
+- [x] Head cannot leave or be removed until transferred (FH-2b).
+- [x] Web Family Settings "Transfer Family Head" + adult accept banner (session refreshed on accept). Flutter: see FH-2d.
+- [x] Tests: `FamilyHeadTransferServiceTests` (4) + web `HeadTransfer.test.tsx` (3).
 
 ### FH-4 — Health Records for the Head (self + minors + shared adult)
 - [ ] Backend already enforces sharing (Phase 2). Verify list filter: "All visible members / self / minor / shared adult reports".

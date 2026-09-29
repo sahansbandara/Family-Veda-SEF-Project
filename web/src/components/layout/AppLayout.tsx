@@ -11,6 +11,7 @@ import markUrl from '../../assets/mark.svg'
 // ===== S4 Feature: notifications + three-portal nav (docs/Three_Portal_Feature_Spec.md) =====
 import { NotificationBell } from '../shared/NotificationBell'
 import { EmergencyHelp } from '../../pages/dashboard/dashboardParts'
+import { HeadTransferBanner } from '../../pages/family/HeadTransferBanner'
 
 type NavItem = {
   label: string
@@ -164,6 +165,7 @@ export function AppLayout() {
         ))}
       </nav>
       <main id="main-content" className="main-content" tabIndex={-1}>
+        {user?.role === 'MEMBER' && <HeadTransferBanner />}
         <Outlet />
       </main>
       {showEmergencyHelp && <EmergencyHelp />}

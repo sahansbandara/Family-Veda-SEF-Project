@@ -42,6 +42,17 @@ apiClient.interceptors.response.use(undefined, async (error: AxiosError) => {
   }
 })
 
+/**
+ * Re-issues the session from the server (e.g. after the Family Head role changes hands), so the new
+ * role reaches the UI without signing in again. Returns null when there is no session to refresh.
+ */
+export async function refreshSession(): Promise<AuthResponse | null> {
+  if (!tokens?.refreshToken) return null
+  const { data } = await axios.post<AuthResponse>(`${baseURL}/auth/refresh`, { refreshToken: tokens.refreshToken })
+  setSessionTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken })
+  return data
+}
+
 export type AuthResponse = {
   userId: string
   displayName: string
@@ -203,6 +214,18 @@ export type FamilyInvitationSummaryDto = {
 }
 export type FamilyInvitationDto = { id: string; token: string; expiresAt: string }
 export type MembershipChangeDto = { memberId: string; familyId: string; familyName: string; familyCode?: string | null }
+export type HeadTransferDto = {
+  id: string
+  familyId: string
+  familyName: string
+  fromMemberId: string
+  fromDisplayName: string
+  toMemberId: string
+  toDisplayName: string
+  status: 'Pending' | 'Accepted' | 'Declined' | 'Cancelled'
+  createdAt: string
+  respondedAt?: string | null
+}
 
 export const familyLifecycleApi = {
   getRoster: (familyId: string) => apiClient.get<RosterMemberDto[]>(`/families/${familyId}/roster`),
@@ -216,6 +239,14 @@ export const familyLifecycleApi = {
   removeFromFamily: (memberId: string) => apiClient.post<MembershipChangeDto>(`/members/${memberId}/remove-from-family`),
   leaveFamily: (startOwnFamily: boolean) => apiClient.post<MembershipChangeDto>('/families/me/leave', { startOwnFamily }),
   renameFamily: (familyId: string, name: string) => apiClient.put<FamilyDto>(`/families/${familyId}`, { name }),
+  // FH-3 Family Head transfer. GET endpoints answer 204 (empty body) when nothing is waiting.
+  proposeHeadTransfer: (familyId: string, toMemberId: string) =>
+    apiClient.post<HeadTransferDto>(`/families/${familyId}/head-transfers`, { toMemberId }),
+  getPendingHeadTransfer: (familyId: string) => apiClient.get<HeadTransferDto | ''>(`/families/${familyId}/head-transfers/pending`),
+  getIncomingHeadTransfer: () => apiClient.get<HeadTransferDto | ''>('/families/head-transfers/incoming'),
+  acceptHeadTransfer: (id: string) => apiClient.post<HeadTransferDto>(`/families/head-transfers/${id}/accept`),
+  declineHeadTransfer: (id: string) => apiClient.post<HeadTransferDto>(`/families/head-transfers/${id}/decline`),
+  cancelHeadTransfer: (id: string) => apiClient.post<HeadTransferDto>(`/families/head-transfers/${id}/cancel`),
 }
 
 export const threePortalApi = {
