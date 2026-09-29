@@ -97,7 +97,7 @@ Mockup: `docs/mockups/doctor.html` · Desktop, denser layout allowed.
 | **Dashboard** | "What needs you today." | 4 tiles: Today's Appointments (next time) · Pending Approvals · Open Triage Cases (priority count) · Family Requests · Today's Schedule · Needs Attention (each with Open) · My Families table · Clinical Timeline | — | Built (`DoctorDashboardPanel`); re-skin, every row clickable |
 | **Calendar** | "Your appointments. Only free slots in your availability can be booked." | Today / Week toggle; appointment rows (time · member · family · type · status) with Confirm · Reschedule · Complete · No-show · Cancel; Block Time modal | + Block Time | **Merge "Calendar" and "Appointments calendar" into one tab**; move out of `DoctorPortal` |
 | **My Families** | "Families you care for long-term, and families asking you to be their doctor." | Sub-tabs: Assigned Families (search, sort, table: family · members · open cases · next appointment · Open) · Family Requests (badge; Accept / Decline) | — | Rebuild on real API, out of `DoctorPortal` |
-| ↳ **Family → Member** (not in nav) | "Access basis: Family Doctor assignment + member consent." (green ACCESS PERMITTED / grey RESTRICTED badge) | Member sub-tabs: Overview · Records · Labs · Vitals · Triage · Visits · Notes; AI Pre-Visit Brief panel (doctor only) | Generate Pre-Visit Brief | **New**; restricted members show "Clinical details restricted — consent not available", no counts |
+| ↳ **Family → Member** (not in nav) | "Access basis: time-bound visit/case grant + member consent." (assignment alone → roster + appointments only) (green ACCESS PERMITTED / grey RESTRICTED badge) | Member sub-tabs: Overview · Records · Labs · Vitals · Triage · Visits · Notes; AI Pre-Visit Brief panel (doctor only) | Generate Pre-Visit Brief | **New**; restricted members show "Clinical details restricted — consent not available", no counts |
 | **Triage Cases** | "Cases shared with you and cases you can claim." | Table: case · submitted · priority · status · Review/Claim | — | Live; rename from "Triage cases" casing only |
 | **Approvals** | "AI drafts stay doctor-only until you decide." | Left dark panel: AI draft, Safety Validation, Agent Trace. Right: Doctor Notes + Approve · Revise & Approve · Request Information · Reject/Escalate | Approve | Live; re-skin to two-column mockup layout |
 | **Profile & Availability** | "Practice details help families find you. Your registration ID stays protected." | Left: Practice Profile form (specialty, clinic, district, city, languages, consultation modes, accepting new families). Right: Weekly Availability + slot length | Save Profile | Rebuild on real API + new availability tables |
@@ -166,7 +166,7 @@ How a doctor reaches that person:
 
 | Path | When | What the doctor sees |
 |---|---|---|
-| Family Doctor assignment | The solo adult (Head of their own household) requests a doctor from My Doctor | A 1-member family in My Families, shown as an **Individual patient** |
+| Family Doctor assignment | The solo adult (Head of their own household) requests a doctor from My Doctor | A 1-member family in My Families, shown as an **Individual patient**. Clinical data appears only during a visit/case grant with consent. |
 | Case grant | They submit symptoms with no Family Doctor, and a doctor claims the case from the shared pool | That case only, time-bound, through Triage Cases / Approvals; no family workspace |
 | Neither | — | Nothing. There is no global patient search (by design). |
 

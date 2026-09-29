@@ -228,11 +228,12 @@ Nav: `Dashboard | My Health | Appointments | Symptoms & Triage | My Family | My 
 
 ### P3 — Doctor schema, one migration (1 Oct) · MIGRATION LOCK
 - [ ] `20261001_S4_DoctorWorkspace`: `DoctorAvailability`, `DoctorUnavailablePeriod`, `ClinicalNote` (append-only, `AmendsNoteId`, `Version`), `PreVisitBrief`; `Doctor` + ConsultationModes, AcceptingNewFamilies, FamilyCapacity, SlotMinutes; `Appointment.RescheduledFromStartsAt`.
+- [ ] Visit grant: a confirmed appointment issues a time-bound grant for that member (generalise `CaseAccessGrant` with `AppointmentId`). **Owner decision needed** on the window (proposed: 24 h before to 24 h after).
 - [ ] Apply to Neon same day, record migration history, release lock.
 
 ### Section C — Doctor (1–3 Oct)
 Nav: `Dashboard | Calendar | My Families | Triage Cases | Approvals | Profile & Availability`
-- [ ] C0 `DoctorAccessGuard` in new `DoctorWorkspaceService`: role → verified/active → active assignment OR valid case grant → member in family → consent category → audit. Every doctor endpoint uses it. Do not loosen `FamiliesController`/`RecordsController`.
+- [ ] C0 `DoctorAccessGuard` in new `DoctorWorkspaceService`: role → verified/active → active assignment (eligibility only) → **valid case/visit grant scoped to the member** → consent category → audit (DECISIONS 2026-09-28). Assignment alone = roster names, appointments, own notes; no clinical data. Every doctor endpoint uses it. Do not loosen `FamiliesController`/`RecordsController`.
 - [ ] C1 Dashboard: hero, 4 metrics (Today, Pending approvals, Open cases, Family requests), Today's Schedule, Needs Attention, My Families table, Clinical Timeline (UNION query, not a table).
 - [ ] C2 Calendar: Today + Week views; confirm / reschedule / complete / cancel / no-show; Block Time → `DoctorUnavailablePeriod`. Reschedule notifies the family.
 - [ ] C3 My Families: tabs Assigned · Requests; search / sort / pagination; accept/decline (existing API). `GET /doctors/me/families`.

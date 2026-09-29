@@ -78,8 +78,8 @@ Cross-cutting: PortalNotification (per user) · AuditLog (every cross-profile re
 | Adult · Who can see my data | count `SharedWithFamilyHead` true/false + `Consent` for active doctor | own rows only |
 | Doctor · Today / Calendar | `Appointment where DoctorId = me` | verified doctor only |
 | Doctor · My Families | `FamilyDoctorAssignment where DoctorId = me AND EndedAt IS NULL` | + pending `FamilyDoctorRequest` |
-| Doctor · Member workspace | `Member` → records/labs/vitals | **5-layer chain**: role → verified → assignment OR `CaseAccessGrant` → member in family → `Consent` granted for that category; audit row written |
-| Doctor · Clinical Timeline | UNION view over appointments, lab uploads, approvals, notes | same 5-layer chain; computed, **not** a new table |
+| Doctor · Member workspace | `Member` → records/labs/vitals | **Chain (DECISIONS 2026-09-28)**: role → verified → active assignment (**eligibility only**) → **valid, unexpired `CaseAccessGrant` scoped to this member** → `Consent` granted for that category → audit row. An assignment alone shows only non-clinical data: family roster names, appointments, and the doctor's own notes. |
+| Doctor · Clinical Timeline | UNION view over appointments, lab uploads, approvals, notes | clinical rows only under a valid grant + consent; computed, **not** a new table |
 
 ### 3.2 Key design decisions (my recommendation)
 
@@ -87,8 +87,9 @@ Cross-cutting: PortalNotification (per user) · AuditLog (every cross-profile re
 2. **Appointment privacy is derived, not stored.** An adult's appointment is private from the Head because `Member.Role = Adult`. Do **not** add a visibility column — it creates a second source of truth that can drift.
 3. **Timeline is a query, not a table.** Duplicating events into a timeline table means two writes per event and a consistency bug waiting to happen.
 4. **One migration for all doctor-side schema** (`20261001_S4_DoctorWorkspace`): availability, unavailable periods, clinical notes, pre-visit briefs, new doctor profile columns, `Appointment.RescheduledFromStartsAt`. One lock, one Neon apply, not four.
-5. **Doctor access is enforced in a new `DoctorWorkspaceService`**, not by loosening S1's `FamiliesController` or S2's `RecordsController` (Doctor spec §19).
-6. **ClinicalNote is append-only**: amend = new row with `AmendsNoteId`, `Version+1`. No delete endpoint exists at all.
+5. **Assignment ≠ access.** A Family Doctor assignment makes a doctor *eligible*; every clinical read needs a time-bound grant + consent (DECISIONS 2026-09-28). **Open owner decision:** today grants only come from triage cases. For appointments, a confirmed visit should issue a time-bound grant for that member (e.g. from 24 h before the visit until 24 h after it). That means generalising `CaseAccessGrant` (nullable `TriageCaseId`, plus `AppointmentId`) or adding a sibling grant table. It needs a migration, so it goes into P3.
+6. **Doctor access is enforced in a new `DoctorWorkspaceService`**, not by loosening S1's `FamiliesController` or S2's `RecordsController` (Doctor spec §19).
+7. **ClinicalNote is append-only**: amend = new row with `AmendsNoteId`, `Version+1`. No delete endpoint exists at all.
 
 ### 3.3 New tables (only these)
 
