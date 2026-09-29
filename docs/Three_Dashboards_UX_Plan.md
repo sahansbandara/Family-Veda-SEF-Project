@@ -155,3 +155,25 @@ Doctor screens may keep clinical/technical terms (agent trace is viva evidence).
 | U6 | Side-by-side screenshots vs mockups into `docs/evidence/` | Proof for report/viva |
 
 Done condition per page: title = nav label · purpose sentence present · one primary button · loading/empty/error states · no forbidden words (§7) · test asserts the title and primary button.
+
+---
+
+## 9. Edge case — an adult with no family
+
+**The data model has no family-less adult** (DECISIONS 2026-09-29c). A new adult registers as Head of a one-person family. Leaving, being removed, or "Start My Own Family" moves the adult's `Member` row, with all its history, into a new one-person household where they are `Head`. So every patient always has a `FamilyId`, and the doctor access chain (plan §3.1) needs no special case.
+
+How a doctor reaches that person:
+
+| Path | When | What the doctor sees |
+|---|---|---|
+| Family Doctor assignment | The solo adult (Head of their own household) requests a doctor from My Doctor | A 1-member family in My Families, shown as an **Individual patient** |
+| Case grant | They submit symptoms with no Family Doctor, and a doctor claims the case from the shared pool | That case only, time-bound, through Triage Cases / Approvals; no family workspace |
+| Neither | — | Nothing. There is no global patient search (by design). |
+
+After a move, grants from the old family are **revoked**. The adult must request a doctor again. The old doctor keeps their own past notes (append-only), but cannot read new data.
+
+UX tasks:
+- [ ] Head portal, 1-member family: hide the empty Members/Join Requests clutter. Show "You're managing your own health. Invite family members any time." with Invite Adult as a secondary button.
+- [ ] Doctor My Families: label families with `memberCount == 1` as "Individual patient" instead of "X Family · 1 member".
+- [ ] Doctor dashboard: when a family was lost through a move, show "Assignment ended — patient moved household" in the timeline, not an error.
+- [ ] Test: an adult leaves → the old doctor gets 404 on their records; the new request is accepted → access returns.
