@@ -114,9 +114,54 @@ public sealed class FamilyMembershipMover(AppDbContext dbContext)
             MetadataJson = JsonSerializer.Serialize(new { Reason = reason.ToString(), FromFamilyId = fromFamilyId, ToFamilyId = toFamilyId, EndedRelationships = endedLinks })
         });
 
+        await ResetFamilySharingAsync(member.Id, cancellationToken);
+        await CloseIfEmptyAsync(fromFamilyId, member.Id, cancellationToken);
+
         member.FamilyId = toFamilyId;
         member.Role = newRole;
         member.UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Sharing was a choice made for the old Head. A new Head must not inherit it, so every item goes back
+    /// to private and the adult re-shares on purpose. Doctor consent is a separate control and is untouched.
+    /// </summary>
+    private async Task ResetFamilySharingAsync(Guid memberId, CancellationToken cancellationToken)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var reports = await dbContext.LabReports.Where(x => x.MemberId == memberId && x.SharedWithFamilyHead).ToListAsync(cancellationToken);
+        foreach (var report in reports) { report.SharedWithFamilyHead = false; report.UpdatedAt = now; }
+        var records = await dbContext.HealthRecords.Where(x => x.MemberId == memberId && x.SharedWithFamilyHead).ToListAsync(cancellationToken);
+        foreach (var record in records) { record.SharedWithFamilyHead = false; record.UpdatedAt = now; }
+    }
+
+    /// <summary>
+    /// When the last person leaves, the household is closed rather than deleted: the doctor assignment ends
+    /// (history kept), open requests and invitations stop, and the Family Code is withdrawn so nobody can ask
+    /// to join a family without a Head.
+    /// </summary>
+    private async Task CloseIfEmptyAsync(Guid familyId, Guid leavingMemberId, CancellationToken cancellationToken)
+    {
+        if (await dbContext.Members.AnyAsync(x => x.FamilyId == familyId && x.Id != leavingMemberId, cancellationToken)) return;
+
+        var now = DateTimeOffset.UtcNow;
+        var assignments = await dbContext.FamilyDoctorAssignments.Where(x => x.FamilyId == familyId && x.EndedAt == null).ToListAsync(cancellationToken);
+        foreach (var assignment in assignments) { assignment.EndedAt = now; assignment.UpdatedAt = now; }
+
+        var doctorRequests = await dbContext.FamilyDoctorRequests
+            .Where(x => x.FamilyId == familyId && x.Status == Domain.Portal.PortalRequestStatus.Pending).ToListAsync(cancellationToken);
+        foreach (var request in doctorRequests) { request.Status = Domain.Portal.PortalRequestStatus.Cancelled; request.RespondedAt = now; }
+
+        var joinRequests = await dbContext.FamilyJoinRequests
+            .Where(x => x.FamilyId == familyId && x.Status == Domain.Portal.PortalRequestStatus.Pending).ToListAsync(cancellationToken);
+        foreach (var request in joinRequests) { request.Status = Domain.Portal.PortalRequestStatus.Cancelled; request.RespondedAt = now; }
+
+        var invitations = await dbContext.FamilyInvitations
+            .Where(x => x.FamilyId == familyId && x.AcceptedAt == null && x.ExpiresAt > now).ToListAsync(cancellationToken);
+        foreach (var invitation in invitations) invitation.ExpiresAt = now;
+
+        var family = await dbContext.Families.SingleOrDefaultAsync(x => x.Id == familyId, cancellationToken);
+        if (family is not null) { family.FamilyCode = null; family.UpdatedAt = now; }
     }
 }
 

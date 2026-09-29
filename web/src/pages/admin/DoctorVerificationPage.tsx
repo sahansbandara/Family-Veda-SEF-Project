@@ -73,15 +73,16 @@ export function DoctorVerificationPage() {
     if (!doctorToDelete) return
     setIsDeleting(true)
     try {
-      await apiClient.delete(`/admin/doctors/${doctorToDelete.id}`)
-      setDoctors((prev) => prev.filter((d) => d.id !== doctorToDelete.id))
-      setMessage(`Doctor account "${doctorToDelete.displayName || doctorToDelete.email}" deleted successfully.`)
+      // Accounts are deactivated, never deleted: approvals, grants and audit history must survive.
+      await apiClient.post(`/auth/admin/users/${doctorToDelete.userId}/toggle-status`, { isActive: false, reason: 'Deactivated by admin' })
+      setMessage(`Doctor account "${doctorToDelete.displayName || doctorToDelete.email}" deactivated. History is kept.`)
+      await load()
       setDoctorToDelete(null)
       if (selectedDoctor?.id === doctorToDelete.id) {
         setSelectedDoctor(null)
       }
     } catch {
-      setMessage('Failed to delete doctor account.')
+      setMessage('Failed to deactivate doctor account.')
     } finally {
       setIsDeleting(false)
     }
@@ -258,7 +259,7 @@ export function DoctorVerificationPage() {
                 }}
                 style={{ marginRight: 'auto', backgroundColor: 'rgba(239, 68, 68, 0.12)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
               >
-                🗑️ Delete Doctor
+                Deactivate Doctor
               </button>
 
               {selectedDoctor.verificationStatus !== 'Verified' && (
@@ -348,19 +349,19 @@ export function DoctorVerificationPage() {
               <div style={{ fontSize: '2rem' }}>⚠️</div>
               <div>
                 <h3 id="delete-dialog-title" style={{ margin: 0, fontSize: '1.2rem', color: '#ef4444' }}>
-                  Delete Doctor Account
+                  Deactivate Doctor Account
                 </h3>
                 <p className="muted" style={{ margin: 0, fontSize: '0.85rem' }}>This action cannot be undone.</p>
               </div>
             </div>
 
             <p style={{ fontSize: '0.95rem', marginBottom: '20px', lineHeight: 1.5 }}>
-              Are you sure you want to permanently delete doctor{' '}
+              Deactivate doctor{' '}
               <strong>{doctorToDelete.displayName || doctorToDelete.email}</strong> (
               <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>
                 {doctorToDelete.registrationNumber || `••••${doctorToDelete.registrationNumberLastFour}`}
               </span>
-              )? All associated credentials and logs will be removed.
+              )? They can no longer sign in. Approvals, grants and audit history are kept, and the account can be reactivated.
             </p>
 
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
@@ -379,7 +380,7 @@ export function DoctorVerificationPage() {
                 disabled={isDeleting}
                 style={{ backgroundColor: '#dc2626', borderColor: '#dc2626' }}
               >
-                {isDeleting ? 'Deleting...' : '🗑️ Confirm Delete'}
+                {isDeleting ? 'Deactivating...' : 'Deactivate'}
               </button>
             </div>
           </div>
@@ -575,10 +576,10 @@ export function DoctorVerificationPage() {
                           <button
                             className="button button--danger button--sm"
                             onClick={() => setDoctorToDelete(doctor)}
-                            title="Delete doctor account"
+                            title="Deactivate doctor account"
                             style={{ padding: '4px 8px', backgroundColor: 'rgba(239, 68, 68, 0.12)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
                           >
-                            🗑️
+                            ⏸
                           </button>
                         </div>
                       </td>

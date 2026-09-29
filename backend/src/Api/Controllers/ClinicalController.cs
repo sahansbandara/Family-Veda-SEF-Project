@@ -69,14 +69,6 @@ public sealed class ClinicalController(IClinicalService clinicalService) : ApiCo
     public async Task<ActionResult<DoctorDto>> SuspendDoctor(Guid doctorId, VerificationReasonRequest request, CancellationToken cancellationToken) =>
         Ok(await clinicalService.ChangeVerificationAsync(doctorId, new VerifyDoctorRequest(VerificationStatus.Suspended, request.Reason), cancellationToken));
 
-    [HttpDelete("admin/doctors/{doctorId:guid}")]
-    [Authorize(Policy = "Admin")]
-    public async Task<IActionResult> DeleteDoctor(Guid doctorId, CancellationToken cancellationToken)
-    {
-        await clinicalService.DeleteDoctorAsync(doctorId, cancellationToken);
-        return NoContent();
-    }
-
     [HttpGet("family-head/me")]
     [Authorize(Policy = "FamilyUser")]
     public async Task<ActionResult<FamilyHeadDto>> GetMyFamilyHeadStatus(CancellationToken cancellationToken) =>
@@ -111,14 +103,6 @@ public sealed class ClinicalController(IClinicalService clinicalService) : ApiCo
     [Authorize(Policy = "Admin")]
     public async Task<ActionResult<FamilyHeadDto>> SuspendFamilyHead(Guid userId, VerificationReasonRequest request, CancellationToken cancellationToken) =>
         Ok(await clinicalService.ChangeFamilyHeadVerificationAsync(userId, new VerifyDoctorRequest(VerificationStatus.Suspended, request.Reason), cancellationToken));
-
-    [HttpDelete("admin/family-heads/{userId:guid}")]
-    [Authorize(Policy = "Admin")]
-    public async Task<IActionResult> DeleteFamilyHead(Guid userId, CancellationToken cancellationToken)
-    {
-        await clinicalService.DeleteFamilyHeadAsync(userId, cancellationToken);
-        return NoContent();
-    }
 
 
     [HttpPost("triage-cases/{caseId:guid}/claim")]

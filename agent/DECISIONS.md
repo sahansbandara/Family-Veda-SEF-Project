@@ -125,3 +125,23 @@ What is already decided. Record at the moment of decision, including rejected al
 **Alternatives rejected:** soft `LeftFamilyAt` flag + global query filter (history hidden from its owner, touches every one-member-per-user query); keep hard delete (destroys history, contradicts blueprint).
 
 **Join requests:** expire after 14 days. **Invitations + head transfer:** full on web; Flutter read-only list + accept banner.
+
+## 2026-09-29d — Admin accounts are deactivated, never deleted
+
+**Decision (Sahan, 2026-09-29):** the admin hard-delete endpoints `DELETE /admin/doctors/{id}` and `DELETE /admin/family-heads/{id}` are removed. The web "Delete" buttons now call the existing `POST /auth/admin/users/{userId}/toggle-status` with `isActive:false`. That call revokes the refresh token, writes an `ACCOUNT_SUSPENDED` audit row, and blocks an admin from deactivating themselves. Reactivate from Users.
+
+**Reason:** the delete path removed Approvals, CaseAccessGrants, AgentTraces and verification logs. That destroyed the evidence behind RULES 2, 3 and 8.
+
+**Known limit:** an already-issued access JWT stays valid until it expires. Login and refresh are blocked immediately.
+
+## 2026-09-29e — Build order for the four portals: UI shell first, then wire tab by tab
+
+**Decision (Sahan asked, agent recommended, 2026-09-29):**
+1. **Stage 1 — UI shell for all 4 portals** (Head, Adult, Doctor, Admin): shared design tokens and components, nav, every tab's page template (title, purpose sentence, primary button, sub-tabs, empty/loading/error states), matching `docs/mockups/`.
+2. **Stage 2 — wire each tab to the backend**, one tab at a time, with tests.
+
+**Guardrail:** Stage 1 pages use **real API data wherever the endpoint already exists** (most family/appointment/doctor-request endpoints do). Where an endpoint does not exist yet, the page shows its **empty state**, never invented numbers. No hard-coded sample data is allowed. That rule exists because the admin dashboard already shipped fake fallbacks (`: 2`, "100%").
+
+## 2026-09-29f — Working rule: agent files are updated with every change
+
+**Decision (Sahan, 2026-09-29):** every coding session that changes code also updates `agent/TODO.md` (tick or add items), `agent/DECISIONS.md` (any decision made), and `agent/MEMORY.md` (any lesson or gotcha), **in the same commit or PR**. The next session must be able to see from the agent files alone what was done, why, and what is next.

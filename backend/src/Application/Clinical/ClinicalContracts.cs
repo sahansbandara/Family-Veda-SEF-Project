@@ -39,10 +39,8 @@ public interface IClinicalService
     Task<FamilyHeadDto> GetMyFamilyHeadStatusAsync(CancellationToken cancellationToken);
     Task<PagedResult<DoctorDto>> GetPendingDoctorsAsync(int page, int pageSize, CancellationToken cancellationToken);
     Task<DoctorDto> ChangeVerificationAsync(Guid doctorId, VerifyDoctorRequest request, CancellationToken cancellationToken);
-    Task DeleteDoctorAsync(Guid doctorId, CancellationToken cancellationToken);
     Task<PagedResult<FamilyHeadDto>> GetFamilyHeadsAsync(int page, int pageSize, CancellationToken cancellationToken);
     Task<FamilyHeadDto> ChangeFamilyHeadVerificationAsync(Guid userId, VerifyDoctorRequest request, CancellationToken cancellationToken);
-    Task DeleteFamilyHeadAsync(Guid userId, CancellationToken cancellationToken);
     Task<PagedResult<FamilyVeda.Application.Triage.TriageCaseDto>> GetMyCasesAsync(int page, int pageSize, CancellationToken cancellationToken);
     Task<PagedResult<AvailableCaseDto>> GetAvailableCasesAsync(int page, int pageSize, CancellationToken cancellationToken);
     Task<ApprovalDto> ClaimCaseAsync(Guid caseId, CancellationToken cancellationToken);
