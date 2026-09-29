@@ -232,7 +232,7 @@ public sealed class ClinicalService(
         var latestVerificationAudit = auditLogs.FirstOrDefault(a => a.EventType == "FAMILY_HEAD_VERIFICATION_CHANGED");
         var registrationAudit = auditLogs.FirstOrDefault(a => a.EventType == "FAMILY_HEAD_REGISTERED");
 
-        VerificationStatus status = user.Email == "demo-head@example.invalid" ? VerificationStatus.Verified : VerificationStatus.Pending;
+        VerificationStatus status = VerificationStatus.Verified; // family heads are auto-approved; admin can still suspend/reject
         if (latestVerificationAudit != null && Enum.TryParse<VerificationStatus>(latestVerificationAudit.Outcome, out var parsedStatus))
         {
             status = parsedStatus;
@@ -286,7 +286,7 @@ public sealed class ClinicalService(
 
         if (status == VerificationStatus.Verified && string.IsNullOrEmpty(familyCode))
         {
-            familyCode = $"FV-{Math.Abs(user.Id.GetHashCode()) % 9000 + 1000}";
+            familyCode = family?.FamilyCode;
         }
 
         return new FamilyHeadDto(
@@ -362,7 +362,7 @@ public sealed class ClinicalService(
             var latestVerificationAudit = userAudits?.FirstOrDefault(a => a.EventType == "FAMILY_HEAD_VERIFICATION_CHANGED");
             var registrationAudit = userAudits?.FirstOrDefault(a => a.EventType == "FAMILY_HEAD_REGISTERED");
 
-            VerificationStatus status = user.Email == "demo-head@example.invalid" ? VerificationStatus.Verified : VerificationStatus.Pending;
+            VerificationStatus status = VerificationStatus.Verified; // family heads are auto-approved; admin can still suspend/reject
             if (latestVerificationAudit != null && Enum.TryParse<VerificationStatus>(latestVerificationAudit.Outcome, out var parsedStatus))
             {
                 status = parsedStatus;
