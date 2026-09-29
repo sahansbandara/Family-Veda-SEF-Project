@@ -1,5 +1,5 @@
 // Owner: S4 · Familial Risk & Clinical Approval — W.M.S.S.B. Wasala (IT24100559)
-// Tests for the redesigned DoctorRegisterPage (3-step stepper).
+// Tests for DoctorRegisterPage (glass wizard: Role · Account · Professional · Practice · Review).
 
 import '@testing-library/jest-dom/vitest'
 import { configureStore } from '@reduxjs/toolkit'
@@ -14,9 +14,18 @@ import { DoctorRegisterPage } from './DoctorRegisterPage'
 // Mock asset imports so Vitest doesn't choke on binary files
 vi.mock('../../assets/logo.png',     () => ({ default: 'logo.png' }))
 vi.mock('../../assets/Register.webp', () => ({ default: 'register.webp' }))
+vi.mock('../../assets/Loging.webp',   () => ({ default: 'login.webp' }))
 
 // Mock CSS import
-vi.mock('../../styles/auth-shell.css', () => ({}))
+vi.mock('../../styles/commercial-auth.css', () => ({}))
+vi.mock('../../styles/doctor-register.css', () => ({}))
+
+function fillPracticeStep() {
+  fireEvent.change(screen.getByLabelText(/practice city/i), { target: { value: 'Kandy' } })
+  fireEvent.change(screen.getByLabelText(/^district/i), { target: { value: 'Kandy' } })
+  const licence = new File(['synthetic'], 'licence.pdf', { type: 'application/pdf' })
+  fireEvent.change(screen.getByLabelText(/licence document/i), { target: { files: [licence] } })
+}
 
 function renderPage() {
   const store = configureStore({ reducer: { auth: authReducer } })
@@ -57,10 +66,9 @@ describe('DoctorRegisterPage — Premium Redesign', () => {
     expect(stepper).toBeInTheDocument()
   })
 
-  it('shows the hero panel with brand name', () => {
+  it('shows the clinician hero panel', () => {
     renderPage()
-    // FamilyVeda appears in both the hero panel and the form logo mark
-    expect(screen.getAllByText('FamilyVeda').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByRole('heading', { name: /join as a clinician/i })).toBeInTheDocument()
   })
 
   it('does NOT contain demo credentials, synthetic text, or quick-fill controls', () => {
@@ -178,7 +186,7 @@ describe('DoctorRegisterPage — Premium Redesign', () => {
       expect(screen.getByLabelText(/slmc registration number/i)).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByRole('button', { name: /review details/i }))
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }))
 
     await waitFor(() => {
       expect(screen.getByText(/enter your registration number/i)).toBeInTheDocument()
@@ -201,13 +209,18 @@ describe('DoctorRegisterPage — Premium Redesign', () => {
 
     // Step 2
     fireEvent.change(screen.getByLabelText(/slmc registration number/i), { target: { value: 'SLMC-1234' } })
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+
+    // Step 3 — practice & licence
+    await waitFor(() => screen.getByLabelText(/practice city/i))
+    fillPracticeStep()
     fireEvent.click(screen.getByRole('button', { name: /review details/i }))
 
     await waitFor(() => {
       expect(screen.getByText('Review & submit')).toBeInTheDocument()
       expect(screen.getByText('Dr. Jane Smith')).toBeInTheDocument()
       expect(screen.getByText('jane@hospital.lk')).toBeInTheDocument()
-      expect(screen.getByText('Reg: SLMC-1234')).toBeInTheDocument()
+      expect(screen.getByText('SLMC-1234')).toBeInTheDocument()
     })
   })
 
@@ -225,6 +238,11 @@ describe('DoctorRegisterPage — Premium Redesign', () => {
 
     // Step 2
     fireEvent.change(screen.getByLabelText(/slmc registration number/i), { target: { value: 'SLMC-1234' } })
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+
+    // Step 3 — practice & licence
+    await waitFor(() => screen.getByLabelText(/practice city/i))
+    fillPracticeStep()
     fireEvent.click(screen.getByRole('button', { name: /review details/i }))
 
     await waitFor(() => {
@@ -233,6 +251,27 @@ describe('DoctorRegisterPage — Premium Redesign', () => {
       expect(notice).toBeInTheDocument()
       expect(notice).toHaveTextContent(/your profile will be reviewed/i)
       expect(notice).toHaveTextContent(/verification required/i)
+    })
+  })
+
+  it('requires practice city, district and licence before review', async () => {
+    renderPage()
+    fireEvent.change(screen.getByLabelText(/full name/i),       { target: { value: 'Dr. Jane Smith' } })
+    fireEvent.change(screen.getByLabelText(/email address/i),   { target: { value: 'jane@hospital.lk' } })
+    fireEvent.change(screen.getByLabelText(/^password/i),       { target: { value: 'ValidPassword1!' } })
+    fireEvent.change(screen.getByLabelText(/confirm password/i),{ target: { value: 'ValidPassword1!' } })
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+    await waitFor(() => screen.getByLabelText(/slmc registration number/i))
+    fireEvent.change(screen.getByLabelText(/slmc registration number/i), { target: { value: 'SLMC-1234' } })
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+    await waitFor(() => screen.getByLabelText(/practice city/i))
+
+    fireEvent.click(screen.getByRole('button', { name: /review details/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/enter your practice city/i)).toBeInTheDocument()
+      expect(screen.getByText(/choose a district/i)).toBeInTheDocument()
+      expect(screen.getByText(/upload a pdf, png or jpeg licence/i)).toBeInTheDocument()
     })
   })
 
