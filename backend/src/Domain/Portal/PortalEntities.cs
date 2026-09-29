@@ -6,7 +6,7 @@ using FamilyVeda.Domain.Clinical;
 
 namespace FamilyVeda.Domain.Portal;
 
-public enum PortalRequestStatus { Pending, Accepted, Declined, Cancelled }
+public enum PortalRequestStatus { Pending, Accepted, Declined, Cancelled, Expired }
 
 public enum AppointmentStatus { Requested, Confirmed, Completed, Cancelled, NoShow }
 

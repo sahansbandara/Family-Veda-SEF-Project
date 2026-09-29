@@ -13,6 +13,11 @@ namespace FamilyVeda.Infrastructure.Portal;
 
 public sealed class JoinRequestService(AppDbContext dbContext, ICurrentUser currentUser) : IJoinRequestService
 {
+    /// <summary>Owner decision 2026-09-29: an unanswered join request expires after 14 days.</summary>
+    public static readonly TimeSpan PendingLifetime = TimeSpan.FromDays(14);
+
+    private readonly FamilyMembershipMover mover = new(dbContext);
+
     public async Task<JoinRequestDto> CreateAsync(CreateJoinRequest request, CancellationToken cancellationToken)
     {
         if (currentUser.UserType != Domain.Common.UserType.FamilyUser)
@@ -28,6 +33,15 @@ public sealed class JoinRequestService(AppDbContext dbContext, ICurrentUser curr
         {
             throw new ConflictException("You are already a member of this family.");
         }
+
+        // Blueprint: adults only, and no other active family unless it is a household of one.
+        var profile = await dbContext.UserProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == currentUser.UserId, cancellationToken);
+        if (profile?.DateOfBirth is { } dateOfBirth && dateOfBirth.AddYears(18) > DateOnly.FromDateTime(DateTime.UtcNow))
+        {
+            throw new Application.Common.ValidationException(new Dictionary<string, string[]> { ["familyCode"] = ["Only adults (18+) can request to join a family."] });
+        }
+        await mover.RequireCanJoinAnotherFamilyAsync(currentUser.UserId, cancellationToken);
+        await ExpireStaleAsync(x => x.RequestingUserId == currentUser.UserId, cancellationToken);
 
         if (await dbContext.FamilyJoinRequests.AnyAsync(x => x.FamilyId == family.Id && x.RequestingUserId == currentUser.UserId && x.Status == PortalRequestStatus.Pending, cancellationToken))
         {
@@ -62,6 +76,7 @@ public sealed class JoinRequestService(AppDbContext dbContext, ICurrentUser curr
     public async Task<IReadOnlyList<JoinRequestDto>> GetForFamilyAsync(Guid familyId, string? status, CancellationToken cancellationToken)
     {
         await RequireHeadAsync(familyId, cancellationToken);
+        await ExpireStaleAsync(x => x.FamilyId == familyId, cancellationToken);
         var query = dbContext.FamilyJoinRequests.AsNoTracking().Where(x => x.FamilyId == familyId);
         if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<PortalRequestStatus>(status, true, out var parsed))
         {
@@ -79,6 +94,7 @@ public sealed class JoinRequestService(AppDbContext dbContext, ICurrentUser curr
 
     public async Task<IReadOnlyList<JoinRequestDto>> GetMineAsync(CancellationToken cancellationToken)
     {
+        await ExpireStaleAsync(x => x.RequestingUserId == currentUser.UserId, cancellationToken);
         var requests = await dbContext.FamilyJoinRequests.AsNoTracking()
             .Where(x => x.RequestingUserId == currentUser.UserId)
             .OrderByDescending(x => x.CreatedAt)
@@ -100,23 +116,21 @@ public sealed class JoinRequestService(AppDbContext dbContext, ICurrentUser curr
             throw new ConflictException("This request has already been resolved.");
         }
 
+        if (IsStale(request))
+        {
+            request.Status = PortalRequestStatus.Expired;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            throw new ConflictException("This request has expired.");
+        }
+
         var requestingUser = await dbContext.Users.SingleAsync(x => x.Id == request.RequestingUserId, cancellationToken);
         // Use the details captured at registration; older accounts without a profile keep the adult placeholder.
         var profile = await dbContext.UserProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == requestingUser.Id, cancellationToken);
-        var member = new Member
-        {
-            FamilyId = request.FamilyId,
-            UserId = requestingUser.Id,
-            DisplayName = requestingUser.DisplayName,
-            DateOfBirth = profile?.DateOfBirth ?? DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-18),
-            SexForClinicalReference = profile?.SexForClinicalReference ?? Domain.Common.ClinicalSex.NotSpecified,
-            Role = Domain.Common.FamilyRole.AdultMember
-        };
-        dbContext.Members.Add(member);
-        foreach (var category in Enum.GetValues<Domain.Common.ConsentCategory>())
-        {
-            dbContext.Consents.Add(new Consent { Member = member, Category = category });
-        }
+        // A requester alone in their own household moves in with their history (DECISIONS 2026-09-29c).
+        await mover.AttachAdultAsync(requestingUser, request.FamilyId,
+            profile?.DateOfBirth ?? DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-18),
+            profile?.SexForClinicalReference ?? Domain.Common.ClinicalSex.NotSpecified,
+            cancellationToken);
 
         request.Status = PortalRequestStatus.Accepted;
         request.RespondedAt = DateTimeOffset.UtcNow;
@@ -178,6 +192,21 @@ public sealed class JoinRequestService(AppDbContext dbContext, ICurrentUser curr
         Outcome = "SUCCESS",
         MetadataJson = "{}"
     });
+
+    private static bool IsStale(FamilyJoinRequest request) =>
+        request.Status == PortalRequestStatus.Pending && request.CreatedAt <= DateTimeOffset.UtcNow - PendingLifetime;
+
+    /// <summary>Marks unanswered requests older than <see cref="PendingLifetime"/> as Expired, lazily on read.</summary>
+    private async Task ExpireStaleAsync(System.Linq.Expressions.Expression<Func<FamilyJoinRequest, bool>> scope, CancellationToken cancellationToken)
+    {
+        var cutoff = DateTimeOffset.UtcNow - PendingLifetime;
+        var stale = await dbContext.FamilyJoinRequests.Where(scope)
+            .Where(x => x.Status == PortalRequestStatus.Pending && x.CreatedAt <= cutoff)
+            .ToListAsync(cancellationToken);
+        if (stale.Count == 0) return;
+        foreach (var request in stale) request.Status = PortalRequestStatus.Expired;
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
 
     private void AddNotification(Guid userId, string type, string title, string body, string? linkPath) =>
         dbContext.PortalNotifications.Add(new PortalNotification { UserId = userId, Type = type, Title = title, Body = body, LinkPath = linkPath });

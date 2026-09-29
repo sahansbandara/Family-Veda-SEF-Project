@@ -19,6 +19,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<Relationship> Relationships => Set<Relationship>();
     public DbSet<Consent> Consents => Set<Consent>();
     public DbSet<FamilyInvitation> FamilyInvitations => Set<FamilyInvitation>();
+    public DbSet<FamilyMembershipEvent> FamilyMembershipEvents => Set<FamilyMembershipEvent>();
+    public DbSet<FamilyHeadTransfer> FamilyHeadTransfers => Set<FamilyHeadTransfer>();
 
     // S2 — records and extraction
     public DbSet<HealthRecord> HealthRecords => Set<HealthRecord>();

@@ -14,6 +14,8 @@ namespace FamilyVeda.Infrastructure.Families;
 
 public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUser) : IFamilyService
 {
+    private readonly FamilyMembershipMover mover = new(dbContext);
+
     public async Task<FamilyDto?> GetMineAsync(CancellationToken cancellationToken)
     {
         var family = await dbContext.Families
@@ -47,25 +49,7 @@ public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUs
         return MapFamily(family);
     }
 
-    // S4 — three-portal join-by-code generator (docs/Three_Portal_Feature_Spec.md)
-    private async Task<string> GenerateFamilyCodeAsync(CancellationToken cancellationToken)
-    {
-        const string alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-        for (var attempt = 0; attempt < 20; attempt++)
-        {
-            var chars = new char[6];
-            for (var i = 0; i < chars.Length; i++)
-            {
-                chars[i] = alphabet[RandomNumberGenerator.GetInt32(alphabet.Length)];
-            }
-            var code = "FV-" + new string(chars);
-            if (!await dbContext.Families.AnyAsync(x => x.FamilyCode == code, cancellationToken))
-            {
-                return code;
-            }
-        }
-        throw new InvalidOperationException("Unable to generate a unique family code.");
-    }
+    private Task<string> GenerateFamilyCodeAsync(CancellationToken cancellationToken) => FamilyCodes.GenerateAsync(dbContext, cancellationToken);
 
     public async Task<FamilyDto> UpdateAsync(Guid familyId, UpdateFamilyRequest request, CancellationToken cancellationToken)
     {
@@ -283,9 +267,11 @@ public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUs
         {
             FamilyId = familyId,
             InvitedByUserId = currentUser.UserId,
-            InvitedEmailHash = HashInvitationEmail(email, token),
-            TokenHash = Hash(token),
-            ExpiresAt = DateTimeOffset.UtcNow.AddHours(48)
+            InvitedEmailHash = InvitationCrypto.HashEmail(email, token),
+            InvitedEmailMasked = InvitationCrypto.MaskEmail(email),
+            RelationshipType = string.IsNullOrWhiteSpace(request.RelationshipType) ? null : request.RelationshipType.Trim()[..Math.Min(40, request.RelationshipType.Trim().Length)],
+            TokenHash = InvitationCrypto.Hash(token),
+            ExpiresAt = DateTimeOffset.UtcNow.Add(FamilyLifecycleService.InvitationLifetime)
         };
         dbContext.FamilyInvitations.Add(invitation);
         dbContext.AuditLogs.Add(new Domain.Clinical.AuditLog
@@ -303,28 +289,19 @@ public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUs
 
     public async Task<MemberDto> AcceptInvitationAsync(AcceptFamilyInvitationRequest request, CancellationToken cancellationToken)
     {
-        if (await dbContext.Members.AnyAsync(x => x.UserId == currentUser.UserId, cancellationToken))
-            throw new ConflictException("This account already belongs to a family.");
         var user = await dbContext.Users.SingleAsync(x => x.Id == currentUser.UserId, cancellationToken);
-        var invitation = await dbContext.FamilyInvitations.SingleOrDefaultAsync(x => x.TokenHash == Hash(request.Token.Trim()), cancellationToken)
+        var invitation = await dbContext.FamilyInvitations.SingleOrDefaultAsync(x => x.TokenHash == InvitationCrypto.Hash(request.Token.Trim()), cancellationToken)
             ?? throw new NotFoundException();
-        if (invitation.AcceptedAt is not null || invitation.ExpiresAt <= DateTimeOffset.UtcNow ||
-            invitation.InvitedEmailHash != HashInvitationEmail(user.Email.Trim().ToLowerInvariant(), request.Token.Trim()))
+        if (await dbContext.Members.AnyAsync(x => x.UserId == user.Id && x.FamilyId == invitation.FamilyId, cancellationToken))
+            throw new ConflictException("This account already belongs to this family.");
+        await mover.RequireCanJoinAnotherFamilyAsync(user.Id, cancellationToken);
+        if (invitation.AcceptedAt is not null || invitation.CancelledAt is not null || invitation.ExpiresAt <= DateTimeOffset.UtcNow ||
+            invitation.InvitedEmailHash != InvitationCrypto.HashEmail(user.Email.Trim().ToLowerInvariant(), request.Token.Trim()))
             throw new NotFoundException();
         if (request.DateOfBirth.AddYears(18) > DateOnly.FromDateTime(DateTime.UtcNow))
             throw new ValidationException(new Dictionary<string, string[]> { ["dateOfBirth"] = ["Adult family invitations require an age of at least 18 years."] });
-        var member = new Member
-        {
-            FamilyId = invitation.FamilyId,
-            UserId = user.Id,
-            DisplayName = user.DisplayName,
-            DateOfBirth = request.DateOfBirth,
-            Role = FamilyRole.AdultMember,
-            SexForClinicalReference = RequireKnownSex(request.SexForClinicalReference)
-        };
-        dbContext.Members.Add(member);
-        foreach (var category in Enum.GetValues<ConsentCategory>())
-            dbContext.Consents.Add(new Domain.Identity.Consent { Member = member, Category = category });
+        // A user alone in their own household moves in with their history (DECISIONS 2026-09-29c).
+        var member = await mover.AttachAdultAsync(user, invitation.FamilyId, request.DateOfBirth, RequireKnownSex(request.SexForClinicalReference), cancellationToken);
         invitation.AcceptedAt = DateTimeOffset.UtcNow;
         invitation.AcceptedByUserId = user.Id;
         dbContext.AuditLogs.Add(new Domain.Clinical.AuditLog
@@ -402,7 +379,4 @@ public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUs
     private FamilyDto MapFamily(Family family, IEnumerable<Member>? members = null) =>
         new(family.Id, family.Name, (members ?? family.Members).Select(MapMember).ToList(), family.FamilyCode);
     private static (int Page, int PageSize) NormalizePage(int page, int pageSize) => (Math.Max(page, 1), Math.Clamp(pageSize, 1, 100));
-    private static string Hash(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
-    private static string HashInvitationEmail(string email, string token) => Convert.ToHexString(
-        HMACSHA256.HashData(Encoding.UTF8.GetBytes(token), Encoding.UTF8.GetBytes(email)));
 }

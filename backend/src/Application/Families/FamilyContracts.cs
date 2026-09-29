@@ -19,7 +19,7 @@ public sealed record RelationshipDto(Guid Id, Guid MemberId, Guid RelatedMemberI
 public sealed record CreateRelationshipRequest(Guid RelatedMemberId, string RelationshipType, bool IsBiological);
 public sealed record ConsentDto(Guid Id, Guid MemberId, ConsentCategory Category, ConsentStatus Status, bool GrantedByGuardian);
 public sealed record UpdateConsentRequest(ConsentStatus Status);
-public sealed record CreateFamilyInvitationRequest(string Email);
+public sealed record CreateFamilyInvitationRequest(string Email, string? RelationshipType = null);
 public sealed record FamilyInvitationDto(Guid Id, string Token, DateTimeOffset ExpiresAt);
 public sealed record AcceptFamilyInvitationRequest(string Token, DateOnly DateOfBirth,
     ClinicalSex SexForClinicalReference = ClinicalSex.NotSpecified);

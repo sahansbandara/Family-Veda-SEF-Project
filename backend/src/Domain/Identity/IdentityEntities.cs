@@ -76,4 +76,8 @@ public sealed class FamilyInvitation : Entity
     public DateTimeOffset? AcceptedAt { get; set; }
     public Guid? AcceptedByUserId { get; set; }
     public UserAccount? AcceptedByUser { get; set; }
+    /// <summary>Display only, e.g. "r***@example.invalid". The full address is never stored.</summary>
+    public string? InvitedEmailMasked { get; set; }
+    public string? RelationshipType { get; set; }
+    public DateTimeOffset? CancelledAt { get; set; }
 }
