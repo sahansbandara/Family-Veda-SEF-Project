@@ -1,0 +1,25 @@
+/* Owner: S4 · Familial Risk & Clinical Approval — W.M.S.S.B. Wasala (IT24100559) */
+/* Doctor wizard extras on top of commercial-auth.css (same glass layout as AuthPage). */
+.doc-reg-hero { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: flex-end; text-align: right; width: 100%; color: white; }
+.doc-reg-hero-title { font-size: 3rem; font-weight: 800; margin-bottom: 24px; letter-spacing: -0.02em; color: white; }
+.doc-reg-hero-text { font-size: 1.1rem; opacity: 0.9; line-height: 1.6; color: white; max-width: 30ch; }
+.doc-reg-title { font-size: 1.6rem; font-weight: 700; margin: 8px 0 24px; color: white; }
+.doc-reg-eye { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: rgba(255, 255, 255, 0.6); padding: 4px; }
+.doc-reg-error { color: #ef4444; font-size: 0.8rem; margin-top: 4px; }
+.doc-reg-form-error { color: #ef4444; font-size: 0.9rem; margin: 16px 0; }
+
+.doc-reg-fieldset { border: none; padding: 0; margin-inline: 0; }
+.doc-reg-fieldset legend { font-size: 0.85rem; color: rgba(255, 255, 255, 0.8); margin-bottom: 10px; padding: 0; }
+.doc-reg-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.doc-reg-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.3); color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; cursor: pointer; transition: background 0.2s, border-color 0.2s; }
+.doc-reg-chip input { accent-color: #146CFF; width: 14px; height: 14px; margin: 0; }
+.doc-reg-chip.selected { background: rgba(20, 108, 255, 0.25); border-color: #146CFF; color: white; }
+.doc-reg-chip:focus-within { outline: 2px solid #38BDF8; outline-offset: 2px; }
+
+.doc-reg-file { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.3); cursor: pointer; }
+.doc-reg-file-btn { padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.4); color: white; font-size: 0.85rem; font-weight: 600; }
+.doc-reg-file-name { color: rgba(255, 255, 255, 0.6); font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.doc-reg-file-input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.doc-reg-file:has(+ .doc-reg-file-input:focus-visible) { border-bottom-color: #146CFF; }
+
+.doc-reg-notice { margin-top: 16px; padding: 14px 16px; border-radius: 12px; border: 1px solid #146CFF; background: rgba(20, 108, 255, 0.12); color: rgba(255, 255, 255, 0.9); font-size: 0.9rem; line-height: 1.5; }
