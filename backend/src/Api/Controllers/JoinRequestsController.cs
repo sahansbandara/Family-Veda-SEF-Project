@@ -3,6 +3,7 @@
 using FamilyVeda.Application.Portal;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace FamilyVeda.Api.Controllers;
 
@@ -11,6 +12,7 @@ namespace FamilyVeda.Api.Controllers;
 public sealed class JoinRequestsController(IJoinRequestService joinRequestService) : ApiControllerBase
 {
     [HttpPost("families/join-requests")]
+    [EnableRateLimiting("FamilyCode")]
     public async Task<ActionResult<JoinRequestDto>> Create(CreateJoinRequest request, CancellationToken cancellationToken)
     {
         var result = await joinRequestService.CreateAsync(request, cancellationToken);

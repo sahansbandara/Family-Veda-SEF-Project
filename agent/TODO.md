@@ -133,10 +133,11 @@ Nav (web + Flutter): `Dashboard | My Family | Health Records | Symptoms & Triage
 - [ ] Flutter bottom nav (Dashboard · Family · Records · Triage · More) — deferred to FH-6 polish; home screen links cover every destination.
 
 ### FH-2 — My Family: Members · Join Requests · Invitations · Family Settings
-- [ ] Backend: `GET /families/{id}/invitations` (status, relationship, expiry) + `POST …/invitations/{id}/resend` + `POST …/invitations/{id}/cancel`.
-- [ ] Backend: join requests — `Expired` status (auto after N days), rate-limit Family Code attempts, reject duplicate pending / under-18 / already-in-family.
-- [ ] Backend: **Remove from Family** must not hard-delete. `FamilyService.DeleteMemberAsync` currently calls `Members.Remove` → change to end the membership (`EndedAt`/status), keep account + history, revoke doctor grants. Needs migration lock.
-- [ ] Backend: rename family (`PUT /families/{id}`) — verify head-only + audit.
+- [x] Backend: `GET /families/{id}/invitations` (masked email, relationship, derived status) + `POST …/invitations/{id}/resend` (same email required; new token) + `POST …/invitations/{id}/cancel`.
+- [x] Backend: join requests — `Expired` after 14 days (lazy), `FamilyCode` rate-limit policy (10 / 10 min / account), under-18 and already-in-a-shared-family rejected.
+- [x] (FH-2b, DECISIONS 2026-09-29c: move to own household via `FamilyMembershipMover`; `POST /members/{id}/remove-from-family`, `POST /families/me/leave`; migration `20260929_S1_FamilyLifecycle`.) Backend: **Remove from Family** must not hard-delete. `FamilyService.DeleteMemberAsync` currently calls `Members.Remove` → change to end the membership (`EndedAt`/status), keep account + history, revoke doctor grants. Needs migration lock.
+- [ ] Backend: rename family (`PUT /families/{id}`) — head-only verified (FamilyAccess); audit row still missing.
+- [ ] Minor profile removal still hard-deletes (`FamilyService.DeleteMemberAsync`, minors only). Decide: keep, or archive the minor profile.
 - [ ] Web `FamilyPage`: 4 tabs per mockup; Add Minor + Invite Adult actions; Accept / Decline with masked email; Family Code read-only with copy button.
 - [ ] Flutter: Members screen gets Add Minor + Invite Adult forms (currently missing), Join Requests tab (exists — wire into tabs), Invitations list, Family Settings.
 

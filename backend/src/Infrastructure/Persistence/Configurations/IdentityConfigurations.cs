@@ -93,5 +93,35 @@ internal sealed class FamilyInvitationConfiguration : IEntityTypeConfiguration<F
         builder.HasOne(x => x.Family).WithMany().HasForeignKey(x => x.FamilyId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(x => x.InvitedByUser).WithMany().HasForeignKey(x => x.InvitedByUserId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.AcceptedByUser).WithMany().HasForeignKey(x => x.AcceptedByUserId).OnDelete(DeleteBehavior.Restrict);
+        builder.Property(x => x.InvitedEmailMasked).HasMaxLength(254);
+        builder.Property(x => x.RelationshipType).HasMaxLength(40);
+        builder.HasIndex(x => new { x.FamilyId, x.CreatedAt });
+    }
+}
+
+internal sealed class FamilyMembershipEventConfiguration : IEntityTypeConfiguration<FamilyMembershipEvent>
+{
+    public void Configure(EntityTypeBuilder<FamilyMembershipEvent> builder)
+    {
+        builder.ToTable("family_membership_events");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Reason).HasConversion<string>().HasMaxLength(30);
+        builder.Property(x => x.PreviousRole).HasConversion<string>().HasMaxLength(20);
+        builder.HasOne(x => x.Member).WithMany().HasForeignKey(x => x.MemberId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(x => x.MemberId);
+        builder.HasIndex(x => x.FromFamilyId);
+    }
+}
+
+internal sealed class FamilyHeadTransferConfiguration : IEntityTypeConfiguration<FamilyHeadTransfer>
+{
+    public void Configure(EntityTypeBuilder<FamilyHeadTransfer> builder)
+    {
+        builder.ToTable("family_head_transfers");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+        builder.HasOne(x => x.Family).WithMany().HasForeignKey(x => x.FamilyId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(x => new { x.FamilyId, x.Status });
+        builder.HasIndex(x => new { x.ToMemberId, x.Status });
     }
 }
