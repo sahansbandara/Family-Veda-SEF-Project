@@ -17,6 +17,9 @@ vi.mock('../services/apiClient', () => ({
   },
   // The family dashboard stays in its loading state for routing assertions.
   threePortalApi: { getFamilyDashboard: vi.fn(() => new Promise(() => {})) },
+  // Head-transfer banner (members): nothing waiting.
+  familyLifecycleApi: { getIncomingHeadTransfer: vi.fn().mockResolvedValue({ data: '' }) },
+  refreshSession: vi.fn(),
 }))
 
 // Mock assets so Vitest doesn't choke on binary files

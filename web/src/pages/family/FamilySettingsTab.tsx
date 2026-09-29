@@ -4,6 +4,7 @@
 import { type FormEvent, useState } from 'react'
 
 import { familyLifecycleApi, type FamilyDto } from '../../services/apiClient'
+import { FamilyHeadTransferSection } from './FamilyHeadTransferSection'
 import { extractErrorMessage } from './threePortalUtils'
 
 type Props = { family: FamilyDto; onChanged: () => Promise<void>; onMessage: (message: string) => void }
@@ -38,29 +39,32 @@ export function FamilySettingsTab({ family, onChanged, onMessage }: Props) {
   }
 
   return (
-    <section className="panel" aria-label="Family settings">
-      <p className="eyebrow">Family lifecycle</p>
-      <h2>Family Settings</h2>
-      <form className="form-grid" onSubmit={(event) => void rename(event)}>
-        <label>
-          Family name
-          <input name="name" defaultValue={family.name} required minLength={2} maxLength={120} />
-        </label>
-        <button className="button button--primary" type="submit" disabled={isSaving}>
-          {isSaving ? 'Saving…' : 'Save name'}
-        </button>
-      </form>
-
-      <div className="form-grid">
-        <label>
-          Family Code
-          <input className="family-code" readOnly value={family.familyCode ?? 'Not assigned'} />
-        </label>
-        <button className="button button--secondary" type="button" onClick={() => void copyCode()} disabled={!family.familyCode}>
-          Copy code
-        </button>
-      </div>
-      <p className="muted">Share the code with an adult who should request to join. You still accept or decline every request.</p>
-    </section>
+    <>
+      <section className="panel" aria-label="Family settings">
+        <p className="eyebrow">Family lifecycle</p>
+        <h2>Family Settings</h2>
+        <form className="form-grid" onSubmit={(event) => void rename(event)}>
+          <label>
+            Family name
+            <input name="name" defaultValue={family.name} required minLength={2} maxLength={120} />
+          </label>
+          <button className="button button--primary" type="submit" disabled={isSaving}>
+            {isSaving ? 'Saving…' : 'Save name'}
+          </button>
+        </form>
+  
+        <div className="form-grid">
+          <label>
+            Family Code
+            <input className="family-code" readOnly value={family.familyCode ?? 'Not assigned'} />
+          </label>
+          <button className="button button--secondary" type="button" onClick={() => void copyCode()} disabled={!family.familyCode}>
+            Copy code
+          </button>
+        </div>
+        <p className="muted">Share the code with an adult who should request to join. You still accept or decline every request.</p>
+      </section>
+      <FamilyHeadTransferSection familyId={family.id} onMessage={onMessage} />
+    </>
   )
 }
