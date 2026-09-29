@@ -177,3 +177,28 @@ UX tasks:
 - [ ] Doctor My Families: label families with `memberCount == 1` as "Individual patient" instead of "X Family · 1 member".
 - [ ] Doctor dashboard: when a family was lost through a move, show "Assignment ended — patient moved household" in the timeline, not an error.
 - [ ] Test: an adult leaves → the old doctor gets 404 on their records; the new request is accepted → access returns.
+
+---
+
+## 10. Edge case — a solo Head joins another family later
+
+**Already supported** (`FamilyMembershipMover.AttachAdultAsync` / `RequireCanJoinAnotherFamilyAsync`): a Head of a **one-person** household can send a join request (Family Code) or accept an invitation. On accept, their `Member` row, with all its history, moves into the new family as `AdultMember`. A Head of a household with other people is blocked: "Leave your current family before joining another one." They must transfer the Head role first.
+
+```text
+Solo Head (household of 1)
+ → My Family › Join with Family Code  (or opens an invitation link)
+ → target Head accepts
+ → Member row moves: FamilyId = new, Role = AdultMember, history kept
+ → FamilyMembershipEvent + audit row
+```
+
+**Gaps found while reading the code (2026-09-29). Fix them before the demo:**
+
+| # | Gap | Risk | Fix |
+|---|---|---|---|
+| G1 | The old household stays as an **empty `Family` row**. Its active `FamilyDoctorAssignment`, pending doctor request, invitations and join requests stay open. | The doctor sees a 0-member family. Someone could send a join request to a family with no Head. | On move-out, if the source family has no members left: end its assignment (`EndedAt`, history kept), cancel its pending requests and invitations, and mark the family archived (or block joins to empty families). |
+| G2 | `SharedWithFamilyHead` flags **are not reset** on move. | An item the adult shared with an *old* Head becomes visible to the *new* Head automatically. That breaks the "private by default" promise. | On any move, set `SharedWithFamilyHead = false` on the member's lab reports and records. The adult re-shares by choice. |
+| G3 | DECISIONS 2026-09-29c says the old family's doctor grants are revoked, but the mover and lifecycle service contain no grant or assignment code. [Likely a gap; access may still be cut indirectly, because doctor checks go through the *current* family's assignment. Needs a test to prove it.] | The old doctor might keep reading new data. | Negative test: after the move, the old doctor gets 404 on the member. The new family's doctor gets access only with consent. |
+| G4 | The UI never tells a solo Head that joining another family will turn them into an Adult Member. | A surprise role change. | Confirmation modal: "You'll join the X Family as an Adult Member. Your health history comes with you and stays private. Your own household will be closed." |
+
+UX (solo Head, My Family tab): show a card **"Join another family"** with a Family Code input next to "Invite family members". This is the same component the adult uses in My Family.

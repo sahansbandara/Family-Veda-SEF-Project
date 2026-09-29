@@ -185,6 +185,7 @@ Overlaps FH-4..FH-6 above — tick both when done. Each phase: TDD, PR into `dev
 - [ ] U1 Doctor nav: merge "Calendar" + "Appointments calendar" into one Calendar tab.
 - [ ] U1 Records: split single scroll into Records · Vitals · Lab Reports sub-tabs (Head + Adult share the component).
 - [ ] U1 Adult: add Privacy tab (Family Sharing + Clinical Consent).
+- [ ] Membership-move gaps (UX plan §10): G1 close an empty household (end its assignment, cancel its requests), G2 reset `SharedWithFamilyHead` on move, G3 test that the old doctor gets 404 after the move, G4 confirm modal before a solo Head joins another family.
 - [ ] Per-page done check: title = nav label · purpose sentence · one primary button · loading/empty/error · test asserts title + button.
 
 ### P0 — Shared design system (29 Sep, no schema)
