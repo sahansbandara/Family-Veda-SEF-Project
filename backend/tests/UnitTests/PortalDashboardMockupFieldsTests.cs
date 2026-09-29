@@ -6,6 +6,7 @@ using FamilyVeda.Domain.Common;
 using FamilyVeda.Domain.Identity;
 using FamilyVeda.Domain.Portal;
 using FamilyVeda.Domain.Records;
+using FamilyVeda.Domain.Triage;
 using FamilyVeda.Infrastructure.Persistence;
 using FamilyVeda.Infrastructure.Portal;
 using FluentAssertions;
@@ -111,6 +112,65 @@ public sealed class PortalDashboardMockupFieldsTests
         dashboard.DoctorDisplayName.Should().Be("Dr. Synthetic");
         dashboard.Families.Should().ContainSingle().Which.FamilyName.Should().Be("Synthetic Family");
         dashboard.Families.Single().MemberCount.Should().Be(3);
+    }
+
+    [Fact]
+    public async Task HeadMemberCard_CountsOnlyItemsTheAdultCurrentlyShares()
+    {
+        await using var db = NewDb();
+        var s = await SeedFamilyAsync(db);
+        var shared = Report(s.AdultMember, (1m, 2m, 3m));
+        shared.SharedWithFamilyHead = true;
+        db.AddRange(shared, Report(s.AdultMember, (1m, 2m, 3m)),
+            new HealthRecord { Member = s.AdultMember, Title = "Synthetic shared note", SharedWithFamilyHead = true, OccurredOn = new DateOnly(2026, 9, 1) },
+            new HealthRecord { Member = s.AdultMember, Title = "Synthetic private note", OccurredOn = new DateOnly(2026, 9, 1) });
+        await db.SaveChangesAsync();
+
+        var dashboard = await new PortalDashboardService(db, new StubCurrentUser(s.Head.Id)).GetFamilyDashboardAsync(CancellationToken.None);
+
+        dashboard.Members.Single(x => x.Id == s.AdultMember.Id).Summary.Should().Be("Adult · 2 shared items");
+    }
+
+    [Fact]
+    public async Task HeadGuidanceCount_IncludesManagedMinors_ButNeverAnotherAdult()
+    {
+        await using var db = NewDb();
+        var s = await SeedFamilyAsync(db);
+        TriageCase Approved(Member member) => new()
+        {
+            Member = member, Status = TriageStatus.Approved,
+            Episode = new Episode { Member = member, SymptomsJson = "[]" }
+        };
+        db.AddRange(Approved(s.Minor), Approved(s.AdultMember));
+        await db.SaveChangesAsync();
+
+        var dashboard = await new PortalDashboardService(db, new StubCurrentUser(s.Head.Id)).GetFamilyDashboardAsync(CancellationToken.None);
+
+        dashboard.ApprovedGuidanceCount.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task HeadActivity_ShowsSharedItem_OnlyWhileItIsStillShared()
+    {
+        await using var db = NewDb();
+        var s = await SeedFamilyAsync(db);
+        var stillShared = Report(s.AdultMember, (1m, 2m, 3m));
+        stillShared.SharedWithFamilyHead = true;
+        var nowPrivate = Report(s.AdultMember, (1m, 2m, 3m));
+        db.AddRange(stillShared, nowPrivate);
+        await db.SaveChangesAsync();
+        foreach (var report in new[] { stillShared, nowPrivate })
+            db.AuditLogs.Add(new AuditLog
+            {
+                ActorUserId = s.Adult.Id, SubjectMemberId = s.AdultMember.Id, EventType = "ADULT_ITEM_SHARED_WITH_HEAD",
+                ResourceType = "LabReport", ResourceId = report.Id, Outcome = "SUCCESS", MetadataJson = "{}"
+            });
+        await db.SaveChangesAsync();
+
+        var dashboard = await new PortalDashboardService(db, new StubCurrentUser(s.Head.Id)).GetFamilyDashboardAsync(CancellationToken.None);
+
+        var sharedRows = dashboard.Activity.Where(x => x.Title == "Lab report shared").ToList();
+        sharedRows.Should().ContainSingle().Which.Subject.Should().Be("Synthetic Adult");
     }
 
     private sealed class StubCurrentUser(Guid userId) : ICurrentUser

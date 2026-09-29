@@ -108,4 +108,61 @@ void main() {
     });
     expect(shouldShowJoinRequestsCard(dashboard), isFalse);
   });
+
+  test('parses mockup fields: members, activity and counts', () {
+    final dashboard = FamilyDashboard.fromJson({
+      'role': 'Head',
+      'memberCount': 3,
+      'minorCount': 1,
+      'openCases': 0,
+      'approvedGuidanceCount': 0,
+      'unreadNotifications': 0,
+      'viewerDisplayName': 'Synthetic Head',
+      'visibleReportCount': 2,
+      'upcomingAppointments': 1,
+      'members': [
+        {
+          'id': 'm1',
+          'displayName': 'Synthetic Head',
+          'role': 'Head',
+          'isSelf': true,
+          'isMinor': false,
+          'summary': 'You',
+        },
+        {
+          'id': 'm2',
+          'displayName': 'Synthetic Minor',
+          'role': 'MinorMember',
+          'isSelf': false,
+          'isMinor': true,
+          'summary': 'Guardian managed',
+        },
+        {
+          'id': 'm3',
+          'displayName': 'Synthetic Adult',
+          'role': 'AdultMember',
+          'isSelf': false,
+          'isMinor': false,
+          'summary': 'Adult · 1 shared item',
+        },
+      ],
+      'activity': [
+        {
+          'title': 'Lab report shared',
+          'subject': 'Synthetic Adult',
+          'occurredAt': '2026-09-26T08:00:00Z',
+        },
+      ],
+    });
+
+    expect(dashboard.members.map((m) => m.roleLabel), [
+      'Head',
+      'Minor',
+      'Adult',
+    ]);
+    expect(dashboard.activity.single.subject, 'Synthetic Adult');
+    expect(dashboard.activity.single.occurredAt, DateTime.utc(2026, 9, 26, 8));
+    expect(dashboard.visibleReportCount, 2);
+    expect(dashboard.viewerDisplayName, 'Synthetic Head');
+  });
 }
