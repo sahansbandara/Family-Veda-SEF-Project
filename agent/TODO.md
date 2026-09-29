@@ -174,6 +174,67 @@ Nav (web + Flutter): `Dashboard | My Family | Health Records | Symptoms & Triage
 - Invitations + Head transfer: **web full**; Flutter read-only list + accept banner for the transfer target.
 - Migration lock taken by owner for FH-2/FH-3 schema work.
 
+## Three dashboards — mockup parity (2026-09-29)
+
+Plan: `docs/Three_Dashboards_Plan.md` (DB linkage §3, disagreements §6). Mockups: `docs/mockups/{family-head,adult-member,doctor}.html`. Doctor spec: `docs/Doctor_Side_Spec.md`.
+Overlaps FH-4..FH-6 above — tick both when done. Each phase: TDD, PR into `develop`, self-merge.
+
+### P0 — Shared design system (29 Sep, no schema)
+- [ ] Port mockup tokens (brand `#087b70`, bg, line, badge colours, radii, shadows) into `web/src/styles/tokens.css` + dark-mode variants.
+- [ ] Shared primitives in `web/src/components/portal/`: PortalHero, MetricTile, Panel, StatusBadge, Tabs, Timeline, StepProgress, ReportCard, Modal, EmptyState.
+- [ ] `AppLayout`: mockup top bar (logo, portal name, user, role badge) + sticky pill nav per role; Emergency Help stays a card/route (RULE 10).
+- [ ] Flutter theme seeded from the same tokens.
+
+### Section A — Family Head (30 Sep)
+Nav: `Dashboard | My Family | Health Records | Symptoms & Triage | My Doctor | Appointments | Privacy & Access`
+- [ ] A1 Dashboard: re-skin with primitives — hero (greeting, Family Code, bell count), 4 metrics, Family Doctor card, Needs Attention, Members grid, Quick Actions, Health Tools, Recent Shared Activity. Badge "Family Head", not "HEAD VERIFIED".
+- [ ] A2 My Family: 4 tabs already built — re-skin only; add audit row for rename.
+- [ ] A3 Health Records (= FH-4): tabs Records · Vitals · Lab Reports · Health Insights; member filter (all visible / self / minor / shared adult); upload modal self + minors only; report modal with deterministic range table and "does not diagnose" notice — **no AI Explanation shown to the family** (RULE 2).
+- [ ] A4 Symptoms & Triage: 4-step progress for own + minors; verify minor submission path.
+- [ ] A5 My Doctor (= FH-5): current doctor card, Request Change (end old assignment, keep history), Find a Doctor with deterministic filters + "Suggested based on location, availability and your preferences."
+- [ ] A6 Appointments: table Member · Date · Doctor · Reason · Status; book for self + minors only; free-slot picker (needs P3).
+- [ ] A7 Privacy & Access (= FH-6): `GET /families/me/privacy` — per-member sharing summary + recent access (head-visible only).
+- [ ] A-test: no-leak test adding a private adult appointment + case; still zero change to head counts.
+
+### Section B — Adult Member (30 Sep–1 Oct)
+Nav: `Dashboard | My Health | Appointments | Symptoms & Triage | My Family | My Doctor | Privacy`
+- [ ] B1 Dashboard: hero, 4 metrics (Next appointment, My cases, New guidance, Private reports), Family Doctor card, Quick Actions (Upload, Report Symptoms, Add Vital, Ask My Records, Book), Recent Health, "Who can see my data?". No family-management actions.
+- [ ] B2 My Health: tabs Records · Vitals · Lab Reports · Timeline; upload modal with **Keep Private (default) / Share with Family Head** radio; report modal with range table.
+- [ ] B3 Ask My Records: deterministic structured search (member=self, type, date range, analyte). LLM parsing only in P5 if time.
+- [ ] B4 Appointments: own only; "Private appointment" label; book own.
+- [ ] B5 Symptoms & Triage: 4-step progress; "not visible to Family Head" note.
+- [ ] B6 My Family: membership card + Start My Own Family / Leave Family / Join by code (backend exists, FH-2b) — re-skin and wire.
+- [ ] B7 My Doctor: read-only doctor card + Book My Appointment; "only the Family Head can change the doctor".
+- [ ] B8 Privacy: Family Sharing list with per-item toggle (`PATCH …/sharing`) + Clinical Consent card for current doctor (existing consent API). New route `/privacy` for MEMBER.
+- [ ] B9 Seed: shared + private adult report rows (open since Phase 2).
+- [ ] B-cut (future work): Explain lab values to patient, image observations, handwritten reader — hidden, listed in report.
+
+### P3 — Doctor schema, one migration (1 Oct) · MIGRATION LOCK
+- [ ] `20261001_S4_DoctorWorkspace`: `DoctorAvailability`, `DoctorUnavailablePeriod`, `ClinicalNote` (append-only, `AmendsNoteId`, `Version`), `PreVisitBrief`; `Doctor` + ConsultationModes, AcceptingNewFamilies, FamilyCapacity, SlotMinutes; `Appointment.RescheduledFromStartsAt`.
+- [ ] Apply to Neon same day, record migration history, release lock.
+
+### Section C — Doctor (1–3 Oct)
+Nav: `Dashboard | Calendar | My Families | Triage Cases | Approvals | Profile & Availability`
+- [ ] C0 `DoctorAccessGuard` in new `DoctorWorkspaceService`: role → verified/active → active assignment OR valid case grant → member in family → consent category → audit. Every doctor endpoint uses it. Do not loosen `FamiliesController`/`RecordsController`.
+- [ ] C1 Dashboard: hero, 4 metrics (Today, Pending approvals, Open cases, Family requests), Today's Schedule, Needs Attention, My Families table, Clinical Timeline (UNION query, not a table).
+- [ ] C2 Calendar: Today + Week views; confirm / reschedule / complete / cancel / no-show; Block Time → `DoctorUnavailablePeriod`. Reschedule notifies the family.
+- [ ] C3 My Families: tabs Assigned · Requests; search / sort / pagination; accept/decline (existing API). `GET /doctors/me/families`.
+- [ ] C4 Family detail → Member workspace tabs Overview · Records · Labs · Vitals · Triage · Visits · Notes, all via `/doctors/me/members/{id}/…`; "Clinical details restricted" card when consent missing (don't reveal counts).
+- [ ] C5 Clinical notes: create / amend / list; no delete endpoint; audited.
+- [ ] C6 Profile & Availability: practice fields + weekly availability editor + slot minutes; availability drives the family free-slot picker (`GET /doctors/{id}/slots?date=`).
+- [ ] C7 Split `DoctorPortal.tsx` (1,119 lines) into per-page files; delete dead `handleDecision` mock.
+- [ ] C-test: negative tests — other doctor, ended assignment, revoked consent, expired grant, unverified/suspended doctor → 403/404; overlap + availability tests.
+
+### P5 — Controlled AI minimum (3–4 Oct)
+- [ ] Pre-Visit Brief: deterministic "since last visit" (labs, vitals, cases, approvals, pending items) from allow-listed reads; optional LLM phrasing with schema validation; doctor-only; label "AI-generated context only. Clinical interpretation remains with the doctor."; audited.
+- [ ] Doctor Discovery (Head): deterministic keyword parse → backend hard filters. LLM parse only if time.
+- [ ] Cut order if late: LLM brief phrasing → LLM discovery parse → Ask Records LLM.
+
+### P6 — Flutter parity + hardening (4–5 Oct)
+- [ ] Flutter: head + adult dashboards re-skinned, adult upload privacy radio, appointments free-slot picker. Doctor stays web-only (desktop density).
+- [ ] E2E golden flows from the blueprint (household, join, Family Doctor, private appointment, private lab, triage, emergency).
+- [ ] Screenshots of all three portals next to the mockups into `docs/evidence/`.
+
 ## Auth redesign — completed 2026-09-28
 
 - [x] Premium AuthPage redesign (split-panel, hero images, role cards, password toggle, Remember Me)
