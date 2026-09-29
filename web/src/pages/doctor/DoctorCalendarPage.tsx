@@ -3,12 +3,18 @@
 // Doctor Calendar: my appointments grouped by day, with confirm/complete/no-show/cancel.
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import { Link } from 'react-router-dom'
+
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
-import { threePortalApi, type AppointmentDto } from '../../services/apiClient'
+import { doctorWorkspaceApi, threePortalApi, type AppointmentDto } from '../../services/apiClient'
+import { SubTabs } from '../dashboard/dashboardParts'
 import { FriendlyStatusBadge } from '../family/threePortalShared'
 import { extractErrorMessage, formatDateTime, formatDay } from '../family/threePortalUtils'
 
 type Action = 'confirm' | 'complete' | 'no-show' | 'cancel'
+type View = 'today' | 'week' | 'all'
+
+const dayKey = (date: Date) => date.toISOString().slice(0, 10)
 
 const nextActions: Record<AppointmentDto['status'], Action[]> = {
   Requested: ['confirm', 'cancel'],
@@ -29,6 +35,9 @@ export function DoctorCalendarPage() {
   const [appointments, setAppointments] = useState<AppointmentDto[]>([])
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [message, setMessage] = useState('')
+  const [view, setView] = useState<View>('week')
+  const [rescheduling, setRescheduling] = useState<string | null>(null)
+  const [newTime, setNewTime] = useState('')
 
   const load = useCallback(async () => {
     setStatus('loading')
@@ -47,14 +56,21 @@ export function DoctorCalendarPage() {
 
   const byDay = useMemo(() => {
     const groups = new Map<string, AppointmentDto[]>()
-    for (const appointment of [...appointments].sort((a, b) => a.startsAt.localeCompare(b.startsAt))) {
+    const now = new Date()
+    const today = dayKey(now)
+    const weekEnd = dayKey(new Date(now.getTime() + 7 * 86_400_000))
+    const visible = appointments.filter((a) => {
+      const key = a.startsAt.slice(0, 10)
+      return view === 'all' || (view === 'today' ? key === today : key >= today && key <= weekEnd)
+    })
+    for (const appointment of [...visible].sort((a, b) => a.startsAt.localeCompare(b.startsAt))) {
       const key = appointment.startsAt.slice(0, 10)
       const list = groups.get(key) ?? []
       list.push(appointment)
       groups.set(key, list)
     }
     return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b))
-  }, [appointments])
+  }, [appointments, view])
 
   async function act(appointment: AppointmentDto, action: Action) {
     try {
@@ -63,6 +79,18 @@ export function DoctorCalendarPage() {
       await load()
     } catch (error) {
       setMessage(extractErrorMessage(error, 'Appointment status could not be updated.'))
+    }
+  }
+
+  async function reschedule(appointment: AppointmentDto) {
+    if (!newTime) return
+    try {
+      await doctorWorkspaceApi.reschedule(appointment.id, new Date(newTime).toISOString())
+      setMessage(`${appointment.memberDisplayName}'s appointment moved. The family has been notified.`)
+      setRescheduling(null); setNewTime('')
+      await load()
+    } catch (error) {
+      setMessage(extractErrorMessage(error, 'The appointment could not be moved to that time.'))
     }
   }
 
@@ -75,14 +103,16 @@ export function DoctorCalendarPage() {
         <div>
           <p className="fv-eyebrow">Scheduling</p>
           <h1>Calendar</h1>
-          <p>Your appointments. Confirm, complete or cancel them here.</p>
+          <p>Your appointments. Confirm, reschedule, complete or cancel them. Confirming opens the patient's records from 24 h before the visit to 24 h after.</p>
         </div>
       </header>
 
       {message && <p role="status" className="status-banner">{message}</p>}
+      <SubTabs<View> label="Calendar range" active={view} onChange={setView}
+        tabs={[{ id: 'today', label: 'Today' }, { id: 'week', label: 'Next 7 days' }, { id: 'all', label: 'All' }]} />
 
       {byDay.length === 0 ? (
-        <EmptyState title="No appointments" message="Booked appointments will appear here, grouped by day." />
+        <EmptyState title="No appointments in this range" message="Booked appointments will appear here, grouped by day. Try another range." />
       ) : (
         byDay.map(([day, dayAppointments]) => (
           <section className="panel" key={day}>
@@ -103,7 +133,7 @@ export function DoctorCalendarPage() {
                   {dayAppointments.map((appointment) => (
                     <tr key={appointment.id}>
                       <td>{formatDateTime(appointment.startsAt)}</td>
-                      <td>{appointment.memberDisplayName}</td>
+                      <td><Link to={`/members/${appointment.memberId}`}>{appointment.memberDisplayName}</Link></td>
                       <td>{appointment.familyName}</td>
                       <td>{appointment.reason}</td>
                       <td><FriendlyStatusBadge status={appointment.status} /></td>
@@ -118,6 +148,15 @@ export function DoctorCalendarPage() {
                           >
                             {actionLabel[action]}
                           </button>
+                        ))}
+                        {(appointment.status === 'Requested' || appointment.status === 'Confirmed') && (rescheduling === appointment.id ? (
+                          <span>
+                            <input aria-label="New time" type="datetime-local" value={newTime} onChange={(event) => setNewTime(event.target.value)} />
+                            <button className="button button--primary" type="button" onClick={() => void reschedule(appointment)}>Save</button>
+                            <button className="button button--secondary" type="button" onClick={() => setRescheduling(null)}>Close</button>
+                          </span>
+                        ) : (
+                          <button className="button button--secondary" type="button" onClick={() => { setRescheduling(appointment.id); setNewTime('') }}>Reschedule</button>
                         ))}
                       </td>
                     </tr>

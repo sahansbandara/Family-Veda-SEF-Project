@@ -203,7 +203,7 @@ Nav: `Dashboard | My Family | Health Records | Symptoms & Triage | My Doctor | A
 - [ ] A3 Health Records (= FH-4): tabs Records · Vitals · Lab Reports · Health Insights; member filter (all visible / self / minor / shared adult); upload modal self + minors only; report modal with deterministic range table and "does not diagnose" notice — **no AI Explanation shown to the family** (RULE 2).
 - [ ] A4 Symptoms & Triage: 4-step progress for own + minors; verify minor submission path.
 - [ ] A5 My Doctor (= FH-5): current doctor card, Request Change (end old assignment, keep history), Find a Doctor with deterministic filters + "Suggested based on location, availability and your preferences."
-- [ ] A6 Appointments: table Member · Date · Doctor · Reason · Status; book for self + minors only; free-slot picker (needs P3).
+- [x] A6 (free-slot picker live; falls back to free time entry until the doctor sets hours) Appointments: table Member · Date · Doctor · Reason · Status; book for self + minors only; free-slot picker (needs P3).
 - [x] A7 web (2026-09-29, `PrivacyPage` head mode, uses existing endpoints; no new `/families/me/privacy` needed yet) Privacy & Access (= FH-6): `GET /families/me/privacy` — per-member sharing summary + recent access (head-visible only).
 - [ ] A-test: no-leak test adding a private adult appointment + case; still zero change to head counts.
 
@@ -229,21 +229,23 @@ Nav: `Dashboard | My Health | Appointments | Symptoms & Triage | My Family | My 
 - [ ] D-F Negative test: admin cannot read member health data.
 
 ### P3 — Doctor schema, one migration (1 Oct) · MIGRATION LOCK
-- [ ] `20261001_S4_DoctorWorkspace`: `DoctorAvailability`, `DoctorUnavailablePeriod`, `ClinicalNote` (append-only, `AmendsNoteId`, `Version`), `PreVisitBrief`; `Doctor` + ConsultationModes, AcceptingNewFamilies, FamilyCapacity, SlotMinutes; `Appointment.RescheduledFromStartsAt`.
-- [ ] Visit grant: a confirmed appointment issues a time-bound grant for that member (generalise `CaseAccessGrant` with `AppointmentId`). **Owner decision needed** on the window (proposed: 24 h before to 24 h after).
-- [ ] Apply to Neon same day, record migration history, release lock.
+- [x] (2026-09-29, generated as `20260929093045_20260929_S4_DoctorWorkspace`, additive only; `ClinicalNote` done, `PreVisitBrief` deferred to P5) `20261001_S4_DoctorWorkspace`: `DoctorAvailability`, `DoctorUnavailablePeriod`, `ClinicalNote` (append-only, `AmendsNoteId`, `Version`), `PreVisitBrief`; `Doctor` + ConsultationModes, AcceptingNewFamilies, FamilyCapacity, SlotMinutes; `Appointment.RescheduledFromStartsAt`.
+- [x] Visit grant (sibling `VisitAccessGrant` table; window 24 h before to 24 h after, approved in DECISIONS 2026-09-29h): a confirmed appointment issues a time-bound grant for that member (generalise `CaseAccessGrant` with `AppointmentId`). **Owner decision needed** on the window (proposed: 24 h before to 24 h after).
+- [ ] **[human]** Apply `20260929_S4_DoctorWorkspace` to Neon (take the migration lock); keep `Database__MigrateOnStartup=false`. Apply to Neon same day, record migration history, release lock.
 
 ### Section C — Doctor (1–3 Oct)
 Nav: `Dashboard | Calendar | My Families | Triage Cases | Approvals | Profile & Availability`
-- [ ] C0 `DoctorAccessGuard` in new `DoctorWorkspaceService`: role → verified/active → active assignment (eligibility only) → **valid case/visit grant scoped to the member** → consent category → audit (DECISIONS 2026-09-28). Assignment alone = roster names, appointments, own notes; no clinical data. Every doctor endpoint uses it. Do not loosen `FamiliesController`/`RecordsController`.
+- [x] C0 (in `DoctorWorkspaceService`; 404 without an assignment, restricted view without a grant) `DoctorAccessGuard` in new `DoctorWorkspaceService`: role → verified/active → active assignment (eligibility only) → **valid case/visit grant scoped to the member** → consent category → audit (DECISIONS 2026-09-28). Assignment alone = roster names, appointments, own notes; no clinical data. Every doctor endpoint uses it. Do not loosen `FamiliesController`/`RecordsController`.
 - [ ] C1 Dashboard: hero, 4 metrics (Today, Pending approvals, Open cases, Family requests), Today's Schedule, Needs Attention, My Families table, Clinical Timeline (UNION query, not a table).
-- [ ] C2 Calendar: Today + Week views; confirm / reschedule / complete / cancel / no-show; Block Time → `DoctorUnavailablePeriod`. Reschedule notifies the family.
+- [x] C2 (Today / 7 days / All; reschedule with family notification; block time on the Profile page) Calendar: Today + Week views; confirm / reschedule / complete / cancel / no-show; Block Time → `DoctorUnavailablePeriod`. Reschedule notifies the family.
 - [x] C3 (web, 2026-09-29, `DoctorFamiliesPage`: tabs via `?tab=requests`, search, sort, accept/decline, one-person family = "Individual patient"). Pagination still open. My Families: tabs Assigned · Requests; search / sort / pagination; accept/decline (existing API). `GET /doctors/me/families`.
-- [ ] C4 Family detail → Member workspace tabs Overview · Records · Labs · Vitals · Triage · Visits · Notes, all via `/doctors/me/members/{id}/…`; "Clinical details restricted" card when consent missing (don't reveal counts).
-- [ ] C5 Clinical notes: create / amend / list; no delete endpoint; audited.
-- [ ] C6 Profile & Availability: practice fields + weekly availability editor + slot minutes; availability drives the family free-slot picker (`GET /doctors/{id}/slots?date=`).
-- [~] C7 `/families`, `/doctor-profile` and `/calendar` no longer route to `DoctorPortal.tsx` (it held sample data). The file is now unused; **deletion needs owner approval**. Split `DoctorPortal.tsx` (1,119 lines) into per-page files; delete dead `handleDecision` mock.
-- [ ] C-test: negative tests — other doctor, ended assignment, revoked consent, expired grant, unverified/suspended doctor → 403/404; overlap + availability tests.
+- [x] C4 (`/families/:id`, `/members/:id`; Triage tab not built, cases stay in Triage Cases) Family detail → Member workspace tabs Overview · Records · Labs · Vitals · Triage · Visits · Notes, all via `/doctors/me/members/{id}/…`; "Clinical details restricted" card when consent missing (don't reveal counts).
+- [x] C5 Clinical notes: create / amend / list; no delete endpoint; audited.
+- [x] C6 Profile & Availability: practice fields + weekly availability editor + slot minutes; availability drives the family free-slot picker (`GET /doctors/{id}/slots?date=`).
+- [x] C7 `DoctorPortal.tsx` deleted (approved, DECISIONS 2026-09-29h). Split `DoctorPortal.tsx` (1,119 lines) into per-page files; delete dead `handleDecision` mock.
+- [x] C-test (`DoctorWorkspaceServiceTests`, 14) negative tests — other doctor, ended assignment, revoked consent, expired grant, unverified/suspended doctor → 403/404; overlap + availability tests.
+
+- [ ] Seed: weekly hours for the 3 verified synthetic doctors (Phase1bSeeder) so the demo shows free slots.
 
 ### P5 — Controlled AI minimum (3–4 Oct)
 - [ ] Pre-Visit Brief: deterministic "since last visit" (labs, vitals, cases, approvals, pending items) from allow-listed reads; optional LLM phrasing with schema validation; doctor-only; label "AI-generated context only. Clinical interpretation remains with the doctor."; audited.

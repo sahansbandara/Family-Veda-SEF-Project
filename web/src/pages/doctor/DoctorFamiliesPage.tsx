@@ -3,7 +3,7 @@
 // Real data only (DECISIONS 2026-09-29e). Clinical member data is not shown here: an assignment
 // is eligibility only; clinical reads need a grant + consent (DECISIONS 2026-09-28).
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { threePortalApi, type DoctorFamilyRowDto, type DoctorRequestDto } from '../../services/apiClient'
@@ -104,7 +104,7 @@ export function DoctorFamiliesPage() {
             ) : (
               <div className="fv-scroll">
                 <table className="fv-table">
-                  <thead><tr><th>Family</th><th>Members</th><th>Last visit</th><th>Next appointment</th></tr></thead>
+                  <thead><tr><th>Family</th><th>Members</th><th>Last visit</th><th>Next appointment</th><th></th></tr></thead>
                   <tbody>
                     {visible.map((family) => (
                       <tr key={family.familyId}>
@@ -112,6 +112,7 @@ export function DoctorFamiliesPage() {
                         <td>{family.memberCount}</td>
                         <td>{dateOrDash(family.lastVisit)}</td>
                         <td>{dateOrDash(family.nextAppointment)}</td>
+                        <td><Link className="fv-btn" to={`/families/${family.familyId}`}>Open Family</Link></td>
                       </tr>
                     ))}
                   </tbody>

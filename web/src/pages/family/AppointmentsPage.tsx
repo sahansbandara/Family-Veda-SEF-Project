@@ -5,7 +5,7 @@ import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react
 
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { useAppSelector } from '../../store/hooks'
-import { apiClient, threePortalApi, type AppointmentDto, type FamilyDto, type MemberDto } from '../../services/apiClient'
+import { apiClient, doctorWorkspaceApi, threePortalApi, type DoctorSlotsDto, type AppointmentDto, type FamilyDto, type MemberDto } from '../../services/apiClient'
 import { FriendlyStatusBadge } from './threePortalShared'
 import { extractErrorMessage, formatDateTime } from './threePortalUtils'
 import { PageHero } from '../dashboard/dashboardParts'
@@ -34,6 +34,21 @@ export function AppointmentsPage() {
     [members, isHead],
   )
 
+  const [familyId, setFamilyId] = useState('')
+  const [slots, setSlots] = useState<DoctorSlotsDto | null>(null)
+  const [slotMessage, setSlotMessage] = useState('')
+
+  // Free slots come from the doctor's weekly hours (DECISIONS 2026-09-29h). No hours set → free time entry.
+  async function loadSlots(date: string) {
+    setSlots(null); setSlotMessage('')
+    if (!date || !familyId) return
+    try {
+      setSlots((await doctorWorkspaceApi.getFamilyDoctorSlots(familyId, date)).data)
+    } catch (error) {
+      setSlotMessage(extractErrorMessage(error, 'Free times could not be loaded. You can still request a time.'))
+    }
+  }
+
   const load = useCallback(async () => {
     setStatus('loading')
     try {
@@ -43,6 +58,7 @@ export function AppointmentsPage() {
       ])
       setAppointments(appts)
       setMembers(family.members)
+      setFamilyId(family.id)
       setStatus('ready')
     } catch {
       setStatus('error')
@@ -60,17 +76,19 @@ export function AppointmentsPage() {
     const memberId = String(form.get('memberId') || '')
     const date = String(form.get('date') || '')
     const time = String(form.get('time') || '')
+    const slot = String(form.get('slot') || '')
     const reason = String(form.get('reason') || '').trim()
-    if (!memberId || !date || !time || !reason) {
+    if (!memberId || !date || !(time || slot) || !reason) {
       setMessage('Please fill in all appointment details.')
       return
     }
-    const startsAt = new Date(`${date}T${time}:00`).toISOString()
+    const startsAt = slot || new Date(`${date}T${time}:00`).toISOString()
     setSubmitting(true)
     setMessage('')
     try {
-      await threePortalApi.bookAppointment({ memberId, startsAt, reason, durationMinutes: 30 })
+      await threePortalApi.bookAppointment({ memberId, startsAt, reason, durationMinutes: slots?.availabilityConfigured ? slots.slotMinutes : 30 })
       formElement.reset()
+      setSlots(null)
       setMessage('Appointment requested. You will be notified once the doctor confirms it.')
       await load()
     } catch (error) {
@@ -120,12 +138,26 @@ export function AppointmentsPage() {
           </label>
           <label>
             Date
-            <input name="date" type="date" required />
+            <input name="date" type="date" required onChange={(event) => void loadSlots(event.target.value)} />
           </label>
-          <label>
-            Time
-            <input name="time" type="time" required />
-          </label>
+          {slots?.availabilityConfigured ? (
+            <label>
+              Free time
+              {slots.slots.length === 0 ? <span className="muted">No free times on this day. Try another date.</span> : (
+                <select name="slot" required defaultValue="">
+                  <option value="" disabled>Select a free time</option>
+                  {slots.slots.map((slot) => <option key={slot} value={slot}>{new Date(slot).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</option>)}
+                </select>
+              )}
+            </label>
+          ) : (
+            <label>
+              Time
+              <input name="time" type="time" required />
+              {slots && <small className="muted">Your doctor has not set weekly hours yet, so request any time and they will confirm it.</small>}
+            </label>
+          )}
+          {slotMessage && <p className="muted">{slotMessage}</p>}
           <label>
             Reason
             <input name="reason" required maxLength={200} placeholder="e.g. Follow-up consultation" />

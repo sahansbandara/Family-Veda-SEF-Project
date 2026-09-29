@@ -283,3 +283,47 @@ export const threePortalApi = {
     apiClient.get<NotificationDto[]>('/notifications', { params: unreadOnly ? { unreadOnly: true } : undefined }),
   markNotificationRead: (id: string) => apiClient.post(`/notifications/${id}/read`),
 }
+
+// ===== Doctor workspace (DECISIONS 2026-09-29h) =====
+export type WeekDay = 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday'
+export type AvailabilityWindowDto = { dayOfWeek: WeekDay; startTime: string; endTime: string }
+export type BlockedTimeDto = { id: string; startsAt: string; endsAt: string; reason?: string | null }
+export type DoctorScheduleDto = { slotMinutes: number; windows: AvailabilityWindowDto[]; blocked: BlockedTimeDto[] }
+export type DoctorSlotsDto = { date: string; availabilityConfigured: boolean; slotMinutes: number; slots: string[] }
+export type DoctorPracticeProfileDto = {
+  id: string; displayName: string; email?: string | null; registrationNumberLastFour: string; verificationStatus: string
+  specialty?: string | null; clinic?: string | null; phoneNumber?: string | null; district?: string | null; city?: string | null
+  languages?: string | null; consultationModes?: string | null; acceptingNewFamilies: boolean; slotMinutes: number
+}
+export type UpdatePracticeProfileRequest = Omit<DoctorPracticeProfileDto, 'id' | 'displayName' | 'email' | 'registrationNumberLastFour' | 'verificationStatus'>
+export type DoctorRosterMemberDto = { id: string; displayName: string; role: string; clinicalAccess: boolean }
+export type FamilyRosterForDoctorDto = { familyId: string; familyName: string; members: DoctorRosterMemberDto[] }
+export type ClinicalNoteDto = { id: string; familyId: string; memberId?: string | null; appointmentId?: string | null; noteType: 'VisitNote' | 'FamilyNote' | 'FollowUp'; content: string; version: number; amendsNoteId?: string | null; createdAt: string }
+export type WorkspaceLabValueDto = { analyte: string; value: number; unit: string; referenceLow?: number | null; referenceHigh?: number | null; rangeStatus: 'RangeUnavailable' | 'BelowRange' | 'WithinRange' | 'AboveRange'; confirmed: boolean }
+export type MemberWorkspaceDto = {
+  memberId: string; displayName: string; role: string; familyId: string; familyName: string
+  clinicalAccess: boolean; accessBasis: string; accessExpiresAt?: string | null; consentedCategories: string[]
+  records?: Array<{ id: string; recordType: string; title: string; summary?: string | null; occurredOn: string }> | null
+  labReports?: Array<{ id: string; fileName: string; collectedAt?: string | null; values: WorkspaceLabValueDto[] }> | null
+  vitals?: Array<{ vitalType: string; value: number; unit: string; measuredAt: string }> | null
+  hereditaryFlags?: Array<{ conditionCode: string; finding: string; confirmed: boolean }> | null
+  visits: Array<{ appointmentId: string; startsAt: string; reason: string; status: AppointmentDto['status'] }>
+  notes: ClinicalNoteDto[]
+}
+
+export const doctorWorkspaceApi = {
+  getProfile: () => apiClient.get<DoctorPracticeProfileDto>('/doctors/me/profile'),
+  updateProfile: (body: UpdatePracticeProfileRequest) => apiClient.put<DoctorPracticeProfileDto>('/doctors/me/profile', body),
+  getSchedule: () => apiClient.get<DoctorScheduleDto>('/doctors/me/schedule'),
+  replaceAvailability: (windows: AvailabilityWindowDto[]) => apiClient.put<DoctorScheduleDto>('/doctors/me/availability', { windows }),
+  addBlockedTime: (body: { startsAt: string; endsAt: string; reason?: string }) => apiClient.post<BlockedTimeDto>('/doctors/me/blocked-time', body),
+  removeBlockedTime: (id: string) => apiClient.delete(`/doctors/me/blocked-time/${id}`),
+  reschedule: (appointmentId: string, startsAt: string, note?: string) =>
+    apiClient.post<AppointmentDto>(`/doctors/me/appointments/${appointmentId}/reschedule`, { startsAt, note }),
+  getFamilyRoster: (familyId: string) => apiClient.get<FamilyRosterForDoctorDto>(`/doctors/me/families/${familyId}`),
+  getMemberWorkspace: (memberId: string) => apiClient.get<MemberWorkspaceDto>(`/doctors/me/members/${memberId}`),
+  addNote: (memberId: string, body: { content: string; noteType: ClinicalNoteDto['noteType']; appointmentId?: string }) =>
+    apiClient.post<ClinicalNoteDto>(`/doctors/me/members/${memberId}/notes`, body),
+  amendNote: (noteId: string, content: string) => apiClient.post<ClinicalNoteDto>(`/doctors/me/notes/${noteId}/amend`, { content }),
+  getFamilyDoctorSlots: (familyId: string, date: string) => apiClient.get<DoctorSlotsDto>(`/families/${familyId}/doctor/slots`, { params: { date } }),
+}
