@@ -8,6 +8,7 @@ using FamilyVeda.Domain.Portal;
 using FamilyVeda.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using FamilyVeda.Infrastructure.Families;
 
 namespace FamilyVeda.Infrastructure.Portal;
 
@@ -148,8 +149,7 @@ public sealed class FamilyDoctorService(AppDbContext dbContext, ICurrentUser cur
         request.Status = PortalRequestStatus.Accepted;
         request.RespondedAt = respondedAt;
         AddAudit("FAMILY_DOCTOR_ACCEPTED", request.Id);
-        var family = await dbContext.Families.AsNoTracking().SingleAsync(x => x.Id == request.FamilyId, cancellationToken);
-        AddNotification(family.CreatedByUserId, "FAMILY_DOCTOR_ACCEPTED", "Family doctor confirmed", "Your family doctor request was accepted.", "/family/doctor");
+        AddNotification(await dbContext.GetHeadUserIdAsync(request.FamilyId, cancellationToken), "FAMILY_DOCTOR_ACCEPTED", "Family doctor confirmed", "Your family doctor request was accepted.", "/family/doctor");
         try
         {
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -208,8 +208,7 @@ public sealed class FamilyDoctorService(AppDbContext dbContext, ICurrentUser cur
         request.Status = PortalRequestStatus.Declined;
         request.RespondedAt = respondedAt;
         AddAudit("FAMILY_DOCTOR_DECLINED", request.Id);
-        var family = await dbContext.Families.AsNoTracking().SingleAsync(x => x.Id == request.FamilyId, cancellationToken);
-        AddNotification(family.CreatedByUserId, "FAMILY_DOCTOR_DECLINED", "Family doctor request declined", "The doctor declined your family doctor request.", "/family/doctor");
+        AddNotification(await dbContext.GetHeadUserIdAsync(request.FamilyId, cancellationToken), "FAMILY_DOCTOR_DECLINED", "Family doctor request declined", "The doctor declined your family doctor request.", "/family/doctor");
         await dbContext.SaveChangesAsync(cancellationToken);
         if (transaction is not null)
         {
@@ -220,7 +219,7 @@ public sealed class FamilyDoctorService(AppDbContext dbContext, ICurrentUser cur
 
     private async Task RequireHeadAsync(Guid familyId, CancellationToken cancellationToken)
     {
-        if (!await dbContext.Families.AnyAsync(x => x.Id == familyId && x.CreatedByUserId == currentUser.UserId, cancellationToken))
+        if (!await dbContext.Families.Where(x => x.Id == familyId).AnyAsync(FamilyAccess.HeadedBy(currentUser.UserId), cancellationToken))
         {
             throw new NotFoundException();
         }
@@ -228,7 +227,7 @@ public sealed class FamilyDoctorService(AppDbContext dbContext, ICurrentUser cur
 
     private async Task RequireMemberAsync(Guid familyId, CancellationToken cancellationToken)
     {
-        if (!await dbContext.Families.AnyAsync(x => x.Id == familyId && (x.CreatedByUserId == currentUser.UserId || x.Members.Any(m => m.UserId == currentUser.UserId)), cancellationToken))
+        if (!await dbContext.Families.Where(x => x.Id == familyId).AnyAsync(FamilyAccess.BelongsTo(currentUser.UserId), cancellationToken))
         {
             throw new NotFoundException();
         }

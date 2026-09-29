@@ -7,6 +7,7 @@ using FamilyVeda.Domain.Portal;
 using FamilyVeda.Domain.Records;
 using FamilyVeda.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using FamilyVeda.Infrastructure.Families;
 
 namespace FamilyVeda.Infrastructure.Portal;
 
@@ -38,9 +39,9 @@ public sealed class PortalDashboardService(AppDbContext dbContext, ICurrentUser 
     public async Task<FamilyDashboardDto> GetFamilyDashboardAsync(CancellationToken cancellationToken)
     {
         var family = await dbContext.Families.AsNoTracking().Include(x => x.Members)
-            .FirstOrDefaultAsync(x => x.CreatedByUserId == currentUser.UserId || x.Members.Any(m => m.UserId == currentUser.UserId), cancellationToken)
+            .FirstOrDefaultAsync(FamilyAccess.BelongsTo(currentUser.UserId), cancellationToken)
             ?? throw new NotFoundException();
-        var isHead = family.CreatedByUserId == currentUser.UserId;
+        var isHead = FamilyAccess.IsHead(family, currentUser.UserId);
         var adultCutoff = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-18);
         var minorCount = family.Members.Count(x => x.DateOfBirth > adultCutoff);
 

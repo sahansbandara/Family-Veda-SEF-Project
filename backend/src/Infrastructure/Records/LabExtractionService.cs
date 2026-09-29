@@ -11,6 +11,7 @@ using FamilyVeda.Domain.Records;
 using FamilyVeda.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using FamilyVeda.Infrastructure.Families;
 
 namespace FamilyVeda.Infrastructure.Records;
 
@@ -24,7 +25,7 @@ public sealed partial class LabExtractionService(AppDbContext dbContext, ICurren
         var member = await dbContext.Members.AsNoTracking().SingleAsync(x => x.Id == report.MemberId, cancellationToken);
         var isSelf = member.UserId == currentUser.UserId;
         var isMinor = member.DateOfBirth.AddYears(18) > DateOnly.FromDateTime(DateTime.UtcNow);
-        var isHead = await dbContext.Families.AsNoTracking().AnyAsync(x => x.Id == member.FamilyId && x.CreatedByUserId == currentUser.UserId, cancellationToken);
+        var isHead = await dbContext.Families.AsNoTracking().Where(x => x.Id == member.FamilyId).AnyAsync(FamilyAccess.HeadedBy(currentUser.UserId), cancellationToken);
         if (!isSelf && !(isMinor && isHead)) throw new NotFoundException();
         if (!isSelf)
         {

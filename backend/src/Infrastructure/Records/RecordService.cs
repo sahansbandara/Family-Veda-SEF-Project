@@ -9,6 +9,7 @@ using FamilyVeda.Domain.Records;
 using FamilyVeda.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using FamilyVeda.Infrastructure.Families;
 
 namespace FamilyVeda.Infrastructure.Records;
 
@@ -342,7 +343,7 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
         }
 
         var isMinor = member.DateOfBirth.AddYears(18) > DateOnly.FromDateTime(DateTime.UtcNow);
-        var isHead = await dbContext.Families.AnyAsync(x => x.Id == member.FamilyId && x.CreatedByUserId == currentUser.UserId, cancellationToken);
+        var isHead = await dbContext.Families.Where(x => x.Id == member.FamilyId).AnyAsync(FamilyAccess.HeadedBy(currentUser.UserId), cancellationToken);
         if (isHead && !isMinor && allowSharedRead)
         {
             return MemberAccess.SharedWithHead;

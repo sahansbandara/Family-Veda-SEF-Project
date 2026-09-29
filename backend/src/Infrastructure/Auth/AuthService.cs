@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using FamilyVeda.Infrastructure.Families;
 
 namespace FamilyVeda.Infrastructure.Auth;
 
@@ -254,7 +255,7 @@ public sealed partial class AuthService(
                 if (familyHeadVerificationStatus == VerificationStatus.Verified && string.IsNullOrEmpty(familyCode))
                 {
                     familyCode = await dbContext.Families
-                        .Where(f => f.CreatedByUserId == user.Id)
+                        .Where(FamilyAccess.HeadedBy(user.Id))
                         .Select(f => f.FamilyCode)
                         .FirstOrDefaultAsync(cancellationToken);
                 }

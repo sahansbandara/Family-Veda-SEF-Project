@@ -7,6 +7,7 @@ using FamilyVeda.Domain.Identity;
 using FamilyVeda.Domain.Portal;
 using FamilyVeda.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using FamilyVeda.Infrastructure.Families;
 
 namespace FamilyVeda.Infrastructure.Portal;
 
@@ -17,7 +18,7 @@ public sealed class AppointmentService(AppDbContext dbContext, ICurrentUser curr
         var member = await dbContext.Members.SingleOrDefaultAsync(x => x.Id == request.MemberId, cancellationToken) ?? throw new NotFoundException();
         var isSelf = member.UserId == currentUser.UserId;
         var isMinor = member.DateOfBirth.AddYears(18) > DateOnly.FromDateTime(DateTime.UtcNow);
-        var isHead = await dbContext.Families.AnyAsync(x => x.Id == member.FamilyId && x.CreatedByUserId == currentUser.UserId, cancellationToken);
+        var isHead = await dbContext.Families.Where(x => x.Id == member.FamilyId).AnyAsync(FamilyAccess.HeadedBy(currentUser.UserId), cancellationToken);
         var allowed = isSelf || (isHead && isMinor);
         if (!allowed)
         {
@@ -75,7 +76,7 @@ public sealed class AppointmentService(AppDbContext dbContext, ICurrentUser curr
     public async Task<IReadOnlyList<AppointmentDto>> GetMineAsync(CancellationToken cancellationToken)
     {
         var myMemberIds = await dbContext.Members.Where(x => x.UserId == currentUser.UserId).Select(x => x.Id).ToListAsync(cancellationToken);
-        var head = await dbContext.Families.FirstOrDefaultAsync(x => x.CreatedByUserId == currentUser.UserId, cancellationToken);
+        var head = await dbContext.Families.FirstOrDefaultAsync(FamilyAccess.HeadedBy(currentUser.UserId), cancellationToken);
         var memberIds = new List<Guid>(myMemberIds);
         if (head is not null)
         {

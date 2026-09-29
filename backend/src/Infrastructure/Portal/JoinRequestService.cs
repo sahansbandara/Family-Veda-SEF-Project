@@ -7,6 +7,7 @@ using FamilyVeda.Domain.Identity;
 using FamilyVeda.Domain.Portal;
 using FamilyVeda.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using FamilyVeda.Infrastructure.Families;
 
 namespace FamilyVeda.Infrastructure.Portal;
 
@@ -146,7 +147,7 @@ public sealed class JoinRequestService(AppDbContext dbContext, ICurrentUser curr
 
     private async Task RequireHeadAsync(Guid familyId, CancellationToken cancellationToken)
     {
-        var isHead = await dbContext.Families.AnyAsync(x => x.Id == familyId && x.CreatedByUserId == currentUser.UserId, cancellationToken);
+        var isHead = await dbContext.Families.Where(x => x.Id == familyId).AnyAsync(FamilyAccess.HeadedBy(currentUser.UserId), cancellationToken);
         if (!isHead)
         {
             throw new NotFoundException();

@@ -751,7 +751,7 @@ public sealed class ClinicalService(
         {
             var adultCutoff = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-18);
             var allowedMembers = dbContext.Members.Where(x => x.UserId == currentUser.UserId ||
-                (x.Family!.CreatedByUserId == currentUser.UserId && x.DateOfBirth > adultCutoff))
+                (x.Family!.Members.Any(m => m.UserId == currentUser.UserId && m.Role == FamilyRole.Head) && x.DateOfBirth > adultCutoff))
                 .Select(x => x.Id);
             query = query.Where(x => x.SubjectMemberId != null && allowedMembers.Contains(x.SubjectMemberId.Value));
             if (subjectMemberId is not null)
