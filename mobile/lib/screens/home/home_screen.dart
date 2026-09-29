@@ -13,6 +13,7 @@ import 'package:family_veda/providers/members_provider.dart';
 import 'package:family_veda/providers/notifications_provider.dart';
 import 'package:family_veda/theme/app_theme.dart';
 import 'package:family_veda/theme/glass.dart';
+import 'package:family_veda/widgets/family/head_dashboard_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -38,8 +39,11 @@ class HomeScreen extends ConsumerWidget {
 
   String _getInitials(String? name) {
     if (name == null || name.trim().isEmpty) return 'FV';
-    final parts =
-        name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    final parts = name
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((p) => p.isNotEmpty)
+        .toList();
     if (parts.isEmpty) return 'FV';
     if (parts.length == 1) return parts[0].characters.first.toUpperCase();
     return (parts[0].characters.first + parts[1].characters.first)
@@ -61,9 +65,7 @@ class HomeScreen extends ConsumerWidget {
         return Container(
           decoration: BoxDecoration(
             color: isDark ? AppColors.surfaceDark : AppColors.surface,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(24),
-            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
             border: Border.all(
               color: isDark ? AppColors.borderDark : AppColors.border,
             ),
@@ -146,10 +148,11 @@ class HomeScreen extends ConsumerWidget {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: (isDark
-                                          ? AppColors.primaryDark
-                                          : AppColors.primary)
-                                      .withValues(alpha: 0.14),
+                                  color:
+                                      (isDark
+                                              ? AppColors.primaryDark
+                                              : AppColors.primary)
+                                          .withValues(alpha: 0.14),
                                   borderRadius: BorderRadius.circular(999),
                                 ),
                                 child: Text(
@@ -315,10 +318,9 @@ class HomeScreen extends ConsumerWidget {
         ref.read(activeMemberProvider.notifier).state = firstId;
         final userId = ref.read(authProvider).userId;
         if (userId != null) {
-          ref.read(memberPreferenceStoreProvider).writeActiveMemberId(
-            userId: userId,
-            memberId: firstId,
-          );
+          ref
+              .read(memberPreferenceStoreProvider)
+              .writeActiveMemberId(userId: userId, memberId: firstId);
         }
       }
     });
@@ -330,10 +332,9 @@ class HomeScreen extends ConsumerWidget {
           ref.read(activeMemberProvider.notifier).state = firstId;
           final userId = ref.read(authProvider).userId;
           if (userId != null) {
-            ref.read(memberPreferenceStoreProvider).writeActiveMemberId(
-              userId: userId,
-              memberId: firstId,
-            );
+            ref
+                .read(memberPreferenceStoreProvider)
+                .writeActiveMemberId(userId: userId, memberId: firstId);
           }
         }
       });
@@ -355,10 +356,9 @@ class HomeScreen extends ConsumerWidget {
             ),
             icon: CircleAvatar(
               radius: 14,
-              backgroundColor: Theme.of(context)
-                  .colorScheme
-                  .primary
-                  .withValues(alpha: 0.2),
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.2),
               child: Text(
                 _getInitials(activeName),
                 style: TextStyle(
@@ -374,8 +374,9 @@ class HomeScreen extends ConsumerWidget {
             onPressed: () {
               final current = ref.read(themeModeProvider);
               final isDark = current == ThemeMode.dark;
-              ref.read(themeModeProvider.notifier).state =
-                  isDark ? ThemeMode.light : ThemeMode.dark;
+              ref.read(themeModeProvider.notifier).state = isDark
+                  ? ThemeMode.light
+                  : ThemeMode.dark;
             },
             icon: Icon(
               Theme.of(context).brightness == Brightness.dark
@@ -441,18 +442,16 @@ class HomeScreen extends ConsumerWidget {
                             end: Alignment.bottomRight,
                             colors: [
                               Theme.of(context).colorScheme.primary,
-                              Theme.of(context)
-                                  .colorScheme
-                                  .primary
-                                  .withValues(alpha: 0.72),
+                              Theme.of(
+                                context,
+                              ).colorScheme.primary.withValues(alpha: 0.72),
                             ],
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .primary
-                                  .withValues(alpha: 0.25),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary.withValues(alpha: 0.25),
                               blurRadius: 8,
                               offset: const Offset(0, 3),
                             ),
@@ -514,15 +513,12 @@ class HomeScreen extends ConsumerWidget {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .primary
-                                      .withValues(alpha: 0.12),
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(999),
                                   border: Border.all(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .primary
+                                    color: Theme.of(context).colorScheme.primary
                                         .withValues(alpha: 0.25),
                                   ),
                                 ),
@@ -531,7 +527,9 @@ class HomeScreen extends ConsumerWidget {
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                   ),
                                 ),
                               ),
@@ -584,13 +582,13 @@ class HomeScreen extends ConsumerWidget {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withValues(
-                      alpha: 0.12,
-                    ),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.12),
                     border: Border.all(
-                      color: Theme.of(context).colorScheme.primary.withValues(
-                        alpha: 0.35,
-                      ),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.35),
                     ),
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -641,11 +639,8 @@ class HomeScreen extends ConsumerWidget {
               caption:
                   'A verified doctor reviews every response before it reaches you.',
               enabled: true,
-              onTap: () => _handleMemberAction(
-                context,
-                '/complaints/new',
-                hasMember,
-              ),
+              onTap: () =>
+                  _handleMemberAction(context, '/complaints/new', hasMember),
             ),
             const SizedBox(height: 20),
 
@@ -668,47 +663,53 @@ class HomeScreen extends ConsumerWidget {
                     child: LinearProgressIndicator(),
                   ),
                   error: (_, _) => const SizedBox.shrink(),
-                  data: (dashboard) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GlassCard(
-                        padding: const EdgeInsets.all(14),
-                        child: Column(
+                  data: (dashboard) => dashboard.isHead
+                      ? HeadDashboardSection(
+                          dashboard: dashboard,
+                          onNavigate: (path) => context.push(path),
+                        )
+                      : Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              dashboard.nextAppointment == null
-                                  ? 'No upcoming appointment'
-                                  : 'Next appointment: '
-                                        '${dashboard.nextAppointment!.status.friendlyLabel}',
-                              style: theme.textTheme.titleSmall,
+                            GlassCard(
+                              padding: const EdgeInsets.all(14),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    dashboard.nextAppointment == null
+                                        ? 'No upcoming appointment'
+                                        : 'Next appointment: '
+                                              '${dashboard.nextAppointment!.status.friendlyLabel}',
+                                    style: theme.textTheme.titleSmall,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Open cases: ${dashboard.openCases} · '
+                                    'Approved guidance: ${dashboard.approvedGuidanceCount}',
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    dashboard.familyDoctor == null
+                                        ? 'No family doctor assigned yet'
+                                        : 'Family doctor: Dr. ${dashboard.familyDoctor!.displayName}',
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Open cases: ${dashboard.openCases} · '
-                              'Approved guidance: ${dashboard.approvedGuidanceCount}',
-                              style: theme.textTheme.bodySmall,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              dashboard.familyDoctor == null
-                                  ? 'No family doctor assigned yet'
-                                  : 'Family doctor: Dr. ${dashboard.familyDoctor!.displayName}',
-                              style: theme.textTheme.bodySmall,
-                            ),
+                            const SizedBox(height: 10),
+                            if (dashboard.isHead &&
+                                dashboard.pendingJoinRequests > 0)
+                              _ActionRow(
+                                icon: Icons.mark_email_unread_outlined,
+                                title:
+                                    'Join requests (${dashboard.pendingJoinRequests})',
+                                onTap: () => context.push('/join-requests'),
+                              ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      if (dashboard.isHead && dashboard.pendingJoinRequests > 0)
-                        _ActionRow(
-                          icon: Icons.mark_email_unread_outlined,
-                          title:
-                              'Join requests (${dashboard.pendingJoinRequests})',
-                          onTap: () => context.push('/join-requests'),
-                        ),
-                    ],
-                  ),
                 ),
             _ActionRow(
               icon: Icons.event_outlined,
@@ -745,21 +746,15 @@ class HomeScreen extends ConsumerWidget {
               icon: Icons.note_add_outlined,
               title: 'Add health record',
               enabled: true,
-              onTap: () => _handleMemberAction(
-                context,
-                '/records/new',
-                hasMember,
-              ),
+              onTap: () =>
+                  _handleMemberAction(context, '/records/new', hasMember),
             ),
             _ActionRow(
               icon: Icons.monitor_heart_outlined,
               title: 'Record vital',
               enabled: true,
-              onTap: () => _handleMemberAction(
-                context,
-                '/vitals/new',
-                hasMember,
-              ),
+              onTap: () =>
+                  _handleMemberAction(context, '/vitals/new', hasMember),
             ),
 
             const SizedBox(height: 18),
@@ -944,11 +939,7 @@ class _ActionRow extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                size: 20,
-                color: context.glass.faint,
-              ),
+              Icon(Icons.chevron_right, size: 20, color: context.glass.faint),
             ],
           ),
         ),
@@ -1045,4 +1036,3 @@ class _ProfileDetailRow extends StatelessWidget {
     );
   }
 }
-

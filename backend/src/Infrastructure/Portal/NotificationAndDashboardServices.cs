@@ -78,8 +78,26 @@ public sealed class PortalDashboardService(AppDbContext dbContext, ICurrentUser 
         var unread = await dbContext.PortalNotifications.CountAsync(x => x.UserId == currentUser.UserId && x.ReadAt == null, cancellationToken);
         var openCases = await dbContext.TriageCases.CountAsync(x => relevantMemberIds.Contains(x.MemberId) && !ClosedStatuses.Contains(x.Status), cancellationToken);
         var ownMemberIds = family.Members.Where(x => x.UserId == currentUser.UserId).Select(x => x.Id).ToList();
-        var approvedGuidance = await dbContext.TriageCases.CountAsync(x => ownMemberIds.Contains(x.MemberId) &&
+        // Head: own + managed minors' approved guidance. Adult: own only. Never another adult's (RULE 8).
+        var approvedGuidance = await dbContext.TriageCases.CountAsync(x => relevantMemberIds.Contains(x.MemberId) &&
             (x.Status == TriageStatus.Approved || x.Status == TriageStatus.ApprovedRevised), cancellationToken);
+        // Adults' items the Head may see: only what the adult currently shares (Phase 2 privacy).
+        var sharingAdultIds = isHead
+            ? family.Members.Where(x => x.UserId != currentUser.UserId && x.DateOfBirth <= adultCutoff).Select(x => x.Id).ToList()
+            : [];
+        var sharedReportItems = await dbContext.LabReports.AsNoTracking()
+            .Where(x => sharingAdultIds.Contains(x.MemberId) && x.SharedWithFamilyHead)
+            .Select(x => new { x.Id, x.MemberId })
+            .ToListAsync(cancellationToken);
+        var sharedRecordItems = await dbContext.HealthRecords.AsNoTracking()
+            .Where(x => sharingAdultIds.Contains(x.MemberId) && x.SharedWithFamilyHead)
+            .Select(x => new { x.Id, x.MemberId })
+            .ToListAsync(cancellationToken);
+        var sharedItemIds = sharedReportItems.Select(x => x.Id).Concat(sharedRecordItems.Select(x => x.Id)).ToList();
+        var sharedCountByMember = sharedReportItems.Concat(sharedRecordItems)
+            .GroupBy(x => x.MemberId)
+            .ToDictionary(g => g.Key, g => g.Count());
+
         var visibleAppointmentIds = await dbContext.Appointments.AsNoTracking()
             .Where(x => relevantMemberIds.Contains(x.MemberId))
             .Select(x => x.Id)
@@ -91,17 +109,19 @@ public sealed class PortalDashboardService(AppDbContext dbContext, ICurrentUser 
                 || (x.ResourceType == "Appointment" && x.ResourceId.HasValue
                     && visibleAppointmentIds.Contains(x.ResourceId.Value)
                     && (x.EventType == "APPOINTMENT_REQUESTED" || x.EventType == "APPOINTMENT_STATUS_CHANGED"))
+                || (isHead && x.EventType == "ADULT_ITEM_SHARED_WITH_HEAD" && x.ResourceId.HasValue
+                    && sharedItemIds.Contains(x.ResourceId.Value))
                 || (isHead && x.ActorUserId == currentUser.UserId && x.SubjectMemberId == null
                     && (x.EventType == "FAMILY_JOIN_ACCEPTED" || x.EventType == "FAMILY_JOIN_DECLINED"
                         || x.EventType == "FAMILY_DOCTOR_REQUESTED")))
             .OrderByDescending(x => x.CreatedAt)
             .Take(5)
-            .Select(x => new { x.EventType, x.SubjectMemberId, x.CreatedAt })
+            .Select(x => new { x.EventType, x.ResourceType, x.SubjectMemberId, x.CreatedAt })
             .ToListAsync(cancellationToken);
         var memberNames = family.Members.ToDictionary(x => x.Id, x => x.DisplayName);
-        var recentActivity = activityRows.Select(x => ActivityLabel(x.EventType)).ToList();
+        var recentActivity = activityRows.Select(x => ActivityLabel(x.EventType, x.ResourceType)).ToList();
         var activity = activityRows.Select(x => new DashboardActivityDto(
-            ActivityLabel(x.EventType),
+            ActivityLabel(x.EventType, x.ResourceType),
             x.SubjectMemberId.HasValue && memberNames.TryGetValue(x.SubjectMemberId.Value, out var name) ? name : null,
             x.CreatedAt)).ToList();
 
@@ -123,16 +143,13 @@ public sealed class PortalDashboardService(AppDbContext dbContext, ICurrentUser 
                 var appointments = upcoming == 0 ? "no upcoming appointments" : $"{upcoming} upcoming appointment{(upcoming == 1 ? "" : "s")}";
                 var summary = isSelf ? $"You · {appointments}"
                     : isHead && isMinor ? $"Guardian managed · {appointments}"
-                    : isHead ? "Adult · private by default"
+                    : isHead ? AdultCardSummary(sharedCountByMember.GetValueOrDefault(x.Id))
                     : "Family member";
                 return new DashboardMemberDto(x.Id, x.DisplayName, x.Role.ToString(), isSelf, isMinor, summary);
             })
             .ToList();
 
         // Adults' reports reach the Head only when the adult shared that specific report (Phase 2 privacy).
-        var sharingAdultIds = isHead
-            ? family.Members.Where(x => x.UserId != currentUser.UserId && x.DateOfBirth <= adultCutoff).Select(x => x.Id).ToList()
-            : [];
         var visibleReports = await dbContext.LabReports.AsNoTracking()
             .Where(x => relevantMemberIds.Contains(x.MemberId) || (sharingAdultIds.Contains(x.MemberId) && x.SharedWithFamilyHead))
             .Include(x => x.Values)
@@ -196,8 +213,17 @@ public sealed class PortalDashboardService(AppDbContext dbContext, ICurrentUser 
             upcomingByMember.Values.Sum());
     }
 
-    private static string ActivityLabel(string eventType) => eventType switch
+    /// <summary>Only a count of items the adult chose to share; never titles, values or private activity.</summary>
+    private static string AdultCardSummary(int sharedItems) => sharedItems switch
     {
+        0 => "Adult · private by default",
+        1 => "Adult · 1 shared item",
+        _ => $"Adult · {sharedItems} shared items"
+    };
+
+    private static string ActivityLabel(string eventType, string? resourceType) => eventType switch
+    {
+        "ADULT_ITEM_SHARED_WITH_HEAD" => resourceType == "LabReport" ? "Lab report shared" : "Health record shared",
         "CASE_STATUS_CHANGED" => "Case updated",
         "LAB_REPORT_MANUAL_REVIEW" => "Lab report reviewed",
         "APPOINTMENT_REQUESTED" => "Appointment requested",

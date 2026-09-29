@@ -126,10 +126,11 @@ Nav (web + Flutter): `Dashboard | My Family | Health Records | Symptoms & Triage
 - [x] Web: persistent **Emergency Help** button (moved into `AppLayout`) (card/route, never `alert()`), 1990 referral — RULE 10.
 
 ### FH-1 — Dashboard (backend + web + Flutter)
-- [ ] Backend: check `DashboardController` head DTO covers the mockup: member count + minor count, next shared/minor appointment, open family-visible cases, pending join requests, Family Doctor summary, Needs Attention items, members overview (per-member shared-activity line), recent **shared-only** activity. Add missing fields.
-- [ ] No-leak test: a private adult's appointment / case / report never changes any head count or activity row.
-- [ ] Web: hero (greeting + Family Code + notification count), 4 metric tiles, My Family Doctor card, Needs Attention, Members overview, Quick Actions (Add Minor, Invite Adult, Upload Report, Report Symptoms, Book Appointment), Health Tools (Understand a Report, Search My Records, Check Symptoms), Recent Shared Activity. Loading / empty / error states.
-- [ ] Flutter `home_screen.dart` head variant: same data, one primary task per screen; bottom nav Dashboard · Family · Records · Triage · More (Doctor, Appointments, Privacy).
+- [x] Backend: check `DashboardController` head DTO covers the mockup: member count + minor count, next shared/minor appointment, open family-visible cases, pending join requests, Family Doctor summary, Needs Attention items, members overview (per-member shared-activity line), recent **shared-only** activity. Add missing fields.
+- [x] (2026-09-29: adult card shows only a count of items the adult currently shares; head guidance count includes minors; "Lab report shared" activity only while still shared — `PortalDashboardMockupFieldsTests`.) No-leak test: a private adult's appointment / case / report never changes any head count or activity row.
+- [x] Web (already matched the mockup): hero (greeting + Family Code + notification count), 4 metric tiles, My Family Doctor card, Needs Attention, Members overview, Quick Actions (Add Minor, Invite Adult, Upload Report, Report Symptoms, Book Appointment), Health Tools (Understand a Report, Search My Records, Check Symptoms), Recent Shared Activity. Loading / empty / error states.
+- [x] Flutter `HeadDashboardSection` (hero, metrics, needs attention, doctor, members, quick actions, shared activity) on the home screen for heads.
+- [ ] Flutter bottom nav (Dashboard · Family · Records · Triage · More) — deferred to FH-6 polish; home screen links cover every destination.
 
 ### FH-2 — My Family: Members · Join Requests · Invitations · Family Settings
 - [ ] Backend: `GET /families/{id}/invitations` (status, relationship, expiry) + `POST …/invitations/{id}/resend` + `POST …/invitations/{id}/cancel`.

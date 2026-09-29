@@ -19,9 +19,16 @@ class FamilyDashboard {
     this.nextAppointment,
     this.familyDoctor,
     this.recentActivity = const [],
+    this.viewerDisplayName,
+    this.members = const [],
+    this.activity = const [],
+    this.visibleReportCount = 0,
+    this.upcomingAppointments = 0,
   });
 
-  factory FamilyDashboard.fromJson(Map<String, dynamic> json) => FamilyDashboard(
+  factory FamilyDashboard.fromJson(
+    Map<String, dynamic> json,
+  ) => FamilyDashboard(
     role: (json['role'] as String?) ?? 'AdultMember',
     familyId: json['familyId'] as String?,
     familyName: json['familyName'] as String?,
@@ -33,7 +40,8 @@ class FamilyDashboard {
         ? null
         : Appointment.fromJson(json['nextAppointment'] as Map<String, dynamic>),
     openCases: (json['openCases'] as num?)?.toInt() ?? 0,
-    approvedGuidanceCount: (json['approvedGuidanceCount'] as num?)?.toInt() ?? 0,
+    approvedGuidanceCount:
+        (json['approvedGuidanceCount'] as num?)?.toInt() ?? 0,
     familyDoctor: json['familyDoctor'] == null
         ? null
         : DoctorSummary.fromJson(json['familyDoctor'] as Map<String, dynamic>),
@@ -41,6 +49,17 @@ class FamilyDashboard {
     recentActivity: ((json['recentActivity'] as List?) ?? const [])
         .map((entry) => entry.toString())
         .toList(growable: false),
+    viewerDisplayName: json['viewerDisplayName'] as String?,
+    members: ((json['members'] as List?) ?? const [])
+        .map((entry) => DashboardMember.fromJson(entry as Map<String, dynamic>))
+        .toList(growable: false),
+    activity: ((json['activity'] as List?) ?? const [])
+        .map(
+          (entry) => DashboardActivity.fromJson(entry as Map<String, dynamic>),
+        )
+        .toList(growable: false),
+    visibleReportCount: (json['visibleReportCount'] as num?)?.toInt() ?? 0,
+    upcomingAppointments: (json['upcomingAppointments'] as num?)?.toInt() ?? 0,
   );
 
   final String role;
@@ -56,6 +75,62 @@ class FamilyDashboard {
   final DoctorSummary? familyDoctor;
   final int unreadNotifications;
   final List<String> recentActivity;
+  final String? viewerDisplayName;
+  final List<DashboardMember> members;
+  final List<DashboardActivity> activity;
+  final int visibleReportCount;
+  final int upcomingAppointments;
 
   bool get isHead => role == 'Head' || role == 'FamilyHead';
+}
+
+/// A member card. The backend never puts another adult's health data in
+/// [summary]; the Head only sees a count of items that adult chose to share.
+class DashboardMember {
+  const DashboardMember({
+    required this.id,
+    required this.displayName,
+    required this.role,
+    required this.isSelf,
+    required this.isMinor,
+    required this.summary,
+  });
+
+  factory DashboardMember.fromJson(Map<String, dynamic> json) =>
+      DashboardMember(
+        id: json['id'] as String,
+        displayName: (json['displayName'] as String?) ?? 'Member',
+        role: (json['role'] as String?) ?? 'AdultMember',
+        isSelf: json['isSelf'] as bool? ?? false,
+        isMinor: json['isMinor'] as bool? ?? false,
+        summary: (json['summary'] as String?) ?? '',
+      );
+
+  final String id;
+  final String displayName;
+  final String role;
+  final bool isSelf;
+  final bool isMinor;
+  final String summary;
+
+  String get roleLabel => role == 'Head'
+      ? 'Head'
+      : isMinor
+      ? 'Minor'
+      : 'Adult';
+}
+
+class DashboardActivity {
+  const DashboardActivity({required this.title, this.subject, this.occurredAt});
+
+  factory DashboardActivity.fromJson(Map<String, dynamic> json) =>
+      DashboardActivity(
+        title: (json['title'] as String?) ?? 'Activity updated',
+        subject: json['subject'] as String?,
+        occurredAt: DateTime.tryParse((json['occurredAt'] as String?) ?? ''),
+      );
+
+  final String title;
+  final String? subject;
+  final DateTime? occurredAt;
 }
