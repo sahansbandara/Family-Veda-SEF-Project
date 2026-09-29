@@ -9,6 +9,7 @@ using FamilyVeda.Domain.Clinical;
 using FamilyVeda.Domain.Triage;
 using FamilyVeda.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using FamilyVeda.Infrastructure.Families;
 
 namespace FamilyVeda.Infrastructure.Triage;
 
@@ -165,7 +166,7 @@ public sealed class TriageService(
         if (currentUser.UserType != UserType.FamilyUser) throw new NotFoundException();
         var family = await dbContext.Families.AsNoTracking().SingleOrDefaultAsync(x => x.Id == familyId, cancellationToken) ?? throw new NotFoundException();
         var selfMember = await dbContext.Members.AsNoTracking().SingleOrDefaultAsync(x => x.FamilyId == familyId && x.UserId == currentUser.UserId, cancellationToken);
-        var isHead = family.CreatedByUserId == currentUser.UserId;
+        var isHead = await dbContext.Families.Where(x => x.Id == familyId).AnyAsync(FamilyAccess.HeadedBy(currentUser.UserId), cancellationToken);
         if (!isHead && selfMember is null) throw new NotFoundException();
         var adultCutoff = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-18);
         return await dbContext.Members.AsNoTracking().Where(x => x.FamilyId == familyId &&
@@ -225,7 +226,7 @@ public sealed class TriageService(
         }
 
         var isMinor = member.DateOfBirth.AddYears(18) > DateOnly.FromDateTime(DateTime.UtcNow);
-        var isHead = await dbContext.Families.AnyAsync(x => x.Id == member.FamilyId && x.CreatedByUserId == currentUser.UserId, cancellationToken);
+        var isHead = await dbContext.Families.Where(x => x.Id == member.FamilyId).AnyAsync(FamilyAccess.HeadedBy(currentUser.UserId), cancellationToken);
         if (!isMinor || !isHead)
         {
             throw new NotFoundException();

@@ -20,11 +20,11 @@ public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUs
             .AsNoTracking()
             .Include(x => x.Members)
             .FirstOrDefaultAsync(
-                x => x.CreatedByUserId == currentUser.UserId || x.Members.Any(m => m.UserId == currentUser.UserId),
+                FamilyAccess.BelongsTo(currentUser.UserId),
                 cancellationToken);
         if (family is null) return null;
         var adultCutoff = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-18);
-        var isHead = family.CreatedByUserId == currentUser.UserId;
+        var isHead = FamilyAccess.IsHead(family, currentUser.UserId);
         var visibleMembers = family.Members.Where(x => x.UserId == currentUser.UserId || (isHead && x.DateOfBirth > adultCutoff));
         return MapFamily(family, visibleMembers);
     }
@@ -36,9 +36,9 @@ public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUs
             throw new ForbiddenException();
         }
 
-        if (await dbContext.Families.AnyAsync(x => x.CreatedByUserId == currentUser.UserId, cancellationToken))
+        if (await dbContext.Families.AnyAsync(FamilyAccess.BelongsTo(currentUser.UserId), cancellationToken))
         {
-            throw new ConflictException("This account already manages a family.");
+            throw new ConflictException("This account already belongs to a family.");
         }
 
         var family = new Family { Name = request.Name.Trim(), CreatedByUserId = currentUser.UserId, FamilyCode = await GenerateFamilyCodeAsync(cancellationToken) };
@@ -80,7 +80,7 @@ public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUs
         await RequireFamilyAccessAsync(familyId, cancellationToken);
         (page, pageSize) = NormalizePage(page, pageSize);
         var adultCutoff = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-18);
-        var isHead = await dbContext.Families.AnyAsync(x => x.Id == familyId && x.CreatedByUserId == currentUser.UserId, cancellationToken);
+        var isHead = await dbContext.Families.Where(x => x.Id == familyId).AnyAsync(FamilyAccess.HeadedBy(currentUser.UserId), cancellationToken);
         var query = dbContext.Members.AsNoTracking().Where(x => x.FamilyId == familyId &&
             (x.UserId == currentUser.UserId || (isHead && x.DateOfBirth > adultCutoff)));
         if (!string.IsNullOrWhiteSpace(search))
@@ -342,12 +342,12 @@ public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUs
     }
 
     private async Task<Family> RequireManagedFamilyAsync(Guid familyId, CancellationToken cancellationToken) =>
-        await dbContext.Families.Include(x => x.Members).SingleOrDefaultAsync(x => x.Id == familyId && x.CreatedByUserId == currentUser.UserId, cancellationToken)
+        await dbContext.Families.Include(x => x.Members).Where(x => x.Id == familyId).SingleOrDefaultAsync(FamilyAccess.HeadedBy(currentUser.UserId), cancellationToken)
             ?? throw new NotFoundException();
 
     private async Task RequireFamilyAccessAsync(Guid familyId, CancellationToken cancellationToken)
     {
-        if (!await dbContext.Families.AnyAsync(x => x.Id == familyId && (x.CreatedByUserId == currentUser.UserId || x.Members.Any(m => m.UserId == currentUser.UserId)), cancellationToken))
+        if (!await dbContext.Families.Where(x => x.Id == familyId).AnyAsync(FamilyAccess.BelongsTo(currentUser.UserId), cancellationToken))
         {
             throw new NotFoundException();
         }
@@ -364,7 +364,7 @@ public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUs
     }
 
     private Task<bool> IsFamilyManagerAsync(Guid familyId, CancellationToken cancellationToken) =>
-        dbContext.Families.AnyAsync(x => x.Id == familyId && x.CreatedByUserId == currentUser.UserId, cancellationToken);
+        dbContext.Families.Where(x => x.Id == familyId).AnyAsync(FamilyAccess.HeadedBy(currentUser.UserId), cancellationToken);
 
     private async Task MoveGuardianConsentsToReaffirmationAsync(Member member, CancellationToken cancellationToken)
     {

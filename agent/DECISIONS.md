@@ -105,3 +105,23 @@ What is already decided. Record at the moment of decision, including rejected al
 **Consequences:** `AuthPage.tsx` and `AppRouter.tsx` now have S4-authored content. S1 must be aware of the changes to auth logic if they make future edits. Branch `feat/auth-redesign-s4` to be PRed into `develop`.
 
 **Status:** Accepted and executed 2026-09-28 at Sahan's (repo owner) explicit instruction.
+
+## 2026-09-29 — Family heads auto-approved; only doctors need admin verification
+
+**Decision:** Family heads no longer wait for Clinic Admin approval (PR #73). Their status defaults to `Verified`; an admin can still reject or suspend one. Adult members were never gated. Doctors keep the full verification gate.
+
+**Reason:** owner instruction. Registration for a family should not block on a manual review; doctor verification is the safety-relevant gate.
+
+## 2026-09-29b — Current Family Head = `Member.Role == Head` (no `Family.HeadMemberId`)
+
+**Decision:** The blueprint suggests `Family.HeadMemberId`. The schema already has `Member.Role`, and exactly one member per family holds `Head`. Adding `HeadMemberId` would create a second source of truth that can drift. So `Member.Role == Head` is authoritative, via `Infrastructure/Families/FamilyAccess.cs` (`HeadedBy`, `BelongsTo`, `IsHead`, `GetHeadUserIdAsync`). `Family.CreatedByUserId` is history only; it counts as head solely while a family has no Head member yet (legacy onboarding creates the family before the head's member row).
+
+**Consequences:** every former `CreatedByUserId == currentUser` head check now goes through `FamilyAccess` (FH-2a). Head transfer (FH-3) only swaps two `Member.Role` values in one transaction.
+
+## 2026-09-29c — Removing or leaving a family moves the adult to their own household
+
+**Decision (owner, 2026-09-29):** when a Head removes an adult, or an adult leaves, the adult's `Member` row — with every record, lab, vital and case attached to it — moves into a new one-person family where that adult is `Head` with a new Family Code. Relationship links to the old family's members end, old-family doctor grants are revoked, and a membership-history row is written. "Start My Own Family" uses the same operation. Nothing is hard-deleted.
+
+**Alternatives rejected:** soft `LeftFamilyAt` flag + global query filter (history hidden from its owner, touches every one-member-per-user query); keep hard delete (destroys history, contradicts blueprint).
+
+**Join requests:** expire after 14 days. **Invitations + head transfer:** full on web; Flutter read-only list + accept banner.
