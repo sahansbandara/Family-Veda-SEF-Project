@@ -49,4 +49,21 @@ describe('PrivacyPage (Adult Member)', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Share with Family Head' }))
     expect(mocks.patch).toHaveBeenCalledWith('/lab-reports/lab-1/sharing', { sharedWithFamilyHead: true })
   })
+
+  it('loads every page of records so older items keep their sharing controls', async () => {
+    mocks.get.mockImplementation((url: string, config?: { params?: { page?: number } }) => {
+      if (url === '/members/me') return Promise.resolve({ data: me })
+      if (url === '/members/m-adult/lab-reports') return Promise.resolve({ data: [] })
+      if (url === '/members/m-adult/consents') return Promise.resolve({ data: [] })
+      if (url === '/members/m-adult/records') {
+        const page = config?.params?.page ?? 1
+        return Promise.resolve({ data: { items: [{ id: `rec-${page}`, memberId: 'm-adult', recordType: 'Note', title: `Synthetic note page ${page}`, occurredOn: '2026-08-01', sharedWithFamilyHead: false }], page, pageSize: 50, totalCount: 2, totalPages: 2 } })
+      }
+      return Promise.reject(new Error(`unexpected ${url}`))
+    })
+    renderAs('MEMBER')
+
+    expect(await screen.findByText('Synthetic note page 2')).toBeInTheDocument()
+    expect(screen.getByText('0 shared · 2 private')).toBeInTheDocument()
+  })
 })

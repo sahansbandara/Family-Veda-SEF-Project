@@ -31,6 +31,17 @@ export function PrivacyPage() {
   return role === 'FAMILY_HEAD' ? <HeadPrivacy /> : <AdultPrivacy />
 }
 
+/** Every record page, so the sharing controls and counts cover the whole history. */
+async function loadAllRecords(memberId: string): Promise<HealthRecordDto[]> {
+  const all: HealthRecordDto[] = []
+  for (let page = 1; page <= 100; page++) {
+    const { data } = await apiClient.get<PagedResult<HealthRecordDto>>(`/members/${memberId}/records`, { params: { page, pageSize: 50 } })
+    all.push(...data.items)
+    if (page >= data.totalPages || data.items.length === 0) break
+  }
+  return all
+}
+
 /** Adult Member: per-item family sharing + clinical consent for the Family Doctor. */
 function AdultPrivacy() {
   const [me, setMe] = useState<MemberDto | null>(null)
@@ -43,15 +54,15 @@ function AdultPrivacy() {
     setStatus('loading')
     try {
       const { data: mine } = await apiClient.get<MemberDto>('/members/me')
-      const [reports, records, consentResponse] = await Promise.all([
+      const [reports, recordItems, consentResponse] = await Promise.all([
         apiClient.get<LabReportDto[]>(`/members/${mine.id}/lab-reports`),
-        apiClient.get<PagedResult<HealthRecordDto>>(`/members/${mine.id}/records`, { params: { page: 1, pageSize: 50 } }),
+        loadAllRecords(mine.id),
         apiClient.get<ConsentDto[]>(`/members/${mine.id}/consents`),
       ])
       setMe(mine)
       setItems([
         ...reports.data.map((report): SharedItem => ({ id: report.id, kind: 'report', title: report.originalFileName, date: report.collectedAt, shared: report.sharedWithFamilyHead === true })),
-        ...records.data.items.map((record): SharedItem => ({ id: record.id, kind: 'record', title: record.title, date: record.occurredOn, shared: record.sharedWithFamilyHead === true })),
+        ...recordItems.map((record): SharedItem => ({ id: record.id, kind: 'record', title: record.title, date: record.occurredOn, shared: record.sharedWithFamilyHead === true })),
       ])
       setConsents(consentResponse.data)
       setStatus('ready')

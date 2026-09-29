@@ -17,7 +17,7 @@ import {
   type RosterMemberDto,
 } from '../../services/apiClient'
 import { useAppDispatch } from '../../store/hooks'
-import { mapAuthResponse, signedIn } from '../../store/slices/authSlice'
+import { mapAuthResponse, signedIn, signedOut } from '../../store/slices/authSlice'
 import { Badge, PageHero } from '../dashboard/dashboardParts'
 import { extractErrorMessage } from './threePortalUtils'
 
@@ -57,16 +57,25 @@ export function MyFamilyPage() {
   async function confirm() {
     if (!confirming) return
     setBusy(true)
+    let familyName: string
     try {
-      const { data } = await familyLifecycleApi.leaveFamily(confirming === 'start')
-      // The member is now Head of their own household: refresh the session so the Head portal loads.
-      const session = await refreshSession()
-      if (session) dispatch(signedIn(mapAuthResponse(session)))
-      setConfirming(null)
-      setMessage(`You now manage your own household, ${data.familyName}. Your health history came with you and is private.`)
-      navigate('/dashboard')
+      familyName = (await familyLifecycleApi.leaveFamily(confirming === 'start')).data.familyName
     } catch (error) {
       setMessage(extractErrorMessage(error, 'This could not be completed. Try again.'))
+      setBusy(false)
+      return
+    }
+    // The move is committed on the server. The member is now Head of their own household, so the
+    // session must carry the new role. If the refresh fails, sign out rather than keep a stale role.
+    setConfirming(null)
+    try {
+      const session = await refreshSession()
+      if (!session) throw new Error('no session')
+      dispatch(signedIn(mapAuthResponse(session)))
+      setMessage(`You now manage your own household, ${familyName}. Your health history came with you and is private.`)
+      navigate('/dashboard')
+    } catch {
+      dispatch(signedOut())
     } finally {
       setBusy(false)
     }
