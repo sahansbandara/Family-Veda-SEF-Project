@@ -54,7 +54,7 @@ public sealed partial class AuthService : IRegistrationService
         dbContext.Members.Add(member);
         foreach (var category in Enum.GetValues<ConsentCategory>())
             dbContext.Consents.Add(new Consent { Member = member, Category = category });
-        AddRegistrationAudit(user.Id, "FAMILY_HEAD_REGISTERED", "FamilyHead", user.Id, "PENDING", new { NicLastFour = profile.NationalIdLastFour });
+        AddRegistrationAudit(user.Id, "FAMILY_HEAD_REGISTERED", "FamilyHead", user.Id, "SUCCESS", new { NicLastFour = profile.NationalIdLastFour });
         return await CommitAsync(user, cancellationToken);
     }
 

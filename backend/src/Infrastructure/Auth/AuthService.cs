@@ -56,7 +56,7 @@ public sealed partial class AuthService(
                 EventType = "FAMILY_HEAD_REGISTERED",
                 ResourceType = "FamilyHead",
                 ResourceId = user.Id,
-                Outcome = "PENDING",
+                Outcome = "SUCCESS",
                 MetadataJson = metadata
             });
         }
@@ -247,12 +247,16 @@ public sealed partial class AuthService(
                 }
                 else
                 {
-                    familyHeadVerificationStatus = VerificationStatus.Pending;
+                    // Family heads are auto-approved; only doctors wait for admin verification.
+                    familyHeadVerificationStatus = VerificationStatus.Verified;
                 }
 
                 if (familyHeadVerificationStatus == VerificationStatus.Verified && string.IsNullOrEmpty(familyCode))
                 {
-                    familyCode = $"FV-{Math.Abs(user.Id.GetHashCode()) % 9000 + 1000}";
+                    familyCode = await dbContext.Families
+                        .Where(f => f.CreatedByUserId == user.Id)
+                        .Select(f => f.FamilyCode)
+                        .FirstOrDefaultAsync(cancellationToken);
                 }
             }
         }
