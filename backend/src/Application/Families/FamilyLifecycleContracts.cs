@@ -11,11 +11,15 @@ public sealed record ResendFamilyInvitationRequest(string Email);
 
 public sealed record LeaveFamilyRequest(bool StartOwnFamily);
 
+/// <summary>Family-level roster: no date of birth, clinical sex or health data for other adults.</summary>
+public sealed record RosterMemberDto(Guid Id, string DisplayName, string Role, bool IsMinor, bool IsSelf, bool HasAccount);
+
 /// <summary>Where the moved member now lives. Family code is returned only to the member who moved.</summary>
 public sealed record MembershipChangeDto(Guid MemberId, Guid FamilyId, string FamilyName, string? FamilyCode);
 
 public interface IFamilyLifecycleService
 {
+    Task<IReadOnlyList<RosterMemberDto>> GetRosterAsync(Guid familyId, CancellationToken cancellationToken);
     Task<IReadOnlyList<FamilyInvitationSummaryDto>> GetInvitationsAsync(Guid familyId, CancellationToken cancellationToken);
     Task<FamilyInvitationDto> ResendInvitationAsync(Guid familyId, Guid invitationId, ResendFamilyInvitationRequest request, CancellationToken cancellationToken);
     Task CancelInvitationAsync(Guid familyId, Guid invitationId, CancellationToken cancellationToken);

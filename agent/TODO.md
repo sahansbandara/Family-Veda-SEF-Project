@@ -138,7 +138,7 @@ Nav (web + Flutter): `Dashboard | My Family | Health Records | Symptoms & Triage
 - [x] (FH-2b, DECISIONS 2026-09-29c: move to own household via `FamilyMembershipMover`; `POST /members/{id}/remove-from-family`, `POST /families/me/leave`; migration `20260929_S1_FamilyLifecycle`.) Backend: **Remove from Family** must not hard-delete. `FamilyService.DeleteMemberAsync` currently calls `Members.Remove` → change to end the membership (`EndedAt`/status), keep account + history, revoke doctor grants. Needs migration lock.
 - [ ] Backend: rename family (`PUT /families/{id}`) — head-only verified (FamilyAccess); audit row still missing.
 - [ ] Minor profile removal still hard-deletes (`FamilyService.DeleteMemberAsync`, minors only). Decide: keep, or archive the minor profile.
-- [ ] Web `FamilyPage`: 4 tabs per mockup; Add Minor + Invite Adult actions; Accept / Decline with masked email; Family Code read-only with copy button.
+- [x] Web `FamilyPage`: 4 tabs (`?tab=` deep links), roster via new `GET /families/{id}/roster` (names + roles only), Remove from Family, Add Minor, invitations resend/cancel, Accept / Decline with masked email, rename + Family Code copy. `FamilyPage.test.tsx`.
 - [ ] Flutter: Members screen gets Add Minor + Invite Adult forms (currently missing), Join Requests tab (exists — wire into tabs), Invitations list, Family Settings.
 
 ### FH-3 — Family Head transfer (schema · migration lock)

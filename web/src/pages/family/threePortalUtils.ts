@@ -11,6 +11,7 @@ const friendlyLabel: Record<string, string> = {
   Pending: 'Pending',
   Accepted: 'Accepted',
   Declined: 'Declined',
+  Expired: 'Expired',
 }
 
 export const toneByFriendlyStatus: Record<string, 'muted' | 'primary' | 'warning' | 'success' | 'danger'> = {
@@ -22,6 +23,7 @@ export const toneByFriendlyStatus: Record<string, 'muted' | 'primary' | 'warning
   Pending: 'warning',
   Accepted: 'success',
   Declined: 'muted',
+  Expired: 'muted',
 }
 
 export function friendlyStatusLabel(status: string): string {

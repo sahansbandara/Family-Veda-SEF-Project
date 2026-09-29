@@ -165,7 +165,7 @@ function HeadDashboard({ data }: Props) {
               <div className="fv-item">
                 <div className="fv-row"><b>{pending} join request{pending === 1 ? '' : 's'}</b><Badge tone="warn">Pending</Badge></div>
                 <p>Review adults requesting to join.</p>
-                <Link className="fv-btn" to="/join-family">Review</Link>
+                <Link className="fv-btn" to="/family?tab=requests">Review</Link>
               </div>
             )}
             {data.approvedGuidanceCount > 0 && (
@@ -228,8 +228,8 @@ function HeadDashboard({ data }: Props) {
             </div>
           </div>
           <div className="fv-quick">
-            <Link className="fv-btn" to="/family"><b>+ Add Minor</b><small>Guardian-managed</small></Link>
-            <Link className="fv-btn" to="/family"><b>Invite Adult</b><small>Email invitation</small></Link>
+            <Link className="fv-btn" to="/family?tab=members"><b>+ Add Minor</b><small>Guardian-managed</small></Link>
+            <Link className="fv-btn" to="/family?tab=invitations"><b>Invite Adult</b><small>Email invitation</small></Link>
             <Link className="fv-btn" to="/records"><b>Upload Report</b><small>Self or minor</small></Link>
             <Link className="fv-btn" to="/appointments"><b>Book Appointment</b><small>Self or minor</small></Link>
             <Link className="fv-btn" to="/triage"><b>Report Symptoms</b><small>Doctor-reviewed triage</small></Link>

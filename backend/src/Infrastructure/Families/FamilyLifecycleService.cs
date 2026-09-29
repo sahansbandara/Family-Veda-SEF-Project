@@ -19,6 +19,20 @@ public sealed class FamilyLifecycleService(AppDbContext dbContext, ICurrentUser 
 
     public static readonly TimeSpan InvitationLifetime = TimeSpan.FromHours(48);
 
+    public async Task<IReadOnlyList<RosterMemberDto>> GetRosterAsync(Guid familyId, CancellationToken cancellationToken)
+    {
+        if (currentUser.UserType != UserType.FamilyUser ||
+            !await dbContext.Families.Where(x => x.Id == familyId).AnyAsync(FamilyAccess.BelongsTo(currentUser.UserId), cancellationToken))
+            throw new NotFoundException();
+        var adultCutoff = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-18);
+        return await dbContext.Members.AsNoTracking()
+            .Where(x => x.FamilyId == familyId)
+            .OrderBy(x => x.Role).ThenBy(x => x.DisplayName)
+            .Select(x => new RosterMemberDto(x.Id, x.DisplayName, x.Role.ToString(), x.DateOfBirth > adultCutoff,
+                x.UserId == currentUser.UserId, x.UserId != null))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<FamilyInvitationSummaryDto>> GetInvitationsAsync(Guid familyId, CancellationToken cancellationToken)
     {
         await RequireHeadAsync(familyId, cancellationToken);
