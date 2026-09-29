@@ -79,9 +79,9 @@ export function ApprovalsPage() {
 
   return (
     <div className="page-stack">
-      <header className="page-header">
+      <header className="fv-hero">
         <div>
-          <p className="eyebrow">Clinical review gate</p>
+          <p className="fv-eyebrow">Human-in-the-loop</p>
           <h1>Approvals</h1>
           <p>Structured AI output remains doctor-only until an authorized decision is saved.</p>
         </div>

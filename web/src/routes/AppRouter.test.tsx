@@ -96,7 +96,7 @@ describe('AppRoutes', () => {
 
   it('allows administrators to view audit activity', () => {
     renderRoute('/audit', 'ADMIN')
-    expect(screen.getByRole('heading', { name: /audit activity/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /audit log/i })).toBeInTheDocument()
   })
 
   it('routes an unlinked family account into required onboarding', () => {
@@ -145,7 +145,23 @@ describe('AppRoutes', () => {
 
     const nav = await screen.findByRole('navigation', { name: /primary navigation/i })
     const labels = Array.from(nav.querySelectorAll('a')).map((link) => link.textContent)
-    expect(labels).toEqual(['Dashboard', 'My Health', 'Appointments', 'Symptoms & Triage', 'My Family', 'My Doctor'])
+    expect(labels).toEqual(['Dashboard', 'My Health', 'Appointments', 'Symptoms & Triage', 'My Family', 'My Doctor', 'Privacy'])
+  })
+
+  it('shows the Doctor one Calendar tab and the blueprint menu', async () => {
+    renderRoute('/cases', 'DOCTOR')
+
+    const nav = await screen.findByRole('navigation', { name: /primary navigation/i })
+    const labels = Array.from(nav.querySelectorAll('a')).map((link) => link.textContent)
+    expect(labels).toEqual(['Dashboard', 'Calendar', 'My Families', 'Triage Cases', 'Approvals', 'Profile & Availability'])
+  })
+
+  it('shows the Clinic Admin the governance menu', async () => {
+    renderRoute('/audit', 'ADMIN')
+
+    const nav = await screen.findByRole('navigation', { name: /primary navigation/i })
+    const labels = Array.from(nav.querySelectorAll('a')).map((link) => link.textContent)
+    expect(labels).toEqual(['Dashboard', 'Doctor Verification', 'Users', 'Audit Log', 'Safety & System'])
   })
 })
 

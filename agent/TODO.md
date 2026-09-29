@@ -182,11 +182,11 @@ Overlaps FH-4..FH-6 above — tick both when done. Each phase: TDD, PR into `dev
 ### Build order (DECISIONS 2026-09-29e): Stage 1 = UI shell for all 4 portals with real data or empty states (no sample numbers); Stage 2 = wire tab by tab.
 
 ### U — Clarity fixes first (see `docs/Three_Dashboards_UX_Plan.md`)
-- [ ] U0 Page template: hero (title = nav label, one purpose sentence, one primary button), metric tiles as links, one badge vocabulary, sub-tabs, teaching empty states.
-- [ ] U1 Titles/wording: "AI triage" → "Symptoms & Triage"; "Audit activity" → Privacy summary; adult "My Family" → membership page (join is one option); remove agent/OCR/audit words from family screens (UX plan §7).
-- [ ] U1 Doctor nav: merge "Calendar" + "Appointments calendar" into one Calendar tab.
-- [ ] U1 Records: split single scroll into Records · Vitals · Lab Reports sub-tabs (Head + Adult share the component).
-- [ ] U1 Adult: add Privacy tab (Family Sharing + Clinical Consent).
+- [x] U0 (2026-09-29) `PageHero`, `SubTabs`, `Metric to=` link in `dashboardParts.tsx`; tab CSS in `portal-dashboard.css`. Page template: hero (title = nav label, one purpose sentence, one primary button), metric tiles as links, one badge vocabulary, sub-tabs, teaching empty states.
+- [x] U1 (2026-09-29) Titles/wording: "AI triage" → "Symptoms & Triage"; "Audit activity" → Privacy summary; adult "My Family" → membership page (join is one option); remove agent/OCR/audit words from family screens (UX plan §7).
+- [x] U1 Doctor nav (one Calendar; `/doctor-calendar` redirects): merge "Calendar" + "Appointments calendar" into one Calendar tab.
+- [x] U1 Records: split single scroll into Records · Vitals · Lab Reports sub-tabs (Head + Adult share the component).
+- [x] U1 Adult: add Privacy tab (`PrivacyPage`, also replaces the Head's raw audit table) (Family Sharing + Clinical Consent).
 - [x] G1 + G2 fixed in `FamilyMembershipMover` (2026-09-29). Still open: G3 test that the old doctor gets 404 after a move; G4 confirm modal. Original item: Membership-move gaps (UX plan §10): G1 close an empty household (end its assignment, cancel its requests), G2 reset `SharedWithFamilyHead` on move, G3 test that the old doctor gets 404 after the move, G4 confirm modal before a solo Head joins another family.
 - [ ] Per-page done check: title = nav label · purpose sentence · one primary button · loading/empty/error · test asserts title + button.
 

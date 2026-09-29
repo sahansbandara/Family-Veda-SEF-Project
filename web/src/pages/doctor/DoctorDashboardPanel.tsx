@@ -76,21 +76,25 @@ export function DoctorDashboardPanel() {
       <section className="fv-metrics" aria-label="Doctor metrics">
         <Metric
           label="Today's Appointments"
+          to="/calendar"
           value={data.todayAppointments.length}
           badge={nextToday ? <Badge tone="info">Next {shortTime(nextToday.startsAt)}</Badge> : <Badge tone="muted">No more today</Badge>}
         />
         <Metric
           label="Pending Approvals"
+          to="/approvals"
           value={data.pendingApprovals}
           badge={data.pendingApprovals > 0 ? <Badge tone="warn">Action required</Badge> : <Badge tone="ok">Up to date</Badge>}
         />
         <Metric
           label="Open Triage Cases"
+          to="/cases"
           value={data.openCases}
           badge={priority > 0 ? <Badge tone="danger">{priority} priority</Badge> : <Badge tone="info">Routine only</Badge>}
         />
         <Metric
           label="Family Requests"
+          to="/families?tab=requests"
           value={pendingRequests.length}
           badge={pendingRequests.length > 0 ? <Badge tone="warn">Pending</Badge> : <Badge tone="muted">None</Badge>}
         />

@@ -7,6 +7,7 @@ import { EmptyState, ErrorState, LoadingState } from '../../components/shared/Vi
 import { useAppSelector } from '../../store/hooks'
 import { apiClient, threePortalApi, type DoctorSummaryDto, type FamilyDto } from '../../services/apiClient'
 import { extractErrorMessage } from './threePortalUtils'
+import { PageHero } from '../dashboard/dashboardParts'
 
 export function MyDoctorPage() {
   const user = useAppSelector((state) => state.auth.user)
@@ -71,12 +72,13 @@ export function MyDoctorPage() {
 
   return (
     <div className="page-stack">
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">Care team</p>
-          <h1>My Doctor</h1>
-        </div>
-      </header>
+      <PageHero
+        eyebrow="Long-term care"
+        title="My Doctor"
+        purpose={isHead
+          ? "Your family's long-term doctor. Only you, as Family Head, can request or change the doctor."
+          : "Your family's doctor, chosen by the Family Head. Your records are shared only with your consent."}
+      />
 
       {message && <p role="status" className="status-banner">{message}</p>}
 

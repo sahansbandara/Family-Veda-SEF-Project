@@ -35,7 +35,7 @@ describe('FamilyDashboardPanel (Head)', () => {
 
     await waitFor(() => expect(screen.getByText('Family Members')).toBeInTheDocument())
     expect(screen.getByText('4')).toBeInTheDocument()
-    expect(screen.getByText('Membership Requests')).toBeInTheDocument()
+    expect(screen.getByText('Join Requests')).toBeInTheDocument()
     expect(screen.getByText('3 join requests')).toBeInTheDocument()
     expect(screen.getByText('+ Add Minor')).toBeInTheDocument()
     expect(screen.getByText(/FV-ABCDEF/)).toBeInTheDocument()

@@ -8,6 +8,7 @@ import { useAppSelector } from '../../store/hooks'
 import { apiClient, threePortalApi, type AppointmentDto, type FamilyDto, type MemberDto } from '../../services/apiClient'
 import { FriendlyStatusBadge } from './threePortalShared'
 import { extractErrorMessage, formatDateTime } from './threePortalUtils'
+import { PageHero } from '../dashboard/dashboardParts'
 
 function isMinor(member: MemberDto): boolean {
   const dob = new Date(member.dateOfBirth)
@@ -95,12 +96,13 @@ export function AppointmentsPage() {
 
   return (
     <div className="page-stack">
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">Care</p>
-          <h1>Appointments</h1>
-        </div>
-      </header>
+      <PageHero
+        eyebrow="Appointments"
+        title="Appointments"
+        purpose={isHead
+          ? "Appointments for you and your minors. Adults' private appointments are not shown here."
+          : 'Your own appointments. They are private from the Family Head.'}
+      />
 
       {message && <p role="status" className="status-banner">{message}</p>}
 

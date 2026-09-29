@@ -65,9 +65,9 @@ export function FamilyPage() {
 
   return (
     <div className="page-stack">
-      <header className="page-header">
+      <header className="fv-hero">
         <div>
-          <p className="eyebrow">Membership</p>
+          <p className="fv-eyebrow">Membership</p>
           <h1>My Family</h1>
           <p>Manage members, join requests, invitations and family settings. Adult health data stays private unless shared.</p>
         </div>

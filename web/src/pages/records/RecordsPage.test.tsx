@@ -98,6 +98,7 @@ describe('RecordsPage', () => {
     })
     render(<MemoryRouter><RecordsPage /></MemoryRouter>)
 
+    fireEvent.click(await screen.findByRole('tab', { name: 'Lab Reports' }))
     fireEvent.click(await screen.findByRole('button', { name: /review extraction/i }))
     expect(await screen.findByText('Outside recorded range')).toBeInTheDocument()
     expect(screen.getByTitle('Outside recorded reference range')).toBeInTheDocument()

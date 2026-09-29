@@ -31,26 +31,42 @@ const navItems: NavItem[] = [
   { label: 'My Doctor', path: '/my-doctor', roles: ['FAMILY_HEAD'] },
   { label: 'Appointments', path: '/appointments', roles: ['FAMILY_HEAD'] },
   { label: 'Privacy & Access', path: '/privacy', roles: ['FAMILY_HEAD'] },
-  // Adult Member: Dashboard | My Health | Appointments | Symptoms & Triage | My Family | My Doctor
+  // Adult Member: Dashboard | My Health | Appointments | Symptoms & Triage | My Family | My Doctor | Privacy
   { label: 'My Health', path: '/records', roles: ['MEMBER'] },
   { label: 'Appointments', path: '/appointments', roles: ['MEMBER'] },
   { label: 'Symptoms & Triage', path: '/triage', roles: ['MEMBER'] },
-  { label: 'My Family', path: '/join-family', roles: ['MEMBER'] },
+  { label: 'My Family', path: '/my-family', roles: ['MEMBER'] },
   { label: 'My Doctor', path: '/my-doctor', roles: ['MEMBER'] },
-  // Doctor
+  { label: 'Privacy', path: '/privacy', roles: ['MEMBER'] },
+  // Doctor: Dashboard | Calendar | My Families | Triage Cases | Approvals | Profile & Availability
+  // One Calendar (docs/Three_Dashboards_UX_Plan.md §1 problem 3); /doctor-calendar redirects here.
   { label: 'Calendar', path: '/calendar', roles: ['DOCTOR'] },
   { label: 'My Families', path: '/families', roles: ['DOCTOR'] },
-  { label: 'Appointments calendar', path: '/doctor-calendar', roles: ['DOCTOR'] },
-  { label: 'Triage cases', path: '/cases', roles: ['DOCTOR'] },
+  { label: 'Triage Cases', path: '/cases', roles: ['DOCTOR'] },
   { label: 'Approvals', path: '/approvals', roles: ['DOCTOR'] },
   { label: 'Profile & Availability', path: '/doctor-profile', roles: ['DOCTOR'] },
-  // Clinic Admin
-  { label: 'Audit', path: '/audit', roles: ['ADMIN'] },
-  { label: 'Doctor verification', path: '/doctor-verification', roles: ['ADMIN'] },
-  { label: 'Family head verification', path: '/family-head-verification', roles: ['ADMIN'] },
-  { label: 'User directory', path: '/users', roles: ['ADMIN'] },
-  { label: 'Safety & Settings', path: '/settings', roles: ['ADMIN'] },
+  // Clinic Admin: Dashboard | Doctor Verification | Users | Audit Log | Safety & System (UX plan §11)
+  { label: 'Doctor Verification', path: '/doctor-verification', roles: ['ADMIN'] },
+  { label: 'Users', path: '/users', roles: ['ADMIN'] },
+  { label: 'Audit Log', path: '/audit', roles: ['ADMIN'] },
+  { label: 'Safety & System', path: '/settings', roles: ['ADMIN'] },
 ]
+
+const portalName: Record<UserRole, string> = {
+  FAMILY_HEAD: 'Family Head Portal',
+  MEMBER: 'Adult Member Portal',
+  DOCTOR: 'Doctor Portal',
+  ADMIN: 'Clinic Admin Portal',
+  ONBOARDING: 'Getting started',
+}
+
+const roleLabel: Record<UserRole, string> = {
+  FAMILY_HEAD: 'Family Head',
+  MEMBER: 'Adult Member',
+  DOCTOR: 'Doctor',
+  ADMIN: 'Clinic Administrator',
+  ONBOARDING: 'New account',
+}
 
 function initials(name: string | undefined): string {
   if (!name) return '—'
@@ -127,7 +143,7 @@ export function AppLayout() {
           </span>
           <span>
             <strong>Family Veda</strong>
-            <small>Clinical decision support</small>
+            <small>{user ? portalName[user.role] : 'Clinical decision support'}</small>
           </span>
         </NavLink>
         <div className="session-summary">
@@ -149,7 +165,7 @@ export function AppLayout() {
           )}
           <span>
             <strong>{user?.name}</strong>
-            <small>{user?.role.replaceAll('_', ' ')}</small>
+            <small>{user ? roleLabel[user.role] : ''}</small>
           </span>
           <span className="avatar" aria-hidden="true">{initials(user?.name)}</span>
           <button type="button" className="button button--secondary" onClick={() => void signOut()}>
