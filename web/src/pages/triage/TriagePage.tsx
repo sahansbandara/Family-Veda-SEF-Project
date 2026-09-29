@@ -17,6 +17,7 @@ import {
 import { AgentPipeline } from './AgentPipeline'
 import { FamilyCaseProgress } from './FamilyCaseProgress'
 import { terminalStatuses } from './pipelineStages'
+import { PageHero } from '../dashboard/dashboardParts'
 
 type TriageStatusDto = { id: string; status: string; priority: string; failureCode?: string | null }
 
@@ -110,13 +111,12 @@ export function TriagePage() {
 
   return (
     <div className="page-stack">
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">Agentic clinical triage <AiBadge /></p>
-          <h1>AI triage</h1>
-          <p>Describe symptoms. Distinct agents plan, gather consented context, analyse and validate. A licensed doctor approves before you see any result. This service never diagnoses.</p>
-        </div>
-      </header>
+      <PageHero
+        eyebrow="Symptoms & triage"
+        title="Symptoms & Triage"
+        purpose="Report symptoms. A doctor reviews every answer before you see it. This service never diagnoses. In an emergency call 1990."
+        action={<AiBadge label="Doctor-reviewed" />}
+      />
 
       {status === 'loading' ? <LoadingState label="Loading triage interface" /> : status === 'error' ? <ErrorState message="Triage interface could not be loaded." onRetry={() => void load()} /> : (
         <>

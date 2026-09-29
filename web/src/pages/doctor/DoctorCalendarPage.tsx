@@ -71,10 +71,11 @@ export function DoctorCalendarPage() {
 
   return (
     <div className="page-stack">
-      <header className="page-header">
+      <header className="fv-hero">
         <div>
-          <p className="eyebrow">Schedule</p>
+          <p className="fv-eyebrow">Scheduling</p>
           <h1>Calendar</h1>
+          <p>Your appointments. Confirm, complete or cancel them here.</p>
         </div>
       </header>
 

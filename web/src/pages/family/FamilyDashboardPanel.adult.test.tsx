@@ -35,7 +35,7 @@ describe('FamilyDashboardPanel (Adult)', () => {
     expect(screen.getAllByText('Book My Appointment').length).toBeGreaterThan(0)
     expect(screen.queryByText('+ Add Minor')).not.toBeInTheDocument()
     expect(screen.queryByText('Invite Adult')).not.toBeInTheDocument()
-    expect(screen.queryByText('Membership Requests')).not.toBeInTheDocument()
+    expect(screen.queryByText('Join Requests')).not.toBeInTheDocument()
     expect(screen.getByText('Who Can See My Data?')).toBeInTheDocument()
   })
 })

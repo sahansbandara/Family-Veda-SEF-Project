@@ -131,21 +131,25 @@ function HeadDashboard({ data }: Props) {
       <section className="fv-metrics" aria-label="Family metrics">
         <Metric
           label="Family Members"
+          to="/family?tab=members"
           value={data.memberCount}
           badge={<Badge tone="ok">{data.minorCount} minor{data.minorCount === 1 ? '' : 's'}</Badge>}
         />
         <Metric
-          label="Next Shared Appointment"
+          label="Next Appointment"
+          to="/appointments"
           value={next ? shortDate(next.startsAt) : 'None'}
           badge={next ? <Badge tone="info">{shortTime(next.startsAt)}</Badge> : <Badge tone="muted">Book when needed</Badge>}
         />
         <Metric
-          label="Open Family-visible Cases"
+          label="Open Cases"
+          to="/triage"
           value={data.openCases}
           badge={data.openCases > 0 ? <Badge tone="warn">Doctor review</Badge> : <Badge tone="ok">All clear</Badge>}
         />
         <Metric
-          label="Membership Requests"
+          label="Join Requests"
+          to="/family?tab=requests"
           value={pending}
           badge={pending > 0 ? <Badge tone="warn">Needs action</Badge> : <Badge tone="muted">None pending</Badge>}
         />
@@ -288,20 +292,23 @@ function AdultDashboard({ data }: Props) {
       <section className="fv-metrics" aria-label="My metrics">
         <Metric
           label="Next Appointment"
+          to="/appointments"
           value={next ? shortDate(next.startsAt) : 'None'}
           badge={next ? <Badge tone={appointmentTone(next.status)}>{shortTime(next.startsAt)}</Badge> : <Badge tone="muted">Book when needed</Badge>}
         />
         <Metric
           label="My Health Cases"
+          to="/triage"
           value={data.openCases}
           badge={data.openCases > 0 ? <Badge tone="warn">Doctor review</Badge> : <Badge tone="ok">None open</Badge>}
         />
         <Metric
           label="Approved Guidance"
+          to="/triage"
           value={data.approvedGuidanceCount}
           badge={<Badge tone="ok">Doctor approved</Badge>}
         />
-        <Metric label="My Reports" value={reports} badge={<Badge tone="info">Family Head cannot see</Badge>} />
+        <Metric label="My Reports" to="/privacy" value={reports} badge={<Badge tone="info">Private unless you share</Badge>} />
       </section>
 
       <div className="fv-grid2">

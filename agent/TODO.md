@@ -182,11 +182,11 @@ Overlaps FH-4..FH-6 above — tick both when done. Each phase: TDD, PR into `dev
 ### Build order (DECISIONS 2026-09-29e): Stage 1 = UI shell for all 4 portals with real data or empty states (no sample numbers); Stage 2 = wire tab by tab.
 
 ### U — Clarity fixes first (see `docs/Three_Dashboards_UX_Plan.md`)
-- [ ] U0 Page template: hero (title = nav label, one purpose sentence, one primary button), metric tiles as links, one badge vocabulary, sub-tabs, teaching empty states.
-- [ ] U1 Titles/wording: "AI triage" → "Symptoms & Triage"; "Audit activity" → Privacy summary; adult "My Family" → membership page (join is one option); remove agent/OCR/audit words from family screens (UX plan §7).
-- [ ] U1 Doctor nav: merge "Calendar" + "Appointments calendar" into one Calendar tab.
-- [ ] U1 Records: split single scroll into Records · Vitals · Lab Reports sub-tabs (Head + Adult share the component).
-- [ ] U1 Adult: add Privacy tab (Family Sharing + Clinical Consent).
+- [x] U0 (2026-09-29) `PageHero`, `SubTabs`, `Metric to=` link in `dashboardParts.tsx`; tab CSS in `portal-dashboard.css`. Page template: hero (title = nav label, one purpose sentence, one primary button), metric tiles as links, one badge vocabulary, sub-tabs, teaching empty states.
+- [x] U1 (2026-09-29) Titles/wording: "AI triage" → "Symptoms & Triage"; "Audit activity" → Privacy summary; adult "My Family" → membership page (join is one option); remove agent/OCR/audit words from family screens (UX plan §7).
+- [x] U1 Doctor nav (one Calendar; `/doctor-calendar` redirects): merge "Calendar" + "Appointments calendar" into one Calendar tab.
+- [x] U1 Records: split single scroll into Records · Vitals · Lab Reports sub-tabs (Head + Adult share the component).
+- [x] U1 Adult: add Privacy tab (`PrivacyPage`, also replaces the Head's raw audit table) (Family Sharing + Clinical Consent).
 - [x] G1 + G2 fixed in `FamilyMembershipMover` (2026-09-29). Still open: G3 test that the old doctor gets 404 after a move; G4 confirm modal. Original item: Membership-move gaps (UX plan §10): G1 close an empty household (end its assignment, cancel its requests), G2 reset `SharedWithFamilyHead` on move, G3 test that the old doctor gets 404 after the move, G4 confirm modal before a solo Head joins another family.
 - [ ] Per-page done check: title = nav label · purpose sentence · one primary button · loading/empty/error · test asserts title + button.
 
@@ -204,7 +204,7 @@ Nav: `Dashboard | My Family | Health Records | Symptoms & Triage | My Doctor | A
 - [ ] A4 Symptoms & Triage: 4-step progress for own + minors; verify minor submission path.
 - [ ] A5 My Doctor (= FH-5): current doctor card, Request Change (end old assignment, keep history), Find a Doctor with deterministic filters + "Suggested based on location, availability and your preferences."
 - [ ] A6 Appointments: table Member · Date · Doctor · Reason · Status; book for self + minors only; free-slot picker (needs P3).
-- [ ] A7 Privacy & Access (= FH-6): `GET /families/me/privacy` — per-member sharing summary + recent access (head-visible only).
+- [x] A7 web (2026-09-29, `PrivacyPage` head mode, uses existing endpoints; no new `/families/me/privacy` needed yet) Privacy & Access (= FH-6): `GET /families/me/privacy` — per-member sharing summary + recent access (head-visible only).
 - [ ] A-test: no-leak test adding a private adult appointment + case; still zero change to head counts.
 
 ### Section B — Adult Member (30 Sep–1 Oct)
@@ -214,17 +214,17 @@ Nav: `Dashboard | My Health | Appointments | Symptoms & Triage | My Family | My 
 - [ ] B3 Ask My Records: deterministic structured search (member=self, type, date range, analyte). LLM parsing only in P5 if time.
 - [ ] B4 Appointments: own only; "Private appointment" label; book own.
 - [ ] B5 Symptoms & Triage: 4-step progress; "not visible to Family Head" note.
-- [ ] B6 My Family: membership card + Start My Own Family / Leave Family / Join by code (backend exists, FH-2b) — re-skin and wire.
-- [ ] B7 My Doctor: read-only doctor card + Book My Appointment; "only the Family Head can change the doctor".
-- [ ] B8 Privacy: Family Sharing list with per-item toggle (`PATCH …/sharing`) + Clinical Consent card for current doctor (existing consent API). New route `/privacy` for MEMBER.
+- [x] B6 (2026-09-29, `MyFamilyPage` with confirm step) My Family: membership card + Start My Own Family / Leave Family / Join by code (backend exists, FH-2b) — re-skin and wire.
+- [x] B7 (hero + role-specific wording) My Doctor: read-only doctor card + Book My Appointment; "only the Family Head can change the doctor".
+- [x] B8 (2026-09-29, `PrivacyPage` adult mode) Privacy: Family Sharing list with per-item toggle (`PATCH …/sharing`) + Clinical Consent card for current doctor (existing consent API). New route `/privacy` for MEMBER.
 - [ ] B9 Seed: shared + private adult report rows (open since Phase 2).
 - [ ] B-cut (future work): Explain lab values to patient, image observations, handwritten reader — hidden, listed in report.
 
 ### Section D — Admin (see UX plan §11)
-- [ ] D-A Remove fake fallback numbers on the admin dashboard.
-- [ ] D-B `GET /admin/dashboard` real counts; every tile is a link.
+- [x] D-A Removed fake fallback numbers and hard-coded charts; new `AdminDashboardPanel` (2026-09-29).
+- [~] D-B Real counts from existing `/admin/doctors`, `/admin/users`, `/audit` (first 100 rows, labelled). A dedicated `GET /admin/dashboard` aggregate is still open.
 - [x] D-C Deactivate instead of hard delete: delete endpoints removed; web uses `toggle-status` (DECISIONS 2026-09-29d). Web 79/79 tests, lint and build pass; backend is verified by CI.
-- [ ] D-D Split `ClinicAdminPortal.tsx` (2,150 lines) into per-tab pages.
+- [~] D-D Dashboard tab extracted (545 lines removed). Verification/Users/Settings tabs still live in `ClinicAdminPortal.tsx`.
 - [ ] D-E Safety & System page.
 - [ ] D-F Negative test: admin cannot read member health data.
 
@@ -238,11 +238,11 @@ Nav: `Dashboard | Calendar | My Families | Triage Cases | Approvals | Profile & 
 - [ ] C0 `DoctorAccessGuard` in new `DoctorWorkspaceService`: role → verified/active → active assignment (eligibility only) → **valid case/visit grant scoped to the member** → consent category → audit (DECISIONS 2026-09-28). Assignment alone = roster names, appointments, own notes; no clinical data. Every doctor endpoint uses it. Do not loosen `FamiliesController`/`RecordsController`.
 - [ ] C1 Dashboard: hero, 4 metrics (Today, Pending approvals, Open cases, Family requests), Today's Schedule, Needs Attention, My Families table, Clinical Timeline (UNION query, not a table).
 - [ ] C2 Calendar: Today + Week views; confirm / reschedule / complete / cancel / no-show; Block Time → `DoctorUnavailablePeriod`. Reschedule notifies the family.
-- [ ] C3 My Families: tabs Assigned · Requests; search / sort / pagination; accept/decline (existing API). `GET /doctors/me/families`.
+- [x] C3 (web, 2026-09-29, `DoctorFamiliesPage`: tabs via `?tab=requests`, search, sort, accept/decline, one-person family = "Individual patient"). Pagination still open. My Families: tabs Assigned · Requests; search / sort / pagination; accept/decline (existing API). `GET /doctors/me/families`.
 - [ ] C4 Family detail → Member workspace tabs Overview · Records · Labs · Vitals · Triage · Visits · Notes, all via `/doctors/me/members/{id}/…`; "Clinical details restricted" card when consent missing (don't reveal counts).
 - [ ] C5 Clinical notes: create / amend / list; no delete endpoint; audited.
 - [ ] C6 Profile & Availability: practice fields + weekly availability editor + slot minutes; availability drives the family free-slot picker (`GET /doctors/{id}/slots?date=`).
-- [ ] C7 Split `DoctorPortal.tsx` (1,119 lines) into per-page files; delete dead `handleDecision` mock.
+- [~] C7 `/families`, `/doctor-profile` and `/calendar` no longer route to `DoctorPortal.tsx` (it held sample data). The file is now unused; **deletion needs owner approval**. Split `DoctorPortal.tsx` (1,119 lines) into per-page files; delete dead `handleDecision` mock.
 - [ ] C-test: negative tests — other doctor, ended assignment, revoked consent, expired grant, unverified/suspended doctor → 403/404; overlap + availability tests.
 
 ### P5 — Controlled AI minimum (3–4 Oct)

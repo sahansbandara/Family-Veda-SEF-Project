@@ -6,6 +6,7 @@ import { EmptyState, ErrorState, LoadingState } from '../../components/shared/Vi
 import { Pagination } from '../../components/shared/Pagination'
 import { StatusBadge } from '../../components/shared/StatusBadge'
 import { apiClient, type AuditDto, type PagedResult } from '../../services/apiClient'
+import { PageHero } from '../dashboard/dashboardParts'
 
 export function AuditPage() {
   const [events, setEvents] = useState<AuditDto[]>([])
@@ -27,7 +28,7 @@ export function AuditPage() {
   const deniedCount = events.filter((event) => event.eventType === 'TOOL_DENIED').length
 
   return <div className="page-stack">
-    <header className="page-header"><div><p className="eyebrow">Consent and access history</p><h1>Audit activity</h1><p>Clinical content is excluded; this view shows access metadata only.</p></div></header>
+    <PageHero eyebrow="Governance" title="Audit Log" purpose="Who accessed or changed what, and when. Clinical content is never shown here, only access details." />
     <section className="panel">
       <label className="field"><span><input type="checkbox" checked={agentOnly} onChange={(event) => setAgentOnly(event.target.checked)} /> Show only agent tool-permission events</span></label>
       {deniedCount > 0 && <p role="status"><span className="status-badge status-badge--danger">{deniedCount} denied agent tool call{deniedCount === 1 ? '' : 's'}</span> on this page. The dispatcher blocked tools outside the agent allow-list.</p>}

@@ -145,3 +145,11 @@ What is already decided. Record at the moment of decision, including rejected al
 ## 2026-09-29f — Working rule: agent files are updated with every change
 
 **Decision (Sahan, 2026-09-29):** every coding session that changes code also updates `agent/TODO.md` (tick or add items), `agent/DECISIONS.md` (any decision made), and `agent/MEMORY.md` (any lesson or gotcha), **in the same commit or PR**. The next session must be able to see from the agent files alone what was done, why, and what is next.
+
+## 2026-09-29g — Stage 1 UI shell shipped; DoctorPortal unrouted, not deleted
+
+**Decision (agent, under DECISIONS 2026-09-29e):** all four portals now use the shared page template (`PageHero`, `SubTabs`, linked `Metric`) and the final menus. The doctor's `/calendar`, `/families` and `/doctor-profile` routes moved from the 1,119-line `DoctorPortal.tsx` (which showed sample values: placeholder doctor name, "SLMC 9941", fixed availability) to `DoctorCalendarPage`, `DoctorFamiliesPage` and `DoctorProfilePage` on real data. The admin Dashboard tab moved to `AdminDashboardPanel`, and its fake fallbacks and hard-coded charts were deleted.
+
+**Not deleted:** `web/src/pages/doctor/DoctorPortal.tsx` is now unused. Deleting it needs Sahan's approval (the user's rule: explain the impact before any destructive delete).
+
+**Honest gaps (need backend/P3):** doctor availability editor, reschedule, member workspace, visit grants, practice-profile editing, AI Doctor Discovery, Ask My Records. Each page shows an empty state or a plain note, never invented data.
