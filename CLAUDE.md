@@ -190,6 +190,18 @@ Load only the rules matching the component being touched.
 - Many small files over few large files (200–400 lines typical, 800 max).
 - Project-specific instructions override generic rules. Safety and permissions override convenience.
 
+## UI parity rule — change all three surfaces together (mandatory)
+
+Any UI change — layout, styling, component, copy, colour, spacing, flow, new screen — must be applied to **all three** UI surfaces in the same change:
+
+1. **Mobile app** — Flutter (`mobile/`)
+2. **Web desktop** — React (`web/`) at desktop widths
+3. **Web mobile** — React (`web/`) at phone widths (responsive breakpoints, ~375px)
+
+Never change only one UI. If a request names one surface ("fix the login page on web"), still update the matching screen on the other two, or state in the completion report exactly why a surface does not apply (e.g. screen exists only in the clinician web console).
+
+Before claiming done: check each surface (Flutter screen, React at desktop width, React at mobile width) and list all three in the completion report.
+
 ## Development workflow
 
 ### Feature pipeline
