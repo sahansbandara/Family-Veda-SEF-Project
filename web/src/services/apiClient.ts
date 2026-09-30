@@ -295,7 +295,13 @@ export const threePortalApi = {
     apiClient.post(`/doctors/me/appointments/${id}/${action}`, { note }),
 
   getNotifications: (unreadOnly?: boolean) =>
-    apiClient.get<NotificationDto[]>('/notifications', { params: unreadOnly ? { unreadOnly: true } : undefined }),
+    apiClient.get<NotificationDto[]>('/notifications', { 
+      params: { 
+        ...(unreadOnly ? { unreadOnly: true } : {}),
+        // Cache-buster to prevent stale bell counts
+        _t: Date.now()
+      } 
+    }),
   markNotificationRead: (id: string) => apiClient.post(`/notifications/${id}/read`),
 }
 

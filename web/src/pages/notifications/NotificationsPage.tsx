@@ -16,6 +16,7 @@ export function NotificationsPage() {
       const { data } = await threePortalApi.getNotifications()
       setNotifications(data)
       setStatus('ready')
+      window.dispatchEvent(new Event('fv:notifications-updated'))
     } catch {
       setStatus('error')
     }
@@ -30,6 +31,20 @@ export function NotificationsPage() {
     setNotifications((prev) => prev.map((item) => (item.id === notification.id ? { ...item, readAt: new Date().toISOString() } : item)))
     try {
       await threePortalApi.markNotificationRead(notification.id)
+      window.dispatchEvent(new Event('fv:notifications-updated'))
+    } catch {
+      await load()
+    }
+  }
+
+  async function markAllRead() {
+    const unread = notifications.filter(n => !n.readAt)
+    if (unread.length === 0) return
+    const now = new Date().toISOString()
+    setNotifications((prev) => prev.map((item) => (item.readAt ? item : { ...item, readAt: now })))
+    try {
+      await Promise.all(unread.map(n => threePortalApi.markNotificationRead(n.id)))
+      window.dispatchEvent(new Event('fv:notifications-updated'))
     } catch {
       await load()
     }
@@ -46,6 +61,14 @@ export function NotificationsPage() {
             <h2>Notifications</h2>
             <p>You have {notifications.filter(n => !n.readAt).length} unread notifications.</p>
           </div>
+          {notifications.filter(n => !n.readAt).length > 0 && (
+            <button className="button button--secondary button--sm" onClick={() => void markAllRead()} title="Mark all as read" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/>
+              </svg>
+              Mark all read
+            </button>
+          )}
         </div>
         
         {notifications.length === 0 ? (
@@ -71,7 +94,7 @@ export function NotificationsPage() {
                 <div className="timeline-actions">
                   {!notification.readAt && (
                     <button className="mark-read-btn" onClick={() => void markRead(notification)} title="Mark as read"><span style={{ border: 0, clip: "rect(0 0 0 0)", height: "1px", margin: "-1px", overflow: "hidden", padding: 0, position: "absolute", width: "1px" }}>Mark read</span>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="7 13 10 16 21 5"></polyline><polyline points="3 13 6 16 11.5 10.5"></polyline></svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/></svg>
                     </button>
                   )}
                 </div>
