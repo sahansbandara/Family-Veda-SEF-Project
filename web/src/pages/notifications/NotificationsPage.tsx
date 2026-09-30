@@ -16,6 +16,7 @@ export function NotificationsPage() {
       const { data } = await threePortalApi.getNotifications()
       setNotifications(data)
       setStatus('ready')
+      window.dispatchEvent(new Event('fv:notifications-updated'))
     } catch {
       setStatus('error')
     }
