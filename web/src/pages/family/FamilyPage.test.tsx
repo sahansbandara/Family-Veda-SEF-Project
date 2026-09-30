@@ -2,7 +2,9 @@
 // My Family tabs (FH-2c): roster, Remove from Family, join requests, invitations.
 import '@testing-library/jest-dom/vitest'
 
+import { configureStore } from '@reduxjs/toolkit'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -28,6 +30,7 @@ vi.mock('../../services/apiClient', () => ({
 }))
 vi.mock('../../styles/family-tabs.css', () => ({}))
 
+import authReducer from '../../store/slices/authSlice'
 import { FamilyPage } from './FamilyPage'
 
 const family = { id: 'family-1', name: 'Synthetic Perera Family', familyCode: 'FV-7K4P92', members: [] }
@@ -46,7 +49,8 @@ const invitation = {
 }
 
 function renderAt(path: string) {
-  return render(<MemoryRouter initialEntries={[path]}><FamilyPage /></MemoryRouter>)
+  const store = configureStore({ reducer: { auth: authReducer } })
+  return render(<Provider store={store}><MemoryRouter initialEntries={[path]}><FamilyPage /></MemoryRouter></Provider>)
 }
 
 describe('FamilyPage', () => {
