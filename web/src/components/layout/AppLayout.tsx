@@ -172,30 +172,40 @@ export function AppLayout() {
               title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} theme`}
               aria-label={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} theme`}
             >
-              <div className="theme-pill-indicator"></div>
-              <span className="theme-pill-icon sun">☀️</span>
-              <span className="theme-pill-icon moon">🌙</span>
+              <span className="theme-toggle-text">{theme === 'light' ? 'DAY MODE' : 'NIGHT MODE'}</span>
+              <div className="theme-pill-indicator">
+                {theme === 'light' ? (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="theme-icon"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="theme-icon"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                )}
+              </div>
             </button>
+            
             {user?.role === 'DOCTOR' && user?.verificationStatus === 'VERIFIED' && (
               <span className="status-badge status-badge--success" style={{ fontWeight: 700 }}>
                 VERIFIED
               </span>
             )}
-            <span className="lang-switcher">EN</span>
+            
             {user && <NotificationBell />}
             
             <div className="profile-menu">
               <button type="button" className="avatar-btn" aria-haspopup="true" aria-expanded="false">
                 <span className="avatar" aria-hidden="true">{initials(user?.name)}</span>
+                <span className="avatar-name">{user?.name?.split(' ')[0]}</span>
               </button>
               <div className="profile-dropdown">
                 <div className="profile-header">
                   <strong>{user?.name}</strong>
-                  <small>{user?.email}</small>
+                  <small className="role-text">{user ? portalName[user.role].toUpperCase() : 'USER'}</small>
                 </div>
-                <button type="button" className="dropdown-item text-danger" onClick={() => void signOut()}>
-                  Sign out
-                </button>
+                <div className="dropdown-actions">
+                  <NavLink to={brandDestination} className="dropdown-item">DASHBOARD</NavLink>
+                  <button type="button" className="dropdown-item text-danger" onClick={() => void signOut()}>
+                    LOG OUT
+                  </button>
+                </div>
               </div>
             </div>
           </div>

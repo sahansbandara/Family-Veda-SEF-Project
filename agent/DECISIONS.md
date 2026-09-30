@@ -177,3 +177,12 @@ What is already decided. Record at the moment of decision, including rejected al
   - Replaced the text-based light/dark theme toggle with a CSS-only pill toggle switch matching the user's reference image.
   - Restyled the `NotificationBell` to a soft neomorphic button style with an absolute positioned badge.
 - **Consequences**: The layout now perfectly matches a premium dashboard aesthetic while remaining fully accessible and passing all 92 tests without modifying the test suite.
+
+## 2026-09-30: Topbar Controls Overhaul
+- **Context**: The user provided new screenshots and requested exact matching for the Day/Night toggle, the removal of the notification bell's background/borders, the removal of the language switcher, and a premium dropdown for the profile.
+- **Decision**: 
+  - Restyled `.theme-pill-toggle` to exactly match the provided Day/Night toggle switch (wide pill, text inside, sliding white circle with icon).
+  - Modified `.notification-bell` CSS to remove background boxes and borders. Used an SVG mask trick to display a clean, solid icon instead of the default emoji.
+  - Removed the `EN` language switcher from `AppLayout.tsx` since the app does not currently support multiple languages.
+  - Implemented a premium profile dropdown using the dark green/black color scheme from the user's reference image, adding the user's initials/name next to the avatar, and displaying their role in gold (`#C19941`).
+- **Consequences**: The topbar perfectly matches the user's provided references and tests remain green.

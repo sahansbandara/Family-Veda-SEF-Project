@@ -276,3 +276,8 @@ Nav: `Dashboard | Calendar | My Families | Triage Cases | Approvals | Profile & 
 - [x] Clean up topbar controls (hide direct logout button, move to profile dropdown)
 - [x] Style light/dark theme toggle as a premium pill switch
 - [x] Style notification bell to match neomorphic premium design references
+
+- [x] Restyle Day/Night toggle exactly to reference (wide pill with text)
+- [x] Make notification bell a clean icon without background boxes
+- [x] Remove unused `EN` language switcher
+- [x] Upgrade profile menu to premium dark style matching reference
