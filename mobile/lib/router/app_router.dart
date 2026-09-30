@@ -1,6 +1,7 @@
 // ⚠ SHARED — coordinated route blocks for S1-S4.
 import 'package:family_veda/providers/active_member_provider.dart';
 import 'package:family_veda/providers/auth_provider.dart';
+import 'package:family_veda/screens/profile/profile_screen.dart';
 import 'package:family_veda/screens/auth/login_screen.dart';
 import 'package:family_veda/screens/auth/register_screen.dart';
 import 'package:family_veda/screens/auth/splash_screen.dart';
@@ -46,6 +47,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // ===== S3 — Home, Triage, Notifications =====
       GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
+      GoRoute(path: '/profile', builder: (_, _) => const ProfileScreen()),
       GoRoute(
         path: '/complaints/new',
         builder: (_, _) => const SubmitComplaintScreen(),
