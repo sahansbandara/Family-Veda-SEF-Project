@@ -1541,8 +1541,8 @@ tbody tr:hover { background: var(--primary-subtle); }
   position: absolute;
   top: calc(100% + 16px);
   right: 0;
-  background: #0D1311; /* Very dark green/black like the image */
-  border: 1px solid #1F2E2A;
+  background: var(--surface); /* Match app UI */
+  border: 1px solid var(--border-subtle);
   border-radius: 12px;
   width: 240px;
   box-shadow: 0 10px 30px -5px rgba(0,0,0,0.4);
@@ -1561,18 +1561,20 @@ tbody tr:hover { background: var(--primary-subtle); }
 }
 .profile-header {
   padding: 16px 20px;
-  border-bottom: 1px solid #1F2E2A;
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left; /* Force left alignment */
 }
 .profile-header strong {
   display: block;
   font-size: 0.95rem;
-  color: #FFFFFF;
+  color: var(--text-heading);
   letter-spacing: 0.03em;
   margin-bottom: 4px;
 }
 .profile-header .role-text {
+  display: block;
   font-size: 0.7rem;
-  color: #C19941; /* Gold color */
+  color: var(--primary); /* Use primary instead of hardcoded gold so it matches theme */
   letter-spacing: 0.1em;
   font-weight: 600;
   text-transform: uppercase;
@@ -1583,16 +1585,16 @@ tbody tr:hover { background: var(--primary-subtle); }
 .dropdown-item {
   display: block;
   width: 100%;
-  text-align: left;
+  text-align: left; /* Force left alignment */
   padding: 16px 20px;
   background: transparent;
   border: none;
-  border-bottom: 1px solid #1F2E2A;
+  border-bottom: 1px solid var(--border-subtle);
   font-size: 0.8rem;
   font-weight: 500;
   letter-spacing: 0.08em;
   cursor: pointer;
-  color: #A0B0A5;
+  color: var(--text);
   transition: background 0.15s ease, color 0.15s ease;
   text-decoration: none;
   text-transform: uppercase;
@@ -1601,14 +1603,14 @@ tbody tr:hover { background: var(--primary-subtle); }
   border-bottom: none;
 }
 .dropdown-item:hover {
-  background: #141C19;
-  color: #FFFFFF;
+  background: var(--surface-subtle);
+  color: var(--text-heading);
 }
 .dropdown-item.text-danger {
-  color: #EF4444; /* Keep red for log out or make it match text? The image has red text for LOG OUT */
+  color: #EF4444; 
 }
 .dropdown-item.text-danger:hover {
-  color: #FF5A5A;
+  color: #DC2626;
 }
 
 /* Profile settings: label/value grid */

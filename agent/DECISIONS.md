@@ -186,3 +186,11 @@ What is already decided. Record at the moment of decision, including rejected al
   - Removed the `EN` language switcher from `AppLayout.tsx` since the app does not currently support multiple languages.
   - Implemented a premium profile dropdown using the dark green/black color scheme from the user's reference image, adding the user's initials/name next to the avatar, and displaying their role in gold (`#C19941`).
 - **Consequences**: The topbar perfectly matches the user's provided references and tests remain green.
+
+## 2026-09-30: Refine Profile Dropdown Color & Alignment
+- **Context**: The user noticed the hardcoded dark green color for the profile dropdown clashed with the app's overall blue/dark blue UI, and the text alignment in the popup was off (right-aligned instead of left).
+- **Decision**: 
+  - Updated `.profile-dropdown` background to use `var(--surface)` and borders to `var(--border-subtle)` to seamlessly blend with the active light/dark app theme.
+  - Set `text-align: left` explicitly on `.profile-header` and `.dropdown-item` to fix the misalignment of the name and role.
+  - Used `var(--primary)` for the role text to maintain the premium feel without introducing clashing colors.
+- **Consequences**: The dropdown now perfectly matches the application's native theme styling while maintaining the requested premium structure.
