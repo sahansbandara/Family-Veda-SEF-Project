@@ -20,6 +20,7 @@ vi.mock('../../services/apiClient', () => ({
   familyLifecycleApi: {
     getRoster: mocks.getRoster,
     getInvitations: mocks.getInvitations,
+    getIncomingInvitations: vi.fn().mockResolvedValue({ data: [] }),
     cancelInvitation: mocks.cancelInvitation,
     removeFromFamily: mocks.removeFromFamily,
   },

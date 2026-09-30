@@ -43,3 +43,15 @@ public interface IFamilyHeadTransferService
     Task<HeadTransferDto> DeclineAsync(Guid transferId, CancellationToken cancellationToken);
     Task<HeadTransferDto> CancelAsync(Guid transferId, CancellationToken cancellationToken);
 }
+
+// ===== Incoming invitations: the signed-in invitee approves or rejects without a token =====
+/// <summary>An invitation addressed to the caller's own email. <c>CanApprove</c> is false while they share another family.</summary>
+public sealed record IncomingInvitationDto(Guid Id, string FamilyName, string InvitedByName, string? RelationshipType,
+    DateTimeOffset CreatedAt, DateTimeOffset ExpiresAt, bool CanApprove, string? BlockedReason);
+
+public interface IIncomingInvitationService
+{
+    Task<IReadOnlyList<IncomingInvitationDto>> GetMineAsync(CancellationToken cancellationToken);
+    Task<MembershipChangeDto> ApproveAsync(Guid invitationId, CancellationToken cancellationToken);
+    Task RejectAsync(Guid invitationId, CancellationToken cancellationToken);
+}

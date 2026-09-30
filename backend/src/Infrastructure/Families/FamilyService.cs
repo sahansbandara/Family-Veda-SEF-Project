@@ -268,6 +268,7 @@ public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUs
             FamilyId = familyId,
             InvitedByUserId = currentUser.UserId,
             InvitedEmailHash = InvitationCrypto.HashEmail(email, token),
+            InvitedEmailLookupHash = InvitationCrypto.LookupHash(email),
             InvitedEmailMasked = InvitationCrypto.MaskEmail(email),
             RelationshipType = string.IsNullOrWhiteSpace(request.RelationshipType) ? null : request.RelationshipType.Trim()[..Math.Min(40, request.RelationshipType.Trim().Length)],
             TokenHash = InvitationCrypto.Hash(token),
@@ -283,6 +284,7 @@ public sealed class FamilyService(AppDbContext dbContext, ICurrentUser currentUs
             Outcome = "SUCCESS",
             MetadataJson = "{}"
         });
+        await InvitationCrypto.NotifyExistingInviteeAsync(dbContext, email, familyId, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return new FamilyInvitationDto(invitation.Id, token, invitation.ExpiresAt);
     }

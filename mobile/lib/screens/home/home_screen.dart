@@ -13,6 +13,7 @@ import 'package:family_veda/providers/members_provider.dart';
 import 'package:family_veda/providers/notifications_provider.dart';
 import 'package:family_veda/theme/app_theme.dart';
 import 'package:family_veda/theme/glass.dart';
+import 'package:family_veda/widgets/family/incoming_invitations_section.dart';
 import 'package:family_veda/widgets/family/head_dashboard_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -708,6 +709,8 @@ class HomeScreen extends ConsumerWidget {
                                     'Join requests (${dashboard.pendingJoinRequests})',
                                 onTap: () => context.push('/join-requests'),
                               ),
+                            // [S1] Invitations sent to this account's email.
+                            const IncomingInvitationsSection(),
                           ],
                         ),
                 ),
