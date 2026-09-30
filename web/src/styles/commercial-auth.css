@@ -1,6 +1,7 @@
 /* Commercial Sliding Auth Layout (Inspired by Image 1) */
 .auth-page-root {
   min-height: 100vh;
+  min-height: 100dvh;
   width: 100vw;
   display: flex;
   align-items: center;
@@ -256,18 +257,21 @@ select.auth-form-input option {
     height: 100%;
   }
   .auth-glass-panel {
-    position: relative;
+    position: absolute;
+    inset: 0;
     width: 100%;
-    height: auto;
-    min-height: 100vh;
+    height: 100%;
     transform: none !important;
   }
   .auth-text-panel {
     display: none;
   }
   .auth-form-content {
-    position: relative;
-    padding: 60px 24px;
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    padding: 40px 24px;
+    overflow-y: auto;
   }
 }
 
