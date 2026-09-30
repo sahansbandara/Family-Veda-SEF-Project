@@ -36,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<IFamilyService, FamilyService>();
         services.AddScoped<IFamilyLifecycleService, FamilyLifecycleService>();
         services.AddScoped<IIncomingInvitationService, IncomingInvitationService>();
+        services.AddScoped<FamilyVeda.Application.Auth.IProfileService, Auth.ProfileService>();
         services.AddScoped<IFamilyHeadTransferService, FamilyHeadTransferService>();
         services.AddScoped<IRecordService, RecordService>();
         services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));

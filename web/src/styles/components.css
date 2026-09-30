@@ -1610,3 +1610,14 @@ tbody tr:hover { background: var(--primary-subtle); }
 .dropdown-item.text-danger:hover {
   color: #FF5A5A;
 }
+
+/* Profile settings: label/value grid */
+.profile-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px 24px;
+  margin: 0;
+}
+.profile-details dt { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.profile-details dd { margin: 4px 0 0; font-weight: 600; overflow-wrap: anywhere; }
+a.dropdown-item { display: block; text-decoration: none; color: inherit; }
