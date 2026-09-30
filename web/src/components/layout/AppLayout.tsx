@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { signedOut } from '../../store/slices/authSlice'
 import type { UserRole } from '../../store/slices/authSlice'
 import { apiClient } from '../../services/apiClient'
-import markUrl from '../../assets/mark.svg'
+import markUrl from '../../assets/logo-mark.png'
 // ===== S4 Feature: notifications + three-portal nav (docs/Three_Portal_Feature_Spec.md) =====
 import { NotificationBell } from '../shared/NotificationBell'
 import { EmergencyHelp } from '../../pages/dashboard/dashboardParts'
