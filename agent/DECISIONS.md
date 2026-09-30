@@ -228,3 +228,11 @@ What is already decided. Record at the moment of decision, including rejected al
   - Wrapped the user's name and the badge in a flex container (`gap: 6px`) to ensure inline alignment.
   - Changed the SVG color from Emerald Green to `var(--primary)` to perfectly match the application's native aesthetic.
 - **Consequences**: The topbar is now cleaner, and verification status is contextually associated with the user's profile identity.
+
+## 2026-09-30: Notification Bell Sync
+- **Context**: The notification bell component maintained a local 60-second polling interval and didn't immediately update its unread count when notifications were marked as read from the `NotificationsPage`. The user also requested swapping the emoji `🔔` for a clean, colorless icon.
+- **Decision**: 
+  - Subscribed the `NotificationBell` component to a custom window event (`fv:notifications-updated`).
+  - Dispatched `fv:notifications-updated` from `NotificationsPage` immediately after successfully marking a notification (or all) as read.
+  - Replaced the `🔔` emoji with a Lucide SVG stroke bell to remove unwanted emoji coloring and align with the UI's clean icon style.
+- **Consequences**: Unread counts instantly synchronize between the bell component and the notifications page without needing a heavyweight global state manager like Redux for a single value.

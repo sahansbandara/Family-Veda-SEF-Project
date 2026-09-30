@@ -30,6 +30,7 @@ export function NotificationsPage() {
     setNotifications((prev) => prev.map((item) => (item.id === notification.id ? { ...item, readAt: new Date().toISOString() } : item)))
     try {
       await threePortalApi.markNotificationRead(notification.id)
+      window.dispatchEvent(new Event('fv:notifications-updated'))
     } catch {
       await load()
     }
@@ -42,6 +43,7 @@ export function NotificationsPage() {
     setNotifications((prev) => prev.map((item) => (item.readAt ? item : { ...item, readAt: now })))
     try {
       await Promise.all(unread.map(n => threePortalApi.markNotificationRead(n.id)))
+      window.dispatchEvent(new Event('fv:notifications-updated'))
     } catch {
       await load()
     }
