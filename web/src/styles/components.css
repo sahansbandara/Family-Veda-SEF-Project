@@ -24,8 +24,9 @@
   width: 100%;
 }
 .app-sidebar {
-  background: linear-gradient(180deg, #5b79ff 0%, #4a65ff 100%);
-  border-radius: 0 30px 30px 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border-subtle);
+  border-radius: 0;
   padding: var(--sp-4);
   display: flex;
   flex-direction: column;
@@ -34,15 +35,16 @@
   top: 0;
   height: 100vh;
   overflow-y: auto;
-  color: #fff;
+  color: var(--text);
   z-index: 20;
+  box-shadow: 4px 0 24px -10px rgba(0,0,0,0.02);
 }
 .app-sidebar .brand strong {
-  color: #fff;
+  color: var(--text-heading);
   font-size: 1.25rem;
 }
 .app-sidebar .brand small {
-  color: rgba(255,255,255,0.7);
+  color: var(--muted);
 }
 .app-sidebar .primary-nav {
   display: flex;
@@ -57,19 +59,24 @@
   flex-wrap: nowrap;
 }
 .app-sidebar .primary-nav a {
-  color: rgba(255, 255, 255, 0.7);
-  padding: 10px 16px;
+  color: var(--muted);
+  padding: 12px 16px;
   border-radius: 12px;
   text-decoration: none;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   transition: all 150ms ease;
+  white-space: normal; /* Fixes text cutting off */
+  word-wrap: break-word;
 }
-.app-sidebar .primary-nav a:hover,
+.app-sidebar .primary-nav a:hover {
+  color: var(--text-heading);
+  background: var(--surface-subtle);
+}
 .app-sidebar .primary-nav a.active {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow: inset 2px 0 0 0 #fff;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  box-shadow: inset 3px 0 0 0 var(--primary);
 }
 .sidebar-footer {
   margin-top: auto;
@@ -1370,3 +1377,171 @@ tbody tr:hover { background: var(--primary-subtle); }
 .report-card__facts div { display: flex; justify-content: space-between; gap: 8px; }
 .report-card__facts dt { color: var(--muted, inherit); }
 .report-card__facts dd { margin: 0; text-align: right; }
+
+/* Theme Pill Toggle */
+.theme-pill-toggle {
+  position: relative;
+  width: 72px;
+  height: 36px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  transition: background 0.3s ease;
+}
+.theme-pill-toggle.light {
+  background: #E5E7EB;
+}
+.theme-pill-toggle.dark {
+  background: #1F2937;
+}
+.theme-pill-toggle .theme-pill-indicator {
+  position: absolute;
+  top: 4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+}
+.theme-pill-toggle.light .theme-pill-indicator {
+  background: #374151;
+  transform: translateX(36px);
+}
+.theme-pill-toggle.dark .theme-pill-indicator {
+  background: #F3F4F6;
+  transform: translateX(0);
+}
+.theme-pill-icon {
+  font-size: 14px;
+  z-index: 1;
+}
+.theme-pill-icon.sun {
+  opacity: 1; /* Adjust opacity or hide if needed, Image showed both icons visible on edges */
+}
+
+/* Premium Notification Bell */
+.notification-bell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  position: relative;
+  text-decoration: none;
+  color: var(--text);
+  box-shadow: 0 2px 8px -2px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+}
+.notification-bell:hover {
+  background: var(--surface-subtle);
+}
+.notification-bell span[aria-hidden="true"] {
+  font-size: 1.25rem;
+  /* Make the emoji black/white based on theme using filter or just let it be */
+  filter: grayscale(100%) contrast(200%); 
+}
+.notification-bell-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #EF4444;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+}
+
+/* Profile Dropdown */
+.profile-menu {
+  position: relative;
+}
+.avatar-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.avatar-btn .avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.profile-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  width: 220px;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+  z-index: 100;
+  padding: 8px;
+}
+.profile-menu:hover .profile-dropdown,
+.profile-menu:focus-within .profile-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.profile-header {
+  padding: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 8px;
+}
+.profile-header strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--text-heading);
+}
+.profile-header small {
+  font-size: 0.75rem;
+  color: var(--muted);
+  word-break: break-all;
+}
+.dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text);
+  transition: background 0.15s ease;
+}
+.dropdown-item:hover {
+  background: var(--surface-subtle);
+}
+.dropdown-item.text-danger {
+  color: #EF4444;
+}
+.dropdown-item.text-danger:hover {
+  background: color-mix(in srgb, #EF4444 10%, transparent);
+}

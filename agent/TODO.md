@@ -269,3 +269,10 @@ Nav: `Dashboard | Calendar | My Families | Triage Cases | Approvals | Profile & 
 
 - [x] Redesign layout to a premium sidebar configuration with soft card styling.
 - [x] Implement the glassmorphism split-screen login page aesthetic.
+
+- [x] Remove "Upgrade to PRO" card from sidebar
+- [x] Fix sidebar navigation text overlap and color visibility
+- [x] Make topbar title dynamic depending on active route
+- [x] Clean up topbar controls (hide direct logout button, move to profile dropdown)
+- [x] Style light/dark theme toggle as a premium pill switch
+- [x] Style notification bell to match neomorphic premium design references

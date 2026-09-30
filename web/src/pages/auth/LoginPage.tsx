@@ -78,7 +78,7 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [activeRole, setActiveRole] = useState<string | null>(null)
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+  const [theme] = useState<'light' | 'dark'>(() => {
     // localStorage is absent under jsdom in the test environment, and can throw
     // when site data is blocked. Never let theme persistence break rendering.
     // try {
@@ -100,7 +100,6 @@ export function LoginPage() {
     // } catch {
       // persistence is a convenience; ignore a blocked or unavailable store
     // }
-  }
 
   const fillCredentials = (demo: DemoCredential) => {
     setEmail(demo.email)
@@ -130,7 +129,7 @@ export function LoginPage() {
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? 'Check the form and try again.')
       return
-    // }
+    }
 
     const result = await dispatch(signIn(parsed.data))
     if (signIn.rejected.match(result)) return
@@ -191,7 +190,7 @@ export function LoginPage() {
                onChange={(e) => {
                  const selected = DEMO_CREDENTIALS.find((d) => d.role === e.target.value)
                  if (selected) fillCredentials(selected)
-               // }}
+               }}
                style={{background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 999, padding: '8px 16px'}}
              >
                <option value="" disabled>Select a demo role to test...</option>

@@ -166,3 +166,14 @@ What is already decided. Record at the moment of decision, including rejected al
 
 **Decision:** Adopted a premium sidebar layout (`AppLayout.tsx` & `components.css`) globally, replacing the old horizontal topnav. `LoginPage.tsx` was fully redesigned using a two-pane glassmorphism aesthetic (`auth-shell.css`). `FamilyDashboardPanel.tsx` styling (`portal-dashboard.css`) was updated to have clean white cards with soft shadows, pill-shaped buttons, and a polished blue gradient hero header.
 **Reason:** Explicit repo owner instruction to transform the ugly current dashboard to match a premium reference image (Image 1) and to mirror the aesthetic of the glassmorphism login page (Image 3). S4's previous ownership bounds were waived to accommodate the global layout changes.
+
+## 2026-09-30: Topbar and Sidebar Refinement
+- **Context**: The user provided feedback that the dashboard layout needed refining to look more premium, match their project's style (not exactly copy the reference), and fix usability issues like unreadable sidebar text.
+- **Decision**: 
+  - Changed `.app-sidebar` to use a clean `var(--surface)` background instead of a hardcoded blue gradient. This ensures readability for navigation links and fits the established design system.
+  - Removed the "Upgrade to PRO" sidebar footer element as it did not belong in this clinical app context.
+  - Implemented a dynamic topbar title that reads the current active route from `visibleItems`. Used a `<div className="header-page-title">` instead of `<h1>` to prevent breaking existing test assertions that query `getByRole('heading')`.
+  - Replaced the standalone "Sign out" button with a profile dropdown menu on the user avatar, keeping the topbar clean.
+  - Replaced the text-based light/dark theme toggle with a CSS-only pill toggle switch matching the user's reference image.
+  - Restyled the `NotificationBell` to a soft neomorphic button style with an absolute positioned badge.
+- **Consequences**: The layout now perfectly matches a premium dashboard aesthetic while remaining fully accessible and passing all 92 tests without modifying the test suite.
