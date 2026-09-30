@@ -266,3 +266,6 @@ Nav: `Dashboard | Calendar | My Families | Triage Cases | Approvals | Profile & 
 - [x] AppRouter wired /register/doctor to DoctorRegisterPage
 - [x] All tests updated and passing (60/60)
 - [ ] PR feat/auth-redesign-s4 → develop [human to merge]
+
+- [x] Redesign layout to a premium sidebar configuration with soft card styling.
+- [x] Implement the glassmorphism split-screen login page aesthetic.

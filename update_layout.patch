@@ -1,0 +1,74 @@
+--- web/src/components/layout/AppLayout.tsx
++++ web/src/components/layout/AppLayout.tsx
+@@ -141,10 +141,16 @@
+     <div className="app-shell">
+       <a className="skip-link" href="#main-content">Skip to main content</a>
+-      <header className="topbar">
++      
++      <aside className="app-sidebar glass glass--thin">
+         <NavLink className="brand" to={brandDestination} aria-label="Family Veda dashboard">
+           <span className="brand-mark">
+             <img src={markUrl} alt="" width={42} height={42} />
+           </span>
+           <span>
+             <strong>Family Veda</strong>
+             <small>{user ? portalName[user.role] : 'Clinical decision support'}</small>
+           </span>
+         </NavLink>
++        <nav className="primary-nav" aria-label="Primary navigation">
++          {visibleItems.map((item) => (
++            <NavLink key={item.path} to={item.path} className={({ isActive }) => isActive ? 'active' : undefined}>
++              {item.label}
++            </NavLink>
++          ))}
++        </nav>
++        
++        <div className="sidebar-footer">
++          <div className="upgrade-card">
++            <strong>Upgrade to PRO</strong>
++            <p>Improve your health tracking process.</p>
++            <button type="button" className="button button--primary" style={{width: '100%'}}>UPDATE TO PRO</button>
++          </div>
++        </div>
++      </aside>
++
++      <div className="app-main">
++        <header className="topbar">
++          <div className="topbar-title">
++            {/* Page title space */}
++          </div>
+-        <div className="session-summary">
++          <div className="session-summary">
+           {user && <NotificationBell />}
+@@ -176,14 +202,7 @@
+           </button>
+-        </div>
+-      </header>
+-      <nav className="primary-nav glass glass--thin" aria-label="Primary navigation">
+-        {visibleItems.map((item) => (
+-          <NavLink key={item.path} to={item.path} className={({ isActive }) => isActive ? 'active' : undefined}>
+-            {item.label}
+-          </NavLink>
+-        ))}
+-      </nav>
+-      <main id="main-content" className="main-content" tabIndex={-1}>
+-        {user?.role === 'MEMBER' && <HeadTransferBanner />}
+-        <Outlet />
+-      </main>
++          </div>
++        </header>
++        
++        <main id="main-content" className="main-content" tabIndex={-1}>
++          {user?.role === 'MEMBER' && <HeadTransferBanner />}
++          <Outlet />
++        </main>
++        {showEmergencyHelp && <EmergencyHelp />}
++        <footer className="app-footer">
++          Clinical decision-support system. Access is controlled and activity is audited.
++        </footer>
++      </div>
+-      {showEmergencyHelp && <EmergencyHelp />}
+-      <footer className="app-footer">
+-        Clinical decision-support system. Access is controlled and activity is audited.
+-      </footer>
+     </div>

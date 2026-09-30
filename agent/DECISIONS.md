@@ -161,3 +161,8 @@ What is already decided. Record at the moment of decision, including rejected al
 2. **`web/src/pages/doctor/DoctorPortal.tsx` is deleted.** It was unused after PR #83 and held sample data.
 
 **Implementation choice:** a sibling `VisitAccessGrant` table rather than making `CaseAccessGrant.TriageCaseId` nullable. Every existing case-grant query stays untouched, so the change carries less regression risk.
+
+## 2026-09-30 — Global layout switch to premium sidebar and glassmorphism login
+
+**Decision:** Adopted a premium sidebar layout (`AppLayout.tsx` & `components.css`) globally, replacing the old horizontal topnav. `LoginPage.tsx` was fully redesigned using a two-pane glassmorphism aesthetic (`auth-shell.css`). `FamilyDashboardPanel.tsx` styling (`portal-dashboard.css`) was updated to have clean white cards with soft shadows, pill-shaped buttons, and a polished blue gradient hero header.
+**Reason:** Explicit repo owner instruction to transform the ugly current dashboard to match a premium reference image (Image 1) and to mirror the aesthetic of the glassmorphism login page (Image 3). S4's previous ownership bounds were waived to accommodate the global layout changes.

@@ -6,11 +6,10 @@
 
 .fv-hero {
   display: flex; justify-content: space-between; align-items: center; gap: 18px;
-  padding: 25px 27px; border: 1px solid var(--border); border-radius: 22px;
-  background: var(--banner-bg);
-  border-color: var(--banner-border);
-  backdrop-filter: blur(var(--blur-thick)) saturate(170%);
-  box-shadow: inset 0 1px 0 0 var(--glass-spec), var(--shadow-lg);
+  padding: 32px; border: none; border-radius: 24px;
+  background: linear-gradient(135deg, #0b2545 0%, #146cff 100%);
+  color: #fff;
+  box-shadow: 0 10px 30px -10px rgba(20, 108, 255, 0.4);
   position: relative; overflow: hidden;
 }
 .fv-hero::after {
@@ -19,9 +18,9 @@
   pointer-events: none;
 }
 .fv-hero > * { position: relative; z-index: 1; }
-.fv-hero h1 { margin: 0; font-size: 1.8rem; color: var(--text-heading); }
-.fv-hero p { margin: 8px 0 0; color: var(--muted); }
-.fv-eyebrow { margin: 0 0 6px; color: var(--primary); font-size: 11px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
+.fv-hero h1 { margin: 0; font-size: 2rem; color: #fff; }
+.fv-hero p { margin: 8px 0 0; color: rgba(255,255,255,0.8); }
+.fv-eyebrow { margin: 0 0 6px; color: rgba(255,255,255,0.6); font-size: 11px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
 
 .fv-badge { display: inline-flex; align-items: center; gap: 4px; padding: 6px 9px; border-radius: 999px; font-size: 11px; font-weight: 800; white-space: nowrap; }
 .fv-badge--ok { background: var(--primary-subtle); color: var(--primary); }
@@ -31,7 +30,7 @@
 .fv-badge--muted { background: var(--surface-subtle); color: var(--muted); }
 
 .fv-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; }
-.fv-metric { background: linear-gradient(147deg, var(--glass-fill-hi), var(--glass-fill-lo)); backdrop-filter: blur(var(--blur)) saturate(160%); border: 1px solid var(--border); border-radius: 16px; padding: 16px; box-shadow: inset 0 1px 0 0 var(--glass-spec), var(--shadow-sm); }
+.fv-metric { background: var(--surface); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px -4px rgba(0,0,0,0.02); }
 .fv-metric small { color: var(--muted); font-weight: 700; }
 .fv-metric strong { display: block; font-size: 28px; margin: 9px 0 3px; color: var(--text-heading); line-height: 1.15; }
 
@@ -49,8 +48,8 @@
 .fv-grid2 { display: grid; grid-template-columns: 1.45fr 0.75fr; gap: 17px; }
 .fv-gridhalf { display: grid; grid-template-columns: 1fr 1fr; gap: 17px; }
 
-.fv-panel { background: linear-gradient(147deg, var(--glass-fill-hi), var(--glass-fill-lo)); backdrop-filter: blur(var(--blur)) saturate(160%); border: 1px solid var(--border); border-radius: 20px; padding: 20px; box-shadow: inset 0 1px 0 0 var(--glass-spec), inset 0 -1px 0 0 var(--glass-edge-dim), var(--shadow-md); min-width: 0; }
-.fv-panel h2 { margin: 0; font-size: 1.2rem; color: var(--text-heading); }
+.fv-panel { background: var(--surface); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 24px; box-shadow: 0 4px 20px -4px rgba(0,0,0,0.03); min-width: 0; }
+.fv-panel h2 { margin: 0; font-size: 1.15rem; color: var(--text-heading); font-weight: 700; }
 .fv-panel p { color: var(--muted); }
 .fv-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 15px; }
 .fv-head p { margin: 4px 0 0; font-size: 12px; }
@@ -58,7 +57,7 @@
 .fv-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   border: 1px solid var(--border); background: color-mix(in srgb, var(--surface) 70%, transparent); color: var(--text);
-  padding: 9px 13px; border-radius: 12px; transition: border-color 0.15s, color 0.15s, background 0.15s; font-weight: 800; font-size: 0.85rem; text-decoration: none; cursor: pointer;
+  padding: 8px 18px; border-radius: 999px; transition: border-color 0.15s, color 0.15s, background 0.15s; font-weight: 800; font-size: 0.85rem; text-decoration: none; cursor: pointer;
 }
 .fv-btn:hover { border-color: var(--primary); color: var(--primary); }
 .fv-btn--primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-lum) 100%); border-color: transparent; color: #fff; box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--primary) 70%, transparent); }

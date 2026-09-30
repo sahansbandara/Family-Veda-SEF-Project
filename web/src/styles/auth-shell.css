@@ -895,3 +895,137 @@
     animation-duration: 0.01ms !important;
   }
 }
+
+/* New Glass Login Page Styles (Image 3) */
+.login-glass-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: url('https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80') center/cover no-repeat;
+  padding: 24px;
+}
+
+.login-glass-container {
+  display: flex;
+  width: 100%;
+  max-width: 960px;
+  min-height: 560px;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(24px) saturate(180%);
+  border-radius: 32px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.login-glass-left {
+  flex: 1;
+  padding: 60px 48px;
+  background: rgba(255, 255, 255, 0.65);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-glass-left h2 {
+  font-size: 2.4rem;
+  font-weight: 800;
+  margin-bottom: 32px;
+  color: var(--auth-navy);
+}
+
+.login-glass-right {
+  flex: 1;
+  padding: 60px 48px;
+  background: linear-gradient(135deg, rgba(30, 136, 229, 0.4) 0%, rgba(20, 108, 255, 0.6) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #fff;
+  position: relative;
+}
+
+.login-glass-right::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: url('https://images.unsplash.com/photo-1581056771107-24ca5f033842?auto=format&fit=crop&q=80') center/cover no-repeat;
+  opacity: 0.3;
+  mix-blend-mode: overlay;
+}
+
+.login-glass-right-content {
+  position: relative;
+  z-index: 2;
+}
+
+.login-glass-right h1 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 24px;
+  color: #fff;
+}
+
+.login-glass-right p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+.button--outline-white {
+  border: 2px solid #fff;
+  color: #fff;
+  background: transparent;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+.button--outline-white:hover {
+  background: #fff;
+  color: var(--auth-primary);
+}
+
+.field--floating {
+  position: relative;
+  margin-bottom: 16px;
+}
+.field--floating input {
+  width: 100%;
+  padding: 24px 16px 8px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid rgba(0,0,0,0.1);
+  border-radius: 0;
+  font-size: 1rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+.field--floating input:focus {
+  border-color: var(--auth-primary);
+}
+.field--floating span {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--auth-muted);
+  pointer-events: none;
+}
+.field--floating input::placeholder {
+  color: transparent;
+}
+.field--floating input:focus::placeholder {
+  color: rgba(0,0,0,0.3);
+}
+
+@media (max-width: 800px) {
+  .login-glass-container {
+    flex-direction: column;
+  }
+  .login-glass-right {
+    display: none; /* simple fallback */
+  }
+}

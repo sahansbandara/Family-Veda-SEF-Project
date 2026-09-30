@@ -49,3 +49,7 @@ What we already know and must not repeat.
 - Doctor clinical access is decided in one place: `DoctorWorkspaceService.FindActiveGrantAsync` (visit grant or case grant) + `RequireAssignmentAsync`. Don't add a second path.
 - Weekly hours are clinic time, UTC+05:30 (`DoctorSchedule.ClinicOffset`). Bookings are checked against the hours only once a doctor has set some.
 - `MigrationTests` pins the table count and rolls back to older migrations before inserting rows. When a migration adds tables, bump the count. When it adds columns to an entity those tests insert, insert that entity with raw SQL using only the legacy columns (`InsertLegacyDoctorAsync`). Docker isn't available in the agent container, so these tests only run in CI.
+
+## 2026-09-30 — Premium Dashboard & Glassmorphism Login
+**Context:** Repositioned the UI into a premium sidebar layout with white cards and soft shadows (replacing the dark mode look for the dashboard) per the user's reference designs. Also implemented the glassmorphism split-pane layout for `LoginPage.tsx`.
+**Lesson:** When transforming a dashboard globally in an AppLayout shell, doing it via CSS grids in `components.css` while maintaining the identical React markup (or carefully shifting tags without breaking routers) keeps the entire test suite green. The new auth design required direct React component adjustments but retained the same underlying structure to keep tests passing.
