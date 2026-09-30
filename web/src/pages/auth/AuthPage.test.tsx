@@ -50,7 +50,7 @@ describe('AuthPage', () => {
 
   it('sends doctors to the dedicated registration form with licence upload', () => {
     renderAuth('/register')
-    fireEvent.click(screen.getByText('Medical Practitioner'))
+    fireEvent.click(screen.getByText('Doctor'))
     continueRegistration()
     expect(window.location.pathname).toBe('/register/doctor')
     expect(screen.queryByText(/Coming Soon/i)).not.toBeInTheDocument()
