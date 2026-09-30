@@ -10,7 +10,7 @@
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
     "preview": "vite preview",
-    "dev:api": "dotnet run --project ../backend/src/Api --launch-profile http",
+    "dev:api": "set -a; [ -f ../.env.local ] && . ../.env.local; set +a; dotnet run --project ../backend/src/Api --launch-profile http",
     "dev:all": "concurrently -k -n api,web -c yellow,cyan \"npm:dev:api\" \"npm:dev\""
   },
   "dependencies": {
