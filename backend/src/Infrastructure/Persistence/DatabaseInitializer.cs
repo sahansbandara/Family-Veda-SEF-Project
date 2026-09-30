@@ -222,18 +222,6 @@ public static class DatabaseInitializer
                     CONSTRAINT pk_notifications PRIMARY KEY (id),
                     CONSTRAINT fk_notifications_users_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
                 );
-
-                CREATE TABLE IF NOT EXISTS lab_report_files (
-                    id uuid NOT NULL DEFAULT gen_random_uuid(),
-                    lab_report_id uuid NOT NULL,
-                    content bytea NOT NULL,
-                    created_at timestamp with time zone NOT NULL,
-                    updated_at timestamp with time zone NOT NULL,
-                    CONSTRAINT pk_lab_report_files PRIMARY KEY (id),
-                    CONSTRAINT fk_lab_report_files_lab_reports_lab_report_id FOREIGN KEY (lab_report_id) REFERENCES lab_reports(id) ON DELETE CASCADE
-                );
-
-                UPDATE consents SET granted_by_guardian = TRUE WHERE member_id IN (SELECT id FROM members WHERE role = 'MinorMember') AND status = 'Granted';
                 """,
                 cancellationToken);
         }

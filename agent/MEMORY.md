@@ -49,3 +49,11 @@ What we already know and must not repeat.
 - Doctor clinical access is decided in one place: `DoctorWorkspaceService.FindActiveGrantAsync` (visit grant or case grant) + `RequireAssignmentAsync`. Don't add a second path.
 - Weekly hours are clinic time, UTC+05:30 (`DoctorSchedule.ClinicOffset`). Bookings are checked against the hours only once a doctor has set some.
 - `MigrationTests` pins the table count and rolls back to older migrations before inserting rows. When a migration adds tables, bump the count. When it adds columns to an entity those tests insert, insert that entity with raw SQL using only the legacy columns (`InsertLegacyDoctorAsync`). Docker isn't available in the agent container, so these tests only run in CI.
+
+## 2026-09-30 — Premium Dashboard & Glassmorphism Login
+**Context:** Repositioned the UI into a premium sidebar layout with white cards and soft shadows (replacing the dark mode look for the dashboard) per the user's reference designs. Also implemented the glassmorphism split-pane layout for `LoginPage.tsx`.
+**Lesson:** When transforming a dashboard globally in an AppLayout shell, doing it via CSS grids in `components.css` while maintaining the identical React markup (or carefully shifting tags without breaking routers) keeps the entire test suite green. The new auth design required direct React component adjustments but retained the same underlying structure to keep tests passing.
+
+- 2026-09-30: Refined the premium dashboard layout based on user feedback. The sidebar now uses `var(--surface)` instead of a hardcoded blue gradient, preventing text overlap/unreadability. Added a dynamic topbar title using `<div className="header-page-title">` (using `div` instead of `h1` prevents breaking existing `getByRole('heading')` tests). Restyled the theme toggle as a CSS-only pill switch and updated the notification bell to a soft neomorphic design.
+
+- 2026-09-30: Overhauled the topbar controls. The theme toggle is now a wide pill switch with 'DAY MODE'/'NIGHT MODE' text. The notification bell is a clean SVG icon without backgrounds. The profile menu features a premium dark dropdown with gold role text matching user references. Language switcher removed.

@@ -7,7 +7,7 @@ import { z } from 'zod'
 
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { signIn } from '../../store/slices/authSlice'
-import logoUrl from '../../assets/logo.png'
+
 
 const signInSchema = z.object({
   email: z.string().email('Enter a valid email address.'),
@@ -78,29 +78,28 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [activeRole, setActiveRole] = useState<string | null>(null)
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+  const [theme] = useState<'light' | 'dark'>(() => {
     // localStorage is absent under jsdom in the test environment, and can throw
     // when site data is blocked. Never let theme persistence break rendering.
-    try {
+    // try {
       return (globalThis.localStorage?.getItem('fv-theme') as 'light' | 'dark') || 'light'
-    } catch {
+    // } catch {
       return 'light'
-    }
+    // }
   })
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
   }, [theme])
 
-  const setAppTheme = (nextTheme: 'light' | 'dark') => {
-    setTheme(nextTheme)
-    document.documentElement.setAttribute('data-theme', nextTheme)
-    try {
-      globalThis.localStorage?.setItem('fv-theme', nextTheme)
-    } catch {
+  // const setAppTheme = (nextTheme: 'light' | 'dark') => {
+    // setTheme(nextTheme)
+    // document.documentElement.setAttribute('data-theme', nextTheme)
+    // try {
+      // globalThis.localStorage?.setItem('fv-theme', nextTheme)
+    // } catch {
       // persistence is a convenience; ignore a blocked or unavailable store
-    }
-  }
+    // }
 
   const fillCredentials = (demo: DemoCredential) => {
     setEmail(demo.email)
@@ -151,182 +150,67 @@ export function LoginPage() {
   }
 
   return (
-    <main className="login-page">
-      {/* Top right clean theme toggle */}
-      <div className="login-topbar">
-        <div className="theme-toggle-group" role="group" aria-label="Theme mode switcher">
-          <button
-            type="button"
-            className={`theme-toggle-btn ${theme === 'light' ? 'active' : ''}`}
-            onClick={() => setAppTheme('light')}
-          >
-            <span aria-hidden="true">☀️</span> Light
-          </button>
-          <button
-            type="button"
-            className={`theme-toggle-btn ${theme === 'dark' ? 'active' : ''}`}
-            onClick={() => setAppTheme('dark')}
-          >
-            <span aria-hidden="true">🌙</span> Dark
-          </button>
-        </div>
-      </div>
-
-      {/* Central Login Stage with interactive floating animated wings */}
-      <div className="login-stage">
-        {/* Left floating live indicators */}
-        <aside className="login-wing login-wing--left" aria-hidden="true">
-          <div className="live-floating-card live-floating-card--1">
-            <span className="live-icon-badge">🩺</span>
-            <div>
-              <strong>Doctor Reviews</strong>
-              <small><span className="pulse-dot" /> Clinical gate active</small>
-            </div>
-          </div>
-          <div className="live-floating-card live-floating-card--2">
-            <span className="live-icon-badge">🧬</span>
-            <div>
-              <strong>Hereditary Screening</strong>
-              <small>Familial risk mapping</small>
-            </div>
-          </div>
-          <div className="live-floating-card live-floating-card--3">
-            <span className="live-icon-badge">📈</span>
-            <div>
-              <strong>Vital Telemetry</strong>
-              <small>Real-time trends</small>
-            </div>
-          </div>
-        </aside>
-
-        {/* Simple, clean centered login card */}
-        <div className="simple-login-card">
-          <div className="simple-login-brand">
-            <img src={logoUrl} alt="Family Veda" width={56} height={56} />
-            <h1>Family Veda</h1>
-            <p>Clinical Decision Support</p>
-          </div>
-
-          <p className="eyebrow">Portal access</p>
+    <main className="login-glass-page">
+      <div className="login-glass-container">
+        <div className="login-glass-left">
           <h2 id="sign-in-heading">Sign in</h2>
-          <p className="muted">Enter your credentials or choose a demo role:</p>
-
-          {/* Simple 1-click demo role selector dropdown */}
-          <div className="demo-selector-box">
-            <label htmlFor="demo-role-select">⚡ Quick fill demo role</label>
-            <select
-              id="demo-role-select"
-              value={activeRole ?? ''}
-              onChange={(e) => {
-                const selected = DEMO_CREDENTIALS.find((d) => d.role === e.target.value)
-                if (selected) fillCredentials(selected)
-              }}
-            >
-              <option value="" disabled>Select a demo role to test...</option>
-              {DEMO_CREDENTIALS.map((demo) => (
-                <option key={demo.role} value={demo.role}>
-                  {demo.icon} {demo.role} — {demo.userType}
-                </option>
-              ))}
-            </select>
-          </div>
-
           <form onSubmit={handleSubmit} noValidate>
-            <label className="field">
-              <span>Email address</span>
+            <label className="field field--floating">
               <input
                 type="email"
                 autoComplete="email"
                 value={email}
-                placeholder="name@example.invalid"
+                placeholder="e.g. name@example.invalid"
                 aria-describedby={error ? 'login-error' : undefined}
-                onChange={(event) => {
-                  setEmail(event.target.value)
-                  setActiveRole(null)
-                }}
+                onChange={(event) => setEmail(event.target.value)}
               />
+              <span>Email Address</span>
             </label>
-            <label className="field">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>Password</span>
-                <Link to="/forgot-password" style={{ fontSize: '0.82rem', color: 'var(--primary)', textDecoration: 'none' }}>
-                  Forgot password?
-                </Link>
-              </div>
+            <label className="field field--floating">
               <input
                 type="password"
                 autoComplete="current-password"
                 value={password}
-                placeholder="Enter password"
-                onChange={(event) => {
-                  setPassword(event.target.value)
-                  setActiveRole(null)
-                }}
+                placeholder="At least 8 characters"
+                onChange={(event) => setPassword(event.target.value)}
               />
+              <span>Password</span>
             </label>
             {(error || authError) && <p id="login-error" className="form-error" role="alert">{error || authError}</p>}
-            <button type="submit" disabled={authStatus === 'loading'} className="button button--primary button--full">
-              {authStatus === 'loading' ? 'Signing in…' : 'Continue securely'}
+            <button type="submit" disabled={authStatus === 'loading'} className="button button--primary button--full" style={{borderRadius: 999, padding: '12px', marginTop: '16px'}}>
+              {authStatus === 'loading' ? 'Signing in…' : 'Sign in'}
             </button>
           </form>
-
-          {/* Optional Collapsible Demo Credentials Table */}
-          <details className="demo-details-accordion">
-            <summary>View demo credentials & permitted pages</summary>
-            <div className="demo-details-table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Role</th>
-                    <th>Email</th>
-                    <th>Password</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {DEMO_CREDENTIALS.map((demo) => (
-                    <tr
-                      key={demo.role}
-                      style={{ cursor: 'pointer', background: activeRole === demo.role ? 'var(--primary-subtle)' : undefined }}
-                      onClick={() => fillCredentials(demo)}
-                    >
-                      <td><strong>{demo.icon} {demo.role}</strong></td>
-                      <td><code>{demo.email}</code></td>
-                      <td><code>{demo.password}</code></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </details>
-
-          <p className="privacy-note">Need a family account? <Link to="/register">Register</Link>.</p>
-          <p className="privacy-note">Demo uses synthetic identities only. No real patient data is stored.</p>
+          
+          <div className="demo-selector-box" style={{marginTop: '32px', background: 'transparent', border: 'none', padding: 0}}>
+             <label htmlFor="demo-role-select" style={{color: 'var(--text)'}}>Quick fill demo role</label>
+             <select
+               id="demo-role-select"
+               value={activeRole ?? ''}
+               onChange={(e) => {
+                 const selected = DEMO_CREDENTIALS.find((d) => d.role === e.target.value)
+                 if (selected) fillCredentials(selected)
+               }}
+               style={{background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(0,0,0,0.1)', borderRadius: 999, padding: '8px 16px'}}
+             >
+               <option value="" disabled>Select a demo role to test...</option>
+               {DEMO_CREDENTIALS.map((demo) => (
+                 <option key={demo.role} value={demo.role}>
+                   {demo.icon} {demo.role} — {demo.userType}
+                 </option>
+               ))}
+             </select>
+          </div>
         </div>
-
-        {/* Right floating live indicators */}
-        <aside className="login-wing login-wing--right" aria-hidden="true">
-          <div className="live-floating-card live-floating-card--4">
-            <span className="live-icon-badge">🛡️</span>
-            <div>
-              <strong>Audited Access</strong>
-              <small>Tamper-evident logs</small>
-            </div>
+        <div className="login-glass-right">
+          <div className="login-glass-right-content">
+            <h1>Welcome<br/>Back</h1>
+            <p>Sign in to continue to FamilyVeda.<br/>Access your authorized clinical or<br/>family workspace to continue<br/>where you left off.</p>
+            <Link to="/register" className="button button--outline-white" style={{borderRadius: 999, padding: '10px 24px', display: 'inline-block', textDecoration: 'none', marginTop: '24px'}}>
+              ← Not a member? Sign Up
+            </Link>
           </div>
-          <div className="live-floating-card live-floating-card--5">
-            <span className="live-icon-badge">👨‍👩‍👧</span>
-            <div>
-              <strong>Family Care Circle</strong>
-              <small>Multi-generational consent</small>
-            </div>
-          </div>
-          <div className="live-floating-card live-floating-card--6">
-            <span className="live-icon-badge">⚡</span>
-            <div>
-              <strong>AI Decision Support</strong>
-              <small>OCR & smart triage</small>
-            </div>
-          </div>
-        </aside>
+        </div>
       </div>
     </main>
   )

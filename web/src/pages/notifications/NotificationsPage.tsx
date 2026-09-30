@@ -16,6 +16,7 @@ export function NotificationsPage() {
       const { data } = await threePortalApi.getNotifications()
       setNotifications(data)
       setStatus('ready')
+      window.dispatchEvent(new Event('fv:notifications-updated'))
     } catch {
       setStatus('error')
     }
@@ -30,6 +31,20 @@ export function NotificationsPage() {
     setNotifications((prev) => prev.map((item) => (item.id === notification.id ? { ...item, readAt: new Date().toISOString() } : item)))
     try {
       await threePortalApi.markNotificationRead(notification.id)
+      window.dispatchEvent(new Event('fv:notifications-updated'))
+    } catch {
+      await load()
+    }
+  }
+
+  async function markAllRead() {
+    const unread = notifications.filter(n => !n.readAt)
+    if (unread.length === 0) return
+    const now = new Date().toISOString()
+    setNotifications((prev) => prev.map((item) => (item.readAt ? item : { ...item, readAt: now })))
+    try {
+      await Promise.all(unread.map(n => threePortalApi.markNotificationRead(n.id)))
+      window.dispatchEvent(new Event('fv:notifications-updated'))
     } catch {
       await load()
     }
@@ -40,33 +55,52 @@ export function NotificationsPage() {
 
   return (
     <div className="page-stack">
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">Updates</p>
-          <h1>Notifications</h1>
+      <section className="fv-panel notifications-panel">
+        <div className="notifications-header">
+          <div>
+            <h2>Notifications</h2>
+            <p>You have {notifications.filter(n => !n.readAt).length} unread notifications.</p>
+          </div>
+          {notifications.filter(n => !n.readAt).length > 0 && (
+            <button className="button button--secondary button--sm" onClick={() => void markAllRead()} title="Mark all as read" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/>
+              </svg>
+              Mark all read
+            </button>
+          )}
         </div>
-      </header>
-
-      <section className="panel">
+        
         {notifications.length === 0 ? (
           <EmptyState title="No notifications" message="You're all caught up." />
         ) : (
-          <ul className="activity-list">
+          <div className="notification-timeline">
             {notifications.map((notification) => (
-              <li key={notification.id} className={notification.readAt ? '' : 'activity-list-item--unread'}>
-                <div>
-                  <strong>{notification.title}</strong>
-                  <p>{notification.body}</p>
-                  <small>{formatDateTime(notification.createdAt)}</small>
+              <div key={notification.id} className={`timeline-item ${notification.readAt ? 'read' : 'unread'}`}>
+                <div className="timeline-icon-wrapper">
+                  <div className="timeline-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                  </div>
+                  {/* Timeline connector line */}
+                  <div className="timeline-connector"></div>
                 </div>
-                {!notification.readAt && (
-                  <button className="button button--secondary" type="button" onClick={() => void markRead(notification)}>
-                    Mark read
-                  </button>
-                )}
-              </li>
+                <div className="timeline-content">
+                  <div className="timeline-title-row">
+                    <strong>{notification.title}</strong>
+                    <span className="timeline-time">{formatDateTime(notification.createdAt)}</span>
+                  </div>
+                  <p>{notification.body}</p>
+                </div>
+                <div className="timeline-actions">
+                  {!notification.readAt && (
+                    <button className="mark-read-btn" onClick={() => void markRead(notification)} title="Mark as read"><span style={{ border: 0, clip: "rect(0 0 0 0)", height: "1px", margin: "-1px", overflow: "hidden", padding: 0, position: "absolute", width: "1px" }}>Mark read</span>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/></svg>
+                    </button>
+                  )}
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </section>
     </div>

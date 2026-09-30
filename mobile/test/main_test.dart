@@ -123,6 +123,7 @@ void main() {
           membersProvider.overrideWith((ref) async => const []),
           pushRegistrationProvider.overrideWith((ref) async => false),
           notificationsProvider.overrideWith((ref) async => const []),
+          incomingInvitationsProvider.overrideWith((ref) async => const []),
           familyDashboardProvider.overrideWith(
             (ref) async => const FamilyDashboard(
               role: 'AdultMember',

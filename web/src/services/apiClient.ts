@@ -5,7 +5,7 @@ import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 type Tokens = { accessToken: string; refreshToken: string }
 let tokens: Tokens | null = null
 let refreshPromise: Promise<Tokens> | null = null
-const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000/api/v1'
+const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:5000/api/v1'
 
 export const apiClient = axios.create({ baseURL, timeout: 15_000 })
 
@@ -227,7 +227,22 @@ export type HeadTransferDto = {
   respondedAt?: string | null
 }
 
+/** An invitation sent to the signed-in user's own email; approved or rejected in-app without a token. */
+export interface IncomingInvitationDto {
+  id: string
+  familyName: string
+  invitedByName: string
+  relationshipType?: string | null
+  createdAt: string
+  expiresAt: string
+  canApprove: boolean
+  blockedReason?: string | null
+}
+
 export const familyLifecycleApi = {
+  getIncomingInvitations: () => apiClient.get<IncomingInvitationDto[]>('/invitations/incoming'),
+  approveInvitation: (invitationId: string) => apiClient.post<MembershipChangeDto>(`/invitations/${invitationId}/approve`),
+  rejectInvitation: (invitationId: string) => apiClient.post(`/invitations/${invitationId}/reject`),
   getRoster: (familyId: string) => apiClient.get<RosterMemberDto[]>(`/families/${familyId}/roster`),
   getInvitations: (familyId: string) => apiClient.get<FamilyInvitationSummaryDto[]>(`/families/${familyId}/invitations`),
   createInvitation: (familyId: string, body: { email: string; relationshipType?: string }) =>
@@ -280,7 +295,13 @@ export const threePortalApi = {
     apiClient.post(`/doctors/me/appointments/${id}/${action}`, { note }),
 
   getNotifications: (unreadOnly?: boolean) =>
-    apiClient.get<NotificationDto[]>('/notifications', { params: unreadOnly ? { unreadOnly: true } : undefined }),
+    apiClient.get<NotificationDto[]>('/notifications', { 
+      params: { 
+        ...(unreadOnly ? { unreadOnly: true } : {}),
+        // Cache-buster to prevent stale bell counts
+        _t: Date.now()
+      } 
+    }),
   markNotificationRead: (id: string) => apiClient.post(`/notifications/${id}/read`),
 }
 
@@ -326,4 +347,25 @@ export const doctorWorkspaceApi = {
     apiClient.post<ClinicalNoteDto>(`/doctors/me/members/${memberId}/notes`, body),
   amendNote: (noteId: string, content: string) => apiClient.post<ClinicalNoteDto>(`/doctors/me/notes/${noteId}/amend`, { content }),
   getFamilyDoctorSlots: (familyId: string, date: string) => apiClient.get<DoctorSlotsDto>(`/families/${familyId}/doctor/slots`, { params: { date } }),
+}
+
+/** The signed-in user's own profile (every portal). Family fields appear only for family users. */
+export interface MyProfileDto {
+  userId: string
+  email: string
+  displayName: string
+  userType: 'FamilyUser' | 'Doctor' | 'Admin' | string
+  createdAt: string
+  familyRole?: string | null
+  familyName?: string | null
+  familyCode?: string | null
+  dateOfBirth?: string | null
+  sexForClinicalReference?: string | null
+}
+
+export const profileApi = {
+  getMine: () => apiClient.get<MyProfileDto>('/profile/me'),
+  updateMine: (displayName: string) => apiClient.put<MyProfileDto>('/profile/me', { displayName }),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    apiClient.post('/auth/change-password', { currentPassword, newPassword }),
 }

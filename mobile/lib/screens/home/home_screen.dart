@@ -13,6 +13,7 @@ import 'package:family_veda/providers/members_provider.dart';
 import 'package:family_veda/providers/notifications_provider.dart';
 import 'package:family_veda/theme/app_theme.dart';
 import 'package:family_veda/theme/glass.dart';
+import 'package:family_veda/widgets/family/incoming_invitations_section.dart';
 import 'package:family_veda/widgets/family/head_dashboard_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -395,6 +396,12 @@ class HomeScreen extends ConsumerWidget {
               child: const Icon(Icons.notifications_outlined),
             ),
           ),
+          // [S1] Profile settings (whole-project waiver 2026-09-28b).
+          IconButton(
+            tooltip: 'Profile settings',
+            onPressed: () => context.push('/profile'),
+            icon: const Icon(Icons.person_outline),
+          ),
           IconButton(
             tooltip: 'Sign out',
             onPressed: () async {
@@ -708,6 +715,8 @@ class HomeScreen extends ConsumerWidget {
                                     'Join requests (${dashboard.pendingJoinRequests})',
                                 onTap: () => context.push('/join-requests'),
                               ),
+                            // [S1] Invitations sent to this account's email.
+                            const IncomingInvitationsSection(),
                           ],
                         ),
                 ),

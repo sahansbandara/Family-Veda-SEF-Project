@@ -71,6 +71,8 @@ public sealed class FamilyInvitation : Entity
     public Guid InvitedByUserId { get; set; }
     public UserAccount? InvitedByUser { get; set; }
     public required string InvitedEmailHash { get; set; }
+    /// <summary>Unkeyed-by-token hash of the email so a signed-in invitee can find invitations addressed to them.</summary>
+    public string? InvitedEmailLookupHash { get; set; }
     public required string TokenHash { get; set; }
     public DateTimeOffset ExpiresAt { get; set; }
     public DateTimeOffset? AcceptedAt { get; set; }

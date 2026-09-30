@@ -668,6 +668,11 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(64)")
                         .HasColumnName("invited_email_hash");
 
+                    b.Property<string>("InvitedEmailLookupHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("invited_email_lookup_hash");
+
                     b.Property<string>("InvitedEmailMasked")
                         .HasMaxLength(254)
                         .HasColumnType("character varying(254)")
@@ -696,6 +701,9 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("InvitedByUserId")
                         .HasDatabaseName("ix_family_invitations_invited_by_user_id");
+
+                    b.HasIndex("InvitedEmailLookupHash")
+                        .HasDatabaseName("ix_family_invitations_invited_email_lookup_hash");
 
                     b.HasIndex("TokenHash")
                         .IsUnique()

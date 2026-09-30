@@ -4,6 +4,7 @@
 import 'package:family_veda/models/appointment.dart';
 import 'package:family_veda/models/doctor_summary.dart';
 import 'package:family_veda/models/family_dashboard.dart';
+import 'package:family_veda/models/incoming_invitation.dart';
 import 'package:family_veda/models/join_request.dart';
 import 'package:family_veda/providers/core_providers.dart';
 import 'package:family_veda/services/api/family_portal_api.dart';
@@ -25,6 +26,12 @@ final pendingJoinRequestsProvider = FutureProvider.autoDispose
     .family<List<JoinRequest>, String>(
       (ref, familyId) =>
           ref.watch(familyPortalApiProvider).getPendingJoinRequests(familyId),
+    );
+
+/// Invitations sent to the signed-in user's own email (any family user, not only Heads).
+final incomingInvitationsProvider =
+    FutureProvider.autoDispose<List<IncomingInvitation>>(
+      (ref) => ref.watch(familyPortalApiProvider).getIncomingInvitations(),
     );
 
 final familyDoctorProvider = FutureProvider.autoDispose
