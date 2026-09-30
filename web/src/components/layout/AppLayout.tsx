@@ -182,16 +182,7 @@ export function AppLayout() {
               </div>
             </button>
             
-            {user?.role === 'DOCTOR' && user?.verificationStatus === 'VERIFIED' && (
-              <div className="verified-badge" title="Verified Doctor">
-                <svg viewBox="0 0 24 24" aria-label="Verified" role="img" className="verified-badge-icon">
-                  <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.918-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.337 2.25c-.416-.165-.866-.25-1.336-.25-2.21 0-3.918 1.792-3.918 3.998 0 .495.084.965.238 1.4-1.273.65-2.148 2.02-2.148 3.6 0 1.46.727 2.73 1.832 3.475-.06.335-.09.68-.09 1.025 0 2.21 1.71 3.998 3.918 3.998.536 0 1.05-.122 1.517-.34C9.176 21.6 10.495 22.5 12 22.5c1.505 0 2.824-.9 3.53-2.25.467.218.98.34 1.517.34 2.21 0 3.918-1.792 3.918-3.998 0-.345-.03-.69-.09-1.025 1.105-.745 1.832-2.015 1.832-3.475z" fill="currentColor"></path>
-                  <path d="M16.91 8.572L10.33 15.68l-3.24-3.24-1.415 1.414 4.655 4.656 7.994-8.65z" fill="var(--surface)"></path>
-                </svg>
-                <span className="sr-only">VERIFIED</span>
-              </div>
-            )}
-            
+
             {user && <NotificationBell />}
             
             <div className="profile-menu">
@@ -201,7 +192,18 @@ export function AppLayout() {
               </button>
               <div className="profile-dropdown">
                 <div className="profile-header">
-                  <strong>{user?.name}</strong>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <strong>{user?.name}</strong>
+                    {user?.role === 'DOCTOR' && user?.verificationStatus === 'VERIFIED' && (
+                      <div className="verified-badge" title="Verified Doctor">
+                        <svg viewBox="0 0 24 24" aria-label="Verified" role="img" className="verified-badge-icon">
+                          <path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.998-3.918-3.998-.47 0-.92.084-1.336.25C14.818 2.415 13.51 1.5 12 1.5s-2.816.917-3.337 2.25c-.416-.165-.866-.25-1.336-.25-2.21 0-3.918 1.792-3.918 3.998 0 .495.084.965.238 1.4-1.273.65-2.148 2.02-2.148 3.6 0 1.46.727 2.73 1.832 3.475-.06.335-.09.68-.09 1.025 0 2.21 1.71 3.998 3.918 3.998.536 0 1.05-.122 1.517-.34C9.176 21.6 10.495 22.5 12 22.5c1.505 0 2.824-.9 3.53-2.25.467.218.98.34 1.517.34 2.21 0 3.918-1.792 3.918-3.998 0-.345-.03-.69-.09-1.025 1.105-.745 1.832-2.015 1.832-3.475z" fill="currentColor"></path>
+                          <path d="M16.91 8.572L10.33 15.68l-3.24-3.24-1.415 1.414 4.655 4.656 7.994-8.65z" fill="var(--surface)"></path>
+                        </svg>
+                        <span className="sr-only">VERIFIED</span>
+                      </div>
+                    )}
+                  </div>
                   <small className="role-text">{user ? portalName[user.role].toUpperCase() : 'USER'}</small>
                 </div>
                 <div className="dropdown-actions">

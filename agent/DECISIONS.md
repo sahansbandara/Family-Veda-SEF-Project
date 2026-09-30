@@ -220,3 +220,11 @@ What is already decided. Record at the moment of decision, including rejected al
   - Added a `markAllRead` function in `NotificationsPage.tsx` that filters for unread notifications and executes `Promise.all()` to mark each one as read concurrently.
   - Added a "Mark all read" button in the `.notifications-header` (which was already a flex container). Centered the items vertically so the button aligns nicely with the header text block.
 - **Consequences**: Enhanced usability for users with many notifications while maintaining a clean aesthetic. Tests remained unaffected as we preserved the visually-hidden "Mark read" text for individual items.
+
+## 2026-09-30: Move Doctor Verified Badge to Profile Menu
+- **Context**: The user reviewed the verified badge rosette added to the topbar and found the placement cluttered. They requested moving it to the profile dropdown menu, immediately following the doctor's name, and matching it to the primary UI theme color instead of a standalone green.
+- **Decision**: 
+  - Relocated the `.verified-badge` SVG element from the main topbar into the `.profile-header` section of the profile dropdown menu.
+  - Wrapped the user's name and the badge in a flex container (`gap: 6px`) to ensure inline alignment.
+  - Changed the SVG color from Emerald Green to `var(--primary)` to perfectly match the application's native aesthetic.
+- **Consequences**: The topbar is now cleaner, and verification status is contextually associated with the user's profile identity.

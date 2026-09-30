@@ -1781,11 +1781,12 @@ a.dropdown-item { display: block; text-decoration: none; color: inherit; }
 }
 
 .verified-badge-icon {
-  width: 22px;
-  height: 22px;
-  color: #10B981; /* Emerald-500, a nice success green matching the app's success badge */
-  filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.2));
+  width: 20px;
+  height: 20px;
+  color: var(--primary); /* Matching the app's primary color */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
   transition: transform 0.2s ease;
+  margin-top: 2px;
 }
 
 .verified-badge:hover .verified-badge-icon {
