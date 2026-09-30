@@ -9,7 +9,9 @@
     "lint": "eslint . --max-warnings 0",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:api": "dotnet run --project ../backend/src/Api --launch-profile http",
+    "dev:all": "concurrently -k -n api,web -c yellow,cyan \"npm:dev:api\" \"npm:dev\""
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.6.1",
@@ -31,6 +33,7 @@
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^6.0.5",
     "@vitest/coverage-v8": "^4.1.10",
+    "concurrently": "^9.2.4",
     "eslint": "^9.22.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.5.7",

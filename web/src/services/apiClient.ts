@@ -5,7 +5,7 @@ import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 type Tokens = { accessToken: string; refreshToken: string }
 let tokens: Tokens | null = null
 let refreshPromise: Promise<Tokens> | null = null
-const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000/api/v1'
+const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:5000/api/v1'
 
 export const apiClient = axios.create({ baseURL, timeout: 15_000 })
 
