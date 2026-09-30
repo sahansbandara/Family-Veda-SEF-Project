@@ -449,7 +449,7 @@ export function AuthPage() {
                     onClick={() => setRole('DOCTOR')}
                   >
                     <div className="role-card-content">
-                      <div className="auth-role-title">Medical Practitioner</div>
+                      <div className="auth-role-title">Doctor</div>
                       <div className="auth-role-desc">Provide clinical care with verifiable credentials.</div>
                     </div>
                     <div className="role-card-radio"></div>
@@ -686,7 +686,11 @@ export function AuthPage() {
                 </button>
               </div>
             </form>
-
+            
+            {/* Mobile Switch to Login */}
+            <button type="button" className="mobile-mode-switch" onClick={toggleMode}>
+              Already a Member? Sign In
+            </button>
           </div>
 
           {/* Login Form */}
@@ -715,7 +719,11 @@ export function AuthPage() {
                 {authStatus === 'loading' ? 'Signing in...' : 'Sign in'}
               </button>
             </form>
-
+            
+            {/* Mobile Switch to Register */}
+            <button type="button" className="mobile-mode-switch" onClick={toggleMode}>
+              Not a member? Sign Up
+            </button>
           </div>
 
         </div>

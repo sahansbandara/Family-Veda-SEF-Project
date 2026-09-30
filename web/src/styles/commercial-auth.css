@@ -10,6 +10,7 @@
   transition: background-image 0.8s ease-in-out;
   background-size: cover;
   background-position: center;
+  background-attachment: fixed;
 }
 
 .auth-overlay {
@@ -499,3 +500,33 @@ input[type="password"].auth-form-input::placeholder {
 }
 .reg-review-terms input { margin-top: 3px; accent-color: #146cff; width: 16px; height: 16px; }
 @media (max-width: 480px) { .reg-review-row { grid-template-columns: 1fr; gap: 2px; } }
+
+.mobile-mode-switch {
+  display: none;
+}
+@media (max-width: 768px) {
+  .mobile-mode-switch {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: transparent;
+    color: white;
+    border: none;
+    text-decoration: underline;
+    margin-top: 32px;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 12px;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .auth-page-root.mode-login .auth-form-register {
+    display: none;
+  }
+  .auth-page-root.mode-register .auth-form-login {
+    display: none;
+  }
+}
+
