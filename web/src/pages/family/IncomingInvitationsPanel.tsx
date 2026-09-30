@@ -1,8 +1,11 @@
 // Owner: S1 · Family, Identity & Consent — whole-project waiver (agent/DECISIONS.md 2026-09-28b)
 // Invitations another Family Head sent to this account's email. Approve moves the user in; reject tells the Head.
 import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-import { familyLifecycleApi, type IncomingInvitationDto } from '../../services/apiClient'
+import { familyLifecycleApi, refreshSession, type IncomingInvitationDto } from '../../services/apiClient'
+import { useAppDispatch } from '../../store/hooks'
+import { mapAuthResponse, signedIn, signedOut } from '../../store/slices/authSlice'
 import { extractErrorMessage, formatDateTime } from './threePortalUtils'
 
 type Props = { onChanged?: () => Promise<void> | void; onMessage: (message: string) => void }
@@ -10,6 +13,8 @@ type Props = { onChanged?: () => Promise<void> | void; onMessage: (message: stri
 export function IncomingInvitationsPanel({ onChanged, onMessage }: Props) {
   const [invitations, setInvitations] = useState<IncomingInvitationDto[]>([])
   const [busyId, setBusyId] = useState<string | null>(null)
+  const dispatch = useAppDispatch()
+  const navigate = useNavigate()
 
   const load = useCallback(async () => {
     try {
@@ -32,13 +37,27 @@ export function IncomingInvitationsPanel({ onChanged, onMessage }: Props) {
       else await familyLifecycleApi.rejectInvitation(invitation.id)
       onMessage(approve ? `You joined ${invitation.familyName}.` : `Invitation from ${invitation.familyName} rejected.`)
       await load()
-      if (approve) window.location.assign('/family')
+      if (approve) await adoptNewRole()
       else await onChanged?.()
     } catch (error) {
       onMessage(extractErrorMessage(error, approve ? 'The invitation could not be approved.' : 'The invitation could not be rejected.'))
       await load()
     } finally {
       setBusyId(null)
+    }
+  }
+
+  // Joining moves this user into another family (a Head becomes an Adult Member), so the session must
+  // carry the new role. Tokens live in memory, so a full page reload would sign the user out; refresh
+  // the session in place instead. If the refresh fails, sign out rather than keep a stale role.
+  async function adoptNewRole() {
+    try {
+      const session = await refreshSession()
+      if (!session) throw new Error('no session')
+      dispatch(signedIn(mapAuthResponse(session)))
+      navigate('/family')
+    } catch {
+      dispatch(signedOut())
     }
   }
 
