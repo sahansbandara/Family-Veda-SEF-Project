@@ -3,26 +3,26 @@
 /* Design tokens — see design.md.
 /* Design tokens — see design.md.
  *
- * Default is a radiant, clean, clinical white theme.
+ * Default is a clean clinical light theme in the sign-in blue palette.
  * Explicit dark mode is activated when [data-theme="dark"] is stamped.
  */
 
 :root,
 :root[data-theme="light"] {
   /* ── semantic colour — meaning, not decoration ─────────────────────── */
-  --primary:        #0d8276;   /* CTA, active nav, approve */
-  --primary-lum:    #14b8a6;   /* luminous pair, gradients and glass accents */
-  --primary-subtle: #e6f7f5;   /* soft badge and tint backgrounds */
-  --primary-hover:  #0a6b61;   /* interactive hover state */
-  --background:     #eff5f3;   /* luminous, fresh healthcare off-white with gentle sage tint */
+  --primary:        #146cff;   /* CTA, active nav, approve */
+  --primary-lum:    #21a8f6;   /* luminous pair, gradients and glass accents */
+  --primary-subtle: #e6f0ff;   /* soft badge and tint backgrounds */
+  --primary-hover:  #0b57d9;   /* interactive hover state */
+  --background:     #eef4fb;   /* cool clinical ice-blue, matches the sign-in shell */
   --surface:        #ffffff;   /* pure white card and panel surfaces */
-  --surface-subtle: #e7f1ee;   /* secondary panel and table header fills */
-  --border:         #cedfdc;   /* clean slate/sage card and divider borders */
-  --border-subtle:  #e0ebe8;   /* table rules and subtle dividers */
-  --text:           #0e1e1c;   /* high contrast dark charcoal-teal */
-  --text-heading:   #061a17;   /* prominent title color */
-  --muted:          #46605a;   /* secondary explanatory text */
-  --faint:          #6f8984;   /* captions, labels, timestamps */
+  --surface-subtle: #f1f6fd;   /* secondary panel and table header fills */
+  --border:         #d5e2f2;   /* soft blue-slate card and divider borders */
+  --border-subtle:  #e6eef8;   /* table rules and subtle dividers */
+  --text:           #10213a;   /* high contrast deep navy */
+  --text-heading:   #0b2545;   /* prominent title color */
+  --muted:          #51647d;   /* secondary explanatory text */
+  --faint:          #7a8aa0;   /* captions, labels, timestamps */
   --danger:         #b3261e;
   --warning:        #a66300;
   --success:        #167946;
@@ -31,13 +31,13 @@
   --on-accent:      #ffffff;   /* text on primary/agent/emergency fills */
 
   /* ── component semantic tokens ────────────────────────────────────────── */
-  --card-teal-bg:        linear-gradient(170deg, #f0fdf9 0%, #ffffff 55%);
-  --card-teal-border:    rgba(13, 130, 118, 0.24);
-  --card-teal-accent:    #0d8276;
-  --card-teal-badge-bg:  #ccfbf1;
-  --card-teal-badge-txt: #0f766e;
-  --card-teal-badge-bdr: #99f6e4;
-  --card-teal-num:       #0d6e64;
+  --card-teal-bg:        linear-gradient(170deg, #eef5ff 0%, #ffffff 55%);
+  --card-teal-border:    rgba(20, 108, 255, 0.22);
+  --card-teal-accent:    #146cff;
+  --card-teal-badge-bg:  #dbeafe;
+  --card-teal-badge-txt: #1d4ed8;
+  --card-teal-badge-bdr: #bfdbfe;
+  --card-teal-num:       #0b57d9;
 
   --card-amber-bg:        linear-gradient(170deg, #fffbeb 0%, #ffffff 55%);
   --card-amber-border:    rgba(217, 119, 6, 0.26);
@@ -55,34 +55,34 @@
   --card-blue-badge-bdr: #bae6fd;
   --card-blue-num:       #0369a1;
 
-  --banner-bg:           linear-gradient(135deg, #ffffff 0%, #f0fdf9 55%, #e6f8f5 100%);
-  --banner-border:       rgba(13, 130, 118, 0.22);
-  --banner-accent:       #0d8276;
+  --banner-bg:           linear-gradient(135deg, #ffffff 0%, #eef5ff 55%, #e2f1ff 100%);
+  --banner-border:       rgba(20, 108, 255, 0.20);
+  --banner-accent:       #146cff;
   --banner-glow:         var(--primary-lum);
 
   --status-pill-bg:      #ecfdf5;
   --status-pill-border:  #a7f3d0;
   --status-pill-text:    #065f46;
 
-  --nav-inactive-color:  #274843;
-  --topbar-border:       rgba(13, 130, 118, 0.16);
-  --brand-mark-bg:       linear-gradient(135deg, #e6f7f4, #d1fae5);
-  --brand-mark-border:   rgba(13, 130, 118, 0.25);
+  --nav-inactive-color:  #2b4262;
+  --topbar-border:       rgba(20, 108, 255, 0.14);
+  --brand-mark-bg:       linear-gradient(135deg, #e6f0ff, #dff3ff);
+  --brand-mark-border:   rgba(20, 108, 255, 0.25);
 
   --action-card-bg:      linear-gradient(135deg, #ffffff 0%, #f7fbfa 100%);
-  --action-card-teal-bg: linear-gradient(135deg, #ffffff 0%, #f7fbfa 100%);
+  --action-card-teal-bg: linear-gradient(135deg, #ffffff 0%, #f4f8ff 100%);
   --action-card-blue-bg: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  --action-arrow-teal:   #e6f7f5;
+  --action-arrow-teal:   #e6f0ff;
   --action-arrow-blue:   #e0f2fe;
 
   /* ── glass material — luminous white clinical glass ────────────────── */
   --glass-tint:     #ffffff;
-  --glass-fill-hi:  rgba(255, 255, 255, 0.95);
-  --glass-fill-lo:  rgba(255, 255, 255, 0.82);
+  --glass-fill-hi:  rgba(255, 255, 255, 0.78);
+  --glass-fill-lo:  rgba(255, 255, 255, 0.56);
   --glass-edge:     rgba(255, 255, 255, 0.98);
-  --glass-edge-dim: rgba(13, 130, 118, 0.14);
+  --glass-edge-dim: rgba(20, 108, 255, 0.10);
   --glass-spec:     rgba(255, 255, 255, 1);
-  --glass-cast:     rgba(15, 60, 50, 0.07);
+  --glass-cast:     rgba(11, 37, 69, 0.10);
 
   --blur-thin:    10px;
   --blur-regular: 22px;
@@ -90,10 +90,10 @@
   --blur:         var(--blur-regular);
 
   /* ── ambient mesh — daylight tones drawn from the brand mark ───────── */
-  --orb-a: #86efac;  /* fresh spring mint */
-  --orb-b: #5eead4;  /* clinical healing teal */
-  --orb-c: #93c5fd;  /* clear sky blue */
-  --orb-opacity: 0.42;
+  --orb-a: #93c5fd;  /* fresh spring mint */
+  --orb-b: #7dd3fc;  /* clinical healing teal */
+  --orb-c: #c4b5fd;  /* clear sky blue */
+  --orb-opacity: 0.45;
 
   /* ── type ──────────────────────────────────────────────────────────── */
   --font-sans: Inter, "Noto Sans Sinhala", system-ui, -apple-system,
@@ -116,36 +116,36 @@
 
 /* Explicit dark choice activated when [data-theme="dark"] is set. */
 :root[data-theme="dark"] {
-  --primary:        #3aa394;
-  --primary-lum:    #48d8c0;
-  --primary-subtle: rgba(58, 163, 148, 0.16);
-  --primary-hover:  #48d8c0;
-  --background:     #07100f;
-  --surface:        #0f1a18;
-  --surface-subtle: #142421;
-  --border:         #22332f;
-  --border-subtle:  #182825;
-  --text:           #e9f2f0;
+  --primary:        #3b8bff;
+  --primary-lum:    #38bdf8;
+  --primary-subtle: rgba(59, 139, 255, 0.16);
+  --primary-hover:  #60a5fa;
+  --background:     #060d1a;
+  --surface:        #0c1628;
+  --surface-subtle: #111d33;
+  --border:         rgba(148, 180, 230, 0.16);
+  --border-subtle:  rgba(148, 180, 230, 0.09);
+  --text:           #e2eaf5;
   --text-heading:   #ffffff;
-  --muted:          #9db2ae;
-  --faint:          #6b807c;
+  --muted:          #93a8c6;
+  --faint:          #6b7f9c;
   --danger:         #f2685f;
   --warning:        #e0a44a;
   --success:        #4bb574;
   --emergency:      #ff4d4d;
   --agent:          #8c8cd9;
-  --on-accent:      #06100e;
+  --on-accent:      #ffffff;
 
   /* ── component semantic tokens (Dark) ─────────────────────────────────── */
-  --card-teal-bg:        linear-gradient(170deg, rgba(20, 184, 166, 0.12) 0%, #0f1a18 60%);
-  --card-teal-border:    rgba(45, 212, 191, 0.28);
-  --card-teal-accent:    #2dd4bf;
-  --card-teal-badge-bg:  rgba(20, 184, 166, 0.2);
-  --card-teal-badge-txt: #5eead4;
-  --card-teal-badge-bdr: rgba(45, 212, 191, 0.35);
-  --card-teal-num:       #5eead4;
+  --card-teal-bg:        linear-gradient(170deg, rgba(59, 139, 255, 0.14) 0%, #0c1628 60%);
+  --card-teal-border:    rgba(96, 165, 250, 0.28);
+  --card-teal-accent:    #60a5fa;
+  --card-teal-badge-bg:  rgba(59, 139, 255, 0.2);
+  --card-teal-badge-txt: #93c5fd;
+  --card-teal-badge-bdr: rgba(96, 165, 250, 0.35);
+  --card-teal-num:       #93c5fd;
 
-  --card-amber-bg:        linear-gradient(170deg, rgba(245, 158, 11, 0.12) 0%, #0f1a18 60%);
+  --card-amber-bg:        linear-gradient(170deg, rgba(245, 158, 11, 0.12) 0%, #0c1628 60%);
   --card-amber-border:    rgba(251, 191, 36, 0.28);
   --card-amber-accent:    #fbbf24;
   --card-amber-badge-bg:  rgba(245, 158, 11, 0.2);
@@ -153,7 +153,7 @@
   --card-amber-badge-bdr: rgba(251, 191, 36, 0.35);
   --card-amber-num:       #fde68a;
 
-  --card-blue-bg:        linear-gradient(170deg, rgba(56, 189, 248, 0.12) 0%, #0f1a18 60%);
+  --card-blue-bg:        linear-gradient(170deg, rgba(56, 189, 248, 0.12) 0%, #0c1628 60%);
   --card-blue-border:    rgba(56, 189, 248, 0.28);
   --card-blue-accent:    #38bdf8;
   --card-blue-badge-bg:  rgba(56, 189, 248, 0.2);
@@ -161,38 +161,38 @@
   --card-blue-badge-bdr: rgba(56, 189, 248, 0.35);
   --card-blue-num:       #7dd3fc;
 
-  --banner-bg:           linear-gradient(135deg, #0f1a18 0%, rgba(13, 130, 118, 0.2) 55%, #142421 100%);
-  --banner-border:       rgba(45, 212, 191, 0.28);
-  --banner-accent:       #2dd4bf;
-  --banner-glow:         #2dd4bf;
+  --banner-bg:           linear-gradient(135deg, rgba(20, 108, 255, 0.22) 0%, rgba(12, 22, 40, 0.7) 55%, rgba(56, 189, 248, 0.12) 100%);
+  --banner-border:       rgba(96, 165, 250, 0.26);
+  --banner-accent:       #60a5fa;
+  --banner-glow:         #3b8bff;
 
   --status-pill-bg:      rgba(16, 185, 129, 0.16);
   --status-pill-border:  rgba(52, 211, 153, 0.35);
   --status-pill-text:    #6ee7b7;
 
-  --nav-inactive-color:  #9db2ae;
+  --nav-inactive-color:  #a9bcd8;
   --topbar-border:       var(--border);
-  --brand-mark-bg:       rgba(58, 163, 148, 0.18);
-  --brand-mark-border:   rgba(58, 163, 148, 0.32);
+  --brand-mark-bg:       rgba(59, 139, 255, 0.18);
+  --brand-mark-border:   rgba(96, 165, 250, 0.32);
 
-  --action-card-bg:      linear-gradient(135deg, #0f1a18 0%, #142421 100%);
-  --action-card-teal-bg: linear-gradient(135deg, #0f1a18 0%, rgba(13, 130, 118, 0.16) 100%);
-  --action-card-blue-bg: linear-gradient(135deg, #0f1a18 0%, rgba(56, 189, 248, 0.16) 100%);
-  --action-arrow-teal:   rgba(20, 184, 166, 0.2);
+  --action-card-bg:      linear-gradient(135deg, #0c1628 0%, #111d33 100%);
+  --action-card-teal-bg: linear-gradient(135deg, #0c1628 0%, rgba(20, 108, 255, 0.16) 100%);
+  --action-card-blue-bg: linear-gradient(135deg, #0c1628 0%, rgba(56, 189, 248, 0.16) 100%);
+  --action-arrow-teal:   rgba(59, 139, 255, 0.2);
   --action-arrow-blue:   rgba(56, 189, 248, 0.2);
 
-  --glass-tint:     #7fe9d6;
-  --glass-fill-hi:  rgba(38, 74, 70, 0.62);
-  --glass-fill-lo:  rgba(20, 44, 41, 0.34);
-  --glass-edge:     rgba(126, 235, 214, 0.20);
-  --glass-edge-dim: rgba(0, 0, 0, 0.40);
-  --glass-spec:     rgba(160, 255, 238, 0.26);
-  --glass-cast:     rgba(0, 0, 0, 0.52);
+  --glass-tint:     #9cc4ff;
+  --glass-fill-hi:  rgba(30, 52, 92, 0.55);
+  --glass-fill-lo:  rgba(12, 24, 46, 0.38);
+  --glass-edge:     rgba(160, 200, 255, 0.22);
+  --glass-edge-dim: rgba(0, 0, 0, 0.45);
+  --glass-spec:     rgba(190, 215, 255, 0.22);
+  --glass-cast:     rgba(0, 0, 0, 0.55);
 
-  --orb-a: #35591d;
-  --orb-b: #0e6f62;
-  --orb-c: #12506f;
-  --orb-opacity: 0.50;
+  --orb-a: #1e3a8a;
+  --orb-b: #0c4a6e;
+  --orb-c: #3b1f7a;
+  --orb-opacity: 0.55;
 
   --shadow-sm: 0 4px 12px -4px var(--glass-cast);
   --shadow-md: 0 18px 44px -14px var(--glass-cast);

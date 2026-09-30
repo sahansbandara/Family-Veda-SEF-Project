@@ -44,7 +44,7 @@
   border-bottom: 2px solid var(--topbar-border);
   background: color-mix(in srgb, var(--surface) 96%, transparent);
   backdrop-filter: blur(var(--blur-regular));
-  box-shadow: 0 2px 10px -2px rgba(13, 130, 118, 0.05);
+  box-shadow: 0 2px 10px -2px rgba(20, 108, 255, 0.05);
 }
 
 .brand {
@@ -84,7 +84,7 @@
   border-radius: 12px;
   background: var(--brand-mark-bg);
   border: 1px solid var(--brand-mark-border);
-  box-shadow: 0 2px 8px -1px rgba(13, 130, 118, 0.18);
+  box-shadow: 0 2px 8px -1px rgba(20, 108, 255, 0.18);
 }
 .brand-mark img, .brand-mark svg { width: 100%; height: 100%; display: block; }
 /* The full illustrated logo. Only used where it has room to breathe — the
@@ -132,7 +132,7 @@
   color: #ffffff;
   background: linear-gradient(135deg, var(--primary), var(--primary-lum));
   border: 2px solid var(--surface);
-  box-shadow: 0 2px 8px -1px rgba(13, 130, 118, 0.3);
+  box-shadow: 0 2px 8px -1px rgba(20, 108, 255, 0.3);
 }
 
 .primary-nav {
@@ -148,8 +148,8 @@
   overflow-x: auto;
   border-radius: var(--r-pill);
   background: color-mix(in srgb, var(--surface) 95%, transparent);
-  border: 1px solid rgba(13, 130, 118, 0.2);
-  box-shadow: 0 4px 14px -3px rgba(13, 130, 118, 0.1);
+  border: 1px solid rgba(20, 108, 255, 0.2);
+  box-shadow: 0 4px 14px -3px rgba(20, 108, 255, 0.1);
   backdrop-filter: blur(var(--blur-regular));
   scrollbar-width: none;
 }
@@ -175,7 +175,7 @@
 .primary-nav a.active {
   color: #ffffff;
   background: linear-gradient(135deg, var(--primary), var(--primary-lum));
-  box-shadow: 0 3px 10px -1px rgba(13, 130, 118, 0.4);
+  box-shadow: 0 3px 10px -1px rgba(20, 108, 255, 0.4);
 }
 
 .main-content {
@@ -245,7 +245,7 @@
   border: 1px solid var(--banner-border);
   border-left: 5px solid var(--banner-accent);
   border-radius: var(--r-xl);
-  box-shadow: 0 4px 18px -2px rgba(13, 130, 118, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 4px 18px -2px rgba(20, 108, 255, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02);
   position: relative;
   overflow: hidden;
 }
@@ -387,7 +387,7 @@
 }
 .metric-card--teal:hover {
   border-color: var(--card-teal-accent);
-  box-shadow: 0 10px 25px -4px rgba(13, 130, 118, 0.18);
+  box-shadow: 0 10px 25px -4px rgba(20, 108, 255, 0.18);
   transform: translateY(-2px);
 }
 .metric-card--teal strong {
@@ -486,7 +486,7 @@
 .action-card--teal:hover {
   transform: translateY(-2px);
   border-color: var(--card-teal-accent);
-  box-shadow: 0 8px 20px -4px rgba(13, 130, 118, 0.16);
+  box-shadow: 0 8px 20px -4px rgba(20, 108, 255, 0.16);
 }
 .action-card--teal .action-card-arrow {
   background: var(--action-arrow-teal);
@@ -561,11 +561,11 @@
 .button--primary {
   color: #ffffff;
   background: linear-gradient(135deg, var(--primary), var(--primary-lum));
-  box-shadow: 0 3px 10px -2px rgba(13, 130, 118, 0.35);
+  box-shadow: 0 3px 10px -2px rgba(20, 108, 255, 0.35);
 }
 .button--primary:hover {
   background: linear-gradient(135deg, var(--primary-hover), var(--primary));
-  box-shadow: 0 5px 14px -2px rgba(13, 130, 118, 0.45);
+  box-shadow: 0 5px 14px -2px rgba(20, 108, 255, 0.45);
 }
 .button--secondary {
   color: var(--text);
@@ -659,7 +659,7 @@ table input:hover {
 table input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(13, 130, 118, 0.16);
+  box-shadow: 0 0 0 3px rgba(20, 108, 255, 0.16);
 }
 .field--search { min-width: 240px; }
 
@@ -913,7 +913,7 @@ tbody tr:hover { background: var(--primary-subtle); }
   background: var(--primary-subtle);
   font-size: 1.3rem;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px -1px rgba(13, 130, 118, 0.15);
+  box-shadow: 0 2px 6px -1px rgba(20, 108, 255, 0.15);
 }
 
 .live-floating-card strong {
