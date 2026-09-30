@@ -90,6 +90,8 @@ internal sealed class FamilyInvitationConfiguration : IEntityTypeConfiguration<F
         builder.Property(x => x.InvitedEmailHash).HasMaxLength(64).IsRequired();
         builder.Property(x => x.TokenHash).HasMaxLength(64).IsRequired();
         builder.HasIndex(x => x.TokenHash).IsUnique();
+        builder.Property(x => x.InvitedEmailLookupHash).HasMaxLength(64);
+        builder.HasIndex(x => x.InvitedEmailLookupHash);
         builder.HasOne(x => x.Family).WithMany().HasForeignKey(x => x.FamilyId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(x => x.InvitedByUser).WithMany().HasForeignKey(x => x.InvitedByUserId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.AcceptedByUser).WithMany().HasForeignKey(x => x.AcceptedByUserId).OnDelete(DeleteBehavior.Restrict);

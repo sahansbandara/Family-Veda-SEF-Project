@@ -190,6 +190,25 @@ public static class InvitationCrypto
     public static string HashEmail(string email, string token) => Convert.ToHexString(
         HMACSHA256.HashData(Encoding.UTF8.GetBytes(token), Encoding.UTF8.GetBytes(email)));
 
+    /// <summary>Lets the backend match a signed-in user to invitations sent to their email. Never exposed.</summary>
+    public static string LookupHash(string email) => Hash("fv-invitation-lookup:" + email.Trim().ToLowerInvariant());
+
+    /// <summary>In-app notice for an invitee who already has an account. The token is still shown only to the Head.</summary>
+    public static async Task NotifyExistingInviteeAsync(AppDbContext dbContext, string email, Guid familyId, CancellationToken cancellationToken)
+    {
+        var invitee = await dbContext.Users.AsNoTracking().Where(x => x.Email.ToLower() == email).Select(x => (Guid?)x.Id).FirstOrDefaultAsync(cancellationToken);
+        if (invitee is null) return;
+        var familyName = await dbContext.Families.AsNoTracking().Where(x => x.Id == familyId).Select(x => x.Name).SingleAsync(cancellationToken);
+        dbContext.PortalNotifications.Add(new Domain.Portal.PortalNotification
+        {
+            UserId = invitee.Value,
+            Type = "FAMILY_INVITATION_RECEIVED",
+            Title = "You were invited to join a family",
+            Body = $"{familyName} invited you to join. Approve or reject it under My Family → Join Requests.",
+            LinkPath = "/family?tab=requests"
+        });
+    }
+
     /// <summary>"rashmi@example.invalid" → "r***@example.invalid". Enough for the Head to recognise, not to contact.</summary>
     public static string MaskEmail(string email)
     {
