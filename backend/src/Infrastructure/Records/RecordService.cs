@@ -105,7 +105,7 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
             VitalType = request.VitalType.Trim(),
             Value = request.Value,
             Unit = request.Unit.Trim(),
-            MeasuredAt = request.MeasuredAt
+            MeasuredAt = request.MeasuredAt.ToUniversalTime()
         };
         dbContext.Vitals.Add(vital);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -183,7 +183,7 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
             StoredFileName = $"db:{Guid.NewGuid():N}{extension}",
             ContentType = contentType,
             SizeBytes = buffer.Length,
-            CollectedAt = collectedAt
+            CollectedAt = collectedAt?.ToUniversalTime()
         };
         report.File = new LabReportFile { LabReport = report, Content = buffer.ToArray() };
         dbContext.LabReports.Add(report);

@@ -10,7 +10,18 @@ import { Pagination } from '../../components/shared/Pagination'
 import { StatusBadge } from '../../components/shared/StatusBadge'
 import { ReportLibraryCard } from '../../components/records/ReportLibraryCard'
 import { PageHero, SubTabs, type SubTab } from '../dashboard/dashboardParts'
-import { apiClient, type FamilyDto, type HealthRecordDto, type LabReportDetailDto, type LabReportDto, type LabValueDto, type MemberDto, type PagedResult, type VitalDto, type VitalTrendDto } from '../../services/apiClient'
+import {
+  apiClient,
+  type FamilyDto,
+  type HealthRecordDto,
+  type LabReportDetailDto,
+  type LabReportDto,
+  type LabValueDto,
+  type MemberDto,
+  type PagedResult,
+  type VitalDto,
+  type VitalTrendDto,
+} from '../../services/apiClient'
 
 function recordedRangeMarker(value: LabValueDto) {
   // Server status is authoritative (deterministic, RULE 4); the local check covers unsaved edits.
@@ -35,19 +46,33 @@ export function RecordsPage() {
   const [myMemberId, setMyMemberId] = useState('')
   const [memberId, setMemberId] = useState('')
   const [records, setRecords] = useState<HealthRecordDto[]>([])
+  const [editingRecord, setEditingRecord] = useState<HealthRecordDto | null>(null)
   const [reports, setReports] = useState<LabReportDto[]>([])
   const [selectedReport, setSelectedReport] = useState<LabReportDetailDto | null>(null)
   const [vitals, setVitals] = useState<VitalDto[]>([])
   const [trends, setTrends] = useState<VitalTrendDto[]>([])
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
-  const [search, setSearch] = useState(''); const [filter, setFilter] = useState('ALL'); const [sort, setSort] = useState('date-desc'); const [page, setPage] = useState(1); const [totalPages, setTotalPages] = useState(1); const [message, setMessage] = useState('')
+  const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState('ALL')
+  const [sort, setSort] = useState('date-desc')
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [message, setMessage] = useState('')
 
-  useEffect(() => { void Promise.all([apiClient.get<FamilyDto>('/families/me'), apiClient.get<MemberDto>('/members/me')]).then(([family, mine]) => {
-    // A Family Head may also open an adult's profile, but only sees items that adult chose to share (Phase 2).
-    const isHead = mine.data.role === 'Head'
-    const accessible = family.data.members.filter((item) => item.id === mine.data.id || item.role === 'MinorMember' || isHead)
-    setMembers(accessible); setMemberId(mine.data.id); setMyMemberId(mine.data.id); setIsHead(isHead)
-  }).catch(() => setStatus('error')) }, [])
+  useEffect(() => {
+    void Promise.all([apiClient.get<FamilyDto>('/families/me'), apiClient.get<MemberDto>('/members/me')])
+      .then(([family, mine]) => {
+        // A Family Head may also open an adult's profile, but only sees items that adult chose to share (Phase 2).
+        const head = mine.data.role === 'Head'
+        const accessible = family.data.members.filter((item) => item.id === mine.data.id || item.role === 'MinorMember' || head)
+        setMembers(accessible)
+        setMemberId(mine.data.id)
+        setMyMemberId(mine.data.id)
+        setIsHead(head)
+      })
+      .catch(() => setStatus('error'))
+  }, [])
+
   const selected = members.find((item) => item.id === memberId)
   const isOwnProfile = memberId !== '' && memberId === myMemberId
   const isSharedView = !!selected && !isOwnProfile && selected.role !== 'MinorMember'
@@ -57,36 +82,129 @@ export function RecordsPage() {
     if (!memberId) return
     setStatus('loading')
     try {
-      const params = { page, pageSize: 20, search: search || undefined, type: filter === 'ALL' ? undefined : filter, sort: sort === 'date-desc' ? 'newest' : 'oldest' }
-      const [recordResponse, reportResponse] = await Promise.all([apiClient.get<PagedResult<HealthRecordDto>>(`/members/${memberId}/records`, { params }), apiClient.get<LabReportDto[]>(`/members/${memberId}/lab-reports`)])
+      const params = {
+        page,
+        pageSize: 20,
+        search: search || undefined,
+        type: filter === 'ALL' ? undefined : filter,
+        sort: sort === 'date-desc' ? 'newest' : 'oldest',
+      }
+      const [recordResponse, reportResponse] = await Promise.all([
+        apiClient.get<PagedResult<HealthRecordDto>>(`/members/${memberId}/records`, { params }),
+        apiClient.get<LabReportDto[]>(`/members/${memberId}/lab-reports`),
+      ])
       // Vitals are never shared with the Family Head; only fetch them where access exists.
-      const [vitalResponse, trendResponse] = isSharedView ? [{ data: [] as VitalDto[] }, { data: [] as VitalTrendDto[] }]
-        : await Promise.all([apiClient.get<VitalDto[]>(`/members/${memberId}/vitals`), apiClient.get<VitalTrendDto[]>(`/members/${memberId}/vitals/trends`)])
-      setRecords(recordResponse.data.items); setReports(reportResponse.data); setVitals(vitalResponse.data); setTrends(trendResponse.data); setTotalPages(Math.max(1, recordResponse.data.totalPages)); setStatus('ready')
-    } catch { setStatus('error') }
+      const [vitalResponse, trendResponse] = isSharedView
+        ? [{ data: [] as VitalDto[] }, { data: [] as VitalTrendDto[] }]
+        : await Promise.all([
+            apiClient.get<VitalDto[]>(`/members/${memberId}/vitals`),
+            apiClient.get<VitalTrendDto[]>(`/members/${memberId}/vitals/trends`),
+          ])
+      setRecords(recordResponse.data.items)
+      setReports(reportResponse.data)
+      setVitals(vitalResponse.data)
+      setTrends(trendResponse.data)
+      setTotalPages(Math.max(1, recordResponse.data.totalPages))
+      setStatus('ready')
+    } catch {
+      setStatus('error')
+    }
   }, [filter, isSharedView, memberId, page, search, sort])
-  useEffect(() => { void loadRecords() }, [loadRecords])
 
-  async function addRecord(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); const form = new FormData(event.currentTarget)
-    try { await apiClient.post(`/members/${memberId}/records`, { recordType: form.get('recordType'), title: form.get('title'), summary: form.get('summary') || null, occurredOn: form.get('occurredOn') }); event.currentTarget.reset(); setMessage('Record saved.'); await loadRecords() } catch { setMessage('Record could not be saved. Check the fields and retry.') }
+  useEffect(() => {
+    void loadRecords()
+  }, [loadRecords])
+
+  async function handleSaveRecord(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const form = new FormData(event.currentTarget)
+    const payload = {
+      recordType: form.get('recordType'),
+      title: form.get('title'),
+      summary: form.get('summary') || null,
+      occurredOn: form.get('occurredOn'),
+    }
+    try {
+      if (editingRecord) {
+        await apiClient.put(`/records/${editingRecord.id}`, payload)
+        setMessage('Record updated.')
+        setEditingRecord(null)
+      } else {
+        await apiClient.post(`/members/${memberId}/records`, payload)
+        setMessage('Record saved.')
+      }
+      event.currentTarget.reset()
+      await loadRecords()
+    } catch {
+      setMessage(editingRecord ? 'Record could not be updated. Check the fields and retry.' : 'Record could not be saved. Check the fields and retry.')
+    }
   }
+
+  async function deleteRecord(recordId: string) {
+    if (!window.confirm('Are you sure you want to delete this health record?')) return
+    try {
+      await apiClient.delete(`/records/${recordId}`)
+      setMessage('Record deleted.')
+      if (editingRecord?.id === recordId) setEditingRecord(null)
+      await loadRecords()
+    } catch {
+      setMessage('Record could not be deleted. Retry.')
+    }
+  }
+
   async function upload(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); const form = new FormData(event.currentTarget); const file = form.get('file')
-    if (!(file instanceof File) || file.size === 0) { setMessage('Choose a PDF, PNG, or JPEG report.'); return }
-    try { const { data } = await apiClient.post<LabReportDto>(`/members/${memberId}/lab-reports`, form, { headers: { 'Content-Type': 'multipart/form-data' } }); setMessage('Report uploaded. We are reading the values; please check them when they appear.'); await apiClient.post(`/lab-reports/${data.id}/extract`).catch(() => undefined); event.currentTarget.reset(); await loadRecords() } catch { setMessage('Report upload failed. Verify file type and 10 MB limit.') }
+    event.preventDefault()
+    const form = new FormData(event.currentTarget)
+    const file = form.get('file')
+    if (!(file instanceof File) || file.size === 0) {
+      setMessage('Choose a PDF, PNG, or JPEG report.')
+      return
+    }
+    try {
+      const { data } = await apiClient.post<LabReportDto>(`/members/${memberId}/lab-reports`, form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      setMessage('Report uploaded. We are reading the values; please check them when they appear.')
+      await apiClient.post(`/lab-reports/${data.id}/extract`).catch(() => undefined)
+      event.currentTarget.reset()
+      await loadRecords()
+    } catch {
+      setMessage('Report upload failed. Verify file type and 10 MB limit.')
+    }
   }
+
   async function toggleRecordSharing(record: HealthRecordDto) {
-    try { await apiClient.patch(`/records/${record.id}/sharing`, { sharedWithFamilyHead: !record.sharedWithFamilyHead }); setMessage(record.sharedWithFamilyHead ? 'Record is now private from the Family Head.' : 'Record is now shared with the Family Head.'); await loadRecords() } catch { setMessage('Sharing could not be changed. Retry.') }
+    try {
+      await apiClient.patch(`/records/${record.id}/sharing`, { sharedWithFamilyHead: !record.sharedWithFamilyHead })
+      setMessage(record.sharedWithFamilyHead ? 'Record is now private from the Family Head.' : 'Record is now shared with the Family Head.')
+      await loadRecords()
+    } catch {
+      setMessage('Sharing could not be changed. Retry.')
+    }
   }
+
   async function toggleReportSharing(report: LabReportDto) {
-    try { await apiClient.patch(`/lab-reports/${report.id}/sharing`, { sharedWithFamilyHead: !report.sharedWithFamilyHead }); setMessage(report.sharedWithFamilyHead ? 'Report is now private from the Family Head.' : 'Report is now shared with the Family Head.'); await loadRecords() } catch { setMessage('Sharing could not be changed. Retry.') }
+    try {
+      await apiClient.patch(`/lab-reports/${report.id}/sharing`, { sharedWithFamilyHead: !report.sharedWithFamilyHead })
+      setMessage(report.sharedWithFamilyHead ? 'Report is now private from the Family Head.' : 'Report is now shared with the Family Head.')
+      await loadRecords()
+    } catch {
+      setMessage('Sharing could not be changed. Retry.')
+    }
   }
+
   async function reviewReport(reportId: string) {
-    try { setSelectedReport((await apiClient.get<LabReportDetailDto>(`/lab-reports/${reportId}`)).data); setMessage('Review every extracted item before confirming it.') } catch { setMessage('Extracted report details could not be loaded.') }
+    try {
+      setSelectedReport((await apiClient.get<LabReportDetailDto>(`/lab-reports/${reportId}`)).data)
+      setMessage('Review every extracted item before confirming it.')
+    } catch {
+      setMessage('Extracted report details could not be loaded.')
+    }
   }
+
   async function confirmReport(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); if (!selectedReport) return
+    event.preventDefault()
+    if (!selectedReport) return
     const form = new FormData(event.currentTarget)
     const values = selectedReport.values.map((value) => ({
       id: value.id,
@@ -99,12 +217,29 @@ export function RecordsPage() {
     const confirmedFlagIds = selectedReport.flags.filter((flag) => form.get(`flag-${flag.id}`) === 'on').map((flag) => flag.id)
     try {
       const { data } = await apiClient.put<LabReportDetailDto>(`/lab-reports/${selectedReport.id}/review`, { values, confirmedFlagIds })
-      setSelectedReport(data); setMessage('Manual review confirmed and audited. Only confirmed items may enter automated context.')
-    } catch { setMessage('Manual review could not be saved. Check every value and reference range.') }
+      setSelectedReport(data)
+      setMessage('Manual review confirmed and audited. Only confirmed items may enter automated context.')
+    } catch {
+      setMessage('Manual review could not be saved. Check every value and reference range.')
+    }
   }
+
   async function addVital(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); const form = new FormData(event.currentTarget)
-    try { await apiClient.post(`/members/${memberId}/vitals`, { vitalType: form.get('vitalType'), value: Number(form.get('value')), unit: form.get('unit'), measuredAt: new Date(String(form.get('measuredAt'))).toISOString() }); event.currentTarget.reset(); setMessage('Vital saved. Values are shown as recorded only.'); await loadRecords() } catch { setMessage('Vital could not be saved. Check each field and time.') }
+    event.preventDefault()
+    const form = new FormData(event.currentTarget)
+    try {
+      await apiClient.post(`/members/${memberId}/vitals`, {
+        vitalType: form.get('vitalType'),
+        value: Number(form.get('value')),
+        unit: form.get('unit'),
+        measuredAt: new Date(String(form.get('measuredAt'))).toISOString(),
+      })
+      event.currentTarget.reset()
+      setMessage('Vital saved. Values are shown as recorded only.')
+      await loadRecords()
+    } catch {
+      setMessage('Vital could not be saved. Check each field and time.')
+    }
   }
 
   const tabs: SubTab<RecordsTab>[] = [
@@ -114,26 +249,467 @@ export function RecordsPage() {
   ]
   const activeTab: RecordsTab = isSharedView && tab === 'vitals' ? 'records' : tab
 
-  return <div className="page-stack"><PageHero eyebrow={isHead ? 'Longitudinal health' : 'My health'} title={isHead ? 'Health Records' : 'My Health'}
-      purpose={isHead ? 'Reports and readings for you, your minors, and anything adults chose to share with you.' : 'Your reports and readings. Everything is private from your Family Head unless you share an item.'}
-      action={isSharedView ? undefined : <button type="button" className="fv-btn fv-btn--primary" onClick={() => setTab('labs')}>+ Upload Report</button>}>
-      <p><Link to="/family-risk">Family history screening</Link></p>
-    </PageHero>
-    <label>Active profile<select value={memberId} onChange={(event) => { setMemberId(event.target.value); setPage(1) }}>{members.map((member) => <option key={member.id} value={member.id}>{member.displayName}</option>)}</select></label>{message && <p role="status">{message}</p>}
-    {isSharedView && <p className="notice" role="note">Showing only items {selected?.displayName} chose to share with you. Vitals and unshared items stay private.</p>}
-    <SubTabs<RecordsTab> label="Health record views" tabs={tabs} active={activeTab} onChange={setTab} />
-    {activeTab === 'records' && !isSharedView && <section className="panel"><h2>Add health record</h2><form className="form-grid" onSubmit={(event) => void addRecord(event)}><label>Type<select name="recordType">{['Condition', 'Allergy', 'Medication', 'Surgery', 'Note'].map((type) => <option key={type}>{type}</option>)}</select></label><label>Title<input name="title" required minLength={2} maxLength={160} /></label><label>Date<input name="occurredOn" type="date" required /></label><label>Summary<textarea name="summary" maxLength={2000} /></label><button className="button button--primary">Save record</button></form></section>}
-    {activeTab === 'records' && <section className="panel"><ListToolbar searchLabel="Search records" searchValue={search} onSearchChange={(value) => { setSearch(value); setPage(1) }} filterLabel="Record type" filterValue={filter} filterOptions={['Condition', 'Allergy', 'Medication', 'Surgery', 'Note']} onFilterChange={(value) => { setFilter(value); setPage(1) }} sortValue={sort} sortOptions={[{ label: 'Newest first', value: 'date-desc' }, { label: 'Oldest first', value: 'date-asc' }]} onSortChange={setSort} />
-      {status === 'loading' ? <LoadingState label="Loading health records" /> : status === 'error' ? <ErrorState message="Records could not be loaded for this profile." onRetry={() => void loadRecords()} /> : records.length === 0 ? <EmptyState title="No matching records" message="Add a record or change the search and filters." /> : <div className="table-scroll"><table><thead><tr><th>Title</th><th>Type</th><th>Date</th><th>Summary</th>{isOwnProfile && <th>Family Head</th>}</tr></thead><tbody>{records.map((record) => <tr key={record.id}><td>{record.title}</td><td>{record.recordType}</td><td>{record.occurredOn}</td><td>{record.summary ?? 'No summary recorded'}</td>{isOwnProfile && <td><button type="button" className="button button--secondary" aria-pressed={record.sharedWithFamilyHead === true} onClick={() => void toggleRecordSharing(record)}>{record.sharedWithFamilyHead ? 'Shared · make private' : 'Private · share'}</button></td>}</tr>)}</tbody></table></div>}<Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} /></section>}
-    {activeTab === 'vitals' && !isSharedView && <section className="panel"><h2>Vitals</h2><form className="form-grid" onSubmit={(event) => void addVital(event)}><label>Type<input name="vitalType" required maxLength={64} /></label><label>Value<input name="value" type="number" step="any" required /></label><label>Unit<input name="unit" required maxLength={32} /></label><label>Measured at<input name="measuredAt" type="datetime-local" required /></label><button className="button button--primary" type="submit">Save vital</button></form>{vitals.length === 0 ? <p className="muted">No vitals recorded.</p> : <div className="table-scroll"><table><thead><tr><th>Type</th><th>Value</th><th>Measured</th></tr></thead><tbody>{vitals.map((vital) => <tr key={vital.id}><td>{vital.vitalType}</td><td>{vital.value} {vital.unit}</td><td>{new Date(vital.measuredAt).toLocaleString()}</td></tr>)}</tbody></table></div>}<h3>Recorded trends</h3><p className="muted">Bars show recorded values only. They are not a clinical interpretation.</p>{trends.map((trend) => {
-      const max = Math.max(...trend.points.map((point) => Math.abs(point.value)), 1)
-      return <div key={trend.vitalType} style={{ marginTop: 12 }}><p><strong>{trend.vitalType}</strong> ({trend.points[0]?.unit})</p><div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, minHeight: 80 }} role="img" aria-label={`Recorded ${trend.vitalType} values`}>{trend.points.map((point, index) => <span key={`${trend.vitalType}-${index}`} style={{ width: 16, height: `${Math.max(8, (Math.abs(point.value) / max) * 72)}px`, background: 'var(--primary)', borderRadius: 4 }} title={`${point.value} ${point.unit}`} />)}</div><p>{trend.points.map((point) => `${point.value} ${point.unit}`).join(' → ')}</p></div>
-    })}</section>}
-    {activeTab === 'labs' && <section className="panel"><h2>Lab reports</h2>{!isSharedView && <form className="form-grid" onSubmit={(event) => void upload(event)}><label>Report image<input name="file" type="file" accept="image/png,image/jpeg" required /></label><label>Collected at<input name="collectedAt" type="datetime-local" /></label><button className="button button--primary">Upload report</button></form>}{reports.length === 0 ? <EmptyState title="No lab reports" message={isSharedView ? 'No reports have been shared with you.' : 'Upload a synthetic PNG or JPEG lab report to start assistive OCR.'} /> : <div className="report-grid">{reports.map((report) => <ReportLibraryCard key={report.id} report={report} ownerName={nameOf(report.memberId)} canChangeSharing={isOwnProfile} onToggleSharing={(item) => void toggleReportSharing(item)} onReview={isSharedView ? undefined : (item) => void reviewReport(item.id)} />)}</div>}<AiBadge label="Values read automatically" title="We read the values from your report. Please check each one." /><p className="muted">We read the values from your report automatically. Please check each one against the original before it is used. Range status is calculated from the printed reference range. It is not a medical opinion.</p></section>}
-    {activeTab === 'labs' && selectedReport && <section className="panel"><h2>Check the values: {selectedReport.originalFileName} <AiBadge label="AI extracted" /></h2><p className="muted">{selectedReport.values.filter((value) => value.wasManuallyConfirmed).length} of {selectedReport.values.length} values confirmed by you · {selectedReport.flags.filter((flag) => flag.confidence < 0.6 && !flag.manuallyConfirmed).length} low-confidence flags need attention</p><p>Compare every item with the uploaded synthetic report. Unconfirmed values and flags are excluded from all automated reasoning.</p><form className="button-stack" onSubmit={(event) => void confirmReport(event)}>
-      {selectedReport.values.length === 0 ? <p className="muted">No values were extracted. Use manual health records instead.</p> : <div className="table-scroll"><table><thead><tr><th>Analyte</th><th>Value</th><th>Unit</th><th>Low</th><th>High</th><th>State</th></tr></thead><tbody>{selectedReport.values.map((value) => { const rangeMarker = recordedRangeMarker(value); return <tr key={value.id}><td><input name={`analyte-${value.id}`} defaultValue={value.analyte} required maxLength={120} /></td><td><input name={`value-${value.id}`} type="number" step="any" defaultValue={value.value} required style={rangeMarker ? { color: 'var(--warning)', fontWeight: 700 } : undefined} aria-invalid={rangeMarker ? true : undefined} />{rangeMarker}</td><td><input name={`unit-${value.id}`} defaultValue={value.unit} required maxLength={32} /></td><td><input name={`low-${value.id}`} type="number" step="any" defaultValue={value.referenceLow ?? ''} /></td><td><input name={`high-${value.id}`} type="number" step="any" defaultValue={value.referenceHigh ?? ''} /></td><td><StatusBadge status={value.wasManuallyConfirmed ? 'CONFIRMED' : 'REVIEW_REQUIRED'} /></td></tr> })}</tbody></table></div>}
-      <h3>Potential hereditary screening flags</h3>{selectedReport.flags.length === 0 ? <p className="muted">No flags were extracted.</p> : selectedReport.flags.map((flag) => <label key={flag.id} className="field"><span><input name={`flag-${flag.id}`} type="checkbox" defaultChecked={flag.manuallyConfirmed} /> Confirm {flag.conditionCode}: {flag.finding}</span> <span className={`status-badge status-badge--${flag.confidence < 0.6 ? 'warning' : 'muted'}`} title="Extraction agent confidence">AI confidence {Math.round(flag.confidence * 100)}%</span></label>)}
-      <button className="button button--primary" type="submit">Confirm reviewed extraction</button>
-    </form></section>}
-  </div>
+  return (
+    <div className="page-stack">
+      <PageHero
+        eyebrow={isHead ? 'Longitudinal health' : 'My health'}
+        title={isHead ? 'Health Records' : 'My Health'}
+        purpose={
+          isHead
+            ? 'Reports and readings for you, your minors, and anything adults chose to share with you.'
+            : 'Your reports and readings. Everything is private from your Family Head unless you share an item.'
+        }
+        action={
+          isSharedView ? undefined : (
+            <button type="button" className="fv-btn fv-btn--primary" onClick={() => setTab('labs')}>
+              + Upload Report
+            </button>
+          )
+        }
+      >
+        <p>
+          <Link to="/family-risk">Family history screening</Link>
+        </p>
+      </PageHero>
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--sp-4)', flexWrap: 'wrap' }}>
+        <label className="field" style={{ minWidth: 260, maxWidth: 360 }}>
+          <span>Active profile</span>
+          <select
+            value={memberId}
+            onChange={(event) => {
+              setMemberId(event.target.value)
+              setEditingRecord(null)
+              setPage(1)
+            }}
+          >
+            {members.map((member) => (
+              <option key={member.id} value={member.id}>
+                {member.displayName} {member.role === 'Head' ? '(Head)' : member.role === 'MinorMember' ? '(Minor)' : ''}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      {message && (
+        <div className="banner banner--info" role="status" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span>{message}</span>
+          <button type="button" className="button button--secondary button--sm" onClick={() => setMessage('')} style={{ minHeight: 28, padding: '2px 8px' }}>
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {isSharedView && (
+        <p className="notice" role="note">
+          Showing only items {selected?.displayName} chose to share with you. Vitals and unshared items stay private.
+        </p>
+      )}
+
+      <SubTabs<RecordsTab>
+        label="Health record views"
+        tabs={tabs}
+        active={activeTab}
+        onChange={(newTab) => {
+          setTab(newTab)
+          setEditingRecord(null)
+        }}
+      />
+
+      {activeTab === 'records' && !isSharedView && (
+        <section className="panel">
+          <div className="panel-heading">
+            <h2>{editingRecord ? `Edit health record: ${editingRecord.title}` : 'Add health record'}</h2>
+            {editingRecord && (
+              <button type="button" className="button button--secondary button--sm" onClick={() => setEditingRecord(null)}>
+                Cancel editing
+              </button>
+            )}
+          </div>
+          <form key={editingRecord?.id ?? 'new-record'} onSubmit={(event) => void handleSaveRecord(event)} style={{ display: 'grid', gap: 'var(--sp-4)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--sp-4)' }}>
+              <label className="field">
+                <span>Type</span>
+                <select name="recordType" defaultValue={editingRecord?.recordType ?? 'Condition'}>
+                  {['Condition', 'Allergy', 'Medication', 'Surgery', 'Note'].map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field">
+                <span>Title</span>
+                <input
+                  name="title"
+                  defaultValue={editingRecord?.title ?? ''}
+                  required
+                  minLength={2}
+                  maxLength={160}
+                  placeholder="e.g. Asthma diagnosis, Penicillin Allergy..."
+                />
+              </label>
+              <label className="field">
+                <span>Date</span>
+                <input name="occurredOn" type="date" defaultValue={editingRecord?.occurredOn ?? ''} required />
+              </label>
+            </div>
+            <label className="field">
+              <span>Summary (optional)</span>
+              <textarea
+                name="summary"
+                defaultValue={editingRecord?.summary ?? ''}
+                maxLength={2000}
+                placeholder="Clinical details, notes, or physician instructions..."
+                rows={3}
+              />
+            </label>
+            <div style={{ display: 'flex', gap: 'var(--sp-3)', alignItems: 'center' }}>
+              <button className="button button--primary" type="submit">
+                {editingRecord ? 'Update record' : 'Save record'}
+              </button>
+              {editingRecord && (
+                <button className="button button--secondary" type="button" onClick={() => setEditingRecord(null)}>
+                  Cancel
+                </button>
+              )}
+            </div>
+          </form>
+        </section>
+      )}
+
+      {activeTab === 'records' && (
+        <section className="panel">
+          <ListToolbar
+            searchLabel="Search records"
+            searchValue={search}
+            onSearchChange={(value) => {
+              setSearch(value)
+              setPage(1)
+            }}
+            filterLabel="Record type"
+            filterValue={filter}
+            filterOptions={['Condition', 'Allergy', 'Medication', 'Surgery', 'Note']}
+            onFilterChange={(value) => {
+              setFilter(value)
+              setPage(1)
+            }}
+            sortValue={sort}
+            sortOptions={[
+              { label: 'Newest first', value: 'date-desc' },
+              { label: 'Oldest first', value: 'date-asc' },
+            ]}
+            onSortChange={setSort}
+          />
+          {status === 'loading' ? (
+            <LoadingState label="Loading health records" />
+          ) : status === 'error' ? (
+            <ErrorState message="Records could not be loaded for this profile." onRetry={() => void loadRecords()} />
+          ) : records.length === 0 ? (
+            <EmptyState title="No matching records" message="Add a record or change the search and filters." />
+          ) : (
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Summary</th>
+                    {!isSharedView && <th>Actions</th>}
+                    {isOwnProfile && <th>Family Head</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {records.map((record) => (
+                    <tr key={record.id}>
+                      <td>
+                        <strong>{record.title}</strong>
+                      </td>
+                      <td>
+                        <span className="status-badge">{record.recordType}</span>
+                      </td>
+                      <td>{record.occurredOn}</td>
+                      <td>{record.summary ?? 'No summary recorded'}</td>
+                      {!isSharedView && (
+                        <td>
+                          <div className="table-actions">
+                            <button
+                              type="button"
+                              className="button button--secondary button--sm"
+                              onClick={() => {
+                                setEditingRecord(record)
+                                window.scrollTo({ top: 0, behavior: 'smooth' })
+                              }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="button button--danger button--sm"
+                              onClick={() => void deleteRecord(record.id)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      )}
+                      {isOwnProfile && (
+                        <td>
+                          <button
+                            type="button"
+                            className="button button--secondary button--sm"
+                            aria-pressed={record.sharedWithFamilyHead === true}
+                            onClick={() => void toggleRecordSharing(record)}
+                          >
+                            {record.sharedWithFamilyHead ? 'Shared · make private' : 'Private · share'}
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+        </section>
+      )}
+
+      {activeTab === 'vitals' && !isSharedView && (
+        <section className="panel">
+          <div className="panel-heading">
+            <h2>Record Vital Sign</h2>
+          </div>
+          <form onSubmit={(event) => void addVital(event)} style={{ display: 'grid', gap: 'var(--sp-4)', marginBottom: 'var(--sp-5)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--sp-4)' }}>
+              <label className="field">
+                <span>Type</span>
+                <input name="vitalType" required maxLength={64} placeholder="e.g. Heart Rate, Blood Pressure..." />
+              </label>
+              <label className="field">
+                <span>Value</span>
+                <input name="value" type="number" step="any" required placeholder="e.g. 120" />
+              </label>
+              <label className="field">
+                <span>Unit</span>
+                <input name="unit" required maxLength={32} placeholder="e.g. bpm, mmHg, mg/dL..." />
+              </label>
+              <label className="field">
+                <span>Measured at</span>
+                <input name="measuredAt" type="datetime-local" required />
+              </label>
+            </div>
+            <div>
+              <button className="button button--primary" type="submit">
+                Save vital
+              </button>
+            </div>
+          </form>
+
+          <div className="panel-heading" style={{ marginTop: 'var(--sp-5)' }}>
+            <h2>Recorded Vitals History</h2>
+          </div>
+          {vitals.length === 0 ? (
+            <p className="muted">No vitals recorded.</p>
+          ) : (
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Value</th>
+                    <th>Measured</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {vitals.map((vital) => (
+                    <tr key={vital.id}>
+                      <td><strong>{vital.vitalType}</strong></td>
+                      <td>{vital.value} {vital.unit}</td>
+                      <td>{new Date(vital.measuredAt).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <div className="panel-heading" style={{ marginTop: 'var(--sp-6)' }}>
+            <h2>Recorded trends</h2>
+          </div>
+          <p className="muted">Bars show recorded values only. They are not a clinical interpretation.</p>
+          {trends.map((trend) => {
+            const max = Math.max(...trend.points.map((point) => Math.abs(point.value)), 1)
+            return (
+              <div key={trend.vitalType} style={{ marginTop: 16 }}>
+                <p>
+                  <strong>{trend.vitalType}</strong> ({trend.points[0]?.unit})
+                </p>
+                <div
+                  style={{ display: 'flex', alignItems: 'flex-end', gap: 6, minHeight: 80, padding: '8px 0' }}
+                  role="img"
+                  aria-label={`Recorded ${trend.vitalType} values`}
+                >
+                  {trend.points.map((point, index) => (
+                    <span
+                      key={`${trend.vitalType}-${index}`}
+                      style={{
+                        width: 18,
+                        height: `${Math.max(8, (Math.abs(point.value) / max) * 72)}px`,
+                        background: 'var(--primary)',
+                        borderRadius: 4,
+                      }}
+                      title={`${point.value} ${point.unit}`}
+                    />
+                  ))}
+                </div>
+                <p className="muted" style={{ fontSize: '0.88rem' }}>{trend.points.map((point) => `${point.value} ${point.unit}`).join(' → ')}</p>
+              </div>
+            )
+          })}
+        </section>
+      )}
+
+      {activeTab === 'labs' && (
+        <section className="panel">
+          <div className="panel-heading">
+            <h2>Lab reports</h2>
+          </div>
+          {!isSharedView && (
+            <form onSubmit={(event) => void upload(event)} style={{ display: 'grid', gap: 'var(--sp-4)', marginBottom: 'var(--sp-5)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--sp-4)', alignItems: 'flex-end' }}>
+                <label className="field">
+                  <span>Report image (PNG or JPEG)</span>
+                  <input name="file" type="file" accept="image/png,image/jpeg" required />
+                </label>
+                <label className="field">
+                  <span>Collected at</span>
+                  <input name="collectedAt" type="datetime-local" />
+                </label>
+                <div>
+                  <button className="button button--primary" type="submit">
+                    Upload report
+                  </button>
+                </div>
+              </div>
+            </form>
+          )}
+          {reports.length === 0 ? (
+            <EmptyState
+              title="No lab reports"
+              message={isSharedView ? 'No reports have been shared with you.' : 'Upload a synthetic PNG or JPEG lab report to start assistive OCR.'}
+            />
+          ) : (
+            <div className="report-grid">
+              {reports.map((report) => (
+                <ReportLibraryCard
+                  key={report.id}
+                  report={report}
+                  ownerName={nameOf(report.memberId)}
+                  canChangeSharing={isOwnProfile}
+                  onToggleSharing={(item) => void toggleReportSharing(item)}
+                  onReview={isSharedView ? undefined : (item) => void reviewReport(item.id)}
+                />
+              ))}
+            </div>
+          )}
+          <div style={{ marginTop: 'var(--sp-4)' }}>
+            <AiBadge label="Values read automatically" title="We read the values from your report. Please check each one." />
+            <p className="muted" style={{ marginTop: 6, fontSize: '0.85rem' }}>
+              We read the values from your report automatically. Please check each one against the original before it is used. Range status is calculated from the printed reference range. It is not a medical opinion.
+            </p>
+          </div>
+        </section>
+      )}
+
+      {activeTab === 'labs' && selectedReport && (
+        <section className="panel">
+          <h2>
+            Check the values: {selectedReport.originalFileName} <AiBadge label="AI extracted" />
+          </h2>
+          <p className="muted">
+            {selectedReport.values.filter((value) => value.wasManuallyConfirmed).length} of {selectedReport.values.length} values confirmed by you ·{' '}
+            {selectedReport.flags.filter((flag) => flag.confidence < 0.6 && !flag.manuallyConfirmed).length} low-confidence flags need attention
+          </p>
+          <p>Compare every item with the uploaded synthetic report. Unconfirmed values and flags are excluded from all automated reasoning.</p>
+          <form className="button-stack" onSubmit={(event) => void confirmReport(event)}>
+            {selectedReport.values.length === 0 ? (
+              <p className="muted">No values were extracted. Use manual health records instead.</p>
+            ) : (
+              <div className="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Analyte</th>
+                      <th>Value</th>
+                      <th>Unit</th>
+                      <th>Low</th>
+                      <th>High</th>
+                      <th>State</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedReport.values.map((value) => {
+                      const rangeMarker = recordedRangeMarker(value)
+                      return (
+                        <tr key={value.id}>
+                          <td>
+                            <input name={`analyte-${value.id}`} defaultValue={value.analyte} required maxLength={120} />
+                          </td>
+                          <td>
+                            <input
+                              name={`value-${value.id}`}
+                              type="number"
+                              step="any"
+                              defaultValue={value.value}
+                              required
+                              style={rangeMarker ? { color: 'var(--warning)', fontWeight: 700 } : undefined}
+                              aria-invalid={rangeMarker ? true : undefined}
+                            />
+                            {rangeMarker}
+                          </td>
+                          <td>
+                            <input name={`unit-${value.id}`} defaultValue={value.unit} required maxLength={32} />
+                          </td>
+                          <td>
+                            <input name={`low-${value.id}`} type="number" step="any" defaultValue={value.referenceLow ?? ''} />
+                          </td>
+                          <td>
+                            <input name={`high-${value.id}`} type="number" step="any" defaultValue={value.referenceHigh ?? ''} />
+                          </td>
+                          <td>
+                            <StatusBadge status={value.wasManuallyConfirmed ? 'CONFIRMED' : 'REVIEW_REQUIRED'} />
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <h3>Potential hereditary screening flags</h3>
+            {selectedReport.flags.length === 0 ? (
+              <p className="muted">No flags were extracted.</p>
+            ) : (
+              selectedReport.flags.map((flag) => (
+                <label key={flag.id} className="field">
+                  <span>
+                    <input name={`flag-${flag.id}`} type="checkbox" defaultChecked={flag.manuallyConfirmed} /> Confirm {flag.conditionCode}: {flag.finding}
+                  </span>{' '}
+                  <span className={`status-badge status-badge--${flag.confidence < 0.6 ? 'warning' : 'muted'}`} title="Extraction agent confidence">
+                    AI confidence {Math.round(flag.confidence * 100)}%
+                  </span>
+                </label>
+              ))
+            )}
+            <button className="button button--primary" type="submit">
+              Confirm reviewed extraction
+            </button>
+          </form>
+        </section>
+      )}
+    </div>
+  )
 }
