@@ -1760,3 +1760,34 @@ a.dropdown-item { display: block; text-decoration: none; color: inherit; }
   width: 20px;
   height: 20px;
 }
+
+/* Screen Reader Only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.verified-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.verified-badge-icon {
+  width: 22px;
+  height: 22px;
+  color: #10B981; /* Emerald-500, a nice success green matching the app's success badge */
+  filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.2));
+  transition: transform 0.2s ease;
+}
+
+.verified-badge:hover .verified-badge-icon {
+  transform: scale(1.05);
+}

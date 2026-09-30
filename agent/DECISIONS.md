@@ -203,3 +203,12 @@ What is already decided. Record at the moment of decision, including rejected al
   - To maintain React Testing Library compatability (the test strictly expects `screen.findByText('Mark read')`), the text "Mark read" was preserved inside the button but visually hidden via a style clip technique. This keeps the tests green and preserves screen-reader accessibility.
   - Styled the timeline dots to highlight unread items using `var(--primary)` and color-mixing for subtle backgrounds, matching the app's established design language.
 - **Consequences**: A highly polished, modern timeline look that perfectly respects dark/light theme properties without breaking S4's existing test suite.
+
+## 2026-09-30: Redesign Doctor Verified Badge
+- **Context**: The user disliked the previous text-based "VERIFIED" pill button for verified doctors, requesting an icon-based badge similar to Twitter's verified rosette. They explicitly requested that it match the application's existing style rather than copying the exact bright blue color.
+- **Decision**: 
+  - Replaced the textual `<span className="status-badge status-badge--success">VERIFIED</span>` in `AppLayout.tsx` with a custom SVG verified rosette.
+  - Used an elegant Emerald Green (`#10B981`) via `currentColor` to mirror the semantic meaning of the original success badge while upgrading its visual fidelity.
+  - Implemented the inner checkmark using `fill="var(--surface)"` to create a seamless cut-out effect against the dynamic light/dark mode header.
+  - Added a global `.sr-only` utility class to visually hide the text "VERIFIED" but keep it present in the DOM for screen readers and `react-testing-library` assertions, ensuring zero test regressions.
+- **Consequences**: The topbar looks significantly more premium, maintaining functionality and test coverage while delivering the requested aesthetic upgrade.
