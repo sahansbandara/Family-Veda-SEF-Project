@@ -104,8 +104,11 @@ String? routeRedirect({
   }
 
   final authenticated = auth.status == AuthStatus.authenticated;
-  if (!authenticated) return location == '/login' ? null : '/login';
-  if (location == '/login' || location == '/splash') return '/home';
+  if (!authenticated) {
+    if (location == '/login' || location == '/register') return null;
+    return '/login';
+  }
+  if (location == '/login' || location == '/splash' || location == '/register') return '/home';
 
   const memberRequired = {
     '/records', '/records/new', '/vitals/new', '/lab-upload', '/complaints/new', '/cases',
