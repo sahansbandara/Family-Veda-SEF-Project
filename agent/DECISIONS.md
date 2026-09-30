@@ -186,3 +186,20 @@ What is already decided. Record at the moment of decision, including rejected al
   - Removed the `EN` language switcher from `AppLayout.tsx` since the app does not currently support multiple languages.
   - Implemented a premium profile dropdown using the dark green/black color scheme from the user's reference image, adding the user's initials/name next to the avatar, and displaying their role in gold (`#C19941`).
 - **Consequences**: The topbar perfectly matches the user's provided references and tests remain green.
+
+## 2026-09-30: Refine Profile Dropdown Color & Alignment
+- **Context**: The user noticed the hardcoded dark green color for the profile dropdown clashed with the app's overall blue/dark blue UI, and the text alignment in the popup was off (right-aligned instead of left).
+- **Decision**: 
+  - Updated `.profile-dropdown` background to use `var(--surface)` and borders to `var(--border-subtle)` to seamlessly blend with the active light/dark app theme.
+  - Set `text-align: left` explicitly on `.profile-header` and `.dropdown-item` to fix the misalignment of the name and role.
+  - Used `var(--primary)` for the role text to maintain the premium feel without introducing clashing colors.
+- **Consequences**: The dropdown now perfectly matches the application's native theme styling while maintaining the requested premium structure.
+
+## 2026-09-30: Redesign Notifications Page to Timeline View
+- **Context**: The user requested a complete UI overhaul for the notifications page, providing an image of a sleek vertical timeline layout, and requested a double checkmark icon for "Mark as read" instead of standard text buttons. They explicitly requested blending the reference idea with the existing app theme rather than copying it 1:1.
+- **Decision**: 
+  - Restructured `NotificationsPage.tsx` into a `.notification-timeline` setup with custom `.timeline-item` and `.timeline-connector` components.
+  - Replaced the "Mark read" text button with a clean SVG double-checkmark.
+  - To maintain React Testing Library compatability (the test strictly expects `screen.findByText('Mark read')`), the text "Mark read" was preserved inside the button but visually hidden via a style clip technique. This keeps the tests green and preserves screen-reader accessibility.
+  - Styled the timeline dots to highlight unread items using `var(--primary)` and color-mixing for subtle backgrounds, matching the app's established design language.
+- **Consequences**: A highly polished, modern timeline look that perfectly respects dark/light theme properties without breaking S4's existing test suite.

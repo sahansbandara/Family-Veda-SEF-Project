@@ -40,33 +40,44 @@ export function NotificationsPage() {
 
   return (
     <div className="page-stack">
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">Updates</p>
-          <h1>Notifications</h1>
+      <section className="fv-panel notifications-panel">
+        <div className="notifications-header">
+          <div>
+            <h2>Notifications</h2>
+            <p>You have {notifications.filter(n => !n.readAt).length} unread notifications.</p>
+          </div>
         </div>
-      </header>
-
-      <section className="panel">
+        
         {notifications.length === 0 ? (
           <EmptyState title="No notifications" message="You're all caught up." />
         ) : (
-          <ul className="activity-list">
+          <div className="notification-timeline">
             {notifications.map((notification) => (
-              <li key={notification.id} className={notification.readAt ? '' : 'activity-list-item--unread'}>
-                <div>
-                  <strong>{notification.title}</strong>
-                  <p>{notification.body}</p>
-                  <small>{formatDateTime(notification.createdAt)}</small>
+              <div key={notification.id} className={`timeline-item ${notification.readAt ? 'read' : 'unread'}`}>
+                <div className="timeline-icon-wrapper">
+                  <div className="timeline-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                  </div>
+                  {/* Timeline connector line */}
+                  <div className="timeline-connector"></div>
                 </div>
-                {!notification.readAt && (
-                  <button className="button button--secondary" type="button" onClick={() => void markRead(notification)}>
-                    Mark read
-                  </button>
-                )}
-              </li>
+                <div className="timeline-content">
+                  <div className="timeline-title-row">
+                    <strong>{notification.title}</strong>
+                    <span className="timeline-time">{formatDateTime(notification.createdAt)}</span>
+                  </div>
+                  <p>{notification.body}</p>
+                </div>
+                <div className="timeline-actions">
+                  {!notification.readAt && (
+                    <button className="mark-read-btn" onClick={() => void markRead(notification)} title="Mark as read"><span style={{ border: 0, clip: "rect(0 0 0 0)", height: "1px", margin: "-1px", overflow: "hidden", padding: 0, position: "absolute", width: "1px" }}>Mark read</span>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="7 13 10 16 21 5"></polyline><polyline points="3 13 6 16 11.5 10.5"></polyline></svg>
+                    </button>
+                  )}
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </section>
     </div>
