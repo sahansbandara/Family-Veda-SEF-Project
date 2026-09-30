@@ -30,7 +30,7 @@ export function AdminDashboardPanel() {
     try {
       const [doctors, users, audit] = await Promise.all([
         apiClient.get<PagedResult<DoctorDto>>('/admin/doctors', { params: { page: 1, pageSize: 100 } }),
-        apiClient.get<PagedResult<AdminUserDto>>('/admin/users', { params: { page: 1, pageSize: 100 } }),
+        apiClient.get<PagedResult<AdminUserDto>>('/auth/admin/users', { params: { page: 1, pageSize: 100 } }),
         apiClient.get<PagedResult<AuditDto>>('/audit', { params: { page: 1, pageSize: 8 } }),
       ])
       setData({

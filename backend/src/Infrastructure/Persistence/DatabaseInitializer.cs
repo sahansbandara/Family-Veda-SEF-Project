@@ -237,6 +237,7 @@ public static class DatabaseInitializer
             await DemoDataSeeder.SeedAsync(dbContext, hasher, password, cancellationToken);
             // ===== Phase 1b — synthetic test data, agent/TODO.md "Phase 1b" (ownership waived, DECISIONS 2026-09-28b) =====
             await Phase1bSeeder.SeedAsync(dbContext, hasher, password, cancellationToken);
+            await DashboardCoverageSeeder.SeedAsync(dbContext, hasher, password, cancellationToken);
             // ===== end Phase 1b =====
             return;
         }
@@ -296,6 +297,7 @@ public static class DatabaseInitializer
         // ===== end S4 =====
         // ===== Phase 1b — synthetic test data, agent/TODO.md "Phase 1b" (ownership waived, DECISIONS 2026-09-28b) =====
         await Phase1bSeeder.SeedAsync(dbContext, hasher, password, cancellationToken);
+        await DashboardCoverageSeeder.SeedAsync(dbContext, hasher, password, cancellationToken);
         // ===== end Phase 1b =====
     }
 }
