@@ -5,6 +5,7 @@
 import 'package:family_veda/models/appointment.dart';
 import 'package:family_veda/models/doctor_summary.dart';
 import 'package:family_veda/models/family_dashboard.dart';
+import 'package:family_veda/models/incoming_invitation.dart';
 import 'package:family_veda/models/join_request.dart';
 import 'package:family_veda/services/api/api_client.dart';
 
@@ -28,6 +29,10 @@ abstract interface class FamilyPortalApi {
   Future<List<JoinRequest>> getPendingJoinRequests(String familyId);
   Future<void> acceptJoinRequest(String id);
   Future<void> declineJoinRequest(String id);
+
+  Future<List<IncomingInvitation>> getIncomingInvitations();
+  Future<void> approveInvitation(String id);
+  Future<void> rejectInvitation(String id);
 
   Future<DoctorSummary?> getFamilyDoctor(String familyId);
   Future<List<DoctorSummary>> searchDoctorDirectory({
@@ -131,6 +136,24 @@ class DioFamilyPortalApi implements FamilyPortalApi {
   @override
   Future<void> declineJoinRequest(String id) async {
     await _client.dio.post<void>('/families/join-requests/$id/decline');
+  }
+
+  @override
+  Future<List<IncomingInvitation>> getIncomingInvitations() async {
+    final response = await _client.dio.get<dynamic>('/invitations/incoming');
+    return _listFrom(response.data)
+        .map(IncomingInvitation.fromJson)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<void> approveInvitation(String id) async {
+    await _client.dio.post<void>('/invitations/$id/approve');
+  }
+
+  @override
+  Future<void> rejectInvitation(String id) async {
+    await _client.dio.post<void>('/invitations/$id/reject');
   }
 
   @override

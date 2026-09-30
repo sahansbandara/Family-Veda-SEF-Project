@@ -6,6 +6,7 @@ import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { useAppSelector } from '../../store/hooks'
 import { apiClient, threePortalApi, type FamilyDto, type JoinRequestDto } from '../../services/apiClient'
+import { IncomingInvitationsPanel } from './IncomingInvitationsPanel'
 import { FriendlyStatusBadge } from './threePortalShared'
 import { extractErrorMessage, formatDateTime } from './threePortalUtils'
 
@@ -98,6 +99,8 @@ export function JoinFamilyPage() {
       )}
 
       {message && <p role="status" className="status-banner">{message}</p>}
+
+      <IncomingInvitationsPanel onChanged={load} onMessage={setMessage} />
 
       {tab === 'join' && (
         <section className="panel">

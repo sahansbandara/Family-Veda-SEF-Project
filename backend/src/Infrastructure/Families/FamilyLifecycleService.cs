@@ -65,6 +65,7 @@ public sealed class FamilyLifecycleService(AppDbContext dbContext, ICurrentUser 
             FamilyId = familyId,
             InvitedByUserId = currentUser.UserId,
             InvitedEmailHash = InvitationCrypto.HashEmail(email, token),
+            InvitedEmailLookupHash = InvitationCrypto.LookupHash(email),
             InvitedEmailMasked = InvitationCrypto.MaskEmail(email),
             RelationshipType = old.RelationshipType,
             TokenHash = InvitationCrypto.Hash(token),
@@ -72,6 +73,7 @@ public sealed class FamilyLifecycleService(AppDbContext dbContext, ICurrentUser 
         };
         dbContext.FamilyInvitations.Add(invitation);
         AddAudit("FAMILY_INVITATION_RESENT", "FamilyInvitation", invitation.Id, null);
+        await InvitationCrypto.NotifyExistingInviteeAsync(dbContext, email, familyId, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         return new FamilyInvitationDto(invitation.Id, token, invitation.ExpiresAt);
     }

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { threePortalApi, type JoinRequestDto } from '../../services/apiClient'
+import { IncomingInvitationsPanel } from './IncomingInvitationsPanel'
 import { extractErrorMessage, formatDateTime } from './threePortalUtils'
 
 type Props = { familyId: string; onChanged: () => Promise<void>; onMessage: (message: string) => void }
@@ -43,6 +44,8 @@ export function FamilyJoinRequestsTab({ familyId, onChanged, onMessage }: Props)
   }
 
   return (
+    <>
+    <IncomingInvitationsPanel onChanged={onChanged} onMessage={onMessage} />
     <section className="panel" aria-label="Pending join requests">
       <h2>Pending join requests</h2>
       <p className="muted">Knowing the Family Code does not grant access. Unanswered requests expire after 14 days.</p>
@@ -90,5 +93,6 @@ export function FamilyJoinRequestsTab({ familyId, onChanged, onMessage }: Props)
         </div>
       )}
     </section>
+    </>
   )
 }

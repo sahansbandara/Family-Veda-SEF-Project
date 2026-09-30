@@ -8,8 +8,24 @@ namespace FamilyVeda.Api.Controllers;
 
 [Route("api/v1")]
 [Authorize(Policy = "FamilyUser")]
-public sealed class FamilyLifecycleController(IFamilyLifecycleService lifecycleService) : ApiControllerBase
+public sealed class FamilyLifecycleController(IFamilyLifecycleService lifecycleService, IIncomingInvitationService incomingInvitations) : ApiControllerBase
 {
+    /// <summary>Pending invitations sent to the caller's own account email.</summary>
+    [HttpGet("invitations/incoming")]
+    public async Task<ActionResult<IReadOnlyList<IncomingInvitationDto>>> GetIncomingInvitations(CancellationToken cancellationToken) =>
+        Ok(await incomingInvitations.GetMineAsync(cancellationToken));
+
+    [HttpPost("invitations/{invitationId:guid}/approve")]
+    public async Task<ActionResult<MembershipChangeDto>> ApproveInvitation(Guid invitationId, CancellationToken cancellationToken) =>
+        Ok(await incomingInvitations.ApproveAsync(invitationId, cancellationToken));
+
+    [HttpPost("invitations/{invitationId:guid}/reject")]
+    public async Task<IActionResult> RejectInvitation(Guid invitationId, CancellationToken cancellationToken)
+    {
+        await incomingInvitations.RejectAsync(invitationId, cancellationToken);
+        return NoContent();
+    }
+
     /// <summary>Any member of the family. Names and roles only; never another adult's DOB or health data.</summary>
     [HttpGet("families/{familyId:guid}/roster")]
     public async Task<ActionResult<IReadOnlyList<RosterMemberDto>>> GetRoster(Guid familyId, CancellationToken cancellationToken) =>

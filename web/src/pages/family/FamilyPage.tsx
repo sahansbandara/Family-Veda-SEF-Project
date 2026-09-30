@@ -38,12 +38,15 @@ export function FamilyPage() {
       setFamily(data)
       setStatus('ready')
       // Tab badges are a convenience; a failure here must not hide the page.
-      const [requests, invitations] = await Promise.allSettled([
+      const [requests, invitations, incoming] = await Promise.allSettled([
         threePortalApi.getFamilyJoinRequests(data.id, 'Pending'),
         familyLifecycleApi.getInvitations(data.id),
+        familyLifecycleApi.getIncomingInvitations(),
       ])
       setCounts({
-        requests: requests.status === 'fulfilled' ? requests.value.data.length : 0,
+        requests:
+          (requests.status === 'fulfilled' ? requests.value.data.length : 0) +
+          (incoming.status === 'fulfilled' ? incoming.value.data.length : 0),
         invitations: invitations.status === 'fulfilled' ? invitations.value.data.filter((x) => x.status === 'Pending').length : 0,
       })
     } catch {

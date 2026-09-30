@@ -227,7 +227,22 @@ export type HeadTransferDto = {
   respondedAt?: string | null
 }
 
+/** An invitation sent to the signed-in user's own email; approved or rejected in-app without a token. */
+export interface IncomingInvitationDto {
+  id: string
+  familyName: string
+  invitedByName: string
+  relationshipType?: string | null
+  createdAt: string
+  expiresAt: string
+  canApprove: boolean
+  blockedReason?: string | null
+}
+
 export const familyLifecycleApi = {
+  getIncomingInvitations: () => apiClient.get<IncomingInvitationDto[]>('/invitations/incoming'),
+  approveInvitation: (invitationId: string) => apiClient.post<MembershipChangeDto>(`/invitations/${invitationId}/approve`),
+  rejectInvitation: (invitationId: string) => apiClient.post(`/invitations/${invitationId}/reject`),
   getRoster: (familyId: string) => apiClient.get<RosterMemberDto[]>(`/families/${familyId}/roster`),
   getInvitations: (familyId: string) => apiClient.get<FamilyInvitationSummaryDto[]>(`/families/${familyId}/invitations`),
   createInvitation: (familyId: string, body: { email: string; relationshipType?: string }) =>
