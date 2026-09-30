@@ -733,7 +733,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: var(--sp-4);
-  align-items: flex-end;
+  align-items: center;
   margin-top: var(--sp-4);
   margin-bottom: var(--sp-4);
 }
@@ -1334,7 +1334,7 @@ tbody tr:hover { background: var(--primary-subtle); }
 
 @media (max-width: 767px) {
   .topbar { align-items: center; gap: var(--sp-3); }
-  .session-summary { align-items: flex-end; gap: var(--sp-2); }
+  .session-summary { align-items: center; gap: var(--sp-2); }
   .session-summary > span { display: none; }
   .primary-nav { top: 60px; margin-top: var(--sp-3); }
   .main-content { padding-top: var(--sp-5); }
@@ -1632,7 +1632,7 @@ a.dropdown-item { display: block; text-decoration: none; color: inherit; }
 .notifications-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   border-bottom: 1px dashed var(--border-subtle);
   padding-bottom: 24px;
   margin-bottom: 24px;

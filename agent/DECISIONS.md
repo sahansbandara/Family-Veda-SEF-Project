@@ -212,3 +212,11 @@ What is already decided. Record at the moment of decision, including rejected al
   - Implemented the inner checkmark using `fill="var(--surface)"` to create a seamless cut-out effect against the dynamic light/dark mode header.
   - Added a global `.sr-only` utility class to visually hide the text "VERIFIED" but keep it present in the DOM for screen readers and `react-testing-library` assertions, ensuring zero test regressions.
 - **Consequences**: The topbar looks significantly more premium, maintaining functionality and test coverage while delivering the requested aesthetic upgrade.
+
+## 2026-09-30: Improve Notifications Checkmarks & Add "Mark All Read"
+- **Context**: The user found the previous double-checkmark icon for notifications messy/misaligned and requested a cleaner version. They also requested a "Mark all as read" option at the top of the notifications list.
+- **Decision**: 
+  - Replaced the custom double-checkmark SVG with a much cleaner path-based design (inspired by Lucide `CheckCheck`) that renders sharply at small sizes.
+  - Added a `markAllRead` function in `NotificationsPage.tsx` that filters for unread notifications and executes `Promise.all()` to mark each one as read concurrently.
+  - Added a "Mark all read" button in the `.notifications-header` (which was already a flex container). Centered the items vertically so the button aligns nicely with the header text block.
+- **Consequences**: Enhanced usability for users with many notifications while maintaining a clean aesthetic. Tests remained unaffected as we preserved the visually-hidden "Mark read" text for individual items.
