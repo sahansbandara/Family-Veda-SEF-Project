@@ -1623,3 +1623,140 @@ tbody tr:hover { background: var(--primary-subtle); }
 .profile-details dt { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
 .profile-details dd { margin: 4px 0 0; font-weight: 600; overflow-wrap: anywhere; }
 a.dropdown-item { display: block; text-decoration: none; color: inherit; }
+
+
+/* Notification Timeline Styles */
+.notifications-panel {
+  padding: 24px 32px;
+}
+.notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 1px dashed var(--border-subtle);
+  padding-bottom: 24px;
+  margin-bottom: 24px;
+}
+.notifications-header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin: 0 0 4px 0;
+}
+.notifications-header p {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.notification-timeline {
+  display: flex;
+  flex-direction: column;
+}
+.timeline-item {
+  display: flex;
+  position: relative;
+  padding-bottom: 24px;
+}
+.timeline-item:last-child {
+  padding-bottom: 0;
+}
+.timeline-item:last-child .timeline-connector {
+  display: none;
+}
+
+.timeline-icon-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 20px;
+  position: relative;
+  width: 32px;
+}
+.timeline-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1.5px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  z-index: 2;
+  transition: all 0.2s ease;
+}
+.timeline-item.unread .timeline-icon {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+.timeline-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.timeline-connector {
+  position: absolute;
+  top: 32px;
+  bottom: 0;
+  width: 1px;
+  background: var(--border-subtle);
+  z-index: 1;
+}
+
+.timeline-content {
+  flex: 1;
+  padding-top: 4px;
+}
+.timeline-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.timeline-title-row strong {
+  font-size: 0.95rem;
+  color: var(--text-heading);
+}
+.timeline-item.read .timeline-title-row strong {
+  font-weight: 500;
+  color: var(--text);
+}
+.timeline-time {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.timeline-content p {
+  font-size: 0.9rem;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.timeline-actions {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 4px;
+  margin-left: 16px;
+}
+.mark-read-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+.mark-read-btn:hover {
+  background: var(--surface-subtle);
+  color: var(--primary);
+}
+.mark-read-btn svg {
+  width: 20px;
+  height: 20px;
+}

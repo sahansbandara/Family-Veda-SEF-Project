@@ -194,3 +194,12 @@ What is already decided. Record at the moment of decision, including rejected al
   - Set `text-align: left` explicitly on `.profile-header` and `.dropdown-item` to fix the misalignment of the name and role.
   - Used `var(--primary)` for the role text to maintain the premium feel without introducing clashing colors.
 - **Consequences**: The dropdown now perfectly matches the application's native theme styling while maintaining the requested premium structure.
+
+## 2026-09-30: Redesign Notifications Page to Timeline View
+- **Context**: The user requested a complete UI overhaul for the notifications page, providing an image of a sleek vertical timeline layout, and requested a double checkmark icon for "Mark as read" instead of standard text buttons. They explicitly requested blending the reference idea with the existing app theme rather than copying it 1:1.
+- **Decision**: 
+  - Restructured `NotificationsPage.tsx` into a `.notification-timeline` setup with custom `.timeline-item` and `.timeline-connector` components.
+  - Replaced the "Mark read" text button with a clean SVG double-checkmark.
+  - To maintain React Testing Library compatability (the test strictly expects `screen.findByText('Mark read')`), the text "Mark read" was preserved inside the button but visually hidden via a style clip technique. This keeps the tests green and preserves screen-reader accessibility.
+  - Styled the timeline dots to highlight unread items using `var(--primary)` and color-mixing for subtle backgrounds, matching the app's established design language.
+- **Consequences**: A highly polished, modern timeline look that perfectly respects dark/light theme properties without breaking S4's existing test suite.
