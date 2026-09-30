@@ -30,6 +30,7 @@ import { DoctorCalendarPage } from '../pages/doctor/DoctorCalendarPage'
 import { CasesPage } from '../pages/doctor/CasesPage'
 import { ApprovalsPage } from '../pages/doctor/ApprovalsPage'
 import { NotificationsPage } from '../pages/notifications/NotificationsPage'
+import { ProfilePage } from '../pages/profile/ProfilePage'
 import { PrivacyPage } from '../pages/family/PrivacyPage'
 import { MyFamilyPage } from '../pages/family/MyFamilyPage'
 import { RouteGuard } from './RouteGuard'
@@ -82,6 +83,7 @@ export function AppRoutes() {
         <Route path="/appointments" element={<RouteGuard allowedRoles={['FAMILY_HEAD', 'MEMBER']}><AppointmentsPage /></RouteGuard>} />
         <Route path="/doctor-calendar" element={<Navigate to="/calendar" replace />} />
         <Route path="/my-family" element={<RouteGuard allowedRoles={['MEMBER']}><MyFamilyPage /></RouteGuard>} />
+        <Route path="/profile" element={<RouteGuard allowedRoles={[...allRoles]}><ProfilePage /></RouteGuard>} />
         <Route path="/notifications" element={<RouteGuard allowedRoles={[...allRoles]}><NotificationsPage /></RouteGuard>} />
       </Route>
 

@@ -396,6 +396,12 @@ class HomeScreen extends ConsumerWidget {
               child: const Icon(Icons.notifications_outlined),
             ),
           ),
+          // [S1] Profile settings (whole-project waiver 2026-09-28b).
+          IconButton(
+            tooltip: 'Profile settings',
+            onPressed: () => context.push('/profile'),
+            icon: const Icon(Icons.person_outline),
+          ),
           IconButton(
             tooltip: 'Sign out',
             onPressed: () async {

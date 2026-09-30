@@ -342,3 +342,24 @@ export const doctorWorkspaceApi = {
   amendNote: (noteId: string, content: string) => apiClient.post<ClinicalNoteDto>(`/doctors/me/notes/${noteId}/amend`, { content }),
   getFamilyDoctorSlots: (familyId: string, date: string) => apiClient.get<DoctorSlotsDto>(`/families/${familyId}/doctor/slots`, { params: { date } }),
 }
+
+/** The signed-in user's own profile (every portal). Family fields appear only for family users. */
+export interface MyProfileDto {
+  userId: string
+  email: string
+  displayName: string
+  userType: 'FamilyUser' | 'Doctor' | 'Admin' | string
+  createdAt: string
+  familyRole?: string | null
+  familyName?: string | null
+  familyCode?: string | null
+  dateOfBirth?: string | null
+  sexForClinicalReference?: string | null
+}
+
+export const profileApi = {
+  getMine: () => apiClient.get<MyProfileDto>('/profile/me'),
+  updateMine: (displayName: string) => apiClient.put<MyProfileDto>('/profile/me', { displayName }),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    apiClient.post('/auth/change-password', { currentPassword, newPassword }),
+}
