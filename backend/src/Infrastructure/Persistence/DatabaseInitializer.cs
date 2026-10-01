@@ -239,6 +239,9 @@ public static class DatabaseInitializer
             await Phase1bSeeder.SeedAsync(dbContext, hasher, password, cancellationToken);
             await DashboardCoverageSeeder.SeedAsync(dbContext, hasher, password, cancellationToken);
             // ===== end Phase 1b =====
+            // ===== Viva synthetic accounts — isolated demo logins, idempotent =====
+            await VivaDemoSeeder.SeedAsync(dbContext, hasher, password, cancellationToken);
+            // ===== end Viva synthetic accounts =====
             return;
         }
         // ===== end S4 =====
@@ -299,5 +302,8 @@ public static class DatabaseInitializer
         await Phase1bSeeder.SeedAsync(dbContext, hasher, password, cancellationToken);
         await DashboardCoverageSeeder.SeedAsync(dbContext, hasher, password, cancellationToken);
         // ===== end Phase 1b =====
+        // ===== Viva synthetic accounts — isolated demo logins, idempotent =====
+        await VivaDemoSeeder.SeedAsync(dbContext, hasher, password, cancellationToken);
+        // ===== end Viva synthetic accounts =====
     }
 }

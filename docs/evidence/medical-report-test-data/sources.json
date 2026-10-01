@@ -1,0 +1,280 @@
+[
+  {
+    "local_file": "SYNTHETIC_morzel_lab_page1_clean.png",
+    "category": "clean",
+    "dataset": "morzel85/synthetic-medical-document-recognition-benchmark",
+    "revision": "7b1363fa5db95c7cf22f8395eff83fc947ee0934",
+    "source_path": "data/png/synthetic_Adam_Hirthe_1ce276e5_diagnostic_type_1_p_1_of_2_dpi_300_clear_ver_1.png",
+    "license": "CC-BY-4.0",
+    "origin": "source",
+    "sha256": "c19a6a66dc56755b3104452253c6ab1c844988fd346d046c418f13a1be47cbd2",
+    "size_bytes": 889025
+  },
+  {
+    "local_file": "SYNTHETIC_morzel_lab_page2_clean.png",
+    "category": "clean",
+    "dataset": "morzel85/synthetic-medical-document-recognition-benchmark",
+    "revision": "7b1363fa5db95c7cf22f8395eff83fc947ee0934",
+    "source_path": "data/png/synthetic_Adam_Hirthe_1ce276e5_diagnostic_type_1_p_2_of_2_dpi_300_clear_ver_1.png",
+    "license": "CC-BY-4.0",
+    "origin": "source",
+    "sha256": "35e967e5571708de6cefd31cb2583afae178960bc54e05a2278a47a4c363f6d9",
+    "size_bytes": 584811
+  },
+  {
+    "local_file": "SYNTHETIC_ClinOCR_tables_t11_s2.png",
+    "category": "clean",
+    "dataset": "ClinOCR-Bench/ClinOCR-Bench",
+    "revision": "b1b1a42f87f7ff4c4d104f812f98652a69975125",
+    "config": "tables",
+    "split": "test",
+    "doc_id": "tables_t11_s2",
+    "license": "MIT",
+    "origin": "source",
+    "sha256": "4a8934c20b26e4c2a3b33a50fc5601a781afdce56f6117b64a6e09be790af803",
+    "size_bytes": 285693
+  },
+  {
+    "local_file": "SYNTHETIC_ClinOCR_tables_t11_s3.png",
+    "category": "clean",
+    "dataset": "ClinOCR-Bench/ClinOCR-Bench",
+    "revision": "b1b1a42f87f7ff4c4d104f812f98652a69975125",
+    "config": "tables",
+    "split": "test",
+    "doc_id": "tables_t11_s3",
+    "license": "MIT",
+    "origin": "source",
+    "sha256": "09abcdb3cb9d07f1b6369fb661701f04f9267dbf13d5f4cf96968be723a464ec",
+    "size_bytes": 283997
+  },
+  {
+    "local_file": "SYNTHETIC_ClinOCR_tables_t15_s2.png",
+    "category": "clean",
+    "dataset": "ClinOCR-Bench/ClinOCR-Bench",
+    "revision": "b1b1a42f87f7ff4c4d104f812f98652a69975125",
+    "config": "tables",
+    "split": "test",
+    "doc_id": "tables_t15_s2",
+    "license": "MIT",
+    "origin": "source",
+    "sha256": "831ac0cf60fe198dd28ad497096f247fb00a938b84402c20bc542fb96f7b30bf",
+    "size_bytes": 271276
+  },
+  {
+    "local_file": "SYNTHETIC_morzel_lab_page1_skewed.png",
+    "category": "tilted-phone-photo",
+    "dataset": "morzel85/synthetic-medical-document-recognition-benchmark",
+    "revision": "7b1363fa5db95c7cf22f8395eff83fc947ee0934",
+    "source_path": "data/png/synthetic_Adam_Hirthe_1ce276e5_diagnostic_type_1_p_1_of_2_dpi_300_photo_ske_ver_1.png",
+    "license": "CC-BY-4.0",
+    "origin": "source",
+    "sha256": "5ed6bfb5b852aeb6ac65fe527f51b129bcca1888197dc936d760707ecf8f6a9c",
+    "size_bytes": 4171285
+  },
+  {
+    "local_file": "SYNTHETIC_tilted_02_morzel_page2.jpg",
+    "category": "tilted-phone-photo",
+    "origin": "derived",
+    "derived_from": "SYNTHETIC_morzel_lab_page2_clean.png",
+    "transform": "rotate 7 deg, shear 0.05, JPEG q82",
+    "license": "CC-BY-4.0",
+    "sha256": "67eb9fd7a1f3d57f3e0378995c98ed6499a7a4977ad0132a16462f7ff4e4e984",
+    "size_bytes": 383698
+  },
+  {
+    "local_file": "SYNTHETIC_tilted_03_clinocr_t11_s2.jpg",
+    "category": "tilted-phone-photo",
+    "origin": "derived",
+    "derived_from": "SYNTHETIC_ClinOCR_tables_t11_s2.png",
+    "transform": "rotate -9 deg, shear 0.04, JPEG q82",
+    "license": "MIT",
+    "sha256": "4e375b6645cfac4f513c40b7de08a0380ddd6345fbb848663de0e8f2609dbc18",
+    "size_bytes": 390805
+  },
+  {
+    "local_file": "SYNTHETIC_tilted_04_clinocr_t11_s3.jpg",
+    "category": "tilted-phone-photo",
+    "origin": "derived",
+    "derived_from": "SYNTHETIC_ClinOCR_tables_t11_s3.png",
+    "transform": "rotate 12 deg, shear 0.07, JPEG q82",
+    "license": "MIT",
+    "sha256": "c3f788f91f84e0ecf47354eafcb4f434bfe37086da708138ae4ea6cb51e9e7ce",
+    "size_bytes": 418403
+  },
+  {
+    "local_file": "SYNTHETIC_tilted_05_clinocr_t15_s2.jpg",
+    "category": "tilted-phone-photo",
+    "origin": "derived",
+    "derived_from": "SYNTHETIC_ClinOCR_tables_t15_s2.png",
+    "transform": "rotate -5 deg, shear 0.09, JPEG q82",
+    "license": "MIT",
+    "sha256": "f7e7b8c9f6920359a26742eeb0985465b2c282545b0884c422244ecbfb4bacc6",
+    "size_bytes": 352152
+  },
+  {
+    "local_file": "SYNTHETIC_low-quality_01_morzel_photocopy.png",
+    "category": "blurry-low-quality",
+    "dataset": "morzel85/synthetic-medical-document-recognition-benchmark",
+    "revision": "7b1363fa5db95c7cf22f8395eff83fc947ee0934",
+    "source_path": "data/png/synthetic_Adam_Hirthe_1ce276e5_diagnostic_type_1_p_1_of_2_dpi_300_photocopy_mis_ver_2.png",
+    "license": "CC-BY-4.0",
+    "origin": "source",
+    "sha256": "53e6bcdc2121f69abce29349eb0d85ec5a0bc3904bd3ca4a90866b0dfc554765",
+    "size_bytes": 3748643
+  },
+  {
+    "local_file": "SYNTHETIC_low-quality_02_blur_morzel_page2.jpg",
+    "category": "blurry-low-quality",
+    "origin": "derived",
+    "derived_from": "SYNTHETIC_morzel_lab_page2_clean.png",
+    "transform": "gaussian blur r=2.6",
+    "license": "CC-BY-4.0",
+    "sha256": "d002f2e3a29e4e9890a17ebc584ccc87771e8b670a90d222e4a9f92c5b2762d8",
+    "size_bytes": 103830
+  },
+  {
+    "local_file": "SYNTHETIC_low-quality_03_lowres_clinocr_t11_s2.jpg",
+    "category": "blurry-low-quality",
+    "origin": "derived",
+    "derived_from": "SYNTHETIC_ClinOCR_tables_t11_s2.png",
+    "transform": "downscale 4x then upscale",
+    "license": "MIT",
+    "sha256": "a6204a1b5b6516a778a8050f36e4f3c99510e8f9d6adffde90deb350a9e9c81b",
+    "size_bytes": 138279
+  },
+  {
+    "local_file": "SYNTHETIC_low-quality_04_jpeg_clinocr_t11_s3.jpg",
+    "category": "blurry-low-quality",
+    "origin": "derived",
+    "derived_from": "SYNTHETIC_ClinOCR_tables_t11_s3.png",
+    "transform": "JPEG q=6 compression artefacts",
+    "license": "MIT",
+    "sha256": "fe40deb80ddc55b7170f51e03a720adcbc33a19d43a23349c1d75112bea28f47",
+    "size_bytes": 81632
+  },
+  {
+    "local_file": "SYNTHETIC_low-quality_05_dim-noise_clinocr_t15_s2.jpg",
+    "category": "blurry-low-quality",
+    "origin": "derived",
+    "derived_from": "SYNTHETIC_ClinOCR_tables_t15_s2.png",
+    "transform": "low contrast, dim, sensor noise, blur r=1.1",
+    "license": "MIT",
+    "sha256": "5bb4905e41d5fe7a9621e7cf76715ff8b271c271ff68f4120dc769ab83143747",
+    "size_bytes": 161193
+  },
+  {
+    "local_file": "SYNTHETIC_handwritten_01_clinocr_t1_s2.png",
+    "category": "handwritten",
+    "dataset": "ClinOCR-Bench/ClinOCR-Bench",
+    "revision": "b1b1a42f87f7ff4c4d104f812f98652a69975125",
+    "config": "handwriting",
+    "split": "test",
+    "doc_id": "handwriting_t1_s2",
+    "license": "MIT",
+    "origin": "source",
+    "sha256": "df8a30c4f506bc886b5c9aac9a8d281bc6d7160415a615255476b4df24c4b6ca",
+    "size_bytes": 277095
+  },
+  {
+    "local_file": "SYNTHETIC_handwritten_02_clinocr_t3_s2.png",
+    "category": "handwritten",
+    "dataset": "ClinOCR-Bench/ClinOCR-Bench",
+    "revision": "b1b1a42f87f7ff4c4d104f812f98652a69975125",
+    "config": "handwriting",
+    "split": "test",
+    "doc_id": "handwriting_t3_s2",
+    "license": "MIT",
+    "origin": "source",
+    "sha256": "226a3a72af33ebab82458272a8f1a6480b566fff8d91a8365f67e49012e1c6d5",
+    "size_bytes": 341507
+  },
+  {
+    "local_file": "SYNTHETIC_handwritten_03_clinocr_t8_s2.png",
+    "category": "handwritten",
+    "dataset": "ClinOCR-Bench/ClinOCR-Bench",
+    "revision": "b1b1a42f87f7ff4c4d104f812f98652a69975125",
+    "config": "handwriting",
+    "split": "test",
+    "doc_id": "handwriting_t8_s2",
+    "license": "MIT",
+    "origin": "source",
+    "sha256": "b1da8b2a187bf72b54de2778623f3e42900947627df4b8180983a14bce4ee853",
+    "size_bytes": 234871
+  },
+  {
+    "local_file": "SYNTHETIC_range-position_01_blood-count.png",
+    "category": "below-within-above",
+    "origin": "generated",
+    "generator": "Family Veda test-pack script (PIL)",
+    "license": "project-owned synthetic",
+    "sha256": "1a1e135b8feca0346ff16c4266fee1a5c1a309e535ad9f31ab4b2dd08636d0e2",
+    "size_bytes": 48714
+  },
+  {
+    "local_file": "SYNTHETIC_range-position_02_lipids.png",
+    "category": "below-within-above",
+    "origin": "generated",
+    "generator": "Family Veda test-pack script (PIL)",
+    "license": "project-owned synthetic",
+    "sha256": "05efc5f776670374c7026d08d48af05632cd497ae6ccf4caed9761e6d098fd58",
+    "size_bytes": 51917
+  },
+  {
+    "local_file": "SYNTHETIC_range-position_03_metabolic.png",
+    "category": "below-within-above",
+    "origin": "generated",
+    "generator": "Family Veda test-pack script (PIL)",
+    "license": "project-owned synthetic",
+    "sha256": "104772024ebacb79e35bdbe8b5bcf8f559356600bc1c25e607f57064ef1d4455",
+    "size_bytes": 48777
+  },
+  {
+    "local_file": "SYNTHETIC_missing-range_01_iron.png",
+    "category": "missing-reference-range",
+    "origin": "generated",
+    "generator": "Family Veda test-pack script (PIL)",
+    "license": "project-owned synthetic",
+    "sha256": "72a7c134376727f726871ede1f4f6491c8e31991c6e70532706ae81f46bd00c8",
+    "size_bytes": 44810
+  },
+  {
+    "local_file": "SYNTHETIC_missing-range_02_thyroid.png",
+    "category": "missing-reference-range",
+    "origin": "generated",
+    "generator": "Family Veda test-pack script (PIL)",
+    "license": "project-owned synthetic",
+    "sha256": "35af8e3c844102b5f212b4030eced90085c8c6f2675ebce997074a05b9638b9d",
+    "size_bytes": 41349
+  },
+  {
+    "local_file": "SYNTHETIC_missing-range_03_renal.png",
+    "category": "missing-reference-range",
+    "origin": "generated",
+    "generator": "Family Veda test-pack script (PIL)",
+    "license": "project-owned synthetic",
+    "sha256": "d148a38da4fe20ab95118bded5490481adfa1fa296946db4cf574394ded7101e",
+    "size_bytes": 44677
+  },
+  {
+    "local_file": "SYNTHETIC_morzel_diagnostic.pdf",
+    "category": "reference-only",
+    "dataset": "morzel85/synthetic-medical-document-recognition-benchmark",
+    "revision": "7b1363fa5db95c7cf22f8395eff83fc947ee0934",
+    "source_path": "data/pdf/synthetic_Adam_Hirthe_1ce276e5_diagnostic_type_1_ver_1.pdf",
+    "license": "CC-BY-4.0",
+    "origin": "source",
+    "sha256": "ce22b0b6d65a8273f27b0332954d14805cbce3898b785394fdb3087211169aab",
+    "size_bytes": 251712
+  },
+  {
+    "local_file": "SYNTHETIC_morzel_diagnostic_source.html",
+    "category": "reference-only",
+    "dataset": "morzel85/synthetic-medical-document-recognition-benchmark",
+    "revision": "7b1363fa5db95c7cf22f8395eff83fc947ee0934",
+    "source_path": "data/html/synthetic_Adam_Hirthe_1ce276e5_diagnostic_type_1_ver_1.html",
+    "license": "CC-BY-4.0",
+    "origin": "source",
+    "sha256": "09e675aa011a26d2c0a0f59c37ffc4291b2de136bdaab7ff0cd3594808fc2bdc",
+    "size_bytes": 42472
+  }
+]
