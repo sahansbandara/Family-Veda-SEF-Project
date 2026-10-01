@@ -11,20 +11,125 @@ vi.mock('../../services/apiClient', () => ({ apiClient: mocks }))
 
 import { ApprovalsPage } from './ApprovalsPage'
 
+const queuedCase = (id: string, priority = 'Routine') => ({
+  id,
+  episodeId: 'episode',
+  memberId: 'member',
+  status: 'PendingDoctorReview',
+  priority,
+  createdAt: '2026-09-30T08:00:00Z',
+})
+
+const review = (id: string) => ({ ...queuedCase(id), traces: [] })
+
 describe('ApprovalsPage', () => {
-  beforeEach(() => { mocks.get.mockReset() })
+  beforeEach(() => {
+    mocks.get.mockReset()
+    mocks.post.mockReset()
+    vi.stubGlobal(
+      'confirm',
+      vi.fn(() => true),
+    )
+  })
 
   it('shows a retryable error when selected case evidence fails to load', async () => {
     mocks.get
-      .mockResolvedValueOnce({ data: { items: [{ id: 'synthetic-case-01', status: 'PendingDoctorReview', priority: 'Routine' }] } })
+      .mockResolvedValueOnce({ data: { items: [queuedCase('synthetic-case-01')] } })
       .mockRejectedValueOnce(new Error('synthetic fetch failure'))
-      .mockResolvedValueOnce({ data: { id: 'synthetic-case-01', status: 'PendingDoctorReview', priority: 'Routine', traces: [] } })
+      .mockResolvedValueOnce({ data: review('synthetic-case-01') })
 
-    render(<MemoryRouter><ApprovalsPage /></MemoryRouter>)
+    render(
+      <MemoryRouter>
+        <ApprovalsPage />
+      </MemoryRouter>,
+    )
 
     expect(await screen.findByText('Case evidence could not be loaded.')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /try again/i }))
-    await waitFor(() => expect(screen.getByRole('heading', { name: 'synthetic-case-01' })).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: /review case synthetic-case-01/i })).toBeInTheDocument(),
+    )
     expect(mocks.get).toHaveBeenCalledTimes(3)
+  })
+
+  it('keeps a stale review response from replacing the current selected case', async () => {
+    let resolveFirstReview!: (value: { data: ReturnType<typeof review> }) => void
+    const firstReview = new Promise<{ data: ReturnType<typeof review> }>((resolve) => {
+      resolveFirstReview = resolve
+    })
+    mocks.get.mockImplementation((url: string) => {
+      if (url === '/doctors/me/cases')
+        return Promise.resolve({ data: { items: [queuedCase('case-a'), queuedCase('case-b', 'Priority')] } })
+      if (url === '/triage-cases/case-a/review') return firstReview
+      return Promise.resolve({ data: review('case-b') })
+    })
+
+    render(
+      <MemoryRouter>
+        <ApprovalsPage />
+      </MemoryRouter>,
+    )
+    await screen.findByRole('button', { name: /review case case-b/i })
+    fireEvent.click(screen.getByRole('button', { name: /review case case-b/i }))
+    await screen.findByRole('heading', { name: /review case case-b/i })
+    resolveFirstReview({ data: review('case-a') })
+
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: /review case case-b/i })).toBeInTheDocument(),
+    )
+    expect(screen.queryByRole('heading', { name: /review case case-a/i })).not.toBeInTheDocument()
+  })
+
+  it('uses a queued case deep link only when the case is in the authorized review queue', async () => {
+    mocks.get.mockImplementation((url: string) => {
+      if (url === '/doctors/me/cases')
+        return Promise.resolve({ data: { items: [queuedCase('case-a'), queuedCase('case-b')] } })
+      return Promise.resolve({ data: review('case-b') })
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/approvals?case=case-b']}>
+        <ApprovalsPage />
+      </MemoryRouter>,
+    )
+
+    await screen.findByRole('heading', { name: /review case case-b/i })
+    expect(screen.getByRole('button', { name: /review case case-b/i })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    expect(mocks.get).toHaveBeenCalledWith('/triage-cases/case-b/review')
+  })
+
+  it('keeps decisions disabled until the current review is ready and preserves approval confirmation', async () => {
+    let resolveReview!: (value: { data: ReturnType<typeof review> }) => void
+    const pendingReview = new Promise<{ data: ReturnType<typeof review> }>((resolve) => {
+      resolveReview = resolve
+    })
+    mocks.get.mockImplementation((url: string) =>
+      url === '/doctors/me/cases'
+        ? Promise.resolve({ data: { items: [queuedCase('case-a')] } })
+        : pendingReview,
+    )
+    mocks.post.mockResolvedValue({ data: {} })
+
+    render(
+      <MemoryRouter>
+        <ApprovalsPage />
+      </MemoryRouter>,
+    )
+    const approve = await screen.findByRole('button', { name: 'Approve' })
+    expect(approve).toBeDisabled()
+    resolveReview({ data: review('case-a') })
+    await waitFor(() => expect(approve).toBeEnabled())
+    fireEvent.change(screen.getByLabelText('Final Patient Guidance'), {
+      target: { value: 'Please arrange an in-person clinical review.' },
+    })
+    fireEvent.click(approve)
+
+    await waitFor(() =>
+      expect(mocks.post).toHaveBeenCalledWith('/triage-cases/case-a/approve', expect.any(Object)),
+    )
+    expect(window.confirm).toHaveBeenCalledWith(expect.stringMatching(/Confirm approve decision/))
   })
 })
