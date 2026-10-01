@@ -22,7 +22,7 @@
     "size_bytes": 584811
   },
   {
-    "local_file": "SYNTHETIC_ClinOCR_tables_t11_s2.png",
+    "local_file": "SYNTHETIC_ClinOCR_tables_t11_s2.jpg",
     "category": "clean",
     "dataset": "ClinOCR-Bench/ClinOCR-Bench",
     "revision": "b1b1a42f87f7ff4c4d104f812f98652a69975125",
@@ -32,10 +32,11 @@
     "license": "MIT",
     "origin": "source",
     "sha256": "4a8934c20b26e4c2a3b33a50fc5601a781afdce56f6117b64a6e09be790af803",
-    "size_bytes": 285693
+    "size_bytes": 285693,
+    "note": "JPEG rendition served by the Hugging Face dataset viewer; sha256 is of this file"
   },
   {
-    "local_file": "SYNTHETIC_ClinOCR_tables_t11_s3.png",
+    "local_file": "SYNTHETIC_ClinOCR_tables_t11_s3.jpg",
     "category": "clean",
     "dataset": "ClinOCR-Bench/ClinOCR-Bench",
     "revision": "b1b1a42f87f7ff4c4d104f812f98652a69975125",
@@ -45,10 +46,11 @@
     "license": "MIT",
     "origin": "source",
     "sha256": "09abcdb3cb9d07f1b6369fb661701f04f9267dbf13d5f4cf96968be723a464ec",
-    "size_bytes": 283997
+    "size_bytes": 283997,
+    "note": "JPEG rendition served by the Hugging Face dataset viewer; sha256 is of this file"
   },
   {
-    "local_file": "SYNTHETIC_ClinOCR_tables_t15_s2.png",
+    "local_file": "SYNTHETIC_ClinOCR_tables_t15_s2.jpg",
     "category": "clean",
     "dataset": "ClinOCR-Bench/ClinOCR-Bench",
     "revision": "b1b1a42f87f7ff4c4d104f812f98652a69975125",
@@ -58,7 +60,8 @@
     "license": "MIT",
     "origin": "source",
     "sha256": "831ac0cf60fe198dd28ad497096f247fb00a938b84402c20bc542fb96f7b30bf",
-    "size_bytes": 271276
+    "size_bytes": 271276,
+    "note": "JPEG rendition served by the Hugging Face dataset viewer; sha256 is of this file"
   },
   {
     "local_file": "SYNTHETIC_morzel_lab_page1_skewed.png",
@@ -85,7 +88,7 @@
     "local_file": "SYNTHETIC_tilted_03_clinocr_t11_s2.jpg",
     "category": "tilted-phone-photo",
     "origin": "derived",
-    "derived_from": "SYNTHETIC_ClinOCR_tables_t11_s2.png",
+    "derived_from": "SYNTHETIC_ClinOCR_tables_t11_s2.jpg",
     "transform": "rotate -9 deg, shear 0.04, JPEG q82",
     "license": "MIT",
     "sha256": "4e375b6645cfac4f513c40b7de08a0380ddd6345fbb848663de0e8f2609dbc18",
@@ -95,7 +98,7 @@
     "local_file": "SYNTHETIC_tilted_04_clinocr_t11_s3.jpg",
     "category": "tilted-phone-photo",
     "origin": "derived",
-    "derived_from": "SYNTHETIC_ClinOCR_tables_t11_s3.png",
+    "derived_from": "SYNTHETIC_ClinOCR_tables_t11_s3.jpg",
     "transform": "rotate 12 deg, shear 0.07, JPEG q82",
     "license": "MIT",
     "sha256": "c3f788f91f84e0ecf47354eafcb4f434bfe37086da708138ae4ea6cb51e9e7ce",
@@ -105,7 +108,7 @@
     "local_file": "SYNTHETIC_tilted_05_clinocr_t15_s2.jpg",
     "category": "tilted-phone-photo",
     "origin": "derived",
-    "derived_from": "SYNTHETIC_ClinOCR_tables_t15_s2.png",
+    "derived_from": "SYNTHETIC_ClinOCR_tables_t15_s2.jpg",
     "transform": "rotate -5 deg, shear 0.09, JPEG q82",
     "license": "MIT",
     "sha256": "f7e7b8c9f6920359a26742eeb0985465b2c282545b0884c422244ecbfb4bacc6",
@@ -136,7 +139,7 @@
     "local_file": "SYNTHETIC_low-quality_03_lowres_clinocr_t11_s2.jpg",
     "category": "blurry-low-quality",
     "origin": "derived",
-    "derived_from": "SYNTHETIC_ClinOCR_tables_t11_s2.png",
+    "derived_from": "SYNTHETIC_ClinOCR_tables_t11_s2.jpg",
     "transform": "downscale 4x then upscale",
     "license": "MIT",
     "sha256": "a6204a1b5b6516a778a8050f36e4f3c99510e8f9d6adffde90deb350a9e9c81b",
@@ -146,7 +149,7 @@
     "local_file": "SYNTHETIC_low-quality_04_jpeg_clinocr_t11_s3.jpg",
     "category": "blurry-low-quality",
     "origin": "derived",
-    "derived_from": "SYNTHETIC_ClinOCR_tables_t11_s3.png",
+    "derived_from": "SYNTHETIC_ClinOCR_tables_t11_s3.jpg",
     "transform": "JPEG q=6 compression artefacts",
     "license": "MIT",
     "sha256": "fe40deb80ddc55b7170f51e03a720adcbc33a19d43a23349c1d75112bea28f47",
@@ -156,14 +159,14 @@
     "local_file": "SYNTHETIC_low-quality_05_dim-noise_clinocr_t15_s2.jpg",
     "category": "blurry-low-quality",
     "origin": "derived",
-    "derived_from": "SYNTHETIC_ClinOCR_tables_t15_s2.png",
+    "derived_from": "SYNTHETIC_ClinOCR_tables_t15_s2.jpg",
     "transform": "low contrast, dim, sensor noise, blur r=1.1",
     "license": "MIT",
     "sha256": "5bb4905e41d5fe7a9621e7cf76715ff8b271c271ff68f4120dc769ab83143747",
     "size_bytes": 161193
   },
   {
-    "local_file": "SYNTHETIC_handwritten_01_clinocr_t1_s2.png",
+    "local_file": "SYNTHETIC_handwritten_01_clinocr_t1_s2.jpg",
     "category": "handwritten",
     "dataset": "ClinOCR-Bench/ClinOCR-Bench",
     "revision": "b1b1a42f87f7ff4c4d104f812f98652a69975125",
@@ -173,10 +176,11 @@
     "license": "MIT",
     "origin": "source",
     "sha256": "df8a30c4f506bc886b5c9aac9a8d281bc6d7160415a615255476b4df24c4b6ca",
-    "size_bytes": 277095
+    "size_bytes": 277095,
+    "note": "JPEG rendition served by the Hugging Face dataset viewer; sha256 is of this file"
   },
   {
-    "local_file": "SYNTHETIC_handwritten_02_clinocr_t3_s2.png",
+    "local_file": "SYNTHETIC_handwritten_02_clinocr_t3_s2.jpg",
     "category": "handwritten",
     "dataset": "ClinOCR-Bench/ClinOCR-Bench",
     "revision": "b1b1a42f87f7ff4c4d104f812f98652a69975125",
@@ -186,10 +190,11 @@
     "license": "MIT",
     "origin": "source",
     "sha256": "226a3a72af33ebab82458272a8f1a6480b566fff8d91a8365f67e49012e1c6d5",
-    "size_bytes": 341507
+    "size_bytes": 341507,
+    "note": "JPEG rendition served by the Hugging Face dataset viewer; sha256 is of this file"
   },
   {
-    "local_file": "SYNTHETIC_handwritten_03_clinocr_t8_s2.png",
+    "local_file": "SYNTHETIC_handwritten_03_clinocr_t8_s2.jpg",
     "category": "handwritten",
     "dataset": "ClinOCR-Bench/ClinOCR-Bench",
     "revision": "b1b1a42f87f7ff4c4d104f812f98652a69975125",
@@ -199,7 +204,8 @@
     "license": "MIT",
     "origin": "source",
     "sha256": "b1da8b2a187bf72b54de2778623f3e42900947627df4b8180983a14bce4ee853",
-    "size_bytes": 234871
+    "size_bytes": 234871,
+    "note": "JPEG rendition served by the Hugging Face dataset viewer; sha256 is of this file"
   },
   {
     "local_file": "SYNTHETIC_range-position_01_blood-count.png",

@@ -85,7 +85,7 @@ public sealed class LabExtractionParserTests
     [Fact]
     public void ParseValues_ExtractsRowPerLineTableAsProducedByRealOcr()
     {
-        // Verbatim shape of Tesseract output for SYNTHETIC_ClinOCR_tables_t11_s2.png: flag glued to the value, wrapped header.
+        // Verbatim shape of Tesseract output for SYNTHETIC_ClinOCR_tables_t11_s2.jpg: flag glued to the value, wrapped header.
         const string text = "Comp. Metabolic Panel\nTest Result Previous Date Units Ref\nResult Interval\nGlucose 142H 126 03/01/2026 mg/dL 70-99\nBUN 22 19 03/01/2026 mg/dL 7-25\neGFR 61 65 03/01/2026 mL/min/1.73m2 >=60\nCarbon Dioxide, Total 23 24 03/01/2026 mEq/L 21-32\nHemoglobin A1c\nTest Result Previous Date Units Ref Interval\nResult\nHemoglobin A1c 7.9H 7.5 03/01/2026 % <5.7\n";
 
         var values = LabExtractionService.ParseValues(text);
