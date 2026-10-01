@@ -148,6 +148,67 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
         return MapLabReport(report, await dbContext.LabReportFiles.AnyAsync(x => x.LabReportId == reportId, cancellationToken));
     }
 
+    public async Task<LabReportFileDto> GetLabReportFileAsync(Guid reportId, CancellationToken cancellationToken)
+    {
+        var report = await dbContext.LabReports.AsNoTracking().Where(x => x.Id == reportId)
+            .Select(x => new { x.MemberId }).SingleOrDefaultAsync(cancellationToken) ?? throw new NotFoundException();
+        var access = await ResolveAccessAsync(report.MemberId, ConsentCategory.Conditions, allowSharedRead: true, cancellationToken, auditGuardian: false);
+        var adultCutoff = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-18);
+        var headedFamilyIds = dbContext.Families.AsNoTracking().Where(FamilyAccess.HeadedBy(currentUser.UserId)).Select(x => x.Id);
+        var files = dbContext.LabReportFiles.AsNoTracking().Where(x =>
+            x.LabReportId == reportId && x.LabReport != null && x.LabReport.Member != null &&
+            (x.LabReport.ContentType == "image/png" || x.LabReport.ContentType == "image/jpeg"));
+
+        IQueryable<LabReportFileAccess> authorizedFiles;
+        switch (access)
+        {
+            case MemberAccess.Owner:
+                authorizedFiles = files.Where(x => x.LabReport!.Member!.UserId == currentUser.UserId)
+                    .Select(x => new LabReportFileAccess(x.Content, x.LabReport!.ContentType, null));
+                break;
+            case MemberAccess.SharedWithHead:
+                authorizedFiles = files.Where(x =>
+                        x.LabReport!.SharedWithFamilyHead &&
+                        x.LabReport.Member!.DateOfBirth <= adultCutoff &&
+                        headedFamilyIds.Contains(x.LabReport.Member.FamilyId))
+                    .Select(x => new LabReportFileAccess(x.Content, x.LabReport!.ContentType, null));
+                break;
+            case MemberAccess.Guardian:
+                authorizedFiles =
+                    from storedFile in files
+                    from consent in dbContext.Consents.AsNoTracking()
+                    where storedFile.LabReport!.Member!.DateOfBirth > adultCutoff
+                        && headedFamilyIds.Contains(storedFile.LabReport.Member.FamilyId)
+                        && consent.MemberId == storedFile.LabReport.MemberId
+                        && consent.Category == ConsentCategory.Conditions
+                        && consent.Status == ConsentStatus.Granted
+                        && consent.GrantedByGuardian
+                    select new LabReportFileAccess(storedFile.Content, storedFile.LabReport!.ContentType, consent.Id);
+                break;
+            default:
+                throw new NotFoundException();
+        }
+
+        var fileData = await authorizedFiles.SingleOrDefaultAsync(cancellationToken) ?? throw new NotFoundException();
+        if (fileData.Content.Length == 0) throw new NotFoundException();
+        if (access != MemberAccess.Owner)
+        {
+            dbContext.AuditLogs.Add(new AuditLog
+            {
+                ActorUserId = currentUser.UserId,
+                SubjectMemberId = report.MemberId,
+                ConsentRefId = fileData.ConsentId,
+                EventType = access == MemberAccess.Guardian ? "GUARDIAN_CLINICAL_ACCESS" : "ADULT_SHARED_REPORT_ACCESS",
+                ResourceType = "LabReport",
+                ResourceId = reportId,
+                Outcome = "SUCCESS",
+                MetadataJson = "{}"
+            });
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        return new LabReportFileDto(fileData.Content, fileData.ContentType);
+    }
+
     public async Task<LabReportDto> UploadLabReportAsync(Guid memberId, string originalFileName, string contentType, long sizeBytes, Stream content, DateTimeOffset? collectedAt, CancellationToken cancellationToken)
     {
         await RequireMemberAccessAsync(memberId, ConsentCategory.Conditions, cancellationToken);
@@ -273,6 +334,7 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
     }
 
     private enum MemberAccess { Owner, Guardian, SharedWithHead }
+    private sealed record LabReportFileAccess(byte[] Content, string ContentType, Guid? ConsentId);
 
     /// <summary>Only the adult who owns the item may change who can see it. Everyone else gets 404.</summary>
     private async Task RequireAdultOwnerAsync(Guid memberId, CancellationToken cancellationToken)
@@ -329,7 +391,7 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
     /// Owner: the member themselves. Guardian: Head reading a minor with guardian consent (audited).
     /// SharedWithHead: Head reading an adult — only on read paths that then filter to shared items.
     /// </summary>
-    private async Task<MemberAccess> ResolveAccessAsync(Guid memberId, ConsentCategory category, bool allowSharedRead, CancellationToken cancellationToken)
+    private async Task<MemberAccess> ResolveAccessAsync(Guid memberId, ConsentCategory category, bool allowSharedRead, CancellationToken cancellationToken, bool auditGuardian = true)
     {
         if (currentUser.UserType != UserType.FamilyUser)
         {
@@ -355,6 +417,10 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
         var consent = await dbContext.Consents.AsNoTracking().SingleOrDefaultAsync(x =>
             x.MemberId == memberId && x.Category == category && x.Status == ConsentStatus.Granted && x.GrantedByGuardian,
             cancellationToken) ?? throw new NotFoundException();
+        if (!auditGuardian)
+        {
+            return MemberAccess.Guardian;
+        }
         dbContext.AuditLogs.Add(new AuditLog
         {
             ActorUserId = currentUser.UserId,

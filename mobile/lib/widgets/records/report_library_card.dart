@@ -10,12 +10,14 @@ class ReportLibraryCard extends StatelessWidget {
     required this.ownerName,
     required this.canChangeSharing,
     this.onToggleSharing,
+    this.onViewOriginal,
   });
 
   final LabReport report;
   final String ownerName;
   final bool canChangeSharing;
   final VoidCallback? onToggleSharing;
+  final VoidCallback? onViewOriginal;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +50,14 @@ class ReportLibraryCard extends StatelessWidget {
               'Recorded range position',
               report.rangeSummary?.label ?? 'No values confirmed yet',
             ),
+            if (report.hasOriginalFile && onViewOriginal != null)
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: onViewOriginal,
+                  child: const Text('View original image'),
+                ),
+              ),
             if (canChangeSharing && onToggleSharing != null)
               Align(
                 alignment: Alignment.centerRight,

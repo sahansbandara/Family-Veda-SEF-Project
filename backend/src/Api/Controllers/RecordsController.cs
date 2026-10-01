@@ -72,6 +72,16 @@ public sealed class RecordsController(IRecordService recordService, ILabExtracti
     public async Task<ActionResult<LabReportDetailDto>> GetLabReport(Guid reportId, CancellationToken cancellationToken) =>
         Ok(await recordService.GetLabReportDetailAsync(reportId, cancellationToken));
 
+    [HttpGet("lab-reports/{reportId:guid}/file")]
+    [Produces("image/png", "image/jpeg")]
+    public async Task<IActionResult> GetLabReportFile(Guid reportId, CancellationToken cancellationToken)
+    {
+        var file = await recordService.GetLabReportFileAsync(reportId, cancellationToken);
+        Response.Headers.CacheControl = "private, no-store";
+        Response.Headers["X-Content-Type-Options"] = "nosniff";
+        return File(file.Content, file.ContentType);
+    }
+
     [HttpPut("lab-reports/{reportId:guid}/review")]
     public async Task<ActionResult<LabReportDetailDto>> ConfirmLabReport(Guid reportId, ConfirmLabReportRequest request, CancellationToken cancellationToken) =>
         Ok(await recordService.ConfirmLabReportAsync(reportId, request, cancellationToken));

@@ -6,6 +6,7 @@ using FamilyVeda.Domain.Common;
 using FamilyVeda.Domain.Identity;
 using FamilyVeda.Domain.Records;
 using FamilyVeda.Infrastructure.Persistence;
+using FamilyVeda.Infrastructure.Agents;
 using FamilyVeda.Infrastructure.Records;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,27 @@ namespace FamilyVeda.UnitTests;
 
 public sealed class LabExtractionSafetyTests
 {
+    [Fact]
+    public async Task ExtractAsync_WhenRecognizedRowsAreZero_FailsWithoutWritingValuesOrFlags()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
+        await using var db = new AppDbContext(options);
+        var user = new UserAccount { Email = "synthetic-zero-rows@example.invalid", PasswordHash = "synthetic", DisplayName = "Synthetic User", UserType = UserType.FamilyUser };
+        var family = new Family { Name = "Synthetic Zero Rows Family", CreatedByUser = user };
+        var member = new Member { Family = family, User = user, DisplayName = "Synthetic Member", DateOfBirth = new DateOnly(1990, 1, 1), Role = FamilyRole.Head };
+        var report = new LabReport { Member = member, OriginalFileName = "synthetic-zero.png", StoredFileName = "db:synthetic.png", ContentType = "image/png", SizeBytes = 100, OcrStatus = OcrStatus.Pending };
+        db.AddRange(user, family, member, report);
+        await db.SaveChangesAsync();
+        var dispatcher = new ZeroRowsDispatcher();
+        var service = new LabExtractionService(db, new StubCurrentUser(user.Id), [new ExtractionAgent(dispatcher)]);
+
+        await service.Invoking(x => x.ExtractAsync(report.Id, CancellationToken.None)).Should().ThrowAsync<ProcessingException>();
+
+        dispatcher.WriteCalls.Should().Be(0);
+        (await db.LabValues.CountAsync()).Should().Be(0);
+        (await db.HereditaryFlags.CountAsync()).Should().Be(0);
+        (await db.LabReports.SingleAsync(x => x.Id == report.Id)).OcrStatus.Should().Be(OcrStatus.Failed);
+    }
     [Fact]
     public async Task ExtractAsync_WhenReportContainsManuallyConfirmedData_RejectsAndPreservesConfirmedRows()
     {
@@ -84,6 +106,18 @@ public sealed class LabExtractionSafetyTests
                 [],
                 [],
                 true));
+        }
+    }
+
+    private sealed class ZeroRowsDispatcher : IToolDispatcher
+    {
+        public int WriteCalls { get; private set; }
+
+        public Task<object> InvokeAsync(AgentKind agent, string tool, Guid memberId, Guid caseId, CancellationToken cancellationToken, object? arguments = null)
+        {
+            if (tool == "ocr_extract") return Task.FromResult<object>("unheaded prose only");
+            if (tool == "write_lab_extraction") WriteCalls++;
+            return Task.FromResult<object>(new object());
         }
     }
 

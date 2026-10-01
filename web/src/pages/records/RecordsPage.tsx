@@ -2,6 +2,7 @@
 // Ownership binding — do not edit file if not yours. docs/OWNERSHIP.tsv
 import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { OriginalReportPreview } from '../../components/records/OriginalReportPreview'
 import { ReportLibraryCard } from '../../components/records/ReportLibraryCard'
 import { RecordedRangeVisual } from '../../components/records/RecordedRangeVisual'
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
@@ -590,7 +591,12 @@ export function RecordsPage() {
                     </p>
                   </div>
                 ) : (
-                  <ReportDetail key={selectedReport.id} report={selectedReport} onSubmit={confirmReport} />
+                  <ReportDetail
+                    key={selectedReport.id}
+                    report={selectedReport}
+                    hasOriginalFile={reports.find((report) => report.id === selectedReport.id)?.hasOriginalFile === true}
+                    onSubmit={confirmReport}
+                  />
                 )}
               </section>
             </section>
@@ -645,9 +651,11 @@ export function RecordsPage() {
 
 function ReportDetail({
   report,
+  hasOriginalFile,
   onSubmit,
 }: {
   report: LabReportDetailDto
+  hasOriginalFile: boolean
   onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>
 }) {
   const confirmed = report.values.filter((value) => value.wasManuallyConfirmed).length
@@ -665,6 +673,7 @@ function ReportDetail({
         </div>
         <StatusBadge status={report.ocrStatus} />
       </div>
+      <OriginalReportPreview reportId={report.id} originalFileName={report.originalFileName} hasOriginalFile={hasOriginalFile} />
       <ol className="care-steps">
         <li className="care-step--complete">Uploaded</li>
         <li className={report.ocrStatus === 'Completed' ? 'care-step--complete' : ''}>Extracted</li>

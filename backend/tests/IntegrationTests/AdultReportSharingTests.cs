@@ -128,6 +128,95 @@ public sealed class AdultReportSharingTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task OriginalImage_OnlyReturnsForAuthorizedReaders_AndAuditsSharedHeadAccess()
+    {
+        var world = await ArrangeFamilyAsync("original-image");
+
+        (await world.Adult.GetAsync($"/api/v1/lab-reports/{world.AdultReportId}/file")).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await world.Head.GetAsync($"/api/v1/lab-reports/{world.AdultReportId}/file")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await world.Outsider.GetAsync($"/api/v1/lab-reports/{world.AdultReportId}/file")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        (await world.Adult.PatchAsJsonAsync($"/api/v1/lab-reports/{world.AdultReportId}/sharing", new { sharedWithFamilyHead = true })).StatusCode.Should().Be(HttpStatusCode.OK);
+        var shared = await world.Head.GetAsync($"/api/v1/lab-reports/{world.AdultReportId}/file");
+        shared.StatusCode.Should().Be(HttpStatusCode.OK);
+        shared.Content.Headers.ContentType!.MediaType.Should().Be("image/png");
+        shared.Headers.CacheControl!.NoStore.Should().BeTrue();
+        shared.Headers.GetValues("X-Content-Type-Options").Should().ContainSingle().Which.Should().Be("nosniff");
+        (await shared.Content.ReadAsByteArrayAsync()).Should().Equal(OriginalImageBytes);
+
+        await using var scope = _factory!.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        (await db.AuditLogs.AnyAsync(x => x.EventType == "ADULT_SHARED_REPORT_ACCESS" && x.SubjectMemberId == world.AdultMemberId && x.ResourceId == world.AdultReportId)).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task OriginalImage_WhenReportHasNoStoredBytes_ReturnsNotFound()
+    {
+        var world = await ArrangeFamilyAsync("missing-original");
+        (await world.Adult.PatchAsJsonAsync($"/api/v1/lab-reports/{world.AdultReportId}/sharing", new { sharedWithFamilyHead = true })).StatusCode.Should().Be(HttpStatusCode.OK);
+        await using (var scope = _factory!.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var file = await db.LabReportFiles.SingleAsync(x => x.LabReportId == world.AdultReportId);
+            db.LabReportFiles.Remove(file);
+            await db.SaveChangesAsync();
+        }
+        (await world.Adult.GetAsync($"/api/v1/lab-reports/{world.AdultReportId}/file")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await world.Head.GetAsync($"/api/v1/lab-reports/{world.AdultReportId}/file")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        await using var auditScope = _factory!.Services.CreateAsyncScope();
+        var auditDb = auditScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        (await auditDb.AuditLogs.AnyAsync(x => x.EventType == "ADULT_SHARED_REPORT_ACCESS" && x.ResourceId == world.AdultReportId))
+            .Should().BeFalse("a missing file was not successfully disclosed");
+    }
+
+    [Fact]
+    public async Task OriginalImage_GuardianNeedsCurrentConsent_AndOnlySuccessfulReadIsAudited()
+    {
+        var world = await ArrangeFamilyAsync("guardian-original");
+
+        (await world.Head.GetAsync($"/api/v1/lab-reports/{world.MinorReportId}/file")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        Guid consentId;
+        await using (var grantScope = _factory!.Services.CreateAsyncScope())
+        {
+            var db = grantScope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var minorMemberId = await db.LabReports.Where(x => x.Id == world.MinorReportId).Select(x => x.MemberId).SingleAsync();
+            var consent = new Domain.Identity.Consent
+            {
+                MemberId = minorMemberId,
+                Category = ConsentCategory.Conditions,
+                Status = ConsentStatus.Granted,
+                GrantedByGuardian = true,
+                GrantedAt = DateTimeOffset.UtcNow
+            };
+            db.Consents.Add(consent);
+            await db.SaveChangesAsync();
+            consentId = consent.Id;
+        }
+
+        var granted = await world.Head.GetAsync($"/api/v1/lab-reports/{world.MinorReportId}/file");
+        granted.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await granted.Content.ReadAsByteArrayAsync()).Should().Equal(OriginalImageBytes);
+
+        await using (var revokeScope = _factory!.Services.CreateAsyncScope())
+        {
+            var db = revokeScope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var consent = await db.Consents.SingleAsync(x => x.Id == consentId);
+            consent.Status = ConsentStatus.Revoked;
+            consent.RevokedAt = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync();
+        }
+
+        (await world.Head.GetAsync($"/api/v1/lab-reports/{world.MinorReportId}/file")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        await using var auditScope = _factory!.Services.CreateAsyncScope();
+        var auditDb = auditScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var audits = await auditDb.AuditLogs.Where(x => x.EventType == "GUARDIAN_CLINICAL_ACCESS" && x.ResourceId == world.MinorReportId).ToListAsync();
+        audits.Should().ContainSingle().Which.ConsentRefId.Should().Be(consentId);
+    }
+
+    [Fact]
     public async Task MemberSexForClinicalReference_DefaultsToNotSpecified_AndRejectsUnknownValues()
     {
         var (head, _) = await RegisterAsync("synthetic-sex-head@example.invalid");
@@ -199,6 +288,8 @@ public sealed class AdultReportSharingTests : IAsyncLifetime
         return new World(head, adult, outsider, adultMember.Id, adultReport.Id, adultRecord.Id, minorReport.Id);
     }
 
+    private static readonly byte[] OriginalImageBytes = [0x89, 0x50, 0x4E, 0x47];
+
     private static LabReport NewReport(Guid memberId) => new()
     {
         MemberId = memberId,
@@ -207,7 +298,8 @@ public sealed class AdultReportSharingTests : IAsyncLifetime
         ContentType = "image/png",
         SizeBytes = 1,
         OcrStatus = OcrStatus.Completed,
-        CollectedAt = DateTimeOffset.UtcNow.AddDays(-1)
+        CollectedAt = DateTimeOffset.UtcNow.AddDays(-1),
+        File = new LabReportFile { Content = OriginalImageBytes }
     };
 
     private async Task<(HttpClient Client, Guid UserId)> RegisterAsync(string email)

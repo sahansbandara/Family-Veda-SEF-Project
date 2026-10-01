@@ -88,12 +88,60 @@ public sealed partial class LabExtractionService(AppDbContext dbContext, ICurren
         }
     }
 
-    public static IReadOnlyList<ParsedLabValue> ParseValues(string text) => text.Split('\n')
-        .Select(line => LabValueLine().Match(line.Trim())).Where(match => match.Success)
-        .Select(match => new ParsedLabValue(match.Groups["name"].Value.Trim(),
-            decimal.Parse(match.Groups["value"].Value, CultureInfo.InvariantCulture), match.Groups["unit"].Value,
-            ParseNullable(match.Groups["low"].Value), ParseNullable(match.Groups["high"].Value)))
-        .Take(200).ToList();
+    public static IReadOnlyList<ParsedLabValue> ParseValues(string text)
+    {
+        var values = text.Split('\n')
+            .Select(line => LabValueLine().Match(line.Trim())).Where(match => match.Success)
+            .Select(match => new ParsedLabValue(match.Groups["name"].Value.Trim(),
+                decimal.Parse(match.Groups["value"].Value, CultureInfo.InvariantCulture), match.Groups["unit"].Value,
+                ParseNullable(match.Groups["low"].Value), ParseNullable(match.Groups["high"].Value)))
+            .Take(200).ToList();
+        if (values.Count == 200) return values;
+
+        var lines = text.Split('\n').Select(line => line.Trim()).Where(line => line.Length > 0).ToList();
+        for (var index = 0; index <= lines.Count - TableHeaderColumns.Length; index++)
+        {
+            if (!HasTableHeader(lines, index)) continue;
+            index += TableHeaderColumns.Length;
+            while (index + 5 < lines.Count && values.Count < 200)
+            {
+                if (HasTableHeader(lines, index) || HasTableHeader(lines, index + 1)) break;
+                if (TryParseTableRow(lines, index, out var value)) values.Add(value);
+                index += 6;
+            }
+            index--;
+        }
+
+        // Real OCR output keeps each table row on one line; the block above only covers one-cell-per-line text.
+        var inlineHeaderSeen = false;
+        foreach (var line in lines)
+        {
+            if (values.Count >= 200) break;
+            var normalized = NormalizeTableText(line);
+            if (InlineTableHeader().IsMatch(normalized)) { inlineHeaderSeen = true; continue; }
+            if (inlineHeaderSeen && TryParseInlineTableRow(normalized, out var value)) values.Add(value);
+        }
+        return values;
+    }
+
+    private static bool TryParseInlineTableRow(string line, out ParsedLabValue value)
+    {
+        value = default!;
+        var row = InlineTableRow().Match(line);
+        if (!row.Success || !TryParseInvariantDecimal(row.Groups["value"].Value, out var current) ||
+            !DateOnly.TryParseExact(row.Groups["date"].Value, "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _)) return false;
+        decimal? low = null;
+        decimal? high = null;
+        if (row.Groups["low"].Success)
+        {
+            if (!TryParseInvariantDecimal(row.Groups["low"].Value, out var parsedLow) ||
+                !TryParseInvariantDecimal(row.Groups["high"].Value, out var parsedHigh)) return false;
+            low = parsedLow;
+            high = parsedHigh;
+        }
+        value = new ParsedLabValue(row.Groups["name"].Value.Trim(), current, row.Groups["unit"].Value, low, high);
+        return true;
+    }
 
     public static IReadOnlyList<ParsedFlag> ParseFlags(string text) => text.Split('\n')
         .Select(line => FlagLine().Match(line.Trim())).Where(match => match.Success)
@@ -103,8 +151,68 @@ public sealed partial class LabExtractionService(AppDbContext dbContext, ICurren
 
     private static decimal? ParseNullable(string value) => string.IsNullOrWhiteSpace(value) ? null : decimal.Parse(value, CultureInfo.InvariantCulture);
 
+    private static readonly string[] TableHeaderColumns = ["Test", "Result", "Previous Result", "Date", "Units", "Ref Interval"];
+
+    private static bool HasTableHeader(IReadOnlyList<string> lines, int index) =>
+        index + TableHeaderColumns.Length <= lines.Count && TableHeaderColumns.Select((column, offset) =>
+            string.Equals(column, NormalizeTableText(lines[index + offset]), StringComparison.OrdinalIgnoreCase)).All(match => match);
+
+    private static string NormalizeTableText(string value) => Regex.Replace(value.Trim(), @"\s+", " ");
+
+    private static bool TryParseTableRow(IReadOnlyList<string> lines, int index, out ParsedLabValue value)
+    {
+        value = default!;
+        var name = lines[index];
+        var current = CurrentResultLine().Match(lines[index + 1]);
+        if (!TableAnalyte().IsMatch(name) || !current.Success || !TryParseInvariantDecimal(current.Groups["value"].Value, out var currentValue) ||
+            !TryParseInvariantDecimal(lines[index + 2], out _) ||
+            !DateOnly.TryParseExact(lines[index + 3], "MM/dd/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _) ||
+            !TableUnit().IsMatch(lines[index + 4])) return false;
+
+        decimal? low = null;
+        decimal? high = null;
+        var reference = lines[index + 5];
+        var bilateral = BilateralRange().Match(reference);
+        if (bilateral.Success)
+        {
+            if (!TryParseInvariantDecimal(bilateral.Groups["low"].Value, out var parsedLow) ||
+                !TryParseInvariantDecimal(bilateral.Groups["high"].Value, out var parsedHigh)) return false;
+            low = parsedLow;
+            high = parsedHigh;
+        }
+        else if (!UnilateralRange().IsMatch(reference))
+        {
+            return false;
+        }
+
+        value = new ParsedLabValue(name, currentValue, lines[index + 4], low, high);
+        return true;
+    }
+
+    private static bool TryParseInvariantDecimal(string value, out decimal result)
+    {
+        result = default;
+        return DecimalToken().IsMatch(value) && decimal.TryParse(value, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out result);
+    }
+
     [GeneratedRegex(@"^(?<name>[A-Za-z][A-Za-z0-9 ()/_-]{1,80})\s*[|:]\s*(?<value>-?\d+(?:\.\d+)?)\s+(?<unit>[^|\s]{1,20})(?:\s*[|]\s*(?<low>-?\d+(?:\.\d+)?)\s*[-–]\s*(?<high>-?\d+(?:\.\d+)?))?$", RegexOptions.CultureInvariant)]
     private static partial Regex LabValueLine();
+    [GeneratedRegex(@"^[A-Za-z][A-Za-z0-9., ()/_-]{1,80}$", RegexOptions.CultureInvariant)]
+    private static partial Regex TableAnalyte();
+    [GeneratedRegex(@"^Test Result Previous(?: Result)? Date Units Ref(?: Interval)?$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex InlineTableHeader();
+    [GeneratedRegex(@"^(?<name>[A-Za-z][A-Za-z0-9., ()/_-]{1,80}?)\s+(?<value>-?\d+(?:\.\d+)?)\s?[HL]?\s+-?\d+(?:\.\d+)?\s?[HL]?\s+(?<date>\d{2}/\d{2}/\d{4})\s+(?<unit>[A-Za-z%][A-Za-z0-9%/._-]{0,31})\s+(?:(?<low>-?\d+(?:\.\d+)?)\s*-\s*(?<high>-?\d+(?:\.\d+)?)|<\s*\d+(?:\.\d+)?|>=\s*\d+(?:\.\d+)?)$", RegexOptions.CultureInvariant)]
+    private static partial Regex InlineTableRow();
+    [GeneratedRegex(@"^(?<value>-?\d+(?:\.\d+)?)(?:\s+[HL])?$", RegexOptions.CultureInvariant)]
+    private static partial Regex CurrentResultLine();
+    [GeneratedRegex(@"^[A-Za-z%][A-Za-z0-9%/._-]{0,31}$", RegexOptions.CultureInvariant)]
+    private static partial Regex TableUnit();
+    [GeneratedRegex(@"^(?<low>-?\d+(?:\.\d+)?)\s*-\s*(?<high>-?\d+(?:\.\d+)?)$", RegexOptions.CultureInvariant)]
+    private static partial Regex BilateralRange();
+    [GeneratedRegex(@"^(?:<\s*\d+(?:\.\d+)?|>=\s*\d+(?:\.\d+)?)$", RegexOptions.CultureInvariant)]
+    private static partial Regex UnilateralRange();
+    [GeneratedRegex(@"^-?\d+(?:\.\d+)?$", RegexOptions.CultureInvariant)]
+    private static partial Regex DecimalToken();
     [GeneratedRegex(@"^HEREDITARY_FLAG\s*:\s*(?<code>[A-Za-z0-9_-]{2,40})\s*\|\s*(?<finding>[^|]{3,200})\s*\|\s*(?<confidence>0(?:\.\d+)?|1(?:\.0+)?)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex FlagLine();
 
