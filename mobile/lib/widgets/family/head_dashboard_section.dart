@@ -1,11 +1,10 @@
 // Owner: S4 · whole-project waiver (agent/DECISIONS.md 2026-09-28b)
 // Family Head dashboard for Flutter, precisely matching web FamilyDashboardPanel:
 // royal blue gradient hero banner, clean metric cards, doctor card with verified badge,
-// needs attention, members overview, and quick actions.
+// needs attention, members overview, quick actions, health tools, and recent activity.
 import 'package:family_veda/models/family_dashboard.dart';
 import 'package:family_veda/models/member.dart';
 import 'package:family_veda/theme/app_theme.dart';
-import 'package:family_veda/theme/glass.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -84,29 +83,37 @@ class HeadDashboardSection extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
 
         // 3. Continuity of Care / My Family Doctor
         _DoctorSection(dashboard: dashboard, onNavigate: onNavigate),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
 
         // 4. Priority / Needs Attention
         _NeedsAttentionSection(
           dashboard: dashboard,
           onNavigate: onNavigate,
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
 
         // 5. Family Overview / Members
         _MembersSection(dashboard: dashboard, onNavigate: onNavigate),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
 
         // 6. Common Tasks / Quick Actions
         _QuickActionsSection(onNavigate: onNavigate),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
 
-        // 7. Recent Shared Activity
+        // 7. Doctor-Reviewed / Health Tools
+        _HealthToolsSection(onNavigate: onNavigate),
+        const SizedBox(height: 16),
+
+        // 8. Shared Only / Recent Activity
         _ActivitySection(dashboard: dashboard),
+        const SizedBox(height: 20),
+
+        // 9. Emergency Help CTA
+        _EmergencyHelpButton(onTap: () => onNavigate('/emergency')),
       ],
     );
   }
@@ -329,14 +336,14 @@ class _MetricCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -359,7 +366,7 @@ class _MetricCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -421,18 +428,18 @@ class _DoctorSection extends StatelessWidget {
     final doctor = dashboard.familyDoctor;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -449,17 +456,17 @@ class _DoctorSection extends StatelessWidget {
                   Text(
                     'CONTINUITY OF CARE',
                     style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.8,
-                      color: isDark ? AppColors.primaryLumDark : AppColors.primary,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.0,
+                      color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     'My Family Doctor',
                     style: TextStyle(
-                      fontSize: 17,
+                      fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: isDark ? Colors.white : const Color(0xFF0F172A),
                     ),
@@ -470,12 +477,20 @@ class _DoctorSection extends StatelessWidget {
                 onPressed: () => onNavigate('/my-doctor'),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(0, 32),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                  side: BorderSide(color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1)),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(999),
                   ),
                 ),
-                child: const Text('Manage', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                child: Text(
+                  'Manage',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                  ),
+                ),
               ),
             ],
           ),
@@ -487,88 +502,111 @@ class _DoctorSection extends StatelessWidget {
               style: TextStyle(fontSize: 13, height: 1.4),
             ),
           ] else ...[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        doctor.displayName,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              doctor.displayName,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              [doctor.specialty, doctor.city, doctor.languages].whereType<String>().join(' · '),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        [doctor.specialty, doctor.city, doctor.languages].whereType<String>().join(' · '),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE0F2FE),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'VERIFIED',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF0284C7),
+                            letterSpacing: 0.5,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE0F2FE),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Text(
-                    'VERIFIED',
+                  const SizedBox(height: 8),
+                  Text(
+                    dashboard.nextAppointment != null
+                        ? 'Next shared appointment: ${DateFormat('dd MMM · h:mm a').format(dashboard.nextAppointment!.startsAt)}'
+                        : 'No upcoming appointment for you or your minors.',
                     style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF0284C7),
-                      letterSpacing: 0.5,
+                      fontSize: 12.5,
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              dashboard.nextAppointment != null
-                  ? 'Next shared appointment: ${DateFormat('dd MMM · h:mm a').format(dashboard.nextAppointment!.startsAt)}'
-                  : 'No upcoming appointment for you or your minors.',
-              style: TextStyle(
-                fontSize: 12.5,
-                color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
-              ),
-            ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => onNavigate('/appointments/book'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1D61E0),
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(0, 40),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => onNavigate('/appointments/book'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF1D61E0),
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(0, 38),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text('Book Appointment', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                        ),
                       ),
-                    ),
-                    child: const Text('Book Appointment', style: TextStyle(fontWeight: FontWeight.w600)),
+                      const SizedBox(width: 8),
+                      OutlinedButton(
+                        onPressed: () => onNavigate('/my-doctor'),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(0, 38),
+                          side: BorderSide(color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          'View Doctor',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: isDark ? Colors.white : const Color(0xFF1E293B),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 10),
-                OutlinedButton(
-                  onPressed: () => onNavigate('/my-doctor'),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(0, 40),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text('View Doctor', style: TextStyle(fontWeight: FontWeight.w600)),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ],
@@ -597,18 +635,18 @@ class _NeedsAttentionSection extends StatelessWidget {
     final hasItems = pending > 0 || guidance > 0 || unread > 0;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -618,17 +656,17 @@ class _NeedsAttentionSection extends StatelessWidget {
           Text(
             'PRIORITY',
             style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.8,
-              color: isDark ? AppColors.primaryLumDark : AppColors.primary,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.0,
+              color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
             ),
           ),
           const SizedBox(height: 2),
           Text(
             'Needs Attention',
             style: TextStyle(
-              fontSize: 17,
+              fontSize: 18,
               fontWeight: FontWeight.w700,
               color: isDark ? Colors.white : const Color(0xFF0F172A),
             ),
@@ -639,7 +677,7 @@ class _NeedsAttentionSection extends StatelessWidget {
               'Nothing needs your attention right now.',
               style: TextStyle(
                 fontSize: 13,
-                color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
               ),
             )
           else ...[
@@ -756,18 +794,18 @@ class _MembersSection extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -783,17 +821,17 @@ class _MembersSection extends StatelessWidget {
                   Text(
                     'FAMILY OVERVIEW',
                     style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.8,
-                      color: isDark ? AppColors.primaryLumDark : AppColors.primary,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.0,
+                      color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     'Members',
                     style: TextStyle(
-                      fontSize: 17,
+                      fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: isDark ? Colors.white : const Color(0xFF0F172A),
                     ),
@@ -804,16 +842,24 @@ class _MembersSection extends StatelessWidget {
                 onPressed: () => onNavigate('/members'),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(0, 32),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                  side: BorderSide(color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1)),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(999),
                   ),
                 ),
-                child: const Text('Manage Family', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                child: Text(
+                  'Manage Family',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           for (final member in dashboard.members) _MemberRow(member: member),
         ],
       ),
@@ -834,45 +880,45 @@ class _MemberRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceSubtleDark : const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0)),
+        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  member.displayName,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                ),
-                Text(
-                  member.summary,
-                  style: TextStyle(fontSize: 12, color: isDark ? AppColors.mutedDark : const Color(0xFF64748B)),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: member.role == 'Head'
-                  ? const Color(0xFFE0F2FE)
-                  : (member.isMinor ? const Color(0xFFFEF3C7) : const Color(0xFFF1F5F9)),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              member.roleLabel,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: member.role == 'Head'
-                    ? const Color(0xFF0284C7)
-                    : (member.isMinor ? const Color(0xFFB45309) : const Color(0xFF475569)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                member.displayName,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
               ),
-            ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                decoration: BoxDecoration(
+                  color: member.role == 'Head'
+                      ? const Color(0xFFE0F2FE)
+                      : (member.isMinor ? const Color(0xFFFEF3C7) : const Color(0xFFF1F5F9)),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  member.roleLabel,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: member.role == 'Head'
+                        ? const Color(0xFF0284C7)
+                        : (member.isMinor ? const Color(0xFFB45309) : const Color(0xFF475569)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            member.summary,
+            style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
           ),
         ],
       ),
@@ -899,18 +945,18 @@ class _QuickActionsSection extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -920,50 +966,72 @@ class _QuickActionsSection extends StatelessWidget {
           Text(
             'COMMON TASKS',
             style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.8,
-              color: isDark ? AppColors.primaryLumDark : AppColors.primary,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.0,
+              color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
             ),
           ),
           const SizedBox(height: 2),
           Text(
             'Quick Actions',
             style: TextStyle(
-              fontSize: 17,
+              fontSize: 18,
               fontWeight: FontWeight.w700,
               color: isDark ? Colors.white : const Color(0xFF0F172A),
             ),
           ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final (label, sub, path) in _actions)
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () => onNavigate(path),
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isDark ? AppColors.surfaceSubtleDark : const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-                          Text(sub, style: TextStyle(fontSize: 11, color: isDark ? AppColors.faintDark : const Color(0xFF94A3B8))),
-                        ],
-                      ),
+          const SizedBox(height: 14),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              childAspectRatio: 1.8,
+            ),
+            itemCount: _actions.length,
+            itemBuilder: (context, index) {
+              final (label, sub, path) = _actions[index];
+              return Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => onNavigate(path),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          label,
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          sub,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
                   ),
                 ),
-            ],
+              );
+            },
           ),
         ],
       ),
@@ -971,7 +1039,111 @@ class _QuickActionsSection extends StatelessWidget {
   }
 }
 
-/// 7. Activity Section
+/// 7. Doctor-Reviewed / Health Tools Section
+class _HealthToolsSection extends StatelessWidget {
+  const _HealthToolsSection({required this.onNavigate});
+
+  final ValueChanged<String> onNavigate;
+
+  static const _tools = <(String, String, String)>[
+    ('Understand a Report', 'Extract, confirm and see range status.', '/lab-upload'),
+    ('Check Symptoms', 'A doctor reviews every result.', '/complaints/new'),
+    ('Search My Records', 'Your own and your minors\' records.', '/records'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'DOCTOR-REVIEWED',
+            style: TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.0,
+              color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Health Tools',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+            ),
+          ),
+          const SizedBox(height: 14),
+          for (final (label, desc, path) in _tools)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => onNavigate(path),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(label, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
+                              const SizedBox(height: 2),
+                              Text(
+                                desc,
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.chevron_right,
+                          size: 18,
+                          color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 8. Shared Activity Section
 class _ActivitySection extends StatelessWidget {
   const _ActivitySection({required this.dashboard});
 
@@ -982,51 +1154,118 @@ class _ActivitySection extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isDark ? AppColors.borderDark : const Color(0xFFE2E8F0),
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'RECENT SHARED ACTIVITY',
+            'SHARED ONLY',
             style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.8,
-              color: isDark ? AppColors.primaryLumDark : AppColors.primary,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.0,
+              color: isDark ? const Color(0xFF60A5FA) : const Color(0xFF2563EB),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 2),
+          Text(
+            'Recent Activity',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: isDark ? Colors.white : const Color(0xFF0F172A),
+            ),
+          ),
+          const SizedBox(height: 12),
           if (dashboard.activity.isEmpty)
             Text(
               'Activity for you and your minors will appear here.',
-              style: TextStyle(fontSize: 12.5, color: isDark ? AppColors.faintDark : const Color(0xFF64748B)),
+              style: TextStyle(
+                fontSize: 12.5,
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              ),
             )
           else
             for (final entry in dashboard.activity)
               Padding(
-                padding: const EdgeInsets.only(bottom: 6),
+                padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      width: 6,
-                      height: 6,
-                      decoration: const BoxDecoration(color: Color(0xFF1D61E0), shape: BoxShape.circle),
+                      margin: const EdgeInsets.only(top: 5),
+                      width: 7,
+                      height: 7,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF1D61E0),
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 10),
                     Expanded(
-                      child: Text(entry.title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(entry.title, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
+                          if (entry.subject != null || entry.occurredAt != null)
+                            Text(
+                              [
+                                entry.subject,
+                                entry.occurredAt != null ? DateFormat('dd MMM yyyy').format(entry.occurredAt!) : null
+                              ].whereType<String>().join(' · '),
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
         ],
+      ),
+    );
+  }
+}
+
+/// 9. Emergency Help Button
+class _EmergencyHelpButton extends StatelessWidget {
+  const _EmergencyHelpButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton.icon(
+      onPressed: onTap,
+      icon: const Icon(Icons.emergency_outlined, color: Colors.white, size: 20),
+      label: const Text(
+        'Emergency Help',
+        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFFDC2626), // Emergency red
+        minimumSize: const Size(double.infinity, 48),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        elevation: 2,
       ),
     );
   }

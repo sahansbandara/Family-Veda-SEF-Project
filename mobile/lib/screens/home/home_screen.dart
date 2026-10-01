@@ -497,8 +497,8 @@ class HomeScreen extends ConsumerWidget {
                           ]
                         : [
                             const Color(0xFFFFFFFF),
-                            const Color(0xFFF0FDF9),
-                            const Color(0xFFE6F8F5),
+                            const Color(0xFFF4F8FF),
+                            const Color(0xFFEBF3FE),
                           ],
                   ),
                   borderRadius: BorderRadius.circular(18),
@@ -907,66 +907,68 @@ class HomeScreen extends ConsumerWidget {
               ),
             ],
 
-            const SizedBox(height: 16),
-            _SectionLabel('Appointments & Care'),
-            _ActionRow(
-              icon: Icons.event_outlined,
-              title: 'Appointments',
-              onTap: () => context.push('/appointments'),
-            ),
-            _ActionRow(
-              icon: Icons.add_task_outlined,
-              title: 'Book appointment',
-              enabled: true,
-              onTap: () =>
-                  _handleMemberAction(context, '/appointments/book', hasMember),
-            ),
-            _ActionRow(
-              icon: Icons.medical_services_outlined,
-              title: 'My Doctor',
-              onTap: () => context.push('/my-doctor'),
-            ),
-            _ActionRow(
-              icon: Icons.group_add_outlined,
-              title: 'Join a family by code',
-              onTap: () => context.push('/join-family'),
-            ),
+            if (!isHead) ...[
+              const SizedBox(height: 16),
+              _SectionLabel('Appointments & Care'),
+              _ActionRow(
+                icon: Icons.event_outlined,
+                title: 'Appointments',
+                onTap: () => context.push('/appointments'),
+              ),
+              _ActionRow(
+                icon: Icons.add_task_outlined,
+                title: 'Book appointment',
+                enabled: true,
+                onTap: () =>
+                    _handleMemberAction(context, '/appointments/book', hasMember),
+              ),
+              _ActionRow(
+                icon: Icons.medical_services_outlined,
+                title: 'My Doctor',
+                onTap: () => context.push('/my-doctor'),
+              ),
+              _ActionRow(
+                icon: Icons.group_add_outlined,
+                title: 'Join a family by code',
+                onTap: () => context.push('/join-family'),
+              ),
 
-            const SizedBox(height: 16),
-            _SectionLabel('Records & Vitals'),
-            _ActionRow(
-              icon: Icons.folder_outlined,
-              title: 'Health records',
-              enabled: true,
-              onTap: () => _handleMemberAction(context, '/records', hasMember),
-            ),
-            _ActionRow(
-              icon: Icons.note_add_outlined,
-              title: 'Add health record',
-              enabled: true,
-              onTap: () =>
-                  _handleMemberAction(context, '/records/new', hasMember),
-            ),
-            _ActionRow(
-              icon: Icons.monitor_heart_outlined,
-              title: 'Record vital',
-              enabled: true,
-              onTap: () =>
-                  _handleMemberAction(context, '/vitals/new', hasMember),
-            ),
+              const SizedBox(height: 16),
+              _SectionLabel('Records & Vitals'),
+              _ActionRow(
+                icon: Icons.folder_outlined,
+                title: 'Health records',
+                enabled: true,
+                onTap: () => _handleMemberAction(context, '/records', hasMember),
+              ),
+              _ActionRow(
+                icon: Icons.note_add_outlined,
+                title: 'Add health record',
+                enabled: true,
+                onTap: () =>
+                    _handleMemberAction(context, '/records/new', hasMember),
+              ),
+              _ActionRow(
+                icon: Icons.monitor_heart_outlined,
+                title: 'Record vital',
+                enabled: true,
+                onTap: () =>
+                    _handleMemberAction(context, '/vitals/new', hasMember),
+              ),
 
-            const SizedBox(height: 16),
-            _SectionLabel('Triage & Cases'),
-            _ActionRow(
-              icon: Icons.track_changes_outlined,
-              title: 'Case status',
-              enabled: true,
-              onTap: () => _handleMemberAction(context, '/cases', hasMember),
-            ),
+              const SizedBox(height: 16),
+              _SectionLabel('Triage & Cases'),
+              _ActionRow(
+                icon: Icons.track_changes_outlined,
+                title: 'Case status',
+                enabled: true,
+                onTap: () => _handleMemberAction(context, '/cases', hasMember),
+              ),
 
-            const SizedBox(height: 22),
-            // Rule 10: Emergency referral is solid red, high contrast.
-            _EmergencyAction(onTap: () => context.push('/emergency')),
+              const SizedBox(height: 22),
+              // Rule 10: Emergency referral is solid red, high contrast.
+              _EmergencyAction(onTap: () => context.push('/emergency')),
+            ],
           ],
         ),
       ),

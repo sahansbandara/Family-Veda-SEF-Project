@@ -35,7 +35,7 @@ class AmbientBackground extends StatelessWidget {
           Positioned.fill(
             child: IgnorePointer(
               child: CustomPaint(
-                painter: _MeshPainter(opacity: opacity),
+                painter: _MeshPainter(opacity: opacity, isDark: isDark),
               ),
             ),
           ),
@@ -47,9 +47,10 @@ class AmbientBackground extends StatelessWidget {
 }
 
 class _MeshPainter extends CustomPainter {
-  const _MeshPainter({required this.opacity});
+  const _MeshPainter({required this.opacity, required this.isDark});
 
   final double opacity;
+  final bool isDark;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -61,13 +62,14 @@ class _MeshPainter extends CustomPainter {
       canvas.drawCircle(centre, radius, paint);
     }
 
-    orb(AppColors.orbA, Offset(size.width * 0.08, size.height * 0.06), size.width * 0.72);
-    orb(AppColors.orbB, Offset(size.width * 0.98, size.height * 0.30), size.width * 0.80);
-    orb(AppColors.orbC, Offset(size.width * 0.40, size.height * 1.02), size.width * 0.74);
+    orb(isDark ? AppColors.orbADark : AppColors.orbA, Offset(size.width * 0.08, size.height * 0.06), size.width * 0.72);
+    orb(isDark ? AppColors.orbBDark : AppColors.orbB, Offset(size.width * 0.98, size.height * 0.30), size.width * 0.80);
+    orb(isDark ? AppColors.orbCDark : AppColors.orbC, Offset(size.width * 0.40, size.height * 1.02), size.width * 0.74);
   }
 
   @override
-  bool shouldRepaint(_MeshPainter oldDelegate) => oldDelegate.opacity != opacity;
+  bool shouldRepaint(_MeshPainter oldDelegate) =>
+      oldDelegate.opacity != opacity || oldDelegate.isDark != isDark;
 }
 
 /// The glass primitive.
