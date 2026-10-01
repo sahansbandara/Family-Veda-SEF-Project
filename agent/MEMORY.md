@@ -71,3 +71,15 @@ Async safety: reset private state on profile/case changes; guard mutation comple
 Confirmed reference-range diagrams use only finite confirmed source values and valid printed intervals with original units. Missing/reversed ranges remain unplotted. No new AI interpretation or lab doctor-approval backend was added. Dashboard actions deep-link to these flows and refresh server summaries on window focus. Synthetic visual fixtures and screenshots live outside the repository under this chat's visualization directory; live API/deployment verification is separate.
 
 2026-10-01 verification: 119 tests across 27 files, lint and production build passed (existing bundle-size warning remains). Synthetic previews of the actual React pages were checked at desktop and 390px mobile widths, including dark mode. Compact header controls are scoped to care screens; mobile progress uses two columns to keep labels readable.
+
+## 2026-10-01 — Medical report viva pack
+- Hosted Neon cleanup removed only 14 verified seeded lab-report placeholders and 19 values; preserved the uploaded original and retained a Neon recovery snapshot.
+- Viva seeder adds 3 Perera adults, 2 isolated adult family heads, and 4 synthetic verified doctors. Existing passwords are preserved. Each new adult has 3 report originals; sharing defaults off. Credentials are provided only in chat.
+- Test pack has 24 images: clean5, tilted5, low-quality5, handwriting3, missing-reference3, Below/Within/Above3. sources.json records source/derived/generated provenance and checksums. Dataset-server JPEG files require .jpg extensions.
+- Original-image access uses current ownership/sharing/guardian-consent predicates; successful cross-profile reads are audited after byte resolution. Web and mobile display authenticated originals. PDF is reference-only; API accepts PNG/JPEG.
+- Local checks use hosted Neon. Google Drive contains a private fixture backup; automatic backend Drive storage still requires owner OAuth authorization. Do not claim files are served from Drive.
+- OCR may safely fail on difficult or non-table documents; no fake values are inserted. Preserve manual confirmation and rate limits.
+- Local OCR fix: the relative ./tessdata setting did not resolve in API working directory. Ignored .env.local now uses installed /opt/homebrew/share/tessdata. Real benchmark: all 24 images processed without Tesseract errors; only 9 yielded supported structured values (clean2/5, tilted0/5, low-quality1/5, handwritten0/3, missing-range3/3, range-position3/3). The parser remains limited; do not advertise all-category OCR success.
+- Actual handwritten MRI appointment time was mistakenly recognized by the generic value regex. Date-bearing analytes and uppercase AM/PM units are now excluded; regression tests added.
+- Hosted share/revoke verification: head404 → adult shares → head200 → adult revokes → head404; outsider404, ungranted doctor403. Restored private sharing after test.
+- Corrected Google Drive backup: 24 images, 1 PDF, sources.json (26 uploads complete). Initial outdated folder was moved to recoverable Bin. Owner OAuth consent decision remains pending.

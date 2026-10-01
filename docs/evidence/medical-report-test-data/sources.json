@@ -180,32 +180,30 @@
     "note": "JPEG rendition served by the Hugging Face dataset viewer; sha256 is of this file"
   },
   {
-    "local_file": "SYNTHETIC_handwritten_02_clinocr_t3_s2.jpg",
+    "local_file": "SYNTHETIC_handwritten_02_clinocr_t1_s7.jpg",
     "category": "handwritten",
     "dataset": "ClinOCR-Bench/ClinOCR-Bench",
     "revision": "b1b1a42f87f7ff4c4d104f812f98652a69975125",
     "config": "handwriting",
     "split": "test",
-    "doc_id": "handwriting_t3_s2",
+    "doc_id": "handwriting_t1_s7",
     "license": "MIT",
     "origin": "source",
-    "sha256": "226a3a72af33ebab82458272a8f1a6480b566fff8d91a8365f67e49012e1c6d5",
-    "size_bytes": 341507,
-    "note": "JPEG rendition served by the Hugging Face dataset viewer; sha256 is of this file"
+    "sha256": "50fe979a97c6caf11ffc6f5b8c41a6440b4248563a603c511ec72a23ea6d54fb",
+    "size_bytes": 323290
   },
   {
-    "local_file": "SYNTHETIC_handwritten_03_clinocr_t8_s2.jpg",
+    "local_file": "SYNTHETIC_handwritten_03_clinocr_t1_s3.jpg",
     "category": "handwritten",
     "dataset": "ClinOCR-Bench/ClinOCR-Bench",
     "revision": "b1b1a42f87f7ff4c4d104f812f98652a69975125",
     "config": "handwriting",
     "split": "test",
-    "doc_id": "handwriting_t8_s2",
+    "doc_id": "handwriting_t1_s3",
     "license": "MIT",
     "origin": "source",
-    "sha256": "b1da8b2a187bf72b54de2778623f3e42900947627df4b8180983a14bce4ee853",
-    "size_bytes": 234871,
-    "note": "JPEG rendition served by the Hugging Face dataset viewer; sha256 is of this file"
+    "sha256": "84b9a8a62f2ab3ec74cd41165d3fcee0f1b2b487c80234be8203af790d04737e",
+    "size_bytes": 303410
   },
   {
     "local_file": "SYNTHETIC_range-position_01_blood-count.png",

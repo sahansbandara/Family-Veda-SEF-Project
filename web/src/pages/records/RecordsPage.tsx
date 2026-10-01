@@ -64,6 +64,7 @@ export function RecordsPage() {
   const [reports, setReports] = useState<LabReportDto[]>([])
   const [vitals, setVitals] = useState<VitalDto[]>([])
   const [trends, setTrends] = useState<VitalTrendDto[]>([])
+  const [originalReport, setOriginalReport] = useState<LabReportDto | null>(null)
   const [selectedReport, setSelectedReport] = useState<LabReportDetailDto | null>(null)
   const [editingRecord, setEditingRecord] = useState<HealthRecordDto | null>(null)
   const [showRecordForm, setShowRecordForm] = useState(false)
@@ -173,6 +174,7 @@ export function RecordsPage() {
     setReports([])
     setVitals([])
     setTrends([])
+    setOriginalReport(null)
     setSelectedReport(null)
     activeReportId.current = ''
     setEditingRecord(null)
@@ -570,6 +572,7 @@ export function RecordsPage() {
                         }
                         canChangeSharing={isOwnProfile}
                         onToggleSharing={(item) => void toggleReportSharing(item)}
+                        onViewOriginal={(item) => setOriginalReport(item)}
                         onReview={isSharedView ? undefined : (item) => void openReport(item.id)}
                         reviewLabel={reportStep(report, selectedReport)}
                       />
@@ -578,15 +581,21 @@ export function RecordsPage() {
                 )}
               </div>
               <section className="care-panel care-detail" aria-live="polite">
-                {!selectedReport ? (
+                {originalReport?.memberId === memberId && (
+                  <div className="care-panel">
+                    <OriginalReportPreview key={originalReport.id} reportId={originalReport.id} originalFileName={originalReport.originalFileName} hasOriginalFile={originalReport.hasOriginalFile === true} />
+                    <button type="button" className="button button--secondary" onClick={() => setOriginalReport(null)}>Close original image</button>
+                  </div>
+                )}
+                {selectedReport?.memberId !== memberId ? (
                   <div className="care-selection-card">
                     <p className="care-eyebrow">
                       {isSharedView ? 'Shared report library' : 'Choose a report'}
                     </p>
-                    <h2>{isSharedView ? 'Report summaries only' : 'Check extracted values'}</h2>
+                    <h2>{isSharedView ? 'Shared reports' : 'Check extracted values'}</h2>
                     <p className="care-muted">
                       {isSharedView
-                        ? 'Only the report summary shared with you is available here.'
+                        ? 'View the original image of reports shared with you.'
                         : 'Select a report to compare extracted values with its original image.'}
                     </p>
                   </div>

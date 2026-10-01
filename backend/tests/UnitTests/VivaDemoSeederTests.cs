@@ -59,7 +59,7 @@ public sealed class VivaDemoSeederTests
         (await db.Users.CountAsync(x => x.Email == "viva-adult-01@example.invalid")).Should().Be(1);
         (await db.Members.CountAsync(x => x.User!.Email == "viva-adult-01@example.invalid")).Should().Be(1);
         var upgraded = await db.Users.SingleAsync(x => x.Email == "viva-adult-01@example.invalid");
-        Hasher.VerifyHashedPassword(upgraded, upgraded.PasswordHash, SeedPassword).Should().NotBe(PasswordVerificationResult.Failed);
+        Hasher.VerifyHashedPassword(upgraded, upgraded.PasswordHash, "an-earlier-seed-password").Should().NotBe(PasswordVerificationResult.Failed);
     }
 
     private static async Task<AppDbContext> SeededDbAsync()

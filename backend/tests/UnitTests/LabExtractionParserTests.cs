@@ -8,6 +8,14 @@ namespace FamilyVeda.UnitTests;
 
 public sealed class LabExtractionParserTests
 {
+    [Theory]
+    [InlineData("on 06/23/2025 at: 2 PM.")]
+    [InlineData("Follow up: 2 PM")]
+    public void ParseValues_DoesNotTreatAppointmentTimesAsLabResults(string text)
+    {
+        LabExtractionService.ParseValues(text).Should().BeEmpty();
+    }
+
     private const string TableHeader = "Test\nResult\nPrevious Result\nDate\nUnits\nRef Interval";
 
     [Fact]

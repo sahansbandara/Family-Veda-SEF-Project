@@ -91,7 +91,8 @@ public sealed partial class LabExtractionService(AppDbContext dbContext, ICurren
     public static IReadOnlyList<ParsedLabValue> ParseValues(string text)
     {
         var values = text.Split('\n')
-            .Select(line => LabValueLine().Match(line.Trim())).Where(match => match.Success)
+            .Select(line => LabValueLine().Match(line.Trim())).Where(match => match.Success && !DateInAnalyte().IsMatch(match.Groups["name"].Value) &&
+                match.Groups["unit"].Value is not ("AM" or "AM." or "PM" or "PM."))
             .Select(match => new ParsedLabValue(match.Groups["name"].Value.Trim(),
                 decimal.Parse(match.Groups["value"].Value, CultureInfo.InvariantCulture), match.Groups["unit"].Value,
                 ParseNullable(match.Groups["low"].Value), ParseNullable(match.Groups["high"].Value)))
@@ -197,6 +198,8 @@ public sealed partial class LabExtractionService(AppDbContext dbContext, ICurren
 
     [GeneratedRegex(@"^(?<name>[A-Za-z][A-Za-z0-9 ()/_-]{1,80})\s*[|:]\s*(?<value>-?\d+(?:\.\d+)?)\s+(?<unit>[^|\s]{1,20})(?:\s*[|]\s*(?<low>-?\d+(?:\.\d+)?)\s*[-–]\s*(?<high>-?\d+(?:\.\d+)?))?$", RegexOptions.CultureInvariant)]
     private static partial Regex LabValueLine();
+    [GeneratedRegex(@"\b\d{2}/\d{2}/\d{4}\b", RegexOptions.CultureInvariant)]
+    private static partial Regex DateInAnalyte();
     [GeneratedRegex(@"^[A-Za-z][A-Za-z0-9., ()/_-]{1,80}$", RegexOptions.CultureInvariant)]
     private static partial Regex TableAnalyte();
     [GeneratedRegex(@"^Test Result Previous(?: Result)? Date Units Ref(?: Interval)?$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]

@@ -26,6 +26,7 @@ const adult = {
   role: 'AdultMember',
   dateOfBirth: '1990-01-01',
 }
+type LabReportDtoForTest = { id: string; memberId: string; originalFileName: string; ocrStatus: string; hasOriginalFile: boolean }
 
 function stubLists() {
   mocks.get.mockImplementation((url: string, config?: { params?: { sort?: string } }) => {
@@ -223,7 +224,7 @@ describe('RecordsPage', () => {
     await screen.findByText('No lab reports')
     fireEvent.change(screen.getByLabelText('Active profile'), { target: { value: adult.id } })
     expect(await screen.findByText('synthetic-shared.png')).toBeInTheDocument()
-    expect(screen.getByText('Report summaries only')).toBeInTheDocument()
+    expect(screen.getByText('Shared reports')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /check values|confirm values/i })).not.toBeInTheDocument()
     expect(mocks.get).not.toHaveBeenCalledWith('/lab-reports/shared-lab-1')
   })
@@ -455,5 +456,53 @@ describe('RecordsPage', () => {
       ),
     )
     expect(screen.queryByText(/diagnos/i)).not.toBeInTheDocument()
+  })
+
+  it('clears the selected report and ignores a stale list response when the active profile changes', async () => {
+    const minorA = { id: 'minor-a', displayName: 'Synthetic Minor A', role: 'MinorMember', dateOfBirth: '2015-01-01' }
+    const minorB = { id: 'minor-b', displayName: 'Synthetic Minor B', role: 'MinorMember', dateOfBirth: '2016-01-01' }
+    let resolveStaleA!: (value: { data: LabReportDtoForTest[] }) => void
+    const staleA = new Promise<{ data: LabReportDtoForTest[] }>((resolve) => { resolveStaleA = resolve })
+    let aReportCalls = 0
+    mocks.get.mockImplementation((url: string) => {
+      if (url === '/families/me') return Promise.resolve({ data: { id: 'synthetic-family-01', name: 'Synthetic Family', members: [member, minorA, minorB] } })
+      if (url === '/members/me') return Promise.resolve({ data: member })
+      if (url.endsWith('/records')) return Promise.resolve({ data: { items: [], page: 1, pageSize: 20, totalCount: 0, totalPages: 1 } })
+      if (url.endsWith('/vitals') || url.endsWith('/vitals/trends')) return Promise.resolve({ data: [] })
+      if (url === '/members/synthetic-member-01/lab-reports') return Promise.resolve({ data: [] })
+      if (url === '/members/minor-a/lab-reports') {
+        aReportCalls += 1
+        return aReportCalls === 1
+          ? Promise.resolve({ data: [{ id: 'lab-a', memberId: minorA.id, originalFileName: 'minor-a.png', ocrStatus: 'Completed', hasOriginalFile: false }] })
+          : staleA
+      }
+      if (url === '/members/minor-b/lab-reports') {
+        return Promise.resolve({ data: [{ id: 'lab-b', memberId: minorB.id, originalFileName: 'minor-b.png', ocrStatus: 'Completed', hasOriginalFile: false }] })
+      }
+      if (url === '/lab-reports/lab-a') {
+        return Promise.resolve({ data: { id: 'lab-a', memberId: minorA.id, originalFileName: 'minor-a.png', ocrStatus: 'Completed', values: [{ id: 'value-a', analyte: 'Minor A analyte', value: 1, unit: 'u', wasManuallyConfirmed: false }], flags: [] } })
+      }
+      return Promise.reject(new Error(`unexpected ${url}`))
+    })
+
+    render(<MemoryRouter><RecordsPage /></MemoryRouter>)
+    const profile = await screen.findByLabelText('Active profile')
+    fireEvent.change(profile, { target: { value: minorA.id } })
+    fireEvent.click(await screen.findByRole('tab', { name: 'Labs' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Check values' }))
+    expect(await screen.findByDisplayValue('Minor A analyte')).toBeInTheDocument()
+
+    fireEvent.change(profile, { target: { value: minorB.id } })
+    expect(screen.queryByDisplayValue('Minor A analyte')).not.toBeInTheDocument()
+    expect(await screen.findByText('minor-b.png')).toBeInTheDocument()
+
+    fireEvent.change(profile, { target: { value: minorA.id } })
+    await waitFor(() => expect(aReportCalls).toBe(2))
+    fireEvent.change(profile, { target: { value: minorB.id } })
+    expect(await screen.findByText('minor-b.png')).toBeInTheDocument()
+    resolveStaleA({ data: [{ id: 'lab-a-stale', memberId: minorA.id, originalFileName: 'stale-minor-a.png', ocrStatus: 'Completed', hasOriginalFile: false }] })
+
+    await waitFor(() => expect(screen.queryByText('stale-minor-a.png')).not.toBeInTheDocument())
+    expect(screen.getByText('minor-b.png')).toBeInTheDocument()
   })
 })

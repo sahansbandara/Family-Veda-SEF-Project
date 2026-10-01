@@ -7,6 +7,7 @@ type Props = {
   canChangeSharing: boolean
   onToggleSharing?: (report: LabReportDto) => void
   onReview?: (report: LabReportDto) => void
+  onViewOriginal?: (report: LabReportDto) => void
   reviewLabel?: string
 }
 
@@ -17,6 +18,7 @@ export function ReportLibraryCard({
   onToggleSharing,
   onReview,
   reviewLabel,
+  onViewOriginal,
 }: Props) {
   const range = report.rangeSummary
   const shared = report.sharedWithFamilyHead === true
@@ -70,6 +72,9 @@ export function ReportLibraryCard({
         </div>
       </dl>
       <div className="button-row">
+        {report.hasOriginalFile && onViewOriginal && (
+          <button type="button" className="button button--secondary" onClick={() => onViewOriginal(report)}>View original image</button>
+        )}
         {onReview && (
           <button type="button" className="button button--secondary" onClick={() => onReview(report)}>
             {reviewLabel ?? 'Check values'}

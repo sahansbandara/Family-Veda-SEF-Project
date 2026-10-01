@@ -86,10 +86,10 @@ public static class VivaDemoSeeder
         await db.SaveChangesAsync(ct);
     }
 
-    /// <summary>Keeps every viva login on the configured seed password, including accounts created by an earlier seeder version.</summary>
+    /// <summary>Initializes new viva passwords while preserving existing account passwords.</summary>
     private static void EnsurePassword(UserAccount user, IPasswordHasher<UserAccount> hasher, string password)
     {
-        if (user.PasswordHash.Length == 0 || hasher.VerifyHashedPassword(user, user.PasswordHash, password) == PasswordVerificationResult.Failed)
+        if (user.PasswordHash.Length == 0)
             user.PasswordHash = hasher.HashPassword(user, password);
     }
 

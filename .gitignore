@@ -75,3 +75,6 @@ Thumbs.db
 # ── Agent tooling ──────────────────────────────────────────
 .claude/settings.local.json
 neon-backup-*.sql
+
+# Local API runtime files, including private Data Protection keys
+/backend/src/Api/storage/
