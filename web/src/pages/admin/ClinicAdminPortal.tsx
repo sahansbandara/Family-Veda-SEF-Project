@@ -180,7 +180,7 @@ export function ClinicAdminPortal({ initialTab = 'dashboard' }: Props) {
   const loadUsers = useCallback(async () => {
     setUsersLoading(true)
     try {
-      const { data } = await apiClient.get<PagedResult<AdminUserDto>>('/admin/users', {
+      const { data } = await apiClient.get<PagedResult<AdminUserDto>>('/auth/admin/users', {
         params: { page: 1, pageSize: 100 },
       })
       setUsers(data.items)

@@ -74,6 +74,7 @@ flutter:
     # Brand mark. Density variants live in 2.0x/ and 3.0x/ and are resolved
     # automatically. Regenerate with brand/generate-icons.sh.
     - assets/brand/
+    - assets/images/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

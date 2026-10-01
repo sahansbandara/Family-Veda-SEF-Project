@@ -1,6 +1,7 @@
 /* Commercial Sliding Auth Layout (Inspired by Image 1) */
 .auth-page-root {
   min-height: 100vh;
+  min-height: 100dvh;
   width: 100vw;
   display: flex;
   align-items: center;
@@ -10,6 +11,7 @@
   transition: background-image 0.8s ease-in-out;
   background-size: cover;
   background-position: center;
+  background-attachment: fixed;
 }
 
 .auth-overlay {
@@ -255,18 +257,21 @@ select.auth-form-input option {
     height: 100%;
   }
   .auth-glass-panel {
-    position: relative;
+    position: absolute;
+    inset: 0;
     width: 100%;
-    height: auto;
-    min-height: 100vh;
+    height: 100%;
     transform: none !important;
   }
   .auth-text-panel {
     display: none;
   }
   .auth-form-content {
-    position: relative;
-    padding: 60px 24px;
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    padding: 40px 24px;
+    overflow-y: auto;
   }
 }
 
@@ -499,3 +504,33 @@ input[type="password"].auth-form-input::placeholder {
 }
 .reg-review-terms input { margin-top: 3px; accent-color: #146cff; width: 16px; height: 16px; }
 @media (max-width: 480px) { .reg-review-row { grid-template-columns: 1fr; gap: 2px; } }
+
+.mobile-mode-switch {
+  display: none;
+}
+@media (max-width: 768px) {
+  .mobile-mode-switch {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: transparent;
+    color: white;
+    border: none;
+    text-decoration: underline;
+    margin-top: 32px;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 12px;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .auth-page-root.mode-login .auth-form-register {
+    display: none;
+  }
+  .auth-page-root.mode-register .auth-form-login {
+    display: none;
+  }
+}
+

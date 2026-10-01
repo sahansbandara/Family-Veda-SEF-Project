@@ -2,6 +2,7 @@
 import 'package:dio/dio.dart';
 import 'package:family_veda/providers/auth_provider.dart';
 import 'package:family_veda/providers/core_providers.dart';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -291,7 +292,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           validator: validator,
           decoration: InputDecoration(
             labelText: label,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+            fillColor: Theme.of(context).brightness == Brightness.dark 
+                ? Colors.black.withValues(alpha: 0.3) 
+                : Colors.white.withValues(alpha: 0.5),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
           ),
         ),
         if (server(key) case final message?)
@@ -327,7 +335,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           validator: validator,
           decoration: InputDecoration(
             labelText: label,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+            fillColor: Theme.of(context).brightness == Brightness.dark 
+                ? Colors.black.withValues(alpha: 0.3) 
+                : Colors.white.withValues(alpha: 0.5),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
           ),
         ),
         if (server(key) case final message?)
@@ -341,36 +356,58 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       ],
     ),
   );
-  Widget card(String title, String detail, String id) => InkWell(
-    onTap: () => setState(() {
-      role = id;
-      step = 0;
-      error = null;
-    }),
-    child: Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: role == id
-            ? Colors.blue.withValues(alpha: .1)
-            : Colors.black.withValues(alpha: .04),
-        border: Border.all(
-          color: role == id ? Colors.blue : Colors.transparent,
-        ),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+  Widget card(String title, String detail, String id) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return InkWell(
+      onTap: () => setState(() {
+        role = id;
+        step = 0;
+        error = null;
+      }),
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: role == id
+              ? Colors.blue.withValues(alpha: .2)
+              : (isDark ? Colors.white.withValues(alpha: .05) : Colors.black.withValues(alpha: .04)),
+          border: Border.all(
+            color: role == id ? Colors.blue : Colors.transparent,
           ),
-          Text(detail),
-        ],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold, 
+                      fontSize: 16,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    detail,
+                    style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              role == id ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              color: role == id ? Colors.blue : (isDark ? Colors.white54 : Colors.black38),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
   Widget stepIndicator() => Row(
     children: List.generate(labels.length, (index) {
       final complete = index < step;
@@ -671,7 +708,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           card('Family Head', 'Create a family workspace.', 'FAMILY_HEAD'),
           card('Adult Member', 'Join an existing family.', 'MEMBER'),
           card(
-            'Medical Practitioner',
+            'Doctor',
             'Register with verifiable credentials.',
             'DOCTOR',
           ),
@@ -705,81 +742,170 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             : review(),
       _ => review(),
     };
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-      ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Form(
-                    key: form,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Text(
-                          'Create Account',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        stepIndicator(),
-                        const SizedBox(height: 20),
-                        content,
-                        if (error case final message?)
-                          Text(
-                            message,
-                            style: const TextStyle(color: Colors.red),
-                          ),
-                        const SizedBox(height: 20),
-                        Row(
-                          children: [
-                            if (step > 0)
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: loading
-                                      ? null
-                                      : () => setState(() => step--),
-                                  child: const Text('Back'),
-                                ),
-                              ),
-                            if (step > 0) const SizedBox(width: 12),
-                            Expanded(
-                              flex: 2,
-                              child: ElevatedButton(
-                                onPressed: loading
-                                    ? null
-                                    : last
-                                    ? submit
-                                    : next,
-                                child: loading
-                                    ? const CircularProgressIndicator()
-                                    : Text(
-                                        last ? 'Create account' : 'Continue',
-                                      ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final size = MediaQuery.of(context).size;
+    final isDesktop = size.width > 800;
+
+    final formWidget = ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 420),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.5)
+                  : Colors.white.withValues(alpha: 0.7),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2),
+              ),
+            ),
+            padding: const EdgeInsets.all(32),
+            child: Form(
+              key: form,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    step == 0 ? 'Select Role' : 'Create Account',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
                   ),
-                ),
+                  const SizedBox(height: 12),
+                  if (step > 0) stepIndicator(),
+                  if (step > 0) const SizedBox(height: 20),
+                  content,
+                  if (error case final message?)
+                    Text(
+                      message,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      if (step > 0)
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: loading
+                                ? null
+                                : () => setState(() => step--),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                            child: const Text('Back'),
+                          ),
+                        ),
+                      if (step > 0) const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                          onPressed: loading
+                              ? null
+                              : last
+                              ? submit
+                              : next,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            backgroundColor: const Color(0xFF146CFF),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: loading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  last ? 'Create account' : 'Continue',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
         ),
+      ),
+    );
+
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
+          onPressed: () => context.pop(),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/mobile-login.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: isDesktop
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(40.0),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Let\'s Get\nStarted',
+                                    style: TextStyle(
+                                      fontSize: 48,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark ? Colors.white : Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Secure access to your health, family and clinical care. Create a unified workspace for seamless clinical decision support and familial risk mapping.',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: isDark ? Colors.white70 : Colors.black54,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Expanded(child: Center(child: formWidget)),
+                        ],
+                      )
+                    : formWidget,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

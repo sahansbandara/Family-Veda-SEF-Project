@@ -146,6 +146,18 @@ The seven shared files: `Program.cs` [S1] · `AppDbContext.cs` [S1] · `IAgent.c
 | MEDIUM | Maintainability concern | **INFO** |
 | LOW | Style or minor suggestion | **NOTE** |
 
+## UI parity rule — change all three surfaces together (mandatory)
+
+Any UI change — layout, styling, component, copy, colour, spacing, flow, new screen — must be applied to **all three** UI surfaces in the same change:
+
+1. **Mobile app** — Flutter (`mobile/`)
+2. **Web desktop** — React (`web/`) at desktop widths
+3. **Web mobile** — React (`web/`) at phone widths (responsive breakpoints, ~375px)
+
+Never change only one UI. If a request names one surface ("fix the login page on web"), still update the matching screen on the other two, or state in the completion report exactly why a surface does not apply (e.g. screen exists only in the clinician web console).
+
+Before claiming done: check each surface (Flutter screen, React at desktop width, React at mobile width) and list all three in the completion report.
+
 ## Change control
 
 Ask for approval before: deleting files, overwriting major files, changing lock files (`package-lock.json`, `pubspec.lock`, `.csproj` versions), generating a migration, changing deployment or security settings, committing, pushing, deploying, or changing anything on a protected branch.

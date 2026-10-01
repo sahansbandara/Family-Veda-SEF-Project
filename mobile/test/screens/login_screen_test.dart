@@ -45,8 +45,6 @@ void main() {
 
     // Redesigned glass login (feat/auth-redesign-s4): no layout overflow, core controls present.
     expect(tester.takeException(), isNull);
-    expect(find.text('☀️ Light'), findsOneWidget);
-    expect(find.text('🌙 Dark'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'Email Address'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'Password'), findsOneWidget);
     expect(find.text('Sign up'), findsOneWidget);

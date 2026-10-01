@@ -2,6 +2,8 @@
 
 STATUS: PROJECT-SPECIFIC · applies to both React (clinical/admin) and Flutter (patient/family)
 
+> **UI parity:** every UI change ships to Flutter mobile, React web desktop and React web mobile together — see `AGENTS.md` → *UI parity rule*.
+
 ## Design rule
 
 **Clarity first, then depth.** This is a clinical decision-support tool. A doctor scanning a case queue under time pressure and a worried parent reading a lab result have the same need: unambiguous information.
