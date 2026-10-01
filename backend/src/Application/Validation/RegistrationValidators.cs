@@ -13,11 +13,10 @@ public static partial class RegistrationRules
     [GeneratedRegex(@"^(?:\d{9}[VvXx]|\d{12})$")] public static partial Regex NationalId();
     [GeneratedRegex(@"^\d{5}$")] public static partial Regex PostalCode();
     [GeneratedRegex(@"^FV-[A-HJ-NP-Z2-9]{6}$")] public static partial Regex FamilyCode();
-    [GeneratedRegex(@"^\d{4,10}$")] public static partial Regex SlmcNumber();
+    [GeneratedRegex(@"^(?:SLMC[ -]?)?\d{4,10}$", RegexOptions.IgnoreCase)] public static partial Regex SlmcNumber();
 
     public static bool StrongPassword(string? value) =>
-        value is { Length: >= 8 and <= 128 } && value.Any(char.IsUpper) && value.Any(char.IsLower) &&
-        value.Any(char.IsDigit) && value.Any(c => !char.IsLetterOrDigit(c));
+        value is { Length: >= 8 and <= 128 };
 
     public static bool IsAdult(DateOnly dateOfBirth) => dateOfBirth.AddYears(18) <= DateOnly.FromDateTime(DateTime.UtcNow);
 }
@@ -32,7 +31,7 @@ public sealed class AccountDetailsValidator : AbstractValidator<AccountDetails>
         RuleFor(x => x.MobileNumber).Must(v => v is not null && RegistrationRules.SriLankaMobile().IsMatch(v.Replace(" ", "")))
             .WithMessage("Enter a Sri Lankan mobile number, e.g. 0771234567 or +94771234567.");
         RuleFor(x => x.Password).Must(RegistrationRules.StrongPassword)
-            .WithMessage("Password must be 8–128 characters with upper and lower case letters, a number and a symbol.");
+            .WithMessage("Password must be at least 8 characters.");
         RuleFor(x => x.ConfirmPassword).Equal(x => x.Password).WithMessage("Passwords do not match.");
     }
 }

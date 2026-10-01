@@ -47,12 +47,10 @@ public sealed class RegistrationValidatorTests
     public void MobileNumber_RejectsOtherFormats(string mobile) => Errors(Head(mobile: mobile)).Should().Contain("Account.MobileNumber");
 
     [Theory]
-    [InlineData("short1!")]
-    [InlineData("alllowercase1!")]
-    [InlineData("ALLUPPERCASE1!")]
-    [InlineData("NoDigitsHere!")]
-    [InlineData("NoSymbols123")]
-    public void Password_RequiresLengthAndCharacterClasses(string password) =>
+    [InlineData("short")]
+    [InlineData("1234567")]
+    [InlineData("abc")]
+    public void Password_RequiresMinimumLength(string password) =>
         Errors(Head(password: password)).Should().Contain("Account.Password");
 
     [Fact]

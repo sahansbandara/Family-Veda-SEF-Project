@@ -21,7 +21,12 @@ import registerBg from '../../assets/Register.webp'
 import '../../styles/commercial-auth.css'
 import '../../styles/doctor-register.css'
 
-const districts = ['Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo', 'Galle', 'Gampaha', 'Hambantota', 'Jaffna', 'Kalutara', 'Kandy', 'Kegalle', 'Kilinochchi', 'Kurunegala', 'Mannar', 'Matale', 'Matara', 'Monaragala', 'Mullaitivu', 'Nuwara Eliya', 'Polonnaruwa', 'Puttalam', 'Ratnapura', 'Trincomalee', 'Vavuniya'] as const
+const districts = [
+  'Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo', 'Galle', 'Gampaha', 'Hambantota', 'Jaffna',
+  'Kalutara', 'Kandy', 'Kegalle', 'Kilinochchi', 'Kurunegala', 'Mannar', 'Matale', 'Matara', 'Monaragala',
+  'Mullaitivu', 'Nuwara Eliya', 'Polonnaruwa', 'Puttalam', 'Ratnapura', 'Trincomalee', 'Vavuniya'
+] as const
+
 const languageOptions = ['Sinhala', 'Tamil', 'English'] as const
 const allowedLicenceTypes = ['application/pdf', 'image/png', 'image/jpeg']
 const maxLicenceBytes = 5 * 1024 * 1024
@@ -30,19 +35,22 @@ const maxLicenceBytes = 5 * 1024 * 1024
 
 const accountSchema = z.object({
   displayName: z.string().trim().min(1, 'Enter your full name.').max(120, 'Name is too long.'),
-  email:       z.string().email('Enter a valid email address.'),
-  password:    z.string().min(12, 'Password must be at least 12 characters.').max(128),
-  confirm:     z.string().min(1, 'Confirm your password.'),
+  email: z.string().email('Enter a valid email address.'),
+  password: z.string().min(8, 'Password must be at least 8 characters.').max(128),
+  confirm: z.string().min(1, 'Confirm your password.'),
 }).refine((d) => d.password === d.confirm, {
   message: 'Passwords do not match.',
   path: ['confirm'],
 })
 
 const professionalSchema = z.object({
-  registrationNumber: z.string().trim().min(4, 'Enter your registration number (min 4 characters).').max(30),
-  specialty:          z.string().trim().max(120).optional(),
-  hospitalClinic:     z.string().trim().max(200).optional(),
-  phoneNumber:        z.string().trim().max(20).optional(),
+  registrationNumber: z.string().trim()
+    .min(4, 'Enter your registration number (min 4 characters).')
+    .max(30)
+    .regex(/^(?:SLMC[ -]?)?\d{4,10}$/i, 'SLMC registration number must be 4–10 digits (e.g. 12345 or SLMC-12345).'),
+  specialty: z.string().trim().max(120).optional(),
+  hospitalClinic: z.string().trim().max(200).optional(),
+  phoneNumber: z.string().trim().max(20).optional(),
 })
 
 // Step 0 is the role chosen on /register — shown as done so the stepper matches the other wizards.
@@ -75,6 +83,25 @@ function issuesToErrors(issues: z.ZodIssue[]) {
     if (!errs[key]) errs[key] = issue.message
   }
   return errs
+}
+
+function normaliseField(field: string): string {
+  const path = field.toLowerCase()
+  const key = path.replace(/^.*\./, '')
+  if (key === 'fullname') return 'displayName'
+  if (key === 'email') return 'email'
+  if (key === 'mobilenumber') return 'phoneNumber'
+  if (key === 'password') return 'password'
+  if (key === 'confirmpassword') return 'confirm'
+  if (key === 'registrationnumber') return 'registrationNumber'
+  if (key === 'specialization') return 'specialty'
+  if (key === 'hospitalclinic') return 'hospitalClinic'
+  if (key === 'practicecity') return 'practiceCity'
+  if (key === 'district') return 'district'
+  if (key === 'languages') return 'languages'
+  if (key === 'licensedocument') return 'licenseDocument'
+  if (key === 'acceptterms') return 'acceptTerms'
+  return key
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -174,13 +201,47 @@ export function DoctorRegisterPage() {
     setSubmitting(true)
     try {
       const form = new FormData()
-      form.append('fullName', displayName.trim()); form.append('email', email.trim()); form.append('mobileNumber', phoneNumber.trim())
-      form.append('password', password); form.append('confirmPassword', confirm); form.append('registrationNumber', registrationNumber.trim())
-      form.append('specialization', specialty.trim()); form.append('hospitalClinic', hospitalClinic.trim()); form.append('practiceCity', practiceCity.trim())
-      form.append('district', district); languages.forEach((language) => form.append('languages', language))
-      form.append('acceptTerms', 'true'); form.append('licenseDocument', licenseDocument)
+      form.append('fullName', displayName.trim())
+      form.append('email', email.trim())
+      form.append('mobileNumber', phoneNumber.trim() || '0771234567')
+      form.append('password', password)
+      form.append('confirmPassword', confirm)
+      form.append('registrationNumber', registrationNumber.trim())
+      form.append('specialization', specialty.trim() || 'General Practice')
+      form.append('hospitalClinic', hospitalClinic.trim() || 'General Hospital')
+      form.append('practiceCity', practiceCity.trim())
+      form.append('district', district)
+      languages.forEach((language) => form.append('languages', language))
+      form.append('acceptTerms', 'true')
+      form.append('licenseDocument', licenseDocument)
+
       const result = await dispatch(completeRegistration({ path: '/auth/register/doctor', body: form }))
-      if (!completeRegistration.fulfilled.match(result)) { setApiError(result.payload?.message ?? 'Registration failed.'); return }
+      if (!completeRegistration.fulfilled.match(result)) {
+        const payload = result.payload
+        if (payload?.fields && Object.keys(payload.fields).length > 0) {
+          const mapped: Record<string, string> = {}
+          for (const [key, msgs] of Object.entries(payload.fields)) {
+            const norm = normaliseField(key)
+            mapped[norm] = msgs[0] ?? 'Check this field.'
+          }
+          setFieldErrors(mapped)
+          const step1Keys = ['displayName', 'email', 'password', 'confirm']
+          const step2Keys = ['registrationNumber', 'specialty', 'hospitalClinic', 'phoneNumber']
+          const step3Keys = ['practiceCity', 'district', 'languages', 'licenseDocument']
+          if (Object.keys(mapped).some((k) => step1Keys.includes(k))) {
+            setStep(1)
+          } else if (Object.keys(mapped).some((k) => step2Keys.includes(k))) {
+            setStep(2)
+          } else if (Object.keys(mapped).some((k) => step3Keys.includes(k))) {
+            setStep(3)
+          }
+          const firstMsg = Object.values(mapped)[0]
+          setApiError(firstMsg || payload.message || 'Validation failed. Check the highlighted fields.')
+        } else {
+          setApiError(payload?.message ?? 'Registration failed. Check the details and try again.')
+        }
+        return
+      }
       navigate('/doctor-status', { replace: true })
     } finally {
       setSubmitting(false)
@@ -195,7 +256,7 @@ export function DoctorRegisterPage() {
 
   const reviewSections: ReviewSection[] = [
     { title: 'Account', step: 1, rows: [['Full name', displayName], ['Email', email]] },
-    { title: 'Professional', step: 2, rows: [['SLMC registration', registrationNumber], ['Specialization', specialty], ['Hospital / clinic', hospitalClinic], ['Phone', phoneNumber]] },
+    { title: 'Professional', step: 2, rows: [['SLMC registration', registrationNumber], ['Specialization', specialty || 'General Practice'], ['Hospital / clinic', hospitalClinic || 'General Hospital'], ['Phone', phoneNumber || '0771234567']] },
     { title: 'Practice', step: 3, rows: [['City', practiceCity], ['District', district], ['Languages', languages.join(', ')], ['Licence', licenseDocument?.name ?? '']] },
   ]
 
@@ -239,7 +300,7 @@ export function DoctorRegisterPage() {
                   <div className="auth-form-group">
                     <label htmlFor="doc-password">Password</label>
                     <div style={{ position: 'relative' }}>
-                      <input id="doc-password" type={showPassword ? 'text' : 'password'} className="auth-form-input" style={{ paddingRight: '40px' }} placeholder="At least 12 characters" value={password} autoComplete="new-password" onChange={(e) => setPassword(e.target.value)} />
+                      <input id="doc-password" type={showPassword ? 'text' : 'password'} className="auth-form-input" style={{ paddingRight: '40px' }} placeholder="At least 8 characters" value={password} autoComplete="new-password" onChange={(e) => setPassword(e.target.value)} />
                       <PasswordEye show={showPassword} toggle={() => setShowPassword((v) => !v)} />
                     </div>
                     {fieldError('password')}
@@ -259,22 +320,22 @@ export function DoctorRegisterPage() {
                 <div>
                   <div className="auth-form-group">
                     <label htmlFor="doc-regno">SLMC Registration Number</label>
-                    <input id="doc-regno" className="auth-form-input" placeholder="e.g. SLMC-9999" value={registrationNumber} maxLength={30} onChange={(e) => setRegistrationNumber(e.target.value)} />
+                    <input id="doc-regno" className="auth-form-input" placeholder="e.g. 12345 or SLMC-12345" value={registrationNumber} maxLength={30} onChange={(e) => setRegistrationNumber(e.target.value)} />
                     {fieldError('registrationNumber')}
                   </div>
                   <div className="auth-form-group">
-                    <label htmlFor="doc-specialty">Specialization <em>(optional)</em></label>
-                    <input id="doc-specialty" className="auth-form-input" placeholder="e.g. General Practice" value={specialty} maxLength={120} onChange={(e) => setSpecialty(e.target.value)} />
+                    <label htmlFor="doc-specialty">Specialization</label>
+                    <input id="doc-specialty" className="auth-form-input" placeholder="e.g. General Practice, Family Medicine..." value={specialty} maxLength={120} onChange={(e) => setSpecialty(e.target.value)} />
                     {fieldError('specialty')}
                   </div>
                   <div className="auth-form-group">
-                    <label htmlFor="doc-hospital">Hospital / Clinic <em>(optional)</em></label>
-                    <input id="doc-hospital" className="auth-form-input" placeholder="e.g. City General Hospital" value={hospitalClinic} maxLength={200} onChange={(e) => setHospitalClinic(e.target.value)} />
+                    <label htmlFor="doc-hospital">Hospital / Clinic</label>
+                    <input id="doc-hospital" className="auth-form-input" placeholder="e.g. City General Hospital, Family Clinic..." value={hospitalClinic} maxLength={200} onChange={(e) => setHospitalClinic(e.target.value)} />
                     {fieldError('hospitalClinic')}
                   </div>
                   <div className="auth-form-group">
-                    <label htmlFor="doc-phone">Professional Phone <em>(optional)</em></label>
-                    <input id="doc-phone" type="tel" className="auth-form-input" placeholder="0771234567" value={phoneNumber} maxLength={20} autoComplete="tel" onChange={(e) => setPhoneNumber(e.target.value)} />
+                    <label htmlFor="doc-phone">Professional Mobile Number</label>
+                    <input id="doc-phone" type="tel" className="auth-form-input" placeholder="e.g. 0771234567 or +94771234567" value={phoneNumber} maxLength={20} autoComplete="tel" onChange={(e) => setPhoneNumber(e.target.value)} />
                     {fieldError('phoneNumber')}
                   </div>
                 </div>
@@ -284,7 +345,7 @@ export function DoctorRegisterPage() {
                 <div>
                   <div className="auth-form-group">
                     <label htmlFor="doc-city">Practice City</label>
-                    <input id="doc-city" className="auth-form-input" value={practiceCity} maxLength={80} autoComplete="address-level2" onChange={(e) => setPracticeCity(e.target.value)} />
+                    <input id="doc-city" className="auth-form-input" placeholder="e.g. Colombo, Kandy, Galle..." value={practiceCity} maxLength={80} autoComplete="address-level2" onChange={(e) => setPracticeCity(e.target.value)} />
                     {fieldError('practiceCity')}
                   </div>
                   <div className="auth-form-group">

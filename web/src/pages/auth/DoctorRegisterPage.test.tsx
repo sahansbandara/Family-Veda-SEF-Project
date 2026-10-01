@@ -113,7 +113,7 @@ describe('DoctorRegisterPage — Premium Redesign', () => {
     fireEvent.click(screen.getByRole('button', { name: /continue/i }))
 
     await waitFor(() => {
-      expect(screen.getByText(/at least 12 characters/i)).toBeInTheDocument()
+      expect(screen.getByText(/at least 8 characters/i)).toBeInTheDocument()
     })
   })
 

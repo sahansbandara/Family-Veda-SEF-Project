@@ -76,7 +76,7 @@ public sealed partial class AuthService : IRegistrationService
     {
         var content = await ReadLicenseDocumentAsync(document, cancellationToken);
         var user = await StageUserAsync(request.Account, UserType.Doctor, cancellationToken);
-        var registrationNumber = request.RegistrationNumber.Trim();
+        var registrationNumber = System.Text.RegularExpressions.Regex.Replace(request.RegistrationNumber.Trim(), @"^(?i)SLMC[ -]?", "");
         var registrationHash = Convert.ToHexString(HMACSHA256.HashData(
             SHA256.HashData(Encoding.UTF8.GetBytes($"FamilyVeda.DoctorRegistration.v1:{_options.Key}")),
             Encoding.UTF8.GetBytes(registrationNumber.ToUpperInvariant())));

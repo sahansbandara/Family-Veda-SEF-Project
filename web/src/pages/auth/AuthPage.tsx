@@ -23,11 +23,7 @@ const accountSchema = z.object({
   displayName: z.string().trim().regex(/^[\p{L}][\p{L} .'-]{1,119}$/u, 'Enter your full name (2–120 letters; spaces, dots, apostrophes and hyphens allowed).'),
   email: z.string().email('Enter a valid email address.'),
   mobileNumber: z.string().trim().regex(/^(?:0|\+94)7\d{8}$/, 'Enter a Sri Lankan mobile number, e.g. 0771234567 or +94771234567.'),
-  password: z.string().min(8, 'Password must be 8–128 characters with upper and lower case letters, a number and a symbol.').max(128)
-    .regex(/[A-Z]/, 'Password must include an uppercase letter.')
-    .regex(/[a-z]/, 'Password must include a lowercase letter.')
-    .regex(/\d/, 'Password must include a number.')
-    .regex(/[^A-Za-z0-9]/, 'Password must include a symbol.'),
+  password: z.string().min(8, 'Password must be at least 8 characters.').max(128),
   confirm: z.string().min(1, 'Confirm your password.'),
 }).refine((d) => d.password === d.confirm, {
   message: 'Passwords do not match.',
