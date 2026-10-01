@@ -3,39 +3,59 @@
 // Family Head / Adult Member dashboards, laid out per Family_Veda_Family_Head_Mockup and
 // Family_Veda_Adult_Member_Mockup. Data: GET /dashboard/family; layout chosen by the returned `role`.
 // Summary + next action only; no agent names, no AI output on this screen (blueprint §UI rules).
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { threePortalApi, type FamilyDashboardSummaryDto } from '../../services/apiClient'
 import { Badge, Metric } from '../dashboard/dashboardParts'
-import { appointmentTone, greeting, roleLabel, shortDate, shortTime, vitalLabel } from '../dashboard/dashboardFormat'
+import {
+  appointmentTone,
+  greeting,
+  roleLabel,
+  shortDate,
+  shortTime,
+  vitalLabel,
+} from '../dashboard/dashboardFormat'
 
 export function FamilyDashboardPanel() {
   const [data, setData] = useState<FamilyDashboardSummaryDto | null>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const requestVersion = useRef(0)
 
-  const load = useCallback(async () => {
-    setStatus('loading')
+  const load = useCallback(async (background = false) => {
+    const version = ++requestVersion.current
+    if (!background) setStatus('loading')
     try {
       const { data: dashboard } = await threePortalApi.getFamilyDashboard()
+      if (version !== requestVersion.current) return
       setData(dashboard)
       setStatus('ready')
     } catch {
-      setStatus('error')
+      if (version === requestVersion.current && !background) setStatus('error')
     }
   }, [])
 
   useEffect(() => {
+    const pendingRequests = requestVersion
     void load()
+    const refresh = () => {
+      void load(true)
+    }
+    window.addEventListener('focus', refresh)
+    return () => {
+      window.removeEventListener('focus', refresh)
+      pendingRequests.current++
+    }
   }, [load])
 
   if (status === 'loading') return <LoadingState label="Loading your family dashboard" />
-  if (status === 'error') return <ErrorState message="Dashboard summary could not be loaded." onRetry={() => void load()} />
+  if (status === 'error')
+    return <ErrorState message="Dashboard summary could not be loaded." onRetry={() => void load()} />
   if (!data) return <EmptyState title="No dashboard data" message="Nothing to show yet." />
 
   return (
-    <div className="fv-dash">
+    <div className="fv-dash care-workspace">
       {data.role === 'Head' ? <HeadDashboard data={data} /> : <AdultDashboard data={data} />}
     </div>
   )
@@ -52,21 +72,32 @@ function FamilyDoctorCard({ data, isHead }: Props & { isHead: boolean }) {
           <p className="fv-eyebrow">{isHead ? 'Continuity of care' : 'Family care'}</p>
           <h2>My Family Doctor</h2>
         </div>
-        <Link className="fv-btn" to="/my-doctor">{isHead ? 'Manage' : 'View'}</Link>
+        <Link className="fv-btn" to="/my-doctor">
+          {isHead ? 'Manage' : 'View'}
+        </Link>
       </div>
       {doctor ? (
         <div className="fv-doctor">
           <div className="fv-row">
             <div>
               <div className="fv-name">{doctor.displayName}</div>
-              <small>{[doctor.specialty, doctor.city, doctor.languages?.replace(', ', ' / ')].filter(Boolean).join(' · ')}</small>
+              <small>
+                {[doctor.specialty, doctor.city, doctor.languages?.replace(', ', ' / ')]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </small>
             </div>
             <Badge tone="ok">VERIFIED</Badge>
           </div>
           <p>
             {isHead ? (
               data.nextAppointment ? (
-                <>Next shared/minor appointment: <b>{shortDate(data.nextAppointment.startsAt)} · {shortTime(data.nextAppointment.startsAt)}</b></>
+                <>
+                  Next shared/minor appointment:{' '}
+                  <b>
+                    {shortDate(data.nextAppointment.startsAt)} · {shortTime(data.nextAppointment.startsAt)}
+                  </b>
+                </>
               ) : (
                 'No upcoming appointment for you or your minors.'
               )
@@ -75,14 +106,24 @@ function FamilyDoctorCard({ data, isHead }: Props & { isHead: boolean }) {
             )}
           </p>
           <div className="fv-actions">
-            <Link className="fv-btn fv-btn--primary" to="/appointments">{isHead ? 'Book Appointment' : 'Book My Appointment'}</Link>
-            {isHead && <Link className="fv-btn" to="/my-doctor">View Doctor</Link>}
+            <Link className="fv-btn fv-btn--primary" to="/appointments">
+              {isHead ? 'Book Appointment' : 'Book My Appointment'}
+            </Link>
+            {isHead && (
+              <Link className="fv-btn" to="/my-doctor">
+                View Doctor
+              </Link>
+            )}
           </div>
         </div>
       ) : (
         <EmptyState
           title="No family doctor yet"
-          message={isHead ? 'Search the directory and send a request.' : 'Your Family Head chooses the family doctor.'}
+          message={
+            isHead
+              ? 'Search the directory and send a request.'
+              : 'Your Family Head chooses the family doctor.'
+          }
         />
       )}
     </section>
@@ -90,7 +131,8 @@ function FamilyDoctorCard({ data, isHead }: Props & { isHead: boolean }) {
 }
 
 function ActivityTimeline({ data, emptyMessage }: Props & { emptyMessage: string }) {
-  const activity = data.activity ?? data.recentActivity.map((title) => ({ title, subject: null, occurredAt: '' }))
+  const activity =
+    data.activity ?? data.recentActivity.map((title) => ({ title, subject: null, occurredAt: '' }))
   if (activity.length === 0) return <EmptyState title="No recent activity" message={emptyMessage} />
   return (
     <ul className="fv-timeline">
@@ -98,7 +140,11 @@ function ActivityTimeline({ data, emptyMessage }: Props & { emptyMessage: string
         <li className="fv-event" key={`${entry.title}-${index}`}>
           <strong>{entry.title}</strong>
           {(entry.subject || entry.occurredAt) && (
-            <p>{[entry.subject, entry.occurredAt ? shortDate(entry.occurredAt) : null].filter(Boolean).join(' · ')}</p>
+            <p>
+              {[entry.subject, entry.occurredAt ? shortDate(entry.occurredAt) : null]
+                .filter(Boolean)
+                .join(' · ')}
+            </p>
           )}
         </li>
       ))}
@@ -117,9 +163,15 @@ function HeadDashboard({ data }: Props) {
       <section className="fv-hero" aria-label="Dashboard overview">
         <div>
           <p className="fv-eyebrow">Family Head workspace</p>
-          <h1>{greeting()}, {data.familyName}</h1>
+          <h1>
+            {greeting()}, {data.familyName}
+          </h1>
           <p>
-            {data.familyCode ? <>Family Code <b>{data.familyCode}</b> · </> : null}
+            {data.familyCode ? (
+              <>
+                Family Code <b>{data.familyCode}</b> ·{' '}
+              </>
+            ) : null}
             Family-level care without exposing private adult health activity.
           </p>
         </div>
@@ -133,25 +185,43 @@ function HeadDashboard({ data }: Props) {
           label="Family Members"
           to="/family?tab=members"
           value={data.memberCount}
-          badge={<Badge tone="ok">{data.minorCount} minor{data.minorCount === 1 ? '' : 's'}</Badge>}
+          badge={
+            <Badge tone="ok">
+              {data.minorCount} minor{data.minorCount === 1 ? '' : 's'}
+            </Badge>
+          }
         />
         <Metric
           label="Next Appointment"
           to="/appointments"
           value={next ? shortDate(next.startsAt) : 'None'}
-          badge={next ? <Badge tone="info">{shortTime(next.startsAt)}</Badge> : <Badge tone="muted">Book when needed</Badge>}
+          badge={
+            next ? (
+              <Badge tone="info">{shortTime(next.startsAt)}</Badge>
+            ) : (
+              <Badge tone="muted">Book when needed</Badge>
+            )
+          }
         />
         <Metric
           label="Open Cases"
           to="/triage"
           value={data.openCases}
-          badge={data.openCases > 0 ? <Badge tone="warn">Doctor review</Badge> : <Badge tone="ok">All clear</Badge>}
+          badge={
+            data.openCases > 0 ? (
+              <Badge tone="warn">Review in progress</Badge>
+            ) : (
+              <Badge tone="muted">None open</Badge>
+            )
+          }
         />
         <Metric
           label="Join Requests"
           to="/family?tab=requests"
           value={pending}
-          badge={pending > 0 ? <Badge tone="warn">Needs action</Badge> : <Badge tone="muted">None pending</Badge>}
+          badge={
+            pending > 0 ? <Badge tone="warn">Needs action</Badge> : <Badge tone="muted">None pending</Badge>
+          }
         />
       </section>
 
@@ -167,34 +237,59 @@ function HeadDashboard({ data }: Props) {
           <div className="fv-stack">
             {pending > 0 && (
               <div className="fv-item">
-                <div className="fv-row"><b>{pending} join request{pending === 1 ? '' : 's'}</b><Badge tone="warn">Pending</Badge></div>
+                <div className="fv-row">
+                  <b>
+                    {pending} join request{pending === 1 ? '' : 's'}
+                  </b>
+                  <Badge tone="warn">Pending</Badge>
+                </div>
                 <p>Review adults requesting to join.</p>
-                <Link className="fv-btn" to="/family?tab=requests">Review</Link>
+                <Link className="fv-btn" to="/family?tab=requests">
+                  Review
+                </Link>
               </div>
             )}
             {data.approvedGuidanceCount > 0 && (
               <div className="fv-item">
-                <div className="fv-row"><b>Guidance available</b><Badge tone="ok">New</Badge></div>
+                <div className="fv-row">
+                  <b>Guidance available</b>
+                  <Badge tone="ok">Doctor approved</Badge>
+                </div>
                 <p>Doctor-approved guidance is ready to read.</p>
-                <Link className="fv-btn" to="/triage">Open</Link>
+                <Link className="fv-btn" to="/triage?view=guidance">
+                  Read guidance
+                </Link>
               </div>
             )}
             {lab && !lab.confirmed && (
               <div className="fv-item">
-                <div className="fv-row"><b>Lab values to confirm</b><Badge tone="warn">Review</Badge></div>
+                <div className="fv-row">
+                  <b>Lab values to confirm</b>
+                  <Badge tone="warn">Review</Badge>
+                </div>
                 <p>{lab.memberDisplayName} · extracted values need your confirmation.</p>
-                <Link className="fv-btn" to="/records">Review</Link>
+                <Link className="fv-btn" to="/records?tab=labs">
+                  Check values
+                </Link>
               </div>
             )}
             {data.unreadNotifications > 0 && (
               <div className="fv-item">
-                <div className="fv-row"><b>{data.unreadNotifications} unread notification{data.unreadNotifications === 1 ? '' : 's'}</b><Badge tone="info">New</Badge></div>
-                <Link className="fv-btn" to="/notifications">Open</Link>
+                <div className="fv-row">
+                  <b>
+                    {data.unreadNotifications} unread notification{data.unreadNotifications === 1 ? '' : 's'}
+                  </b>
+                  <Badge tone="info">New</Badge>
+                </div>
+                <Link className="fv-btn" to="/notifications">
+                  Open
+                </Link>
               </div>
             )}
-            {pending === 0 && data.approvedGuidanceCount === 0 && data.unreadNotifications === 0 && !(lab && !lab.confirmed) && (
-              <p>Nothing needs your attention right now.</p>
-            )}
+            {pending === 0 &&
+              data.approvedGuidanceCount === 0 &&
+              data.unreadNotifications === 0 &&
+              !(lab && !lab.confirmed) && <p>Nothing needs your attention right now.</p>}
           </div>
         </aside>
       </div>
@@ -206,7 +301,9 @@ function HeadDashboard({ data }: Props) {
               <p className="fv-eyebrow">Family overview</p>
               <h2>Members</h2>
             </div>
-            <Link className="fv-btn" to="/family">Manage Family</Link>
+            <Link className="fv-btn" to="/family">
+              Manage Family
+            </Link>
           </div>
           {members.length === 0 ? (
             <p>{data.memberCount} members</p>
@@ -216,7 +313,9 @@ function HeadDashboard({ data }: Props) {
                 <div className="fv-member" key={member.id}>
                   <div className="fv-row">
                     <b>{member.displayName}</b>
-                    <Badge tone={member.role === 'Head' ? 'ok' : member.isMinor ? 'warn' : 'info'}>{roleLabel(member.role)}</Badge>
+                    <Badge tone={member.role === 'Head' ? 'ok' : member.isMinor ? 'warn' : 'info'}>
+                      {roleLabel(member.role)}
+                    </Badge>
                   </div>
                   <p>{member.summary}</p>
                 </div>
@@ -232,11 +331,26 @@ function HeadDashboard({ data }: Props) {
             </div>
           </div>
           <div className="fv-quick">
-            <Link className="fv-btn" to="/family?tab=members"><b>+ Add Minor</b><small>Guardian-managed</small></Link>
-            <Link className="fv-btn" to="/family?tab=invitations"><b>Invite Adult</b><small>Email invitation</small></Link>
-            <Link className="fv-btn" to="/records"><b>Upload Report</b><small>Self or minor</small></Link>
-            <Link className="fv-btn" to="/appointments"><b>Book Appointment</b><small>Self or minor</small></Link>
-            <Link className="fv-btn" to="/triage"><b>Report Symptoms</b><small>Doctor-reviewed triage</small></Link>
+            <Link className="fv-btn" to="/family?tab=members">
+              <b>+ Add Minor</b>
+              <small>Guardian-managed</small>
+            </Link>
+            <Link className="fv-btn" to="/family?tab=invitations">
+              <b>Invite Adult</b>
+              <small>Email invitation</small>
+            </Link>
+            <Link className="fv-btn" to="/records?tab=labs&upload=1">
+              <b>Upload Report</b>
+              <small>Self or minor</small>
+            </Link>
+            <Link className="fv-btn" to="/appointments">
+              <b>Book Appointment</b>
+              <small>Self or minor</small>
+            </Link>
+            <Link className="fv-btn" to="/triage">
+              <b>Report Symptoms</b>
+              <small>Submit for doctor review</small>
+            </Link>
           </div>
         </section>
       </div>
@@ -245,14 +359,23 @@ function HeadDashboard({ data }: Props) {
         <section className="fv-panel" aria-label="Health tools">
           <div className="fv-head">
             <div>
-              <p className="fv-eyebrow">Doctor-reviewed</p>
+              <p className="fv-eyebrow">Your next step</p>
               <h2>Health Tools</h2>
             </div>
           </div>
           <div className="fv-tools">
-            <Link className="fv-tool" to="/records"><strong>Understand a Report</strong><small>Extract, confirm and see range status.</small></Link>
-            <Link className="fv-tool" to="/triage"><strong>Check Symptoms</strong><small>A doctor reviews every result.</small></Link>
-            <Link className="fv-tool" to="/records"><strong>Search My Records</strong><small>Your own and your minors&apos; records.</small></Link>
+            <Link className="fv-tool" to="/records?tab=labs">
+              <strong>Check Report Values</strong>
+              <small>Compare extracted values with the original.</small>
+            </Link>
+            <Link className="fv-tool" to="/triage">
+              <strong>Report Symptoms</strong>
+              <small>Follow your request through doctor review.</small>
+            </Link>
+            <Link className="fv-tool" to="/records?tab=records">
+              <strong>Search My Records</strong>
+              <small>Your own and your minors&apos; records.</small>
+            </Link>
           </div>
         </section>
         <section className="fv-panel" aria-label="Recent activity">
@@ -281,7 +404,9 @@ function AdultDashboard({ data }: Props) {
       <section className="fv-hero" aria-label="Dashboard overview">
         <div>
           <p className="fv-eyebrow">Adult Member workspace</p>
-          <h1>{greeting()}, {firstName}</h1>
+          <h1>
+            {greeting()}, {firstName}
+          </h1>
           <p>{data.familyName} · Your private health information stays under your control.</p>
         </div>
         <Link to="/notifications" aria-label={`${data.unreadNotifications} unread notifications`}>
@@ -294,13 +419,21 @@ function AdultDashboard({ data }: Props) {
           label="Next Appointment"
           to="/appointments"
           value={next ? shortDate(next.startsAt) : 'None'}
-          badge={next ? <Badge tone={appointmentTone(next.status)}>{shortTime(next.startsAt)}</Badge> : <Badge tone="muted">Book when needed</Badge>}
+          badge={
+            next ? (
+              <Badge tone={appointmentTone(next.status)}>{shortTime(next.startsAt)}</Badge>
+            ) : (
+              <Badge tone="muted">Book when needed</Badge>
+            )
+          }
         />
         <Metric
           label="My Health Cases"
           to="/triage"
           value={data.openCases}
-          badge={data.openCases > 0 ? <Badge tone="warn">Doctor review</Badge> : <Badge tone="ok">None open</Badge>}
+          badge={
+            data.openCases > 0 ? <Badge tone="warn">Doctor review</Badge> : <Badge tone="ok">None open</Badge>
+          }
         />
         <Metric
           label="Approved Guidance"
@@ -308,7 +441,12 @@ function AdultDashboard({ data }: Props) {
           value={data.approvedGuidanceCount}
           badge={<Badge tone="ok">Doctor approved</Badge>}
         />
-        <Metric label="My Reports" to="/privacy" value={reports} badge={<Badge tone="info">Private unless you share</Badge>} />
+        <Metric
+          label="My Reports"
+          to="/records?tab=labs"
+          value={reports}
+          badge={<Badge tone="info">Private unless you share</Badge>}
+        />
       </section>
 
       <div className="fv-grid2">
@@ -321,10 +459,22 @@ function AdultDashboard({ data }: Props) {
             </div>
           </div>
           <div className="fv-quick">
-            <Link className="fv-btn" to="/records"><b>Upload Report</b><small>Private to you</small></Link>
-            <Link className="fv-btn" to="/triage"><b>Report Symptoms</b><small>Doctor-reviewed</small></Link>
-            <Link className="fv-btn" to="/records"><b>Add Vital</b><small>Personal health</small></Link>
-            <Link className="fv-btn" to="/appointments"><b>Book My Appointment</b><small>Only for you</small></Link>
+            <Link className="fv-btn" to="/records?tab=labs&upload=1">
+              <b>Upload Report</b>
+              <small>Private to you</small>
+            </Link>
+            <Link className="fv-btn" to="/triage">
+              <b>Report Symptoms</b>
+              <small>Submit for doctor review</small>
+            </Link>
+            <Link className="fv-btn" to="/records?tab=vitals">
+              <b>Add Vital</b>
+              <small>Personal health</small>
+            </Link>
+            <Link className="fv-btn" to="/appointments">
+              <b>Book My Appointment</b>
+              <small>Only for you</small>
+            </Link>
           </div>
         </aside>
       </div>
@@ -336,32 +486,50 @@ function AdultDashboard({ data }: Props) {
               <p className="fv-eyebrow">My health</p>
               <h2>Recent Health</h2>
             </div>
-            <Link className="fv-btn" to="/records">Open</Link>
+            <Link className="fv-btn" to="/records">
+              Open
+            </Link>
           </div>
           <div className="fv-stack">
             {lab && (
               <div className="fv-item">
                 <div className="fv-row">
                   <b>{lab.fileName}</b>
-                  {lab.belowRange + lab.aboveRange > 0 ? (
+                  {!lab.confirmed ? (
+                    <Badge tone="warn">Check values</Badge>
+                  ) : lab.belowRange + lab.aboveRange > 0 ? (
                     <Badge tone="warn">{lab.belowRange + lab.aboveRange} outside range</Badge>
                   ) : (
-                    <Badge tone="ok">Within range</Badge>
+                    <Badge tone="muted">Values confirmed</Badge>
                   )}
                 </div>
                 <p>{shortDate(lab.collectedAt)} · Private from Family Head</p>
+                <Link className="fv-btn" to="/records?tab=labs">
+                  {lab.confirmed ? 'View report' : 'Check values'}
+                </Link>
               </div>
             )}
             {vital && (
               <div className="fv-item">
-                <div className="fv-row"><b>{vitalLabel(vital.vitalType)}</b><Badge tone="info">{vital.value} {vital.unit}</Badge></div>
+                <div className="fv-row">
+                  <b>{vitalLabel(vital.vitalType)}</b>
+                  <Badge tone="info">
+                    {vital.value} {vital.unit}
+                  </Badge>
+                </div>
                 <p>Recorded {shortDate(vital.measuredAt)}</p>
               </div>
             )}
             {data.approvedGuidanceCount > 0 && (
               <div className="fv-item">
-                <div className="fv-row"><b>Doctor-approved guidance</b><Badge tone="ok">Available</Badge></div>
-                <p>Open Symptoms &amp; Triage to read it.</p>
+                <div className="fv-row">
+                  <b>Doctor-approved guidance</b>
+                  <Badge tone="ok">Available</Badge>
+                </div>
+                <p>Your doctor&apos;s response is ready to read.</p>
+                <Link className="fv-btn" to="/triage?view=guidance">
+                  Read guidance
+                </Link>
               </div>
             )}
             {!lab && !vital && data.approvedGuidanceCount === 0 && <p>No health updates yet.</p>}
@@ -375,8 +543,14 @@ function AdultDashboard({ data }: Props) {
             </div>
           </div>
           <div className="fv-members">
-            <div className="fv-member"><b>Family Head</b><p>Cannot see your reports, cases or appointments.</p></div>
-            <div className="fv-member"><b>Family Doctor</b><p>Depends on your clinical consent.</p></div>
+            <div className="fv-member">
+              <b>Family Head</b>
+              <p>Cannot see your reports, cases or appointments.</p>
+            </div>
+            <div className="fv-member">
+              <b>Family Doctor</b>
+              <p>Depends on your clinical consent.</p>
+            </div>
           </div>
         </section>
       </div>

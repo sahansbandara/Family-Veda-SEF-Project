@@ -1,0 +1,799 @@
+/* Owner: S4 · approved whole-project UI scope (agent/DECISIONS.md, 2026-09-28b).
+   Premium care workspaces. All overrides are scoped to preserve other portals. */
+.care-workspace {
+  --care-line: color-mix(in srgb, var(--text) 12%, transparent);
+  --care-surface: color-mix(in srgb, var(--surface) 97%, var(--background));
+  --care-soft: color-mix(in srgb, var(--primary) 4%, var(--care-surface));
+  --care-blue-soft: color-mix(in srgb, var(--primary) 8%, var(--care-surface));
+  --care-muted: var(--muted);
+  --care-success: color-mix(in srgb, var(--success) 8%, var(--care-surface));
+  --care-warn: color-mix(in srgb, var(--warning) 8%, var(--care-surface));
+  display: grid;
+  gap: 24px;
+  max-width: 1240px;
+  width: 100%;
+  margin-inline: auto;
+  padding-block: 10px 24px;
+}
+.care-workspace :is(h1, h2, h3, p) {
+  margin-top: 0;
+}
+.care-workspace h1 {
+  font-size: clamp(1.75rem, 3vw, 2.35rem);
+  letter-spacing: -0.045em;
+  font-weight: 650;
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+.care-workspace h2 {
+  font-size: 1.12rem;
+  letter-spacing: -0.025em;
+  font-weight: 650;
+  margin-bottom: 12px;
+}
+.care-workspace h3 {
+  font-size: 0.95rem;
+  letter-spacing: -0.015em;
+  font-weight: 650;
+  margin-bottom: 8px;
+}
+.care-workspace .muted,
+.care-muted {
+  color: var(--care-muted);
+  font-size: 0.88rem;
+}
+.care-workspace :is(.care-caption, .care-count, .care-record-meta) {
+  font-size: 0.75rem;
+  color: var(--care-muted);
+  line-height: 1.6;
+}
+.care-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding-block: 10px 4px;
+}
+.care-header p:not(.care-eyebrow) {
+  color: var(--care-muted);
+  max-width: 70ch;
+  margin-bottom: 0;
+  font-size: 0.9rem;
+}
+.care-eyebrow {
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--care-muted);
+  font-weight: 750;
+  margin-bottom: 9px;
+}
+.care-workspace .fv-hero {
+  border: 0;
+  border-radius: 0;
+  padding: 10px 0 4px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text);
+  min-height: 0;
+}
+.care-workspace .fv-hero::before,
+.care-workspace .fv-hero::after {
+  display: none;
+}
+.care-workspace .fv-hero p,
+.care-workspace .fv-eyebrow {
+  color: var(--care-muted);
+}
+.care-workspace .fv-hero p {
+  max-width: 70ch;
+  font-size: 0.9rem;
+}
+.care-workspace :is(.panel, .care-panel, .fv-card, .fv-metric) {
+  background: var(--care-surface);
+  border: 1px solid var(--care-line);
+  border-radius: 16px;
+  box-shadow: 0 7px 24px rgb(10 30 60 / 3%);
+  backdrop-filter: none;
+}
+.care-panel {
+  padding: 24px;
+  min-width: 0;
+}
+.care-panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.care-panel-heading h2 {
+  margin-bottom: 0;
+}
+.care-panel-heading p {
+  margin-top: 6px;
+  margin-bottom: 0;
+}
+.care-panel-heading > div {
+  min-width: 0;
+}
+.care-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.care-metric {
+  border: 1px solid var(--care-line);
+  border-radius: 12px;
+  background: var(--care-surface);
+  padding: 17px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.care-metric strong {
+  font-size: 1.2rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+.care-metric :is(span, small, p) {
+  font-size: 0.75rem;
+  color: var(--care-muted);
+  margin-bottom: 0;
+}
+.care-split {
+  display: grid;
+  grid-template-columns: minmax(275px, 0.8fr) minmax(0, 1.2fr);
+  gap: 22px;
+  align-items: start;
+  min-width: 0;
+}
+.care-split--symptoms {
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+}
+.care-split--review {
+  grid-template-columns: minmax(255px, 0.65fr) minmax(0, 1.35fr);
+}
+.care-split > * {
+  min-width: 0;
+}
+.care-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.care-actions--end {
+  justify-content: flex-end;
+}
+.care-workspace .button {
+  font-size: 0.8rem;
+  border-radius: 9px;
+  min-height: 42px;
+  box-shadow: none;
+}
+.care-workspace .button::before,
+.care-workspace .button::after {
+  display: none;
+}
+.care-workspace .button--primary {
+  background: var(--primary);
+  color: var(--on-accent);
+  border-color: var(--primary);
+  text-shadow: none;
+}
+.care-workspace .button--primary:hover {
+  background: var(--primary-hover);
+  box-shadow: none;
+}
+.care-workspace .button--secondary {
+  border: 1px solid var(--care-line);
+  background: var(--care-surface);
+}
+.care-workspace .button-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.care-workspace :is(.field, label) {
+  font-size: 0.8rem;
+}
+.care-workspace :is(input, select, textarea) {
+  border: 1px solid var(--care-line);
+  background: var(--care-surface);
+  border-radius: 9px;
+  color: var(--text);
+  box-shadow: none;
+  font-size: 0.85rem;
+  min-height: 44px;
+}
+.care-workspace :is(input[type='checkbox'], input[type='radio']) {
+  min-height: 0;
+  accent-color: var(--primary);
+}
+.care-workspace textarea {
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+}
+.care-workspace label > span {
+  color: var(--text);
+}
+.care-workspace :is(input, select, textarea):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.care-workspace :is(.form-grid, .care-form) {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+.care-workspace .care-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.care-form .care-actions {
+  padding-top: 18px;
+  border-top: 1px solid var(--care-line);
+}
+.care-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: var(--care-soft);
+  border: 1px solid var(--care-line);
+  color: var(--care-muted);
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+.care-note p {
+  margin-bottom: 0;
+}
+.care-note--warning {
+  background: var(--care-warn);
+}
+.care-note--success {
+  background: var(--care-success);
+}
+.care-note a {
+  color: var(--primary);
+}
+.care-workspace :is(.care-report-list, .care-review-queue, .care-request-list) {
+  display: grid;
+  gap: 12px;
+}
+.care-selection-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+  padding: 17px;
+  border: 1px solid var(--care-line);
+  border-radius: 12px;
+  background: var(--care-surface);
+  width: 100%;
+  min-width: 0;
+  color: var(--text);
+  font: inherit;
+}
+.care-selection-card:not(:disabled) {
+  cursor: pointer;
+}
+.care-selection-card:hover {
+  background: var(--care-soft);
+}
+.care-selection-card:is(
+  [aria-pressed='true'],
+  [aria-selected='true'],
+  .care-selection-card--active,
+  .care-selection-card--selected,
+  .is-selected
+) {
+  border-color: var(--primary);
+  background: var(--care-blue-soft);
+}
+.care-selection-card strong {
+  font-size: 0.9rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.care-selection-card p {
+  margin-bottom: 0;
+}
+.care-selection-card small {
+  font-size: 0.75rem;
+  color: var(--care-muted);
+}
+.care-selection-card .status-badge {
+  align-self: flex-start;
+}
+.care-workspace .status-badge {
+  font-size: 0.64rem;
+  letter-spacing: 0.02em;
+  border-radius: 7px;
+  padding: 4px 8px;
+}
+.care-workspace .status-badge::before {
+  display: none;
+}
+.care-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.care-chip {
+  min-height: 40px;
+  border: 1px solid var(--care-line);
+  background: var(--care-surface);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.8rem;
+  color: var(--text);
+}
+.care-chip[aria-pressed='true'] {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--care-blue-soft);
+}
+.care-detail {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+.care-detail :is(h2, h3, p) {
+  margin-bottom: 0;
+}
+.care-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--care-muted);
+  font-size: 0.85rem;
+}
+.care-workspace :is(.empty-state, .state-view) {
+  border-color: var(--care-line);
+  background: var(--care-soft);
+  box-shadow: none;
+}
+.care-workspace .care-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 10px;
+}
+.care-steps li {
+  border-top: 3px solid var(--care-line);
+  padding-top: 10px;
+  font-size: 0.72rem;
+  color: var(--care-muted);
+}
+.care-steps li[aria-current='step'],
+.care-steps li.is-current {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.care-steps li.is-complete {
+  border-color: var(--success);
+  color: var(--success);
+}
+.care-steps li.care-step--complete {
+  border-color: var(--success);
+  color: var(--success);
+}
+.care-stepper,
+.care-workspace .progress-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+  gap: 8px;
+}
+.care-stepper li,
+.care-workspace .progress-steps li {
+  font-size: 0.72rem;
+  padding: 10px 0;
+  border-top: 3px solid var(--care-line);
+  color: var(--care-muted);
+}
+.care-stepper li[aria-current='step'],
+.care-workspace .progress-steps li[aria-current='step'] {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.care-workspace .progress-steps li:has(.status-badge--success) {
+  border-color: var(--success);
+}
+.care-stepper .status-badge,
+.care-workspace .progress-steps .status-badge {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  font-size: 0.7rem;
+  line-height: 1.6;
+}
+.care-progress {
+  border-top: 1px solid var(--care-line);
+}
+.care-guidance,
+.care-workspace .approved-card {
+  background: var(--care-success);
+  padding: 20px;
+  border: 1px solid var(--care-line);
+  border-left: 3px solid var(--success);
+  border-radius: 12px;
+}
+.care-guidance p,
+.care-workspace .approved-card p {
+  white-space: pre-wrap;
+  font-size: 0.9rem;
+  line-height: 1.8;
+  margin-block: 10px;
+}
+.care-workspace .referral-card {
+  background: var(--care-warn);
+  border: 1px solid var(--care-line);
+  border-left: 3px solid var(--warning);
+  border-radius: 12px;
+  padding: 20px;
+}
+.care-workspace .referral-card p {
+  font-size: 0.85rem;
+  line-height: 1.75;
+}
+.care-draft {
+  padding: 20px;
+  border: 1px solid var(--care-line);
+  border-left: 3px solid var(--primary);
+  border-radius: 12px;
+  background: var(--care-blue-soft);
+  font-size: 0.85rem;
+}
+.care-draft p {
+  font-size: 0.85rem;
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+.care-draft h3 {
+  color: var(--primary);
+}
+.care-draft code {
+  overflow-wrap: anywhere;
+}
+.care-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.care-evidence {
+  border: 1px solid var(--care-line);
+  border-radius: 10px;
+  background: var(--care-soft);
+  padding: 16px;
+  min-width: 0;
+}
+.care-evidence ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+.care-evidence p,
+.care-evidence li {
+  font-size: 0.8rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.care-workspace details {
+  border: 1px solid var(--care-line);
+  border-radius: 10px;
+  padding: 13px 16px;
+  font-size: 0.8rem;
+}
+.care-workspace summary {
+  cursor: pointer;
+  color: var(--care-muted);
+}
+.care-workspace pre {
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--care-soft);
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 0.75rem;
+}
+.care-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  padding-top: 18px;
+  border-top: 1px solid var(--care-line);
+}
+.care-review-actions .button--primary {
+  margin-left: auto;
+}
+.care-split--review > .care-actions {
+  grid-column: 2;
+  display: grid;
+}
+.care-evidence dl {
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+.care-evidence dt {
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--care-muted);
+}
+.care-evidence dd {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+  line-height: 1.65;
+}
+.care-value-card {
+  border: 1px solid var(--care-line);
+  border-radius: 12px;
+  background: var(--care-soft);
+  padding: 18px;
+}
+.care-value-card strong {
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+.care-value-card p {
+  font-size: 0.8rem;
+  color: var(--care-muted);
+}
+.care-workspace .table-scroll {
+  border: 1px solid var(--care-line);
+  border-radius: 12px;
+}
+.care-workspace th {
+  background: var(--care-soft);
+}
+.care-workspace :is(th, td) {
+  font-size: 0.8rem;
+  border-color: var(--care-line);
+}
+.care-workspace td input {
+  min-width: 90px;
+}
+.care-workspace .report-grid {
+  gap: 12px;
+}
+.care-workspace .banner {
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+.care-workspace .fv-tool {
+  background: var(--care-surface);
+  border: 1px solid var(--care-line);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: none;
+}
+.care-workspace .fv-tool:hover {
+  background: var(--care-blue-soft);
+  border-color: var(--primary);
+}
+.care-workspace .fv-btn {
+  border-radius: 9px;
+  box-shadow: none;
+  font-size: 0.8rem;
+}
+.care-workspace .fv-card-head {
+  padding-bottom: 16px;
+}
+.care-workspace .fv-item {
+  border-radius: 10px;
+}
+.care-workspace .fv-referral {
+  border-radius: 12px;
+  box-shadow: none;
+}
+.care-workspace :is(button, a):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+}
+@media (max-width: 1100px) {
+  .care-split {
+    grid-template-columns: minmax(235px, 0.8fr) minmax(0, 1.2fr);
+  }
+  .care-split--symptoms {
+    grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
+  }
+  .care-split--review {
+    grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr);
+  }
+  .care-panel {
+    padding: 20px;
+  }
+  .care-metric {
+    padding: 15px;
+  }
+}
+@media (max-width: 820px) {
+  .care-split,
+  .care-split--symptoms,
+  .care-split--review {
+    grid-template-columns: 1fr;
+  }
+  .care-evidence-grid {
+    grid-template-columns: 1fr;
+  }
+  .care-split--review > .care-actions {
+    grid-column: 1;
+  }
+  .care-header {
+    align-items: flex-start;
+  }
+}
+@media (max-width: 560px) {
+  .app-shell:has(.care-workspace) .header-actions {
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .app-shell:has(.care-workspace) .theme-pill-toggle {
+    width: 44px;
+    flex-shrink: 0;
+  }
+  .app-shell:has(.care-workspace) .theme-pill-indicator {
+    transform: none;
+  }
+  .app-shell:has(.care-workspace) :is(.theme-toggle-text, .avatar-name) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .care-workspace {
+    gap: 18px;
+    padding-top: 0;
+  }
+  .care-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .care-header > .button {
+    width: 100%;
+  }
+  .care-metrics {
+    gap: 8px;
+  }
+  .care-metric {
+    padding: 13px 10px;
+  }
+  .care-metric strong {
+    font-size: 1rem;
+  }
+  .care-metric :is(span, small, p) {
+    font-size: 0.65rem;
+  }
+  .care-panel {
+    padding: 18px;
+    border-radius: 13px;
+  }
+  .care-workspace .care-field-grid {
+    grid-template-columns: 1fr;
+  }
+  .care-panel-heading {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .care-stepper,
+  .care-workspace .progress-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 12px;
+  }
+  .care-stepper .status-badge,
+  .care-workspace .progress-steps .status-badge {
+    font-size: 0.7rem;
+    white-space: normal;
+  }
+  .care-review-actions .button--primary {
+    width: 100%;
+    margin-left: 0;
+  }
+  .care-workspace .table-scroll {
+    margin-inline: -3px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .care-workspace * {
+    scroll-behavior: auto;
+  }
+}
+
+/* Confirmed measurements and the report's printed interval only. */
+.care-range-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 14px;
+}
+.care-range-overview > .care-caption {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+.care-range-card {
+  margin: 0;
+  padding: 18px;
+  border: 1px solid var(--care-line);
+  border-radius: 12px;
+  background: var(--care-soft);
+}
+.care-range-card figcaption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+.care-range-card .care-range-value {
+  font-size: 2rem;
+  line-height: 1.3;
+  letter-spacing: -0.04em;
+  margin: 12px 0 4px;
+}
+.care-range-value span {
+  font-size: 0.8rem;
+  letter-spacing: 0;
+  color: var(--care-muted);
+}
+.care-range-card svg {
+  width: 100%;
+  height: auto;
+}
+.care-range-card text {
+  fill: var(--care-muted);
+  font-size: 12px;
+}
+.care-range-track {
+  stroke: var(--care-line);
+  stroke-width: 10px;
+  stroke-linecap: round;
+}
+.care-range-band {
+  stroke: var(--primary);
+  stroke-opacity: 0.3;
+  stroke-width: 10px;
+  stroke-linecap: round;
+}
+.care-range-marker {
+  stroke: var(--text);
+  stroke-width: 3px;
+  stroke-linecap: round;
+}
+.care-selection-card .care-caption {
+  display: block;
+  margin-block: 4px;
+}
+
+.care-range-overview > .care-caption {
+  margin-top: 14px;
+}
+.care-panel {
+  scroll-margin-top: 170px;
+}
+
+.care-form label {
+  display: grid;
+  gap: 8px;
+  align-items: start;
+}
+.care-form :is(input:not([type='checkbox']):not([type='radio']), select, textarea) {
+  width: 100%;
+}
+.care-form .care-field-grid {
+  align-items: start;
+}

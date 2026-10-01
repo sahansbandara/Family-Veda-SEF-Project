@@ -236,3 +236,19 @@ What is already decided. Record at the moment of decision, including rejected al
   - Dispatched `fv:notifications-updated` from `NotificationsPage` immediately after successfully marking a notification (or all) as read.
   - Replaced the `🔔` emoji with a Lucide SVG stroke bell to remove unwanted emoji coloring and align with the UI's clean icon style.
 - **Consequences**: Unread counts instantly synchronize between the bell component and the notifications page without needing a heavyweight global state manager like Redux for a single value.
+
+## 2026-09-30 — Approved premium care UI integration
+
+**Decision:** Integrate the user-approved Reports, Symptoms and Doctor review design into existing React pages and dashboard shortcuts using current APIs. Use scoped `care-workspace.css`, plain workflow labels, a queue/evidence/decision layout, and confirmed-source reference interval visuals. Preserve the current navigation shell and all server permission, safety and approval contracts. Dashboard summaries refresh on window focus; approved symptom cases stop polling.
+
+**Alternatives:** A separate static-only interface was rejected after the user asked to attach the approved design to current dashboards. Adding lab explanation endpoints, universal approval schemas or new agents in this increment was rejected because those require a separately approved backend design. Exposing technical patient traces was rejected; patient progress uses status and exact approved-guidance endpoints instead.
+
+**Scope:** React UI and focused regression tests only. No backend, migration, auth configuration, dependency version, commit, push or deployment changes. Flutter implementation and new AI workflows remain future work. Three implementation subagents ran in parallel at the user's request; separate scoped quality/security review followed.
+
+## 2026-10-01 — Publish the approved care UI and workflow documentation
+
+**Decision:** At the user's explicit request, commit the approved React care workspaces, regression tests and `docs/AI_FLOW.md`, open a PR into `develop`, and merge after checks pass. Preserve the current S4 Git identity and the whole-project ownership waiver; do not attribute commits to other members.
+
+**Scope and trade-off:** The implementation was approved and verified as React desktop/mobile UI plus documentation. The newer three-surface parity rule is recorded, but this publication request does not expand the previously approved scope to Flutter implementation. Flutter visual parity and new AI backend features remain outstanding and must be disclosed in the PR. Keeping this change within the approved scope avoids silently adding unreviewed mobile or clinical behavior. Existing backend, migration, security and dependency settings remain unchanged by this PR.
+
+**Verification:** Fast-forwarded the feature branch to the current `origin/develop`; React lint, all 119 tests in 27 files and production build passed again. The existing bundle-size warning remains. GitHub checks are required before merge.
