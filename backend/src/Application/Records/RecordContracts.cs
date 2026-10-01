@@ -14,6 +14,8 @@ public sealed record VitalTrendDto(string VitalType, IReadOnlyList<VitalPointDto
 public sealed record VitalPointDto(DateTimeOffset MeasuredAt, decimal Value, string Unit);
 public sealed record LabReportDto(Guid Id, Guid MemberId, string OriginalFileName, OcrStatus OcrStatus, DateTimeOffset? CollectedAt,
     bool SharedWithFamilyHead = false, bool HasOriginalFile = false, LabRangeSummaryDto? RangeSummary = null);
+/// <summary>Original image bytes and their safe display content type. Storage paths are never exposed.</summary>
+public sealed record LabReportFileDto(byte[] Content, string ContentType);
 /// <summary>Counts only — range position against the printed reference, never an interpretation (RULE 1).</summary>
 public sealed record LabRangeSummaryDto(int BelowRange, int WithinRange, int AboveRange, int RangeUnavailable);
 /// <summary>Owner-only toggle: keep an adult's item private from the Family Head (default) or share it.</summary>
@@ -39,6 +41,7 @@ public interface IRecordService
     Task<IReadOnlyList<VitalTrendDto>> GetVitalTrendsAsync(Guid memberId, CancellationToken cancellationToken);
     Task<IReadOnlyList<LabReportDto>> GetLabReportsAsync(Guid memberId, CancellationToken cancellationToken);
     Task<LabReportDto> GetLabReportAsync(Guid reportId, CancellationToken cancellationToken);
+    Task<LabReportFileDto> GetLabReportFileAsync(Guid reportId, CancellationToken cancellationToken);
     Task<LabReportDto> UploadLabReportAsync(Guid memberId, string originalFileName, string contentType, long sizeBytes, Stream content, DateTimeOffset? collectedAt, CancellationToken cancellationToken);
     Task<LabReportDetailDto> GetLabReportDetailAsync(Guid reportId, CancellationToken cancellationToken);
     Task<LabReportDetailDto> ConfirmLabReportAsync(Guid reportId, ConfirmLabReportRequest request, CancellationToken cancellationToken);

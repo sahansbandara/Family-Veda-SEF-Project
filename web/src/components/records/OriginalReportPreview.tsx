@@ -1,0 +1,62 @@
+import { useEffect, useState } from 'react'
+
+import { apiClient } from '../../services/apiClient'
+
+type PreviewState = 'loading' | 'ready' | 'unavailable' | 'error'
+
+type OriginalReportPreviewProps = {
+  reportId: string
+  originalFileName: string
+  hasOriginalFile: boolean
+}
+
+export function OriginalReportPreview({ reportId, originalFileName, hasOriginalFile }: OriginalReportPreviewProps) {
+  const [state, setState] = useState<PreviewState>(hasOriginalFile ? 'loading' : 'unavailable')
+  const [objectUrl, setObjectUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!hasOriginalFile) {
+      setState('unavailable')
+      setObjectUrl(null)
+      return
+    }
+
+    const controller = new AbortController()
+    let active = true
+    let url: string | null = null
+    setState('loading')
+    setObjectUrl(null)
+
+    void apiClient.get(`/lab-reports/${reportId}/file`, { responseType: 'blob', signal: controller.signal })
+      .then(({ data }) => {
+        if (!active) return
+        url = URL.createObjectURL(data as Blob)
+        setObjectUrl(url)
+        setState('ready')
+      })
+      .catch(() => {
+        if (active && !controller.signal.aborted) setState('error')
+      })
+
+    return () => {
+      active = false
+      controller.abort()
+      if (url) URL.revokeObjectURL(url)
+    }
+  }, [hasOriginalFile, reportId])
+
+  return (
+    <section className="original-report-preview" aria-label="Original report image">
+      <h3>Original report image</h3>
+      {state === 'loading' && <p role="status">Loading original image…</p>}
+      {state === 'unavailable' && <p role="status">Original image unavailable.</p>}
+      {state === 'error' && <p role="status">Original image could not be loaded.</p>}
+      {state === 'ready' && objectUrl && (
+        <>
+          <img className="original-report-preview__image" src={objectUrl} alt={`Original report image: ${originalFileName}`} />
+          <a className="button button--secondary button--sm" href={objectUrl} download={originalFileName}>Download original image</a>
+        </>
+      )}
+    </section>
+  )
+}

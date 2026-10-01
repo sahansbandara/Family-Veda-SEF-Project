@@ -4,6 +4,7 @@
 import 'package:family_veda/models/health_record.dart';
 import 'package:family_veda/providers/records_provider.dart';
 import 'package:family_veda/models/lab_report.dart';
+import 'package:family_veda/widgets/records/original_report_preview.dart';
 import 'package:family_veda/widgets/records/report_library_card.dart';
 import 'package:family_veda/widgets/shared/async_state_views.dart';
 import 'package:flutter/material.dart';
@@ -262,6 +263,13 @@ class _LabReportsTab extends ConsumerWidget {
                         : 'Family member',
                     canChangeSharing: report.memberId == myMemberId,
                     onToggleSharing: () => onToggle(report),
+                    onViewOriginal: () => showOriginalReportPreview(
+                      context,
+                      fileName: report.fileName,
+                      load: () => ref
+                          .read(mobileApiProvider)
+                          .getLabReportFile(report.id),
+                    ),
                   ),
               ],
             ),
