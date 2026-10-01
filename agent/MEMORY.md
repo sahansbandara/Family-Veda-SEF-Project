@@ -1,5 +1,9 @@
 # Memory — Family Veda
 
+## 2026-10-01 — AI workflow documentation
+
+`docs/AI_FLOW.md` explains the inspected report/OCR and symptom/AI/doctor-approval workflows with six Mermaid diagrams, dashboard refresh/navigation behavior, source references and implementation limits. Report-value confirmation and clinical guidance approval are distinct; request-information decisions currently save internal notes without opening a patient follow-up questionnaire. This is code-based documentation, not live AI or university compliance evidence. The referenced original university PDF timed out when reread during this documentation task.
+
 ## 2026-09-28 production release check
 
 CourseWeb's authenticated Assignment 1 submission item showed 6 October 2026 at 11:00 AM (Asia/Colombo), while an older announcement still showed 30 September. At `develop` commit `49face54`, CI and CodeQL succeeded and Vercel reported a successful production deployment. Production Neon migration history had the first two migrations and no doctor-assignment conflicts. A non-expiring data-and-schema recovery branch `backup-2026-09-28-pre-doctor-constraints-1208` was created, then the reviewed doctor-constraint SQL was applied. Fresh Neon queries confirmed all three migrations and the two new partial unique indexes. The live synthetic Family Head dashboard, appointments and notifications pages loaded; exact Render revision and doctor-account workflow remain unverified. Full non-secret evidence is in `docs/university/RELEASE_EVIDENCE_2026-09-28.md`.
@@ -57,3 +61,13 @@ What we already know and must not repeat.
 - 2026-09-30: Refined the premium dashboard layout based on user feedback. The sidebar now uses `var(--surface)` instead of a hardcoded blue gradient, preventing text overlap/unreadability. Added a dynamic topbar title using `<div className="header-page-title">` (using `div` instead of `h1` prevents breaking existing `getByRole('heading')` tests). Restyled the theme toggle as a CSS-only pill switch and updated the notification bell to a soft neomorphic design.
 
 - 2026-09-30: Overhauled the topbar controls. The theme toggle is now a wide pill switch with 'DAY MODE'/'NIGHT MODE' text. The notification bell is a clean SVG icon without backgrounds. The profile menu features a premium dark dropdown with gold role text matching user references. Language switcher removed.
+
+## 2026-09-30 — Premium care workspaces
+
+The approved design is integrated into React RecordsPage (Labs first; `?tab=labs|records|vitals`, `?upload=1`), TriagePage (`?view=guidance` selects an authorized approved case), and ApprovalsPage (`?case=ID` is accepted only within the authorized queue). Shared premium styles are scoped by `.care-workspace`; existing portal navigation remains. Patient progress no longer requests technical traces. Approved guidance requires exact Approved/ApprovedRevised status; terminal polling stops, and selecting the current case preserves its detail.
+
+Async safety: reset private state on profile/case changes; guard mutation completions by captured member/report ID and latest request sequence. Keep same-profile forms mounted during search/list refresh to preserve focus and drafts. Initial profile bootstrap has its own retry. Shared adult lab cards remain summary-only.
+
+Confirmed reference-range diagrams use only finite confirmed source values and valid printed intervals with original units. Missing/reversed ranges remain unplotted. No new AI interpretation or lab doctor-approval backend was added. Dashboard actions deep-link to these flows and refresh server summaries on window focus. Synthetic visual fixtures and screenshots live outside the repository under this chat's visualization directory; live API/deployment verification is separate.
+
+2026-10-01 verification: 119 tests across 27 files, lint and production build passed (existing bundle-size warning remains). Synthetic previews of the actual React pages were checked at desktop and 390px mobile widths, including dark mode. Compact header controls are scoped to care screens; mobile progress uses two columns to keep labels readable.

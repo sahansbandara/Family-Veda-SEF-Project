@@ -16,4 +16,10 @@ describe('FamilyCaseProgress', () => {
     render(<FamilyCaseProgress caseStatus="FailedSafe" />)
     expect(screen.getByRole('status')).toHaveTextContent('in-person clinical review')
   })
+
+  it('does not call low confidence a doctor review', () => {
+    render(<FamilyCaseProgress caseStatus="LowConfidence" />)
+    expect(screen.getByRole('status')).toHaveTextContent('More information is needed')
+    expect(screen.queryByText('Doctor review')).not.toBeInTheDocument()
+  })
 })

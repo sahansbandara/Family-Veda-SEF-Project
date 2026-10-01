@@ -127,6 +127,8 @@ S2	mobile/lib/screens/records/lab_upload_screen.dart
 S2	mobile/lib/screens/records/vital_entry_screen.dart
 S2	mobile/lib/services/api/mobile_api.dart
 S2	web/src/pages/records/RecordsPage.test.tsx
+S2	web/src/components/records/RecordedRangeVisual.tsx
+S2	web/src/components/records/RecordedRangeVisual.test.tsx
 S2	mobile/test/screens/records_screen_test.dart
 
 # ── S3 · IT24100551 · Karunathilaka K.D.J.C (Group Leader) · Triage & Orchestration ──
@@ -231,6 +233,7 @@ S4	web/src/components/auth/AuthStepper.tsx
 S4	web/src/components/auth/AuthRoleSelector.tsx
 S4	web/src/components/auth/PasswordField.tsx
 S4	web/src/styles/auth-shell.css
+S4	web/src/styles/care-workspace.css
 S4	web/src/pages/system/SystemPages.tsx
 S4	mobile/lib/models/approved_guidance.dart
 S4	mobile/lib/providers/guidance_provider.dart
@@ -253,3 +256,4 @@ S4	backend/tests/UnitTests/AdultPrivacyAuthorizationTests.cs
 S4	web/src/pages/triage/FamilyCaseProgress.tsx
 S4	web/src/pages/triage/FamilyCaseProgress.test.tsx
 S4	docs/Three_Portal_Implementation_Blueprint.md
+S4	docs/AI_FLOW.md
