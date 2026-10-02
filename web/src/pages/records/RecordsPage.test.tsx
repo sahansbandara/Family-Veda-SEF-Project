@@ -70,6 +70,23 @@ function stubLists() {
       url.startsWith('/members/synthetic-minor-02/vitals')
     )
       return Promise.resolve({ data: [] })
+    if (url === '/families/synthetic-family-01/doctor') {
+      return Promise.resolve({
+        data: {
+          id: 'doc-01',
+          displayName: 'Dr. Perera',
+          specialty: 'Family Medicine',
+        },
+      })
+    }
+    if (url === '/doctors/directory') {
+      return Promise.resolve({
+        data: [
+          { id: 'doc-01', displayName: 'Dr. Perera', specialty: 'Family Medicine' },
+          { id: 'doc-02', displayName: 'Dr. Silva', specialty: 'Cardiology' },
+        ],
+      })
+    }
     return Promise.reject(new Error(`unexpected ${url}`))
   })
 }
@@ -504,5 +521,45 @@ describe('RecordsPage', () => {
 
     await waitFor(() => expect(screen.queryByText('stale-minor-a.png')).not.toBeInTheDocument())
     expect(screen.getByText('minor-b.png')).toBeInTheDocument()
+  })
+
+  it('renders assigned doctor dropdown in add health record form and submits selected doctor', async () => {
+    stubLists()
+    mocks.post.mockResolvedValueOnce({
+      data: {
+        id: 'r-new',
+        title: 'Asthma checkup',
+        recordType: 'Condition',
+        occurredOn: '2026-10-02',
+        summary: 'Doctor: Dr. Perera',
+      },
+    })
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter initialEntries={['/records?tab=records']}>
+        <RecordsPage />
+      </MemoryRouter>,
+    )
+    await screen.findByText('Newer synthetic note')
+    await user.click(screen.getAllByRole('button', { name: 'Add record' })[0])
+
+    const doctorSelect = screen.getByLabelText('Doctor / Healthcare Provider')
+    expect(doctorSelect).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /Dr\. Perera/i })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /Dr\. Silva/i })).toBeInTheDocument()
+
+    await user.type(screen.getByLabelText('Title'), 'Asthma checkup')
+    await user.selectOptions(doctorSelect, 'Dr. Perera')
+    await user.click(screen.getByRole('button', { name: 'Save record' }))
+
+    await waitFor(() => {
+      expect(mocks.post).toHaveBeenCalledWith(
+        '/members/synthetic-member-01/records',
+        expect.objectContaining({
+          title: 'Asthma checkup',
+          summary: expect.stringContaining('Doctor: Dr. Perera'),
+        }),
+      )
+    })
   })
 })

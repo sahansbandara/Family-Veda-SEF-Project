@@ -9,6 +9,7 @@ import { EmptyState, ErrorState, LoadingState } from '../../components/shared/Vi
 import { StatusBadge } from '../../components/shared/StatusBadge'
 import {
   apiClient,
+  type DoctorSummaryDto,
   type FamilyDto,
   type HealthRecordDto,
   type LabReportDetailDto,
@@ -69,6 +70,8 @@ export function RecordsPage() {
   const [editingRecord, setEditingRecord] = useState<HealthRecordDto | null>(null)
   const [showRecordForm, setShowRecordForm] = useState(false)
   const [showUploadForm, setShowUploadForm] = useState(uploadRequested)
+  const [assignedDoctor, setAssignedDoctor] = useState<DoctorSummaryDto | null>(null)
+  const [availableDoctors, setAvailableDoctors] = useState<DoctorSummaryDto[]>([])
   const [status, setStatus] = useState<LoadStatus>('loading')
   const [hasLoaded, setHasLoaded] = useState(false)
   const [message, setMessage] = useState('')
@@ -99,6 +102,19 @@ export function RecordsPage() {
       setMemberId(mine.data.id)
       setMyMemberId(mine.data.id)
       setIsHead(head)
+
+      try {
+        const [docRes, dirRes] = await Promise.all([
+          apiClient.get<DoctorSummaryDto | null>(`/families/${family.data.id}/doctor`).catch(() => ({ data: null })),
+          apiClient.get<DoctorSummaryDto[]>('/doctors/directory').catch(() => ({ data: [] })),
+        ])
+        if (bootstrapSequence.current === request) {
+          setAssignedDoctor(docRes?.data ?? null)
+          setAvailableDoctors(Array.isArray(dirRes?.data) ? dirRes.data : [])
+        }
+      } catch {
+        // Doctor directory loading is non-blocking
+      }
     } catch {
       if (bootstrapSequence.current === request) setStatus('error')
     }
@@ -649,6 +665,8 @@ export function RecordsPage() {
               isOwnProfile={isOwnProfile}
               showForm={showRecordForm}
               editingRecord={editingRecord}
+              assignedDoctor={assignedDoctor}
+              availableDoctors={availableDoctors}
               search={search}
               filter={filter}
               sort={sort}
@@ -842,6 +860,8 @@ type RecordsPanelProps = {
   isOwnProfile: boolean
   showForm: boolean
   editingRecord: HealthRecordDto | null
+  assignedDoctor?: DoctorSummaryDto | null
+  availableDoctors?: DoctorSummaryDto[]
   search: string
   filter: string
   sort: 'date-desc' | 'date-asc'
@@ -877,6 +897,14 @@ function parseRecordSummary(summary?: string | null) {
 function RecordsPanel(props: RecordsPanelProps) {
   const [attachmentName, setAttachmentName] = useState('')
   const parsedMeta = parseRecordSummary(props.editingRecord?.summary)
+  const otherDoctors = (props.availableDoctors ?? []).filter(
+    (doc) => doc.id !== props.assignedDoctor?.id,
+  )
+  const knownDoctorNames = new Set<string>()
+  if (props.assignedDoctor?.displayName) knownDoctorNames.add(props.assignedDoctor.displayName)
+  for (const doc of otherDoctors) {
+    if (doc.displayName) knownDoctorNames.add(doc.displayName)
+  }
 
   return (
     <section className="care-panel">
@@ -952,12 +980,36 @@ function RecordsPanel(props: RecordsPanelProps) {
             </label>
             <label className="field">
               <span>Doctor / Healthcare Provider</span>
-              <input
+              <select
                 name="doctor"
+                aria-label="Doctor / Healthcare Provider"
                 defaultValue={parsedMeta.doctor}
-                placeholder="Dr. Perera"
-                maxLength={120}
-              />
+              >
+                <option value="">None / Not specified</option>
+                {props.assignedDoctor && (
+                  <optgroup label="Assigned Doctor">
+                    <option value={props.assignedDoctor.displayName}>
+                      {props.assignedDoctor.displayName}
+                      {props.assignedDoctor.specialty ? ` (${props.assignedDoctor.specialty})` : ''}
+                    </option>
+                  </optgroup>
+                )}
+                {otherDoctors.length > 0 && (
+                  <optgroup label={props.assignedDoctor ? 'Other Available Doctors' : 'Available Doctors'}>
+                    {otherDoctors.map((doc) => (
+                      <option key={doc.id} value={doc.displayName}>
+                        {doc.displayName}
+                        {doc.specialty ? ` (${doc.specialty})` : ''}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+                {parsedMeta.doctor && !knownDoctorNames.has(parsedMeta.doctor) && (
+                  <optgroup label="Preserved Provider">
+                    <option value={parsedMeta.doctor}>{parsedMeta.doctor}</option>
+                  </optgroup>
+                )}
+              </select>
             </label>
           </div>
 
