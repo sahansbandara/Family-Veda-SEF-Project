@@ -189,15 +189,45 @@ export function RecordsPage() {
     const targetMemberId = memberId
     const formElement = event.currentTarget
     const form = new FormData(formElement)
+
+    const recordType = String(form.get('recordType') ?? 'Condition')
+    const title = String(form.get('title') ?? '')
+    const occurredOn = String(form.get('occurredOn') ?? '')
+    const status = String(form.get('status') ?? '').trim()
+    const severity = String(form.get('severity') ?? '').trim()
+    const doctor = String(form.get('doctor') ?? '').trim()
+    const rawSummary = String(form.get('summary') ?? '').trim()
+    const attachment = form.get('attachment')
+
+    const metaParts: string[] = []
+    if (status) metaParts.push(`Status: ${status}`)
+    if (severity) metaParts.push(`Severity: ${severity}`)
+    if (doctor) metaParts.push(`Doctor: ${doctor}`)
+
+    const summaryParts: string[] = []
+    if (metaParts.length > 0) summaryParts.push(metaParts.join(' · '))
+    if (rawSummary) summaryParts.push(rawSummary)
+    const summary = summaryParts.length > 0 ? summaryParts.join('\n') : ''
+
     const payload = {
-      recordType: String(form.get('recordType') ?? ''),
-      title: String(form.get('title') ?? ''),
-      summary: String(form.get('summary') ?? ''),
-      occurredOn: String(form.get('occurredOn') ?? ''),
+      recordType,
+      title,
+      summary,
+      occurredOn,
     }
     try {
       if (editingRecord) await apiClient.put(`/records/${editingRecord.id}`, payload)
       else await apiClient.post(`/members/${memberId}/records`, payload)
+
+      if (attachment instanceof File && attachment.size > 0) {
+        const uploadForm = new FormData()
+        uploadForm.append('file', attachment)
+        uploadForm.append('collectedAt', new Date(occurredOn || Date.now()).toISOString())
+        await apiClient.post(`/members/${memberId}/lab-reports`, uploadForm, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        }).catch(() => undefined)
+      }
+
       if (activeMemberId.current !== targetMemberId) return
       formElement.reset()
       setEditingRecord(null)
@@ -826,7 +856,28 @@ type RecordsPanelProps = {
   onSort: (value: 'date-desc' | 'date-asc') => void
   onPage: (page: number) => void
 }
+function parseRecordSummary(summary?: string | null) {
+  if (!summary) return { status: 'Active', severity: 'Mild', doctor: '', cleanSummary: '' }
+  const statusMatch = summary.match(/Status:\s*([^\s·\n]+)/i)
+  const severityMatch = summary.match(/Severity:\s*([^\s·\n]+)/i)
+  const doctorMatch = summary.match(/(?:Provider|Doctor):\s*([^·\n]+)/i)
+
+  const cleanSummary = summary
+    .replace(/(?:Status|Severity|Provider|Doctor):\s*[^·\n]+(?:·|\n)?/gi, '')
+    .trim()
+
+  return {
+    status: statusMatch ? statusMatch[1] : 'Active',
+    severity: severityMatch ? severityMatch[1] : 'Mild',
+    doctor: doctorMatch ? doctorMatch[1].trim() : '',
+    cleanSummary,
+  }
+}
+
 function RecordsPanel(props: RecordsPanelProps) {
+  const [attachmentName, setAttachmentName] = useState('')
+  const parsedMeta = parseRecordSummary(props.editingRecord?.summary)
+
   return (
     <section className="care-panel">
       <div className="care-panel-heading">
@@ -847,42 +898,110 @@ function RecordsPanel(props: RecordsPanelProps) {
           onSubmit={(event) => void props.onSave(event)}
         >
           <h3>{props.editingRecord ? `Edit ${props.editingRecord.title}` : 'Add health record'}</h3>
+
+          <div className="care-field-grid">
+            <label className="field">
+              <span className="field-label-required">Type</span>
+              <select name="recordType" defaultValue={props.editingRecord?.recordType ?? 'Condition'}>
+                {['Condition', 'Allergy', 'Medication', 'Surgery', 'Note'].map((type) => (
+                  <option key={type}>{type}</option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              <span className="field-label-required">Title</span>
+              <input
+                name="title"
+                defaultValue={props.editingRecord?.title ?? ''}
+                placeholder="Asthma"
+                required
+                minLength={2}
+                maxLength={160}
+              />
+            </label>
+          </div>
+
+          <div className="care-field-grid">
+            <label className="field">
+              <span className="field-label-required">Date</span>
+              <input
+                name="occurredOn"
+                type="date"
+                defaultValue={props.editingRecord?.occurredOn ?? new Date().toISOString().slice(0, 10)}
+                required
+              />
+            </label>
+            <label className="field">
+              <span>Status</span>
+              <select name="status" defaultValue={parsedMeta.status}>
+                {['Active', 'Resolved', 'Inactive', 'Chronic'].map((status) => (
+                  <option key={status}>{status}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="care-field-grid">
+            <label className="field">
+              <span>Severity</span>
+              <select name="severity" defaultValue={parsedMeta.severity}>
+                {['Mild', 'Moderate', 'Severe'].map((sev) => (
+                  <option key={sev}>{sev}</option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              <span>Doctor / Healthcare Provider</span>
+              <input
+                name="doctor"
+                defaultValue={parsedMeta.doctor}
+                placeholder="Dr. Perera"
+                maxLength={120}
+              />
+            </label>
+          </div>
+
           <label className="field">
-            <span>Type</span>
-            <select name="recordType" defaultValue={props.editingRecord?.recordType ?? 'Note'}>
-              {['Condition', 'Allergy', 'Medication', 'Surgery', 'Note'].map((type) => (
-                <option key={type}>{type}</option>
-              ))}
-            </select>
-          </label>
-          <label className="field">
-            <span>Title</span>
-            <input
-              name="title"
-              defaultValue={props.editingRecord?.title ?? ''}
-              required
-              minLength={2}
-              maxLength={160}
-            />
-          </label>
-          <label className="field">
-            <span>Date</span>
-            <input
-              name="occurredOn"
-              type="date"
-              defaultValue={props.editingRecord?.occurredOn ?? ''}
-              required
-            />
-          </label>
-          <label className="field">
-            <span>Summary (optional)</span>
+            <span>Summary</span>
             <textarea
               name="summary"
-              defaultValue={props.editingRecord?.summary ?? ''}
+              defaultValue={parsedMeta.cleanSummary}
+              placeholder="Patient has a history of asthma..."
               maxLength={2000}
               rows={3}
             />
           </label>
+
+          <label className="field">
+            <span>Attachment</span>
+            <div className="care-attachment-box" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <input
+                type="file"
+                name="attachment"
+                id="record-attachment"
+                accept=".pdf,image/png,image/jpeg"
+                className="sr-only"
+                onChange={(e) => {
+                  const f = e.target.files?.[0]
+                  setAttachmentName(f ? f.name : '')
+                }}
+              />
+              <label
+                htmlFor="record-attachment"
+                className="button button--secondary"
+                style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+              >
+                <span>📎</span>
+                <span>{attachmentName ? 'Change report' : 'Upload medical report'}</span>
+              </label>
+              {attachmentName && (
+                <span className="care-caption" style={{ fontWeight: 500 }}>
+                  {attachmentName}
+                </span>
+              )}
+            </div>
+          </label>
+
           <div className="care-actions">
             <button type="submit" className="button button--primary">
               {props.editingRecord ? 'Update record' : 'Save record'}
