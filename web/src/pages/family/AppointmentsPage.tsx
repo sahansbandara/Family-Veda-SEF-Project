@@ -5,7 +5,16 @@ import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react
 
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { useAppSelector } from '../../store/hooks'
-import { apiClient, doctorWorkspaceApi, threePortalApi, type DoctorSlotsDto, type AppointmentDto, type FamilyDto, type MemberDto } from '../../services/apiClient'
+import {
+  apiClient,
+  doctorWorkspaceApi,
+  threePortalApi,
+  type AppointmentDto,
+  type DoctorSlotsDto,
+  type DoctorSummaryDto,
+  type FamilyDto,
+  type MemberDto,
+} from '../../services/apiClient'
 import { FriendlyStatusBadge } from './threePortalShared'
 import { extractErrorMessage, formatDateTime } from './threePortalUtils'
 import { PageHero } from '../dashboard/dashboardParts'
@@ -39,8 +48,18 @@ export function AppointmentsPage() {
   )
 
   const [familyId, setFamilyId] = useState('')
+  const [familyDoctor, setFamilyDoctor] = useState<DoctorSummaryDto | null>(null)
+  const [directoryDoctors, setDirectoryDoctors] = useState<DoctorSummaryDto[]>([])
+  const [selectedDoctorId, setSelectedDoctorId] = useState('')
+  const [selectedDate, setSelectedDate] = useState('')
+  const [attachmentName, setAttachmentName] = useState('')
   const [slots, setSlots] = useState<DoctorSlotsDto | null>(null)
   const [slotMessage, setSlotMessage] = useState('')
+
+  const otherDoctors = useMemo(
+    () => directoryDoctors.filter((doc) => doc.id !== familyDoctor?.id),
+    [directoryDoctors, familyDoctor],
+  )
 
   // Free slots come from the doctor's weekly hours (DECISIONS 2026-09-29h). No hours set → free time entry.
   async function loadSlots(date: string) {
@@ -63,6 +82,26 @@ export function AppointmentsPage() {
       setAppointments(appts)
       setMembers(family.members)
       setFamilyId(family.id)
+
+      try {
+        const [docRes, dirRes] = await Promise.all([
+          apiClient.get<DoctorSummaryDto | null>(`/families/${family.id}/doctor`).catch(() => ({ data: null })),
+          apiClient.get<DoctorSummaryDto[]>('/doctors/directory').catch(() => ({ data: [] })),
+        ])
+        if (docRes?.data) {
+          setFamilyDoctor(docRes.data)
+          setSelectedDoctorId((curr) => curr || docRes.data!.id)
+        }
+        if (Array.isArray(dirRes?.data)) {
+          setDirectoryDoctors(dirRes.data)
+          if (!docRes?.data && dirRes.data.length > 0) {
+            setSelectedDoctorId((curr) => curr || dirRes.data[0].id)
+          }
+        }
+      } catch {
+        // Non-blocking
+      }
+
       setStatus('ready')
     } catch {
       setStatus('error')
@@ -81,17 +120,43 @@ export function AppointmentsPage() {
     const date = String(form.get('date') || '')
     const time = String(form.get('time') || '')
     const slot = String(form.get('slot') || '')
-    const reason = String(form.get('reason') || '').trim()
+    let reason = String(form.get('reason') || '').trim()
+    const attachment = form.get('attachment') as File | null
     if (!memberId || !date || !(time || slot) || !reason) {
       setMessage('Please fill in all appointment details.')
       return
     }
+
+    if (attachment && attachment.size > 0) {
+      try {
+        const uploadForm = new FormData()
+        uploadForm.append('file', attachment)
+        uploadForm.append('collectedAt', new Date(date || Date.now()).toISOString())
+        await apiClient.post(`/members/${memberId}/lab-reports`, uploadForm, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
+      } catch {
+        // Non-blocking for appointment request
+      }
+      const tag = ` [File: ${attachment.name}]`
+      if ((reason + tag).length <= 200) {
+        reason += tag
+      }
+    }
+
     const startsAt = slot || new Date(`${date}T${time}:00`).toISOString()
     setSubmitting(true)
     setMessage('')
     try {
-      await threePortalApi.bookAppointment({ memberId, startsAt, reason, durationMinutes: slots?.availabilityConfigured ? slots.slotMinutes : 30 })
+      await threePortalApi.bookAppointment({
+        memberId,
+        startsAt,
+        reason,
+        durationMinutes: slots?.availabilityConfigured ? slots.slotMinutes : 30,
+      })
       formElement.reset()
+      setAttachmentName('')
+      setSelectedDate('')
       setSlots(null)
       setMessage('Appointment requested. You will be notified once the doctor confirms it.')
       await load()
@@ -141,13 +206,49 @@ export function AppointmentsPage() {
             </select>
           </label>
           <label>
+            Doctor
+            <select
+              name="doctorId"
+              value={selectedDoctorId}
+              aria-label="Doctor"
+              onChange={(e) => {
+                setSelectedDoctorId(e.target.value)
+                if (selectedDate) void loadSlots(selectedDate)
+              }}
+            >
+              {familyDoctor && (
+                <optgroup label="Assigned Doctor">
+                  <option value={familyDoctor.id}>
+                    {familyDoctor.displayName} {familyDoctor.specialty ? `(${familyDoctor.specialty})` : ''} - Primary
+                  </option>
+                </optgroup>
+              )}
+              {otherDoctors.length > 0 && (
+                <optgroup label={familyDoctor ? 'Other Available Doctors' : 'Available Doctors'}>
+                  {otherDoctors.map((doc) => (
+                    <option key={doc.id} value={doc.id}>
+                      {doc.displayName} {doc.specialty ? `(${doc.specialty})` : ''}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              {!familyDoctor && otherDoctors.length === 0 && (
+                <option value="">Family Doctor (Default)</option>
+              )}
+            </select>
+          </label>
+          <label>
             Date
             <input
               name="date"
               type="date"
               required
               min={todayDate()}
-              onChange={(event) => void loadSlots(event.target.value)}
+              value={selectedDate}
+              onChange={(event) => {
+                setSelectedDate(event.target.value)
+                void loadSlots(event.target.value)
+              }}
             />
           </label>
           {slots?.availabilityConfigured ? (
@@ -172,6 +273,35 @@ export function AppointmentsPage() {
             Reason
             <input name="reason" required maxLength={200} placeholder="e.g. Follow-up consultation" />
           </label>
+          <div>
+            <span>Attachment (optional)</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '6px' }}>
+              <input
+                type="file"
+                name="attachment"
+                id="appointment-attachment"
+                accept=".pdf,image/png,image/jpeg"
+                className="sr-only"
+                onChange={(e) => {
+                  const f = e.target.files?.[0]
+                  setAttachmentName(f ? f.name : '')
+                }}
+              />
+              <label
+                htmlFor="appointment-attachment"
+                className="button button--secondary"
+                style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+              >
+                <span>📎</span>
+                <span>{attachmentName ? 'Change report' : 'Upload medical report / referral'}</span>
+              </label>
+              {attachmentName && (
+                <span style={{ fontSize: '13px', color: 'var(--muted, #666)' }}>
+                  {attachmentName}
+                </span>
+              )}
+            </div>
+          </div>
           <button className="button button--primary" type="submit" disabled={submitting}>
             {submitting ? 'Booking…' : 'Book appointment'}
           </button>

@@ -64,7 +64,7 @@ describe('AppointmentsPage booking form', () => {
 
     await waitFor(() => expect(screen.getByText('Book an appointment')).toBeInTheDocument())
 
-    const select = screen.getByRole('combobox') as HTMLSelectElement
+    const select = screen.getByLabelText('Member') as HTMLSelectElement
     const options = within(select).getAllByRole('option').map((option) => option.textContent)
 
     expect(options).toContain('Me')
@@ -77,13 +77,22 @@ describe('AppointmentsPage booking form', () => {
     mocks.bookAppointment.mockResolvedValue({ data: { id: 'appointment-1' } })
 
     await waitFor(() => expect(screen.getByText('Book an appointment')).toBeInTheDocument())
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'self-1' } })
+    fireEvent.change(screen.getByLabelText('Member'), { target: { value: 'self-1' } })
     fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2027-01-01' } })
     fireEvent.change(screen.getByLabelText('Time'), { target: { value: '10:00' } })
     fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Synthetic follow-up' } })
     fireEvent.submit(screen.getByRole('button', { name: 'Book appointment' }).closest('form')!)
 
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Appointment requested.'))
+  })
+
+  it('renders doctor selection and attachment upload controls', async () => {
+    renderAsAdult()
+
+    await waitFor(() => expect(screen.getByText('Book an appointment')).toBeInTheDocument())
+    expect(screen.getByLabelText('Doctor')).toBeInTheDocument()
+    expect(screen.getByText('Attachment (optional)')).toBeInTheDocument()
+    expect(screen.getByText('Upload medical report / referral')).toBeInTheDocument()
   })
 
   it('offers only the doctor\'s free slots once weekly hours exist, and books the chosen slot', async () => {
