@@ -104,14 +104,14 @@ export function DoctorFamiliesPage() {
             ) : (
               <div className="fv-scroll">
                 <table className="fv-table">
-                  <thead><tr><th>Family</th><th>Members</th><th>Last visit</th><th>Next appointment</th><th></th></tr></thead>
+                  <thead><tr><th>Family</th><th>Members</th><th className="fv-date">Last visit</th><th className="fv-date">Next appointment</th><th></th></tr></thead>
                   <tbody>
                     {visible.map((family) => (
                       <tr key={family.familyId}>
                         <td><b>{family.memberCount === 1 ? `${family.familyName} · Individual patient` : family.familyName}</b></td>
                         <td>{family.memberCount}</td>
-                        <td>{dateOrDash(family.lastVisit)}</td>
-                        <td>{dateOrDash(family.nextAppointment)}</td>
+                        <td className="fv-date">{dateOrDash(family.lastVisit)}</td>
+                        <td className="fv-date">{dateOrDash(family.nextAppointment)}</td>
                         <td><Link className="fv-btn" to={`/families/${family.familyId}`}>Open Family</Link></td>
                       </tr>
                     ))}

@@ -1104,7 +1104,7 @@ function RecordsPanel(props: RecordsPanelProps) {
               <tr>
                 <th>Title</th>
                 <th>Type</th>
-                <th>Date</th>
+                <th style={{ whiteSpace: 'nowrap' }}>Date</th>
                 <th>Summary</th>
                 {!props.isSharedView && <th>Actions</th>}
                 {props.isOwnProfile && <th>Family Head</th>}
@@ -1119,7 +1119,7 @@ function RecordsPanel(props: RecordsPanelProps) {
                   <td>
                     <span className="status-badge">{record.recordType}</span>
                   </td>
-                  <td>{record.occurredOn}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>{record.occurredOn}</td>
                   <td>{record.summary ?? 'No summary recorded'}</td>
                   {!props.isSharedView && (
                     <td className="care-actions">

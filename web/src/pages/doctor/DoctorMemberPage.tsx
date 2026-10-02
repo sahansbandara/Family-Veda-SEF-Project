@@ -89,8 +89,8 @@ export function DoctorMemberPage() {
         )}
 
         {tab === 'records' && (!data.records ? <Restricted what="Records" /> : data.records.length === 0 ? <EmptyState title="No records" message="This member has no health records yet." /> : (
-          <div className="fv-scroll"><table className="fv-table"><thead><tr><th>Date</th><th>Type</th><th>Title</th><th>Summary</th></tr></thead><tbody>
-            {data.records.map((r) => <tr key={r.id}><td>{r.occurredOn}</td><td>{r.recordType}</td><td>{r.title}</td><td>{r.summary ?? '—'}</td></tr>)}
+          <div className="fv-scroll"><table className="fv-table"><thead><tr><th className="fv-date">Date</th><th className="fv-type">Type</th><th>Title</th><th>Summary</th></tr></thead><tbody>
+            {data.records.map((r) => <tr key={r.id}><td className="fv-date">{r.occurredOn}</td><td className="fv-type">{r.recordType}</td><td><strong>{r.title}</strong></td><td>{r.summary ?? '—'}</td></tr>)}
           </tbody></table></div>
         ))}
 
@@ -111,8 +111,8 @@ export function DoctorMemberPage() {
         ))}
 
         {tab === 'vitals' && (!data.vitals ? <Restricted what="Vitals" /> : data.vitals.length === 0 ? <EmptyState title="No vitals" message="No readings recorded yet." /> : (
-          <div className="fv-scroll"><table className="fv-table"><thead><tr><th>Measured</th><th>Type</th><th>Value</th></tr></thead><tbody>
-            {data.vitals.map((v, i) => <tr key={i}><td>{formatDateTime(v.measuredAt)}</td><td>{v.vitalType}</td><td>{v.value} {v.unit}</td></tr>)}
+          <div className="fv-scroll"><table className="fv-table"><thead><tr><th className="fv-date">Measured</th><th className="fv-type">Type</th><th>Value</th></tr></thead><tbody>
+            {data.vitals.map((v, i) => <tr key={i}><td className="fv-date">{formatDateTime(v.measuredAt)}</td><td className="fv-type">{v.vitalType}</td><td>{v.value} {v.unit}</td></tr>)}
           </tbody></table></div>
         ))}
 
