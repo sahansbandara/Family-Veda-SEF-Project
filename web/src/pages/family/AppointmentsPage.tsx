@@ -31,6 +31,12 @@ function todayDate(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
+function memberOptionLabel(member: MemberDto): string {
+  if (member.role === 'Head') return `${member.displayName} (Family Head)`
+  if (member.role === 'MinorMember') return `${member.displayName} (Minor)`
+  return member.displayName
+}
+
 export function AppointmentsPage() {
   const user = useAppSelector((state) => state.auth.user)
   const isHead = user?.role === 'FAMILY_HEAD'
@@ -201,7 +207,9 @@ export function AppointmentsPage() {
             <select name="memberId" required defaultValue="">
               <option value="" disabled>Select member</option>
               {bookableMembers.map((member) => (
-                <option key={member.id} value={member.id}>{member.displayName}</option>
+                <option key={member.id} value={member.id}>
+                  {memberOptionLabel(member)}
+                </option>
               ))}
             </select>
           </label>

@@ -33,11 +33,21 @@ const actionLabel: Record<Action, string> = {
   cancel: 'Cancel',
 }
 
+const formatTimeOnly = (iso: string) => {
+  try {
+    return new Date(iso).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+  } catch {
+    return ''
+  }
+}
+
 export function DoctorCalendarPage() {
   const [appointments, setAppointments] = useState<AppointmentDto[]>([])
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [message, setMessage] = useState('')
   const [view, setView] = useState<View>('week')
+  const [currentMonth, setCurrentMonth] = useState<Date>(() => new Date())
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [rescheduling, setRescheduling] = useState<string | null>(null)
   const [newTime, setNewTime] = useState('')
 
@@ -56,6 +66,89 @@ export function DoctorCalendarPage() {
     void load()
   }, [load])
 
+  // Lookup map: dayKey (YYYY-MM-DD) -> appointments on that date
+  const appointmentsByDate = useMemo(() => {
+    const map = new Map<string, AppointmentDto[]>()
+    for (const a of appointments) {
+      const k = dayKey(new Date(a.startsAt))
+      const list = map.get(k) ?? []
+      list.push(a)
+      map.set(k, list)
+    }
+    return map
+  }, [appointments])
+
+  // Generate 7-column calendar matrix for the currently viewed month
+  const calendarDays = useMemo(() => {
+    const year = currentMonth.getFullYear()
+    const month = currentMonth.getMonth()
+    const firstDayIndex = new Date(year, month, 1).getDay()
+    const daysInMonth = new Date(year, month + 1, 0).getDate()
+    const daysInPrevMonth = new Date(year, month, 0).getDate()
+
+    const days: { date: Date; dateKey: string; isCurrentMonth: boolean; dayNumber: number }[] = []
+
+    // Padding days from previous month
+    for (let i = firstDayIndex - 1; i >= 0; i--) {
+      const d = new Date(year, month - 1, daysInPrevMonth - i)
+      days.push({
+        date: d,
+        dateKey: dayKey(d),
+        isCurrentMonth: false,
+        dayNumber: daysInPrevMonth - i,
+      })
+    }
+
+    // Days in current month
+    for (let i = 1; i <= daysInMonth; i++) {
+      const d = new Date(year, month, i)
+      days.push({
+        date: d,
+        dateKey: dayKey(d),
+        isCurrentMonth: true,
+        dayNumber: i,
+      })
+    }
+
+    // Padding days from next month to complete the row
+    const remaining = (7 - (days.length % 7)) % 7
+    for (let i = 1; i <= remaining; i++) {
+      const d = new Date(year, month + 1, i)
+      days.push({
+        date: d,
+        dateKey: dayKey(d),
+        isCurrentMonth: false,
+        dayNumber: i,
+      })
+    }
+
+    return days
+  }, [currentMonth])
+
+  const todayStr = useMemo(() => dayKey(new Date()), [])
+
+  const monthTitle = useMemo(() => {
+    return currentMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+  }, [currentMonth])
+
+  const currentMonthKeyPrefix = useMemo(() => {
+    return `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}`
+  }, [currentMonth])
+
+  const thisMonthCount = useMemo(() => {
+    return appointments.filter((a) => dayKey(new Date(a.startsAt)).startsWith(currentMonthKeyPrefix)).length
+  }, [appointments, currentMonthKeyPrefix])
+
+  const selectedDateFormatted = useMemo(() => {
+    if (!selectedDate) return ''
+    try {
+      const [y, m, d] = selectedDate.split('-').map(Number)
+      return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })
+    } catch {
+      return selectedDate
+    }
+  }, [selectedDate])
+
   const byDay = useMemo(() => {
     const groups = new Map<string, AppointmentDto[]>()
     const now = new Date()
@@ -63,6 +156,7 @@ export function DoctorCalendarPage() {
     const weekEnd = dayKey(new Date(now.getTime() + 7 * 86_400_000))
     const visible = appointments.filter((a) => {
       const key = dayKey(new Date(a.startsAt))
+      if (selectedDate) return key === selectedDate
       return view === 'all' || (view === 'today' ? key === today : key >= today && key <= weekEnd)
     })
     for (const appointment of [...visible].sort((a, b) => a.startsAt.localeCompare(b.startsAt))) {
@@ -72,7 +166,21 @@ export function DoctorCalendarPage() {
       groups.set(key, list)
     }
     return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b))
-  }, [appointments, view])
+  }, [appointments, view, selectedDate])
+
+  const handlePrevMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))
+  }
+
+  const handleNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))
+  }
+
+  const handleToday = () => {
+    const now = new Date()
+    setCurrentMonth(now)
+    setSelectedDate(dayKey(now))
+  }
 
   async function act(appointment: AppointmentDto, action: Action) {
     try {
@@ -110,11 +218,165 @@ export function DoctorCalendarPage() {
       </header>
 
       {message && <p role="status" className="status-banner">{message}</p>}
-      <SubTabs<View> label="Calendar range" active={view} onChange={setView}
-        tabs={[{ id: 'today', label: 'Today' }, { id: 'week', label: 'Next 7 days' }, { id: 'all', label: 'All' }]} />
 
+      {/* Unified Professional Month Calendar UI */}
+      <section className="fv-cal-board" aria-label="Monthly Calendar Overview">
+        <header className="fv-cal-topbar">
+          <div className="fv-cal-title-group">
+            <h2 className="fv-cal-month-title">{monthTitle}</h2>
+            <span className="fv-badge fv-badge--info">
+              {thisMonthCount} {thisMonthCount === 1 ? 'appointment' : 'appointments'} this month
+            </span>
+          </div>
+          <div className="fv-cal-nav-group">
+            <button
+              type="button"
+              className="fv-cal-nav-btn"
+              onClick={handlePrevMonth}
+              title="Previous month"
+              aria-label="Previous month"
+            >
+              ‹ Prev
+            </button>
+            <button
+              type="button"
+              className="fv-cal-nav-btn fv-cal-nav-btn--today"
+              onClick={handleToday}
+              title="Jump to today"
+            >
+              Today
+            </button>
+            <button
+              type="button"
+              className="fv-cal-nav-btn"
+              onClick={handleNextMonth}
+              title="Next month"
+              aria-label="Next month"
+            >
+              Next ›
+            </button>
+          </div>
+        </header>
+
+        {/* 7-column Weekday Headers */}
+        <div className="fv-cal-weekdays" role="row">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((wd) => (
+            <div key={wd} className="fv-cal-weekday" role="columnheader">
+              {wd}
+            </div>
+          ))}
+        </div>
+
+        {/* 7-column Calendar Day Cells with hairline dividers */}
+        <div className="fv-cal-grid" role="grid" aria-label={`Calendar for ${monthTitle}`}>
+          {calendarDays.map((cell) => {
+            const dayAppts = appointmentsByDate.get(cell.dateKey) ?? []
+            const isToday = cell.dateKey === todayStr
+            const isSelected = cell.dateKey === selectedDate
+
+            return (
+              <div
+                key={cell.dateKey}
+                role="button"
+                tabIndex={0}
+                aria-label={`${cell.dayNumber} ${cell.date.toLocaleDateString(undefined, { month: 'short' })}, ${dayAppts.length} appointments`}
+                aria-pressed={isSelected}
+                className={[
+                  'fv-cal-cell',
+                  !cell.isCurrentMonth ? 'fv-cal-cell--outside' : '',
+                  isToday ? 'fv-cal-cell--today' : '',
+                  isSelected ? 'fv-cal-cell--selected' : '',
+                ].filter(Boolean).join(' ')}
+                onClick={() => {
+                  if (isSelected) {
+                    setSelectedDate(null)
+                  } else {
+                    setSelectedDate(cell.dateKey)
+                    if (!cell.isCurrentMonth) {
+                      setCurrentMonth(new Date(cell.date.getFullYear(), cell.date.getMonth(), 1))
+                    }
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    setSelectedDate(isSelected ? null : cell.dateKey)
+                  }
+                }}
+              >
+                <div className="fv-cal-cell-head">
+                  {isToday ? (
+                    <span className="fv-cal-today-badge">{cell.dayNumber}</span>
+                  ) : (
+                    <span className="fv-cal-cell-num">{cell.dayNumber}</span>
+                  )}
+                </div>
+
+                {dayAppts.length > 0 && (
+                  <div className="fv-cal-cell-events">
+                    {dayAppts.slice(0, 2).map((a) => (
+                      <div
+                        key={a.id}
+                        className={`fv-cal-event-chip fv-cal-event-chip--${a.status}`}
+                        title={`${formatDateTime(a.startsAt)} · ${a.memberDisplayName}`}
+                      >
+                        <span className="fv-cal-chip-time">{formatTimeOnly(a.startsAt)}</span>
+                        <span className="fv-cal-chip-name">{a.memberDisplayName}</span>
+                      </div>
+                    ))}
+                    {dayAppts.length > 2 && (
+                      <span className="fv-cal-more-chip">+{dayAppts.length - 2} more</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
+      {/* Selected date filter feedback */}
+      {selectedDate && (
+        <div className="fv-cal-filter-banner">
+          <span>
+            📅 Filtered to <strong>{selectedDateFormatted}</strong> ({byDay.reduce((sum, [, items]) => sum + items.length, 0)} visits)
+          </span>
+          <button
+            type="button"
+            className="button button--secondary"
+            style={{ padding: '5px 12px', fontSize: '12px' }}
+            onClick={() => setSelectedDate(null)}
+          >
+            Clear date filter
+          </button>
+        </div>
+      )}
+
+      {/* SubTabs Range Filter */}
+      <SubTabs<View>
+        label="Calendar range"
+        active={view}
+        onChange={(newView) => {
+          setSelectedDate(null)
+          setView(newView)
+        }}
+        tabs={[
+          { id: 'today', label: 'Today' },
+          { id: 'week', label: 'Next 7 days' },
+          { id: 'all', label: 'All' },
+        ]}
+      />
+
+      {/* Day-by-day Appointments Agenda */}
       {byDay.length === 0 ? (
-        <EmptyState title="No appointments in this range" message="Booked appointments will appear here, grouped by day. Try another range." />
+        <EmptyState
+          title={selectedDate ? `No appointments on ${selectedDateFormatted}` : 'No appointments in this range'}
+          message={
+            selectedDate
+              ? 'There are no appointments scheduled for this date. Click another date on the calendar or clear the filter.'
+              : 'Booked appointments will appear here, grouped by day. Try another range.'
+          }
+        />
       ) : (
         byDay.map(([day, dayAppointments]) => (
           <section className="panel" key={day}>
@@ -123,23 +385,23 @@ export function DoctorCalendarPage() {
               <table>
                 <thead>
                   <tr>
-                    <th>Time</th>
+                    <th className="fv-date">Time</th>
                     <th>Member</th>
                     <th>Family</th>
                     <th>Reason</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th className="fv-nowrap">Status</th>
+                    <th className="fv-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {dayAppointments.map((appointment) => (
                     <tr key={appointment.id}>
-                      <td>{formatDateTime(appointment.startsAt)}</td>
+                      <td className="fv-date">{formatDateTime(appointment.startsAt)}</td>
                       <td><Link to={`/members/${appointment.memberId}`}>{appointment.memberDisplayName}</Link></td>
                       <td>{appointment.familyName}</td>
                       <td>{appointment.reason}</td>
-                      <td><FriendlyStatusBadge status={appointment.status} /></td>
-                      <td>
+                      <td className="fv-nowrap"><FriendlyStatusBadge status={appointment.status} /></td>
+                      <td className="fv-nowrap">
                         {nextActions[appointment.status].map((action) => (
                           <button
                             key={action}
