@@ -18,6 +18,10 @@ function isMinor(member: MemberDto): boolean {
   return dob > cutoff
 }
 
+function todayDate(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
 export function AppointmentsPage() {
   const user = useAppSelector((state) => state.auth.user)
   const isHead = user?.role === 'FAMILY_HEAD'
@@ -138,7 +142,13 @@ export function AppointmentsPage() {
           </label>
           <label>
             Date
-            <input name="date" type="date" required onChange={(event) => void loadSlots(event.target.value)} />
+            <input
+              name="date"
+              type="date"
+              required
+              min={todayDate()}
+              onChange={(event) => void loadSlots(event.target.value)}
+            />
           </label>
           {slots?.availabilityConfigured ? (
             <label>
