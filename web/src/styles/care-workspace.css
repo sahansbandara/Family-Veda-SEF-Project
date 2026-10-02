@@ -19,6 +19,7 @@
   margin-top: 0;
 }
 .care-workspace h1 {
+  color: var(--text-heading);
   font-size: clamp(1.75rem, 3vw, 2.35rem);
   letter-spacing: -0.045em;
   font-weight: 650;
@@ -26,12 +27,14 @@
   margin-bottom: 10px;
 }
 .care-workspace h2 {
+  color: var(--text-heading);
   font-size: 1.12rem;
   letter-spacing: -0.025em;
   font-weight: 650;
   margin-bottom: 12px;
 }
 .care-workspace h3 {
+  color: var(--text-heading);
   font-size: 0.95rem;
   letter-spacing: -0.015em;
   font-weight: 650;
@@ -80,6 +83,9 @@
 .care-workspace .fv-hero::before,
 .care-workspace .fv-hero::after {
   display: none;
+}
+.care-workspace .fv-hero h1 {
+  color: var(--text-heading);
 }
 .care-workspace .fv-hero p,
 .care-workspace .fv-eyebrow {

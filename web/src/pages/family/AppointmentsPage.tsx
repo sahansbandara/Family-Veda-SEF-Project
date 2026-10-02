@@ -28,9 +28,6 @@ function isMinor(member: MemberDto): boolean {
   return dob > cutoff
 }
 
-function todayDate(): string {
-  return new Date().toISOString().slice(0, 10)
-}
 
 function memberOptionLabel(member: MemberDto): string {
   if (member.role === 'Head') return `${member.displayName} (Family Head)`
