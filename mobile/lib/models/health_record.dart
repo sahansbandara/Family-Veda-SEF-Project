@@ -8,6 +8,7 @@ class HealthRecord {
     required this.type,
     required this.title,
     required this.recordedAt,
+    this.summary,
     this.sharedWithFamilyHead = false,
   });
 
@@ -17,6 +18,7 @@ class HealthRecord {
     type: (json['type'] ?? json['recordType'] ?? 'Record') as String,
     title: (json['title'] ?? json['name'] ?? 'Health record') as String,
     recordedAt: DateTime.parse((json['recordedAt'] ?? json['occurredOn']) as String),
+    summary: json['summary'] as String?,
     sharedWithFamilyHead: json['sharedWithFamilyHead'] == true,
   );
 
@@ -25,6 +27,8 @@ class HealthRecord {
   final String type;
   final String title;
   final DateTime recordedAt;
+  /// Free text, optionally led by the labelled line read by RecordSummaryMeta.
+  final String? summary;
   /// Adult owner chose to let the Family Head see this record (Phase 2). Default private.
   final bool sharedWithFamilyHead;
 }

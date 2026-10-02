@@ -257,3 +257,9 @@ S4	web/src/pages/triage/FamilyCaseProgress.tsx
 S4	web/src/pages/triage/FamilyCaseProgress.test.tsx
 S4	docs/Three_Portal_Implementation_Blueprint.md
 S4	docs/AI_FLOW.md
+S2	mobile/lib/models/record_summary_meta.dart
+S2	mobile/lib/widgets/records/report_attachment_field.dart
+S2	mobile/test/models/record_summary_meta_test.dart
+S2	web/src/pages/records/RecordSummaryText.tsx
+S2	web/src/pages/records/recordSummaryMeta.test.ts
+S2	web/src/pages/records/recordSummaryMeta.ts

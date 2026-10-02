@@ -4,18 +4,20 @@ import '@testing-library/jest-dom/vitest'
 
 import { configureStore } from '@reduxjs/toolkit'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
   get: vi.fn(),
+  post: vi.fn(),
   getMyAppointments: vi.fn(),
   bookAppointment: vi.fn(),
   getFamilyDoctorSlots: vi.fn(),
 }))
 vi.mock('../../services/apiClient', () => ({
-  apiClient: { get: mocks.get },
+  apiClient: { get: mocks.get, post: mocks.post },
   threePortalApi: { getMyAppointments: mocks.getMyAppointments, bookAppointment: mocks.bookAppointment },
   doctorWorkspaceApi: { getFamilyDoctorSlots: mocks.getFamilyDoctorSlots },
 }))
@@ -39,7 +41,13 @@ const family = {
 }
 
 function renderAsAdult() {
-  mocks.get.mockResolvedValue({ data: family })
+  mocks.get.mockImplementation((url: string) =>
+    Promise.resolve(
+      url === '/families/family-1/doctor'
+        ? { data: { id: 'doc-1', displayName: 'Dr. Perera', specialty: 'Family Medicine' } }
+        : { data: family },
+    ),
+  )
   mocks.getMyAppointments.mockResolvedValue({ data: [] })
 
   const store = configureStore({ reducer: { auth: authReducer } })
@@ -86,13 +94,33 @@ describe('AppointmentsPage booking form', () => {
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Appointment requested.'))
   })
 
-  it('renders doctor selection and attachment upload controls', async () => {
+  it('shows the assigned family doctor without offering a choice the server would ignore', async () => {
     renderAsAdult()
 
-    await waitFor(() => expect(screen.getByText('Book an appointment')).toBeInTheDocument())
-    expect(screen.getByLabelText('Doctor')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText('Dr. Perera')).toBeInTheDocument())
+    expect(screen.queryByRole('combobox', { name: 'Doctor' })).not.toBeInTheDocument()
+    expect(mocks.get).not.toHaveBeenCalledWith('/doctors/directory')
     expect(screen.getByText('Attachment (optional)')).toBeInTheDocument()
     expect(screen.getByText('Upload medical report / referral')).toBeInTheDocument()
+  })
+
+  it('books first, then reports an attachment that failed to upload instead of hiding it', async () => {
+    renderAsAdult()
+    mocks.bookAppointment.mockResolvedValue({ data: { id: 'appointment-1' } })
+    mocks.post.mockRejectedValue(new Error('upload failed'))
+
+    await waitFor(() => expect(screen.getByText('Book an appointment')).toBeInTheDocument())
+    fireEvent.change(screen.getByLabelText('Member'), { target: { value: 'self-1' } })
+    fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2027-01-01' } })
+    fireEvent.change(screen.getByLabelText('Time'), { target: { value: '10:00' } })
+    fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Synthetic follow-up' } })
+    const file = new File(['synthetic'], 'synthetic-referral.pdf', { type: 'application/pdf' })
+    await userEvent.upload(document.getElementById('appointment-attachment') as HTMLInputElement, file)
+    fireEvent.submit(screen.getByRole('button', { name: 'Book appointment' }).closest('form')!)
+
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('could not be uploaded'))
+    expect(mocks.bookAppointment).toHaveBeenCalledWith(expect.objectContaining({ reason: 'Synthetic follow-up' }))
+    expect(mocks.post).toHaveBeenCalledWith('/members/self-1/lab-reports', expect.any(FormData), expect.anything())
   })
 
   it('offers only the doctor\'s free slots once weekly hours exist, and books the chosen slot', async () => {

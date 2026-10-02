@@ -126,6 +126,21 @@ public static class DatabaseInitializer
                 ALTER TABLE family_join_requests ADD COLUMN IF NOT EXISTS requesting_user_id uuid;
                 ALTER TABLE family_join_requests ADD COLUMN IF NOT EXISTS responded_by_user_id uuid;
 
+                -- Databases bootstrapped by the earlier shape of the two tables above still carry legacy
+                -- NOT NULL columns the EF model no longer writes; relax them so inserts keep working.
+                DO $$
+                BEGIN
+                    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = 'family_membership_events' AND column_name = 'family_id') THEN
+                        ALTER TABLE family_membership_events ALTER COLUMN family_id DROP NOT NULL;
+                    END IF;
+                    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = 'family_membership_events' AND column_name = 'event_type') THEN
+                        ALTER TABLE family_membership_events ALTER COLUMN event_type DROP NOT NULL;
+                    END IF;
+                    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = 'family_join_requests' AND column_name = 'user_id') THEN
+                        ALTER TABLE family_join_requests ALTER COLUMN user_id DROP NOT NULL;
+                    END IF;
+                END $$;
+
                 CREATE TABLE IF NOT EXISTS family_doctor_requests (
                     id uuid NOT NULL DEFAULT gen_random_uuid(),
                     family_id uuid NOT NULL,

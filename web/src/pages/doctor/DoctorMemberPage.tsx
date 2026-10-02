@@ -10,6 +10,7 @@ import { doctorWorkspaceApi, type MemberWorkspaceDto } from '../../services/apiC
 import { Badge, PageHero, SubTabs } from '../dashboard/dashboardParts'
 import { FriendlyStatusBadge } from '../family/threePortalShared'
 import { extractErrorMessage, formatDateTime } from '../family/threePortalUtils'
+import { RecordSummaryText } from '../records/RecordSummaryText'
 
 type Tab = 'overview' | 'records' | 'labs' | 'vitals' | 'visits' | 'notes'
 
@@ -90,7 +91,7 @@ export function DoctorMemberPage() {
 
         {tab === 'records' && (!data.records ? <Restricted what="Records" /> : data.records.length === 0 ? <EmptyState title="No records" message="This member has no health records yet." /> : (
           <div className="fv-scroll"><table className="fv-table"><thead><tr><th className="fv-date">Date</th><th className="fv-type">Type</th><th>Title</th><th>Summary</th></tr></thead><tbody>
-            {data.records.map((r) => <tr key={r.id}><td className="fv-date">{r.occurredOn}</td><td className="fv-type">{r.recordType}</td><td><strong>{r.title}</strong></td><td>{r.summary ?? '—'}</td></tr>)}
+            {data.records.map((r) => <tr key={r.id}><td className="fv-date">{r.occurredOn}</td><td className="fv-type">{r.recordType}</td><td><strong>{r.title}</strong></td><td><RecordSummaryText summary={r.summary} /></td></tr>)}
           </tbody></table></div>
         ))}
 

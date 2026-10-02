@@ -7,6 +7,8 @@ import 'package:family_veda/providers/active_member_provider.dart';
 import 'package:family_veda/providers/family_dashboard_role_provider.dart';
 import 'package:family_veda/providers/family_portal_provider.dart';
 import 'package:family_veda/providers/members_provider.dart';
+import 'package:family_veda/providers/records_provider.dart';
+import 'package:family_veda/widgets/records/report_attachment_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -56,6 +58,7 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   int _durationMinutes = 30;
+  ReportAttachment? _attachment;
   bool _submitting = false;
 
   @override
@@ -111,6 +114,7 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
         reason: reason,
       );
       ref.invalidate(myAppointmentsProvider);
+      await _uploadAttachment(memberId);
       if (mounted) Navigator.of(context).pop(true);
     } on Object {
       if (mounted) {
@@ -127,8 +131,33 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
     }
   }
 
+  /// Runs only after the booking exists; a failed upload is reported, never hidden.
+  Future<void> _uploadAttachment(String memberId) async {
+    final attachment = _attachment;
+    if (attachment == null || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref
+          .read(mobileApiProvider)
+          .uploadLabReport(memberId: memberId, path: attachment.path);
+      ref.invalidate(memberLabReportsProvider);
+    } on Object {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Appointment requested, but the attachment could not be uploaded. Add it from Upload lab report.',
+          ),
+        ),
+      );
+    }
+  }
+
+  void _showMessage(String message) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+
   @override
   Widget build(BuildContext context) {
+    final familyDoctor = ref.watch(familyDashboardProvider).valueOrNull?.familyDoctor;
     final activeMemberId = ref.watch(activeMemberProvider);
     final membersAsync = ref.watch(membersProvider);
     final isHead = ref.watch(isFamilyHeadProvider).valueOrNull ?? false;
@@ -166,7 +195,25 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
                       .toList(),
                   onChanged: (value) => setState(() => _selectedMemberId = value),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
+                // Bookings always go to the family's assigned doctor (the server decides), so display only.
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.medical_services_outlined),
+                  title: Text(
+                    familyDoctor == null
+                        ? 'No family doctor assigned yet'
+                        : [
+                            familyDoctor.displayName,
+                            if (familyDoctor.specialty != null) '(${familyDoctor.specialty})',
+                          ].join(' '),
+                  ),
+                  subtitle: Text(
+                    familyDoctor == null
+                        ? 'Choose one under My Doctor before booking.'
+                        : 'Your family doctor. Appointments are booked with them.',
+                  ),
+                ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(
@@ -201,6 +248,13 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Reason for visit',
                   ),
+                ),
+                ReportAttachmentField(
+                  attachment: _attachment,
+                  label: 'Upload medical report / referral',
+                  enabled: !_submitting,
+                  onChanged: (value) => setState(() => _attachment = value),
+                  onError: _showMessage,
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
