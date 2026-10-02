@@ -17,6 +17,14 @@
 }
 .original-report-preview h3,
 .original-report-preview p { margin: 0; }
+.original-report-preview__document {
+  display: block;
+  width: 100%;
+  height: min(70vh, 560px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+}
 .original-report-preview__image {
   display: block;
   width: 100%;

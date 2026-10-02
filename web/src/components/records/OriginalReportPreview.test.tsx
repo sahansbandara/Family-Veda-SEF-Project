@@ -26,6 +26,16 @@ describe('OriginalReportPreview', () => {
     expect(screen.getByRole('link', { name: 'Download original image' })).toHaveAttribute('download', 'synthetic.png')
   })
 
+  it('embeds a PDF original as a document instead of an image', async () => {
+    mocks.get.mockResolvedValue({ data: new Blob(['%PDF-synthetic'], { type: 'application/pdf' }) })
+    vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:synthetic-pdf'), revokeObjectURL: vi.fn() })
+    render(<OriginalReportPreview reportId="report-pdf" originalFileName="synthetic.pdf" hasOriginalFile />)
+
+    expect(await screen.findByLabelText('Original report document: synthetic.pdf')).toHaveAttribute('data', 'blob:synthetic-pdf')
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Download original report' })).toHaveAttribute('download', 'synthetic.pdf')
+  })
+
   it('shows unavailable without requesting a missing original', () => {
     render(<OriginalReportPreview reportId="report-2" originalFileName="missing.png" hasOriginalFile={false} />)
     expect(screen.getByText('Original image unavailable.')).toBeInTheDocument()

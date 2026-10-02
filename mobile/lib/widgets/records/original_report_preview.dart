@@ -1,4 +1,4 @@
-// Phase 2 (S2): original lab-report image preview. Shows the stored upload only — no interpretation (RULE 1).
+// Phase 2 (S2): original lab-report preview (image inline, PDF as a document notice). Shows the stored upload only — no interpretation (RULE 1).
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -13,6 +13,15 @@ Future<void> showOriginalReportPreview(
   context: context,
   builder: (_) => OriginalReportPreviewDialog(fileName: fileName, load: load),
 );
+
+/// True when the stored original starts with the PDF signature (`%PDF-`).
+bool isPdfDocument(Uint8List bytes) =>
+    bytes.length >= 5 &&
+    bytes[0] == 0x25 &&
+    bytes[1] == 0x50 &&
+    bytes[2] == 0x44 &&
+    bytes[3] == 0x46 &&
+    bytes[4] == 0x2D;
 
 class OriginalReportPreviewDialog extends StatefulWidget {
   const OriginalReportPreviewDialog({
@@ -35,7 +44,7 @@ class _OriginalReportPreviewDialogState
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Original report image'),
+    title: const Text('Original report'),
     contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
     content: SizedBox(
       width: double.maxFinite,
@@ -63,6 +72,22 @@ class _OriginalReportPreviewDialogState
             return const Padding(
               padding: EdgeInsets.symmetric(vertical: 24),
               child: Text('Original image could not be loaded.'),
+            );
+          }
+          if (isPdfDocument(bytes)) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.picture_as_pdf_outlined, size: 40),
+                  const SizedBox(height: 12),
+                  Text(
+                    '${widget.fileName} is stored as a PDF document. Open Family Veda on the web to view or download the original.',
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             );
           }
           return InteractiveViewer(

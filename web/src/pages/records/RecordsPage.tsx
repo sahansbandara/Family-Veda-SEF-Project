@@ -236,10 +236,10 @@ export function RecordsPage() {
     if (
       !(file instanceof File) ||
       file.size === 0 ||
-      !['image/png', 'image/jpeg'].includes(file.type) ||
+      !['image/png', 'image/jpeg', 'application/pdf'].includes(file.type) ||
       file.size > 10_485_760
     ) {
-      setMessage('Choose a PNG or JPEG image up to 10 MB.')
+      setMessage('Choose a PNG, JPEG or PDF report up to 10 MB.')
       return
     }
     try {
@@ -254,7 +254,7 @@ export function RecordsPage() {
       await loadRecords()
     } catch {
       if (activeMemberId.current === targetMemberId)
-        setMessage('Report upload failed. Verify the PNG or JPEG image and 10 MB limit.')
+        setMessage('Report upload failed. Verify the PNG, JPEG or PDF file and 10 MB limit.')
     }
   }
 
@@ -528,8 +528,8 @@ export function RecordsPage() {
                 {showUploadForm && (
                   <form className="care-form" onSubmit={(event) => void upload(event)}>
                     <label className="field">
-                      <span>Report image (PNG or JPEG)</span>
-                      <input name="file" type="file" accept="image/png,image/jpeg" required />
+                      <span>Report file (PNG, JPEG or PDF)</span>
+                      <input name="file" type="file" accept="image/png,image/jpeg,application/pdf" required />
                     </label>
                     <label className="field">
                       <span>Collected at (optional)</span>
@@ -547,7 +547,7 @@ export function RecordsPage() {
                         Cancel
                       </button>
                     </div>
-                    <p className="care-caption">PNG or JPEG only, up to 10 MB.</p>
+                    <p className="care-caption">PNG, JPEG or PDF only, up to 10 MB.</p>
                   </form>
                 )}
                 {reports.length === 0 ? (
@@ -557,7 +557,7 @@ export function RecordsPage() {
                       message={
                         isSharedView
                           ? 'No reports have been shared with you.'
-                          : 'Upload a PNG or JPEG lab report to start extraction.'
+                          : 'Upload a PNG, JPEG or PDF lab report to start extraction.'
                       }
                     />
                   </div>

@@ -122,7 +122,36 @@ public sealed partial class LabExtractionService(AppDbContext dbContext, ICurren
             if (InlineTableHeader().IsMatch(normalized)) { inlineHeaderSeen = true; continue; }
             if (inlineHeaderSeen && TryParseInlineTableRow(normalized, out var value)) values.Add(value);
         }
+
+        // Result / unit / reference-range layout: no previous-result or date columns, range may be "Not supplied".
+        var rangeHeaderSeen = false;
+        foreach (var line in lines)
+        {
+            if (values.Count >= 200) break;
+            var normalized = NormalizeTableText(line.TrimStart('|', ' '));
+            if (RangeTableHeader().IsMatch(normalized)) { rangeHeaderSeen = true; continue; }
+            if (rangeHeaderSeen && TryParseRangeTableRow(normalized, out var value)) values.Add(value);
+        }
         return values;
+    }
+
+    private static bool TryParseRangeTableRow(string line, out ParsedLabValue value)
+    {
+        value = default!;
+        var row = RangeTableRow().Match(line);
+        if (!row.Success || QuestionnaireRow().IsMatch(row.Groups["name"].Value) ||
+            !TryParseInvariantDecimal(row.Groups["value"].Value, out var current)) return false;
+        decimal? low = null;
+        decimal? high = null;
+        if (row.Groups["low"].Success)
+        {
+            if (!TryParseInvariantDecimal(row.Groups["low"].Value, out var parsedLow) ||
+                !TryParseInvariantDecimal(row.Groups["high"].Value, out var parsedHigh)) return false;
+            low = parsedLow;
+            high = parsedHigh;
+        }
+        value = new ParsedLabValue(row.Groups["name"].Value.Trim(), current, row.Groups["unit"].Value, low, high);
+        return true;
     }
 
     private static bool TryParseInlineTableRow(string line, out ParsedLabValue value)
@@ -206,6 +235,12 @@ public sealed partial class LabExtractionService(AppDbContext dbContext, ICurren
     private static partial Regex InlineTableHeader();
     [GeneratedRegex(@"^(?<name>[A-Za-z][A-Za-z0-9., ()/_-]{1,80}?)\s+(?<value>-?\d+(?:\.\d+)?)\s?[HL]?\s+-?\d+(?:\.\d+)?\s?[HL]?\s+(?<date>\d{2}/\d{2}/\d{4})\s+(?<unit>[A-Za-z%][A-Za-z0-9%/._-]{0,31})\s+(?:(?<low>-?\d+(?:\.\d+)?)\s*-\s*(?<high>-?\d+(?:\.\d+)?)|<\s*\d+(?:\.\d+)?|>=\s*\d+(?:\.\d+)?)$", RegexOptions.CultureInvariant)]
     private static partial Regex InlineTableRow();
+    [GeneratedRegex(@"\bRESULT\b.{0,12}\bUNIT REFERENCE RANGE\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex RangeTableHeader();
+    [GeneratedRegex(@"^(?<name>[A-Za-z][A-Za-z0-9., ()\[\]#/_-]{1,80}?)\s+(?<value>-?\d+(?:\.\d+)?)\s+(?<unit>[A-Za-z0-9%/][A-Za-z0-9%/._*\[\]-]{0,19})\s+(?:Not supplied|(?<low>-?\d+(?:\.\d+)?)\s*-\s*(?<high>-?\d+(?:\.\d+)?))(?:\s+\S{1,3})?$", RegexOptions.CultureInvariant)]
+    private static partial Regex RangeTableRow();
+    [GeneratedRegex(@"^(?:What|How|Have|Has|Do|Does|Did|Are|Is|Within|In the)\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex QuestionnaireRow();
     [GeneratedRegex(@"^(?<value>-?\d+(?:\.\d+)?)(?:\s+[HL])?$", RegexOptions.CultureInvariant)]
     private static partial Regex CurrentResultLine();
     [GeneratedRegex(@"^[A-Za-z%][A-Za-z0-9%/._-]{0,31}$", RegexOptions.CultureInvariant)]

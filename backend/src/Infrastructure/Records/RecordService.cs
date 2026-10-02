@@ -159,7 +159,7 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
         var headedFamilyIds = dbContext.Families.AsNoTracking().Where(FamilyAccess.HeadedBy(currentUser.UserId)).Select(x => x.Id);
         var files = dbContext.LabReportFiles.AsNoTracking().Where(x =>
             x.LabReportId == reportId && x.LabReport != null && x.LabReport.Member != null &&
-            (x.LabReport.ContentType == "image/png" || x.LabReport.ContentType == "image/jpeg"));
+            (x.LabReport.ContentType == "image/png" || x.LabReport.ContentType == "image/jpeg" || x.LabReport.ContentType == "application/pdf"));
 
         IQueryable<LabReportFileAccess> authorizedFiles;
         switch (access)
@@ -235,10 +235,11 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
         var allowed = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
         {
             ["image/png"] = [".png"],
-            ["image/jpeg"] = [".jpg", ".jpeg"]
+            ["image/jpeg"] = [".jpg", ".jpeg"],
+            ["application/pdf"] = [".pdf"]
         };
         if (!allowed.TryGetValue(contentType, out var extensions) || !extensions.Contains(extension, StringComparer.OrdinalIgnoreCase))
-            throw new ValidationException(new Dictionary<string, string[]> { ["file"] = ["Only PNG and JPEG lab-report images are supported."] });
+            throw new ValidationException(new Dictionary<string, string[]> { ["file"] = ["Only PNG, JPEG or PDF lab reports are supported."] });
 
         using var buffer = new MemoryStream();
         var chunk = new byte[81920];
@@ -250,7 +251,10 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
             buffer.Write(chunk, 0, read);
         }
         buffer.Position = 0;
-        if (buffer.Length != sizeBytes || !await HasSafeImageDimensionsAsync(buffer, contentType, cancellationToken))
+        var hasValidContent = contentType.Equals("application/pdf", StringComparison.OrdinalIgnoreCase)
+            ? await HasPdfSignatureAsync(buffer, cancellationToken)
+            : await HasSafeImageDimensionsAsync(buffer, contentType, cancellationToken);
+        if (buffer.Length != sizeBytes || !hasValidContent)
             throw new ValidationException(new Dictionary<string, string[]> { ["file"] = ["File size or content does not match request metadata."] });
 
         var storedContent = buffer.ToArray();
@@ -274,7 +278,7 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
             MemberId = memberId,
             OriginalFileName = Path.GetFileName(originalFileName),
             StoredFileName = storedFileName,
-            ContentType = contentType,
+            ContentType = contentType.ToLowerInvariant(),
             SizeBytes = buffer.Length,
             CollectedAt = collectedAt?.ToUniversalTime()
         };
@@ -489,6 +493,14 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
         report.Id, report.MemberId, report.OriginalFileName, report.OcrStatus, report.CollectedAt,
         report.Values.OrderBy(x => x.Analyte).Select(x => new LabValueDto(x.Id, x.Analyte, x.Value, x.Unit, x.ReferenceLow, x.ReferenceHigh, x.WasManuallyConfirmed, LabRangeClassifier.Classify(x.Value, x.ReferenceLow, x.ReferenceHigh))).ToList(), flags,
         report.SharedWithFamilyHead);
+    private static async Task<bool> HasPdfSignatureAsync(Stream stream, CancellationToken cancellationToken)
+    {
+        var signature = new byte[5];
+        var read = await stream.ReadAsync(signature, cancellationToken);
+        stream.Position = 0;
+        return read == signature.Length && signature.AsSpan().SequenceEqual("%PDF-"u8);
+    }
+
     private static async Task<bool> HasSafeImageDimensionsAsync(Stream stream, string contentType, CancellationToken cancellationToken)
     {
         var dimensions = contentType switch

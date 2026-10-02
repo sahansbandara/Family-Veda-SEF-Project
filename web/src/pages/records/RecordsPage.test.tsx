@@ -81,7 +81,7 @@ describe('RecordsPage', () => {
     mocks.put.mockReset()
   })
 
-  it('defaults to Labs and opens the PNG/JPEG upload form from the query link', async () => {
+  it('defaults to Labs and opens the PNG/JPEG/PDF upload form from the query link', async () => {
     stubLists()
     render(
       <MemoryRouter initialEntries={['/records?upload=1']}>
@@ -89,10 +89,10 @@ describe('RecordsPage', () => {
       </MemoryRouter>,
     )
     expect(await screen.findByRole('tab', { name: 'Labs', selected: true })).toBeInTheDocument()
-    expect(await screen.findByText('PNG or JPEG only, up to 10 MB.')).toBeInTheDocument()
-    expect(screen.getByLabelText('Report image (PNG or JPEG)')).toHaveAttribute(
+    expect(await screen.findByText('PNG, JPEG or PDF only, up to 10 MB.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Report file (PNG, JPEG or PDF)')).toHaveAttribute(
       'accept',
-      'image/png,image/jpeg',
+      'image/png,image/jpeg,application/pdf',
     )
   })
 

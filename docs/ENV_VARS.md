@@ -28,6 +28,9 @@ Local values go in `.env` (gitignored). Hosted values go in the platform's envir
 | `Agents__ConfidenceThreshold` | Below this → `LOW_CONFIDENCE`, draft hidden | Yes | all |
 | `Ocr__Engine` | `Tesseract` or `MlKit` | Yes | all |
 | `Ocr__TesseractDataPath` | Tesseract language data path | If Tesseract | all |
+| `Ocr__DeskewCommand` | ImageMagick executable used to straighten tilted pages before an OCR retry (`magick`, or `convert` on Debian). Empty disables the retry | No | all |
+| `Ocr__PdfRenderCommand` | Poppler `pdftoppm` executable used to rasterise PDF reports for OCR. Empty disables PDF extraction (upload and preview still work) | No | all |
+| `Ocr__PdfMaxPages` | Pages of a PDF report that are rasterised and read (`1`-`20`, default `5`) | No | all |
 | `Ocr__TimeoutSeconds` | Hard timeout for each native OCR process | Yes | all |
 | `Ocr__MaxConcurrentProcesses` | Bounded native OCR concurrency (`1`-`4`) | Yes | all |
 | `Ocr__MaxOutputCharacters` | Maximum accepted OCR text size | Yes | all |
