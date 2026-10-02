@@ -13,7 +13,8 @@ using Microsoft.Extensions.Options;
 
 namespace FamilyVeda.Infrastructure.Agents;
 
-public sealed class ToolDispatcher(ToolRegistry registry, AppDbContext dbContext, IOcrService ocrService, IOptions<StorageOptions> storageOptions) : IToolDispatcher
+public sealed class ToolDispatcher(ToolRegistry registry, AppDbContext dbContext, IOcrService ocrService, IOptions<StorageOptions> storageOptions,
+    IExternalReportFileStore? externalStore = null) : IToolDispatcher
 {
     public async Task<object> InvokeAsync(AgentKind agent, string tool, Guid memberId, Guid caseId, CancellationToken cancellationToken, object? arguments = null)
     {
@@ -158,11 +159,15 @@ public sealed class ToolDispatcher(ToolRegistry registry, AppDbContext dbContext
             return await ocrService.ExtractTextAsync(legacyPath, ct);
         }
 
+        var content = report.Content;
+        if (content.Length == 0 && externalStore is not null && externalStore.Owns(report.StoredFileName))
+            content = await externalStore.ReadAsync(report.StoredFileName, ct);
+
         // Tesseract reads from disk: materialise a short-lived temp copy of the durable bytes, then delete it.
         var tempPath = Path.Combine(Path.GetTempPath(), $"fv-ocr-{Guid.NewGuid():N}{Path.GetExtension(report.StoredFileName)}");
         try
         {
-            await File.WriteAllBytesAsync(tempPath, report.Content, ct);
+            await File.WriteAllBytesAsync(tempPath, content, ct);
             return await ocrService.ExtractTextAsync(tempPath, ct);
         }
         finally

@@ -8,12 +8,14 @@ using FamilyVeda.Domain.Identity;
 using FamilyVeda.Domain.Records;
 using FamilyVeda.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using FamilyVeda.Infrastructure.Families;
 
 namespace FamilyVeda.Infrastructure.Records;
 
-public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUser, IOptions<StorageOptions> storageOptions) : IRecordService
+public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUser, IOptions<StorageOptions> storageOptions,
+    IExternalReportFileStore? externalStore = null, ILogger<RecordService>? logger = null) : IRecordService
 {
     public async Task<PagedResult<HealthRecordDto>> GetRecordsAsync(
         Guid memberId,
@@ -164,14 +166,14 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
         {
             case MemberAccess.Owner:
                 authorizedFiles = files.Where(x => x.LabReport!.Member!.UserId == currentUser.UserId)
-                    .Select(x => new LabReportFileAccess(x.Content, x.LabReport!.ContentType, null));
+                    .Select(x => new LabReportFileAccess(x.Content, x.LabReport!.ContentType, null, x.LabReport.StoredFileName));
                 break;
             case MemberAccess.SharedWithHead:
                 authorizedFiles = files.Where(x =>
                         x.LabReport!.SharedWithFamilyHead &&
                         x.LabReport.Member!.DateOfBirth <= adultCutoff &&
                         headedFamilyIds.Contains(x.LabReport.Member.FamilyId))
-                    .Select(x => new LabReportFileAccess(x.Content, x.LabReport!.ContentType, null));
+                    .Select(x => new LabReportFileAccess(x.Content, x.LabReport!.ContentType, null, x.LabReport.StoredFileName));
                 break;
             case MemberAccess.Guardian:
                 authorizedFiles =
@@ -183,14 +185,28 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
                         && consent.Category == ConsentCategory.Conditions
                         && consent.Status == ConsentStatus.Granted
                         && consent.GrantedByGuardian
-                    select new LabReportFileAccess(storedFile.Content, storedFile.LabReport!.ContentType, consent.Id);
+                    select new LabReportFileAccess(storedFile.Content, storedFile.LabReport!.ContentType, consent.Id, storedFile.LabReport.StoredFileName);
                 break;
             default:
                 throw new NotFoundException();
         }
 
         var fileData = await authorizedFiles.SingleOrDefaultAsync(cancellationToken) ?? throw new NotFoundException();
-        if (fileData.Content.Length == 0) throw new NotFoundException();
+        var content = fileData.Content;
+        // Externally stored reports keep an empty marker row; the bytes are fetched only after the access checks above.
+        if (content.Length == 0 && externalStore is not null && externalStore.Owns(fileData.StoredFileName))
+        {
+            try
+            {
+                content = await externalStore.ReadAsync(fileData.StoredFileName, cancellationToken);
+            }
+            catch (ReportStorageException exception)
+            {
+                logger?.LogWarning(exception, "Original report image could not be read from external storage for report {ReportId}.", reportId);
+                throw new ProcessingException("The original image is temporarily unavailable.");
+            }
+        }
+        if (content.Length == 0) throw new NotFoundException();
         if (access != MemberAccess.Owner)
         {
             dbContext.AuditLogs.Add(new AuditLog
@@ -206,7 +222,7 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
             });
             await dbContext.SaveChangesAsync(cancellationToken);
         }
-        return new LabReportFileDto(fileData.Content, fileData.ContentType);
+        return new LabReportFileDto(content, fileData.ContentType);
     }
 
     public async Task<LabReportDto> UploadLabReportAsync(Guid memberId, string originalFileName, string contentType, long sizeBytes, Stream content, DateTimeOffset? collectedAt, CancellationToken cancellationToken)
@@ -237,16 +253,32 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
         if (buffer.Length != sizeBytes || !await HasSafeImageDimensionsAsync(buffer, contentType, cancellationToken))
             throw new ValidationException(new Dictionary<string, string[]> { ["file"] = ["File size or content does not match request metadata."] });
 
+        var storedContent = buffer.ToArray();
+        var storedFileName = $"db:{Guid.NewGuid():N}{extension}";
+        if (externalStore is { IsEnabled: true })
+        {
+            try
+            {
+                storedFileName = await externalStore.SaveAsync(extension, contentType, storedContent, cancellationToken);
+                storedContent = [];
+            }
+            catch (ReportStorageException exception)
+            {
+                // The upload is never lost: PostgreSQL stays the fallback store when the external provider is unavailable.
+                logger?.LogWarning(exception, "External report storage unavailable; storing the upload in PostgreSQL instead.");
+            }
+        }
+
         var report = new LabReport
         {
             MemberId = memberId,
             OriginalFileName = Path.GetFileName(originalFileName),
-            StoredFileName = $"db:{Guid.NewGuid():N}{extension}",
+            StoredFileName = storedFileName,
             ContentType = contentType,
             SizeBytes = buffer.Length,
             CollectedAt = collectedAt?.ToUniversalTime()
         };
-        report.File = new LabReportFile { LabReport = report, Content = buffer.ToArray() };
+        report.File = new LabReportFile { LabReport = report, Content = storedContent };
         dbContext.LabReports.Add(report);
         await dbContext.SaveChangesAsync(cancellationToken);
         return MapLabReport(report, hasOriginalFile: true);
@@ -334,7 +366,7 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
     }
 
     private enum MemberAccess { Owner, Guardian, SharedWithHead }
-    private sealed record LabReportFileAccess(byte[] Content, string ContentType, Guid? ConsentId);
+    private sealed record LabReportFileAccess(byte[] Content, string ContentType, Guid? ConsentId, string StoredFileName);
 
     /// <summary>Only the adult who owns the item may change who can see it. Everyone else gets 404.</summary>
     private async Task RequireAdultOwnerAsync(Guid memberId, CancellationToken cancellationToken)
@@ -508,6 +540,9 @@ public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUs
 public sealed class StorageOptions
 {
     public const string SectionName = "Storage";
+    public const string GoogleDriveProvider = "GoogleDrive";
+    /// <summary>"Database" (default) or "GoogleDrive". Reads always follow the key stored on each report.</summary>
+    public string Provider { get; init; } = "Database";
     public string LabReportPath { get; init; } = "./storage/lab-reports";
     public long MaxUploadBytes { get; init; } = 10_485_760;
 }
