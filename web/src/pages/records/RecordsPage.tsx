@@ -20,6 +20,14 @@ import {
   type VitalDto,
   type VitalTrendDto,
 } from '../../services/apiClient'
+import { RecordSummaryText } from './RecordSummaryText'
+import {
+  RECORD_SEVERITIES,
+  RECORD_STATUSES,
+  formatRecordSummary,
+  parseRecordSummary,
+  todayLocalDate,
+} from './recordSummaryMeta'
 
 type RecordsTab = 'records' | 'vitals' | 'labs'
 type LoadStatus = 'loading' | 'ready' | 'error'
@@ -213,17 +221,9 @@ export function RecordsPage() {
     const severity = String(form.get('severity') ?? '').trim()
     const doctor = String(form.get('doctor') ?? '').trim()
     const rawSummary = String(form.get('summary') ?? '').trim()
-    const attachment = form.get('attachment')
+    const attachment = (formElement.elements.namedItem('attachment') as HTMLInputElement | null)?.files?.[0]
 
-    const metaParts: string[] = []
-    if (status) metaParts.push(`Status: ${status}`)
-    if (severity) metaParts.push(`Severity: ${severity}`)
-    if (doctor) metaParts.push(`Doctor: ${doctor}`)
-
-    const summaryParts: string[] = []
-    if (metaParts.length > 0) summaryParts.push(metaParts.join(' · '))
-    if (rawSummary) summaryParts.push(rawSummary)
-    const summary = summaryParts.length > 0 ? summaryParts.join('\n') : ''
+    const summary = formatRecordSummary({ status, severity, doctor, cleanSummary: rawSummary })
 
     const payload = {
       recordType,
@@ -235,20 +235,31 @@ export function RecordsPage() {
       if (editingRecord) await apiClient.put(`/records/${editingRecord.id}`, payload)
       else await apiClient.post(`/members/${memberId}/records`, payload)
 
+      // The record is already saved here, so a failed upload is reported, never hidden.
+      let attachmentFailed = false
       if (attachment instanceof File && attachment.size > 0) {
         const uploadForm = new FormData()
         uploadForm.append('file', attachment)
         uploadForm.append('collectedAt', new Date(occurredOn || Date.now()).toISOString())
-        await apiClient.post(`/members/${memberId}/lab-reports`, uploadForm, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        }).catch(() => undefined)
+        try {
+          await apiClient.post(`/members/${targetMemberId}/lab-reports`, uploadForm, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          })
+        } catch {
+          attachmentFailed = true
+        }
       }
 
       if (activeMemberId.current !== targetMemberId) return
       formElement.reset()
       setEditingRecord(null)
       setShowRecordForm(false)
-      setMessage(editingRecord ? 'Health record updated.' : 'Health record added.')
+      const saved = editingRecord ? 'Health record updated.' : 'Health record added.'
+      setMessage(
+        attachmentFailed
+          ? `${saved} The attached report could not be uploaded — add it from the Lab reports tab (PNG, JPEG or PDF, up to 10 MB).`
+          : saved,
+      )
       await loadRecords()
     } catch {
       if (activeMemberId.current === targetMemberId)
@@ -876,22 +887,9 @@ type RecordsPanelProps = {
   onSort: (value: 'date-desc' | 'date-asc') => void
   onPage: (page: number) => void
 }
-function parseRecordSummary(summary?: string | null) {
-  if (!summary) return { status: 'Active', severity: 'Mild', doctor: '', cleanSummary: '' }
-  const statusMatch = summary.match(/Status:\s*([^\s·\n]+)/i)
-  const severityMatch = summary.match(/Severity:\s*([^\s·\n]+)/i)
-  const doctorMatch = summary.match(/(?:Provider|Doctor):\s*([^·\n]+)/i)
-
-  const cleanSummary = summary
-    .replace(/(?:Status|Severity|Provider|Doctor):\s*[^·\n]+(?:·|\n)?/gi, '')
-    .trim()
-
-  return {
-    status: statusMatch ? statusMatch[1] : 'Active',
-    severity: severityMatch ? severityMatch[1] : 'Mild',
-    doctor: doctorMatch ? doctorMatch[1].trim() : '',
-    cleanSummary,
-  }
+/** Keeps a value saved by an older form version selectable instead of silently dropping it on edit. */
+function withSavedValue(options: readonly string[], saved: string): string[] {
+  return saved && !options.includes(saved) ? [...options, saved] : [...options]
 }
 
 function RecordsPanel(props: RecordsPanelProps) {
@@ -955,14 +953,15 @@ function RecordsPanel(props: RecordsPanelProps) {
               <input
                 name="occurredOn"
                 type="date"
-                defaultValue={props.editingRecord?.occurredOn ?? new Date().toISOString().slice(0, 10)}
+                defaultValue={props.editingRecord?.occurredOn ?? todayLocalDate()}
                 required
               />
             </label>
             <label className="field">
               <span>Status</span>
               <select name="status" defaultValue={parsedMeta.status}>
-                {['Active', 'Resolved', 'Inactive', 'Chronic'].map((status) => (
+                <option value="">Not specified</option>
+                {withSavedValue(RECORD_STATUSES, parsedMeta.status).map((status) => (
                   <option key={status}>{status}</option>
                 ))}
               </select>
@@ -973,7 +972,8 @@ function RecordsPanel(props: RecordsPanelProps) {
             <label className="field">
               <span>Severity</span>
               <select name="severity" defaultValue={parsedMeta.severity}>
-                {['Mild', 'Moderate', 'Severe'].map((sev) => (
+                <option value="">Not specified</option>
+                {withSavedValue(RECORD_SEVERITIES, parsedMeta.severity).map((sev) => (
                   <option key={sev}>{sev}</option>
                 ))}
               </select>
@@ -1120,7 +1120,9 @@ function RecordsPanel(props: RecordsPanelProps) {
                     <span className="status-badge">{record.recordType}</span>
                   </td>
                   <td style={{ whiteSpace: 'nowrap' }}>{record.occurredOn}</td>
-                  <td>{record.summary ?? 'No summary recorded'}</td>
+                  <td>
+                    <RecordSummaryText summary={record.summary} emptyLabel="No summary recorded" />
+                  </td>
                   {!props.isSharedView && (
                     <td className="care-actions">
                       <button
