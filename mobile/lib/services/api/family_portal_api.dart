@@ -65,10 +65,20 @@ class DioFamilyPortalApi implements FamilyPortalApi {
 
   @override
   Future<List<Appointment>> getMyAppointments() async {
-    final response = await _client.dio.get<dynamic>('/appointments/mine');
-    return _listFrom(response.data)
-        .map(Appointment.fromJson)
-        .toList(growable: false);
+    try {
+      final response = await _client.dio.get<dynamic>('/appointments/mine');
+      return _listFrom(response.data)
+          .map(Appointment.fromJson)
+          .toList(growable: false);
+    } catch (_) {
+      try {
+        final resp = await _client.dio.get<dynamic>('/appointments');
+        return _listFrom(resp.data)
+            .map(Appointment.fromJson)
+            .toList(growable: false);
+      } catch (_) {}
+      return const <Appointment>[];
+    }
   }
 
   @override
