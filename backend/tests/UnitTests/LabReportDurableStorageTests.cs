@@ -40,6 +40,36 @@ public sealed class LabReportDurableStorageTests
         (await db.LabReportFiles.CountAsync()).Should().Be(0);
     }
 
+    [Fact]
+    public async Task Upload_AcceptsPdfReport_AndServesItBackToTheOwner()
+    {
+        var (db, service, member, _) = await CreateAsync();
+        var pdf = "%PDF-1.4\nsynthetic\n%%EOF"u8.ToArray();
+
+        var result = await service.UploadLabReportAsync(member.Id, "synthetic-lab.pdf", "application/pdf", pdf.Length, new MemoryStream(pdf), null, CancellationToken.None);
+
+        result.HasOriginalFile.Should().BeTrue();
+        (await db.LabReports.SingleAsync(x => x.Id == result.Id)).StoredFileName.Should().EndWith(".pdf");
+        var file = await service.GetLabReportFileAsync(result.Id, CancellationToken.None);
+        file.ContentType.Should().Be("application/pdf");
+        file.Content.Should().Equal(pdf);
+    }
+
+    [Theory]
+    [InlineData("synthetic-lab.pdf", "application/pdf", "<html>not a pdf</html>")]
+    [InlineData("synthetic-lab.png", "application/pdf", "%PDF-1.4\nsynthetic")]
+    [InlineData("synthetic-lab.pdf", "image/png", "%PDF-1.4\nsynthetic")]
+    public async Task Upload_RejectsPdfWithWrongSignatureOrMismatchedType(string fileName, string contentType, string body)
+    {
+        var (db, service, member, _) = await CreateAsync();
+        var bytes = System.Text.Encoding.ASCII.GetBytes(body);
+
+        var upload = () => service.UploadLabReportAsync(member.Id, fileName, contentType, bytes.Length, new MemoryStream(bytes), null, CancellationToken.None);
+
+        await upload.Should().ThrowAsync<ValidationException>();
+        (await db.LabReports.CountAsync()).Should().Be(0);
+    }
+
     private static async Task<(AppDbContext Db, RecordService Service, Member Member, string StorageRoot)> CreateAsync()
     {
         var db = new AppDbContext(new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);

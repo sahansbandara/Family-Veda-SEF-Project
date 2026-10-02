@@ -36,12 +36,12 @@ void main() {
   testWidgets('view original is offered only when a file is stored', (tester) async {
     var opened = false;
     await tester.pumpWidget(MaterialApp(home: Scaffold(body: ReportLibraryCard(report: _report, ownerName: 'You', canChangeSharing: false, onViewOriginal: () => opened = true))));
-    await tester.tap(find.text('View original image'));
+    await tester.tap(find.text('View original report'));
     expect(opened, isTrue);
 
     const noFile = LabReport(id: 'synthetic-report-2', memberId: 'synthetic-member', fileName: 'synthetic-manual.png', ocrStatus: 'Completed');
     await tester.pumpWidget(MaterialApp(home: Scaffold(body: ReportLibraryCard(report: noFile, ownerName: 'You', canChangeSharing: false, onViewOriginal: () {}))));
-    expect(find.text('View original image'), findsNothing);
+    expect(find.text('View original report'), findsNothing);
   });
 
   testWidgets('preview dialog shows the image, and a plain message when loading fails', (tester) async {
@@ -54,5 +54,13 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: OriginalReportPreviewDialog(key: UniqueKey(), fileName: 'synthetic-cbc.png', load: () async => throw Exception('denied'))));
     await tester.pumpAndSettle();
     expect(find.text('Original image could not be loaded.'), findsOneWidget);
+  });
+
+  testWidgets('original preview shows a document notice for a PDF original', (tester) async {
+    final pdf = Uint8List.fromList(utf8.encode('%PDF-1.4 synthetic'));
+    await tester.pumpWidget(MaterialApp(home: OriginalReportPreviewDialog(fileName: 'synthetic.pdf', load: () async => pdf)));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('synthetic.pdf is stored as a PDF document'), findsOneWidget);
+    expect(find.byType(Image), findsNothing);
   });
 }

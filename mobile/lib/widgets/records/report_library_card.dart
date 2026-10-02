@@ -55,7 +55,7 @@ class ReportLibraryCard extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: onViewOriginal,
-                  child: const Text('View original image'),
+                  child: const Text('View original report'),
                 ),
               ),
             if (canChangeSharing && onToggleSharing != null)

@@ -73,7 +73,7 @@ export function ReportLibraryCard({
       </dl>
       <div className="button-row">
         {report.hasOriginalFile && onViewOriginal && (
-          <button type="button" className="button button--secondary" onClick={() => onViewOriginal(report)}>View original image</button>
+          <button type="button" className="button button--secondary" onClick={() => onViewOriginal(report)}>View original report</button>
         )}
         {onReview && (
           <button type="button" className="button button--secondary" onClick={() => onReview(report)}>

@@ -73,12 +73,14 @@ public sealed class RecordsController(IRecordService recordService, ILabExtracti
         Ok(await recordService.GetLabReportDetailAsync(reportId, cancellationToken));
 
     [HttpGet("lab-reports/{reportId:guid}/file")]
-    [Produces("image/png", "image/jpeg")]
+    [Produces("image/png", "image/jpeg", "application/pdf")]
     public async Task<IActionResult> GetLabReportFile(Guid reportId, CancellationToken cancellationToken)
     {
         var file = await recordService.GetLabReportFileAsync(reportId, cancellationToken);
         Response.Headers.CacheControl = "private, no-store";
         Response.Headers["X-Content-Type-Options"] = "nosniff";
+        // Uploaded documents are untrusted: never let one run script or reach the API origin if opened directly.
+        Response.Headers.ContentSecurityPolicy = "sandbox; default-src 'none'";
         return File(file.Content, file.ContentType);
     }
 

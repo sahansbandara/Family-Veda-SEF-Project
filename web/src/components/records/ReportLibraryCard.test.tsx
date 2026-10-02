@@ -21,7 +21,7 @@ describe('ReportLibraryCard', () => {
   it('opens an available original independently of extraction and sharing controls', () => {
     const onView = vi.fn()
     render(<ReportLibraryCard report={{ ...report, hasOriginalFile: true, ocrStatus: 'Failed' }} ownerName="Synthetic Adult" canChangeSharing={false} onViewOriginal={onView} />)
-    fireEvent.click(screen.getByRole('button', { name: 'View original image' }))
+    fireEvent.click(screen.getByRole('button', { name: 'View original report' }))
     expect(onView).toHaveBeenCalledWith(expect.objectContaining({ id: report.id }))
     expect(screen.queryByRole('button', { name: 'Review extraction' })).not.toBeInTheDocument()
   })

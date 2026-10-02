@@ -16,55 +16,171 @@ public sealed class TesseractOcrService(IConfiguration configuration) : IOcrServ
         await _processSlots.WaitAsync(cancellationToken);
         try
         {
-            var startInfo = new ProcessStartInfo
+            if (Path.GetExtension(filePath).Equals(".pdf", StringComparison.OrdinalIgnoreCase))
+                return await ExtractPdfTextAsync(filePath, cancellationToken);
+
+            var text = await RunTesseractAsync(filePath, pageSegmentationMode: null, cancellationToken);
+            if (HasStructuredValues(text)) return text!;
+
+            // Photographed or scanned pages are often tilted, which breaks row detection: straighten and retry.
+            var deskewedPath = await TryDeskewAsync(filePath, cancellationToken);
+            if (deskewedPath is not null)
             {
-                FileName = "tesseract",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            startInfo.ArgumentList.Add(filePath);
-            startInfo.ArgumentList.Add("stdout");
-            startInfo.ArgumentList.Add("-l");
-            startInfo.ArgumentList.Add("eng");
-            var dataPath = configuration["Ocr:TesseractDataPath"];
-            if (!string.IsNullOrWhiteSpace(dataPath))
-            {
-                startInfo.ArgumentList.Add("--tessdata-dir");
-                startInfo.ArgumentList.Add(dataPath);
-            }
-            using var process = Process.Start(startInfo) ?? throw new ProcessingException("OCR engine could not be started. Use manual entry instead.");
-            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            timeout.CancelAfter(TimeSpan.FromSeconds(configuration.GetValue("Ocr:TimeoutSeconds", 30)));
-            string output;
-            try
-            {
-                var outputTask = process.StandardOutput.ReadToEndAsync(timeout.Token);
-                var errorTask = process.StandardError.ReadToEndAsync(timeout.Token);
-                await process.WaitForExitAsync(timeout.Token);
-                output = await outputTask;
-                await errorTask;
-            }
-            catch (OperationCanceledException)
-            {
-                if (!process.HasExited)
+                try
                 {
-                    process.Kill(entireProcessTree: true);
-                    await process.WaitForExitAsync(CancellationToken.None);
+                    foreach (var mode in DeskewedPageSegmentationModes)
+                    {
+                        var deskewedText = await RunTesseractAsync(deskewedPath, mode, cancellationToken);
+                        if (HasStructuredValues(deskewedText)) return deskewedText!;
+                    }
                 }
-                if (cancellationToken.IsCancellationRequested) throw;
-                throw new ProcessingException("OCR timed out. Use manual entry instead.");
+                finally
+                {
+                    File.Delete(deskewedPath);
+                }
             }
-            if (process.ExitCode != 0 || string.IsNullOrWhiteSpace(output))
-                throw new ProcessingException("OCR could not read this report. Use manual entry instead.");
-            if (output.Length > configuration.GetValue("Ocr:MaxOutputCharacters", 250_000))
-                throw new ProcessingException("OCR output exceeded safe limits. Use manual entry instead.");
-            return output;
+
+            return text ?? throw new ProcessingException("OCR could not read this report. Use manual entry instead.");
         }
         finally
         {
             _processSlots.Release();
+        }
+    }
+
+    // null = Tesseract default (automatic layout); "6" = single uniform block, which keeps table rows on one line.
+    private static readonly string?[] DeskewedPageSegmentationModes = [null, "6"];
+
+    private static bool HasStructuredValues(string? text) => text is not null && LabExtractionService.ParseValues(text).Count > 0;
+
+    private async Task<string?> RunTesseractAsync(string filePath, string? pageSegmentationMode, CancellationToken cancellationToken)
+    {
+        var startInfo = NewProcess("tesseract");
+        startInfo.ArgumentList.Add(filePath);
+        startInfo.ArgumentList.Add("stdout");
+        startInfo.ArgumentList.Add("-l");
+        startInfo.ArgumentList.Add("eng");
+        var dataPath = configuration["Ocr:TesseractDataPath"];
+        if (!string.IsNullOrWhiteSpace(dataPath))
+        {
+            startInfo.ArgumentList.Add("--tessdata-dir");
+            startInfo.ArgumentList.Add(dataPath);
+        }
+        if (pageSegmentationMode is not null)
+        {
+            startInfo.ArgumentList.Add("--psm");
+            startInfo.ArgumentList.Add(pageSegmentationMode);
+        }
+        using var process = Process.Start(startInfo) ?? throw new ProcessingException("OCR engine could not be started. Use manual entry instead.");
+        var (exitCode, output) = await WaitForOutputAsync(process, cancellationToken);
+        if (exitCode != 0 || string.IsNullOrWhiteSpace(output)) return null;
+        if (output.Length > configuration.GetValue("Ocr:MaxOutputCharacters", 250_000))
+            throw new ProcessingException("OCR output exceeded safe limits. Use manual entry instead.");
+        return output;
+    }
+
+    private async Task<string?> TryDeskewAsync(string filePath, CancellationToken cancellationToken)
+    {
+        var command = configuration["Ocr:DeskewCommand"];
+        // An explicit coder prefix stops ImageMagick from choosing a decoder based on file content.
+        var coder = Path.GetExtension(filePath).ToLowerInvariant() switch
+        {
+            ".png" => "png",
+            ".jpg" or ".jpeg" => "jpeg",
+            _ => null
+        };
+        if (string.IsNullOrWhiteSpace(command) || coder is null) return null;
+
+        var outputPath = Path.Combine(Path.GetTempPath(), $"fv-ocr-deskew-{Guid.NewGuid():N}.png");
+        var startInfo = NewProcess(command);
+        foreach (var argument in new[] { $"{coder}:{filePath}", "-background", "white", "-deskew", "40%", "+repage", $"png:{outputPath}" })
+            startInfo.ArgumentList.Add(argument);
+        try
+        {
+            using var process = Process.Start(startInfo);
+            if (process is null) return null;
+            var (exitCode, _) = await WaitForOutputAsync(process, cancellationToken);
+            if (exitCode == 0 && File.Exists(outputPath)) return outputPath;
+        }
+        catch (System.ComponentModel.Win32Exception)
+        {
+            // Deskew tool is not installed: straightening is optional, the first OCR pass still stands.
+        }
+        File.Delete(outputPath);
+        return null;
+    }
+
+    // Tesseract cannot read PDF: rasterise a bounded number of pages and OCR each page image.
+    private async Task<string> ExtractPdfTextAsync(string filePath, CancellationToken cancellationToken)
+    {
+        var command = configuration["Ocr:PdfRenderCommand"];
+        if (string.IsNullOrWhiteSpace(command)) throw new ProcessingException("PDF reports cannot be read here. Use manual entry instead.");
+
+        var pageDirectory = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), $"fv-ocr-pdf-{Guid.NewGuid():N}"));
+        try
+        {
+            var startInfo = NewProcess(command);
+            var maxPages = Math.Clamp(configuration.GetValue("Ocr:PdfMaxPages", 5), 1, 20).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            foreach (var argument in new[] { "-png", "-r", "200", "-f", "1", "-l", maxPages, filePath, Path.Combine(pageDirectory.FullName, "page") })
+                startInfo.ArgumentList.Add(argument);
+            try
+            {
+                using var process = Process.Start(startInfo) ?? throw new ProcessingException("PDF reports cannot be read here. Use manual entry instead.");
+                var (exitCode, _) = await WaitForOutputAsync(process, cancellationToken);
+                if (exitCode != 0) throw new ProcessingException("OCR could not read this report. Use manual entry instead.");
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+                throw new ProcessingException("PDF reports cannot be read here. Use manual entry instead.");
+            }
+
+            var maxCharacters = configuration.GetValue("Ocr:MaxOutputCharacters", 250_000);
+            var text = new System.Text.StringBuilder();
+            foreach (var page in pageDirectory.GetFiles("page*.png").OrderBy(x => x.Name, StringComparer.Ordinal))
+            {
+                text.AppendLine(await RunTesseractAsync(page.FullName, pageSegmentationMode: null, cancellationToken));
+                if (text.Length > maxCharacters) throw new ProcessingException("OCR output exceeded safe limits. Use manual entry instead.");
+            }
+            if (string.IsNullOrWhiteSpace(text.ToString())) throw new ProcessingException("OCR could not read this report. Use manual entry instead.");
+            return text.ToString();
+        }
+        finally
+        {
+            pageDirectory.Delete(recursive: true);
+        }
+    }
+
+    private static ProcessStartInfo NewProcess(string fileName) => new()
+    {
+        FileName = fileName,
+        RedirectStandardOutput = true,
+        RedirectStandardError = true,
+        UseShellExecute = false,
+        CreateNoWindow = true
+    };
+
+    private async Task<(int ExitCode, string Output)> WaitForOutputAsync(Process process, CancellationToken cancellationToken)
+    {
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(TimeSpan.FromSeconds(configuration.GetValue("Ocr:TimeoutSeconds", 30)));
+        try
+        {
+            var outputTask = process.StandardOutput.ReadToEndAsync(timeout.Token);
+            var errorTask = process.StandardError.ReadToEndAsync(timeout.Token);
+            await process.WaitForExitAsync(timeout.Token);
+            var output = await outputTask;
+            await errorTask;
+            return (process.ExitCode, output);
+        }
+        catch (OperationCanceledException)
+        {
+            if (!process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+                await process.WaitForExitAsync(CancellationToken.None);
+            }
+            if (cancellationToken.IsCancellationRequested) throw;
+            throw new ProcessingException("OCR timed out. Use manual entry instead.");
         }
     }
 }

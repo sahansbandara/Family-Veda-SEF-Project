@@ -112,4 +112,28 @@ public sealed class LabExtractionParserTests
         LabExtractionService.ParseValues("Glucose 142H 126 03/01/2026 mg/dL 70-99\n").Should().BeEmpty();
         LabExtractionService.ParseValues("Test Result Previous Date Units Ref\nGlucose 142H 126 13/45/2026 mg/dL 70-99\nBUN 22 03/01/2026 mg/dL 7-25\nPotassium 3.8 4.0 03/01/2026 mEq/L about normal\n").Should().BeEmpty();
     }
+
+    [Fact]
+    public void ParseValues_ExtractsReferenceRangeTableAsProducedByRealOcr()
+    {
+        // Verbatim shape of Tesseract output for SYNTHETIC_morzel_lab_page1_clean.png: noisy header, stray cell borders, trailing flag glyph.
+        const string text = "CBC panel - Blood by Automated count 11/25/2020 - Final\nTest” 7 rr RESULT rr UNIT REFERENCE RANGE FLAG\n\n| Leukocytes [#/volume] in Blood by Automated count 7.6059 10*3/uL Not supplied _—\nHemoglobin [Mass/volume] in Blood 14.425 g/dL Not supplied _—\n| Hematocrit [Volume Fraction] of Blood by Automated count 47.698 % Not supplied _—\nDiastolic Blood Pressure 91 mm[Hg] Not supplied _—\nGlucose 5.4 mmol/L 3.9 - 5.6\n";
+
+        var values = LabExtractionService.ParseValues(text);
+
+        values.Select(x => (x.Analyte, x.Value, x.Unit, x.Low, x.High)).Should().Equal(
+            ("Leukocytes [#/volume] in Blood by Automated count", 7.6059m, "10*3/uL", (decimal?)null, (decimal?)null),
+            ("Hemoglobin [Mass/volume] in Blood", 14.425m, "g/dL", (decimal?)null, (decimal?)null),
+            ("Hematocrit [Volume Fraction] of Blood by Automated count", 47.698m, "%", (decimal?)null, (decimal?)null),
+            ("Diastolic Blood Pressure", 91m, "mm[Hg]", (decimal?)null, (decimal?)null),
+            ("Glucose", 5.4m, "mmol/L", 3.9m, 5.6m));
+    }
+
+    [Fact]
+    public void ParseValues_ReferenceRangeTable_IgnoresQuestionnaireRowsAndRowsWithoutHeader()
+    {
+        LabExtractionService.ParseValues("Hemoglobin [Mass/volume] in Blood 14.425 g/dL Not supplied _—\n").Should().BeEmpty();
+        // Survey answers and questionnaire scores share the table but are not laboratory measurements.
+        LabExtractionService.ParseValues("TEST RESULT UNIT REFERENCE RANGE FLAG\nWhat was your best estimate of the total income of all 147460 la Not supplied _—\nHow many people are living or staying at this address [#] 3 {#} Not supplied _—\nTotal score [AUDIT-C] 1 {score} Not supplied _—\nHemoglobin 14.4 g/dL about normal\n").Should().BeEmpty();
+    }
 }
