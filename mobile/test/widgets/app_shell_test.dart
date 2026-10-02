@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 void main() {
-  testWidgets('AppShell renders all 5 core navigation tabs and navigates on tap', (
+  testWidgets('AppShell renders all 7 web-aligned subnav tabs and bottom navigation', (
     tester,
   ) async {
     final router = GoRouter(
@@ -33,8 +33,16 @@ void main() {
               builder: (_, _) => const Scaffold(body: Text('Cases Screen Content')),
             ),
             GoRoute(
+              path: '/my-doctor',
+              builder: (_, _) => const Scaffold(body: Text('Doctor Screen Content')),
+            ),
+            GoRoute(
               path: '/appointments',
               builder: (_, _) => const Scaffold(body: Text('Appointments Screen Content')),
+            ),
+            GoRoute(
+              path: '/profile',
+              builder: (_, _) => const Scaffold(body: Text('Profile Screen Content')),
             ),
           ],
         ),
@@ -44,26 +52,37 @@ void main() {
     await tester.pumpWidget(MaterialApp.router(routerConfig: router));
     await tester.pumpAndSettle();
 
-    // Verify all 5 tab labels are visible
-    expect(find.text('Dashboard'), findsOneWidget);
-    expect(find.text('My Family'), findsOneWidget);
-    expect(find.text('Records'), findsOneWidget);
-    expect(find.text('Triage'), findsOneWidget);
-    expect(find.text('Appointments'), findsOneWidget);
+    // Verify web subnav tab labels and bottom navigation
+    expect(find.text('Dashboard'), findsWidgets);
+    expect(find.text('My Family'), findsWidgets);
+    expect(find.text('Health Records'), findsOneWidget);
+    expect(find.text('Symptoms & Triage'), findsOneWidget);
+    expect(find.text('My Doctor'), findsOneWidget);
+    expect(find.text('Appointments'), findsWidgets);
+    expect(find.text('Privacy & Access'), findsOneWidget);
     expect(find.text('Home Screen Content'), findsOneWidget);
 
-    // Tap "Records" tab
-    await tester.tap(find.text('Records'));
+    // Tap "Health Records" top subnav tab
+    await tester.ensureVisible(find.text('Health Records'));
+    await tester.tap(find.text('Health Records'));
     await tester.pumpAndSettle();
     expect(find.text('Records Screen Content'), findsOneWidget);
 
-    // Tap "Appointments" tab
-    await tester.tap(find.text('Appointments'));
+    // Tap "My Doctor" top subnav tab
+    await tester.ensureVisible(find.text('My Doctor'));
+    await tester.tap(find.text('My Doctor'));
     await tester.pumpAndSettle();
-    expect(find.text('Appointments Screen Content'), findsOneWidget);
+    expect(find.text('Doctor Screen Content'), findsOneWidget);
+
+    // Tap "Privacy & Access" top subnav tab
+    await tester.ensureVisible(find.text('Privacy & Access'));
+    await tester.tap(find.text('Privacy & Access'));
+    await tester.pumpAndSettle();
+    expect(find.text('Profile Screen Content'), findsOneWidget);
 
     // Tap "My Family" tab
-    await tester.tap(find.text('My Family'));
+    await tester.ensureVisible(find.text('My Family').first);
+    await tester.tap(find.text('My Family').first);
     await tester.pumpAndSettle();
     expect(find.text('Members Screen Content'), findsOneWidget);
   });

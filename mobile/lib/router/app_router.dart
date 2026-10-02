@@ -45,7 +45,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
 
-      // ===== Core 5 Destinations wrapped in Persistent Bottom Nav =====
+      // ===== Core 7 Portal Destinations wrapped in Persistent Shell & Web Subnav =====
       ShellRoute(
         builder: (context, state, child) => AppShell(
           currentLocation: state.matchedLocation,
@@ -56,12 +56,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/members', builder: (_, _) => const MembersScreen()),
           GoRoute(path: '/records', builder: (_, _) => const RecordsScreen()),
           GoRoute(path: '/cases', builder: (_, _) => const CasesScreen()),
+          GoRoute(path: '/my-doctor', builder: (_, _) => const MyDoctorScreen()),
           GoRoute(path: '/appointments', builder: (_, _) => const AppointmentsScreen()),
+          GoRoute(path: '/profile', builder: (_, _) => const ProfileScreen()),
         ],
       ),
 
       // ===== Sub-flows & Details (Focused full-screen with Back navigation) =====
-      GoRoute(path: '/profile', builder: (_, _) => const ProfileScreen()),
       GoRoute(
         path: '/complaints/new',
         builder: (_, _) => const SubmitComplaintScreen(),
@@ -94,7 +95,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/join-requests',
         builder: (_, _) => const JoinRequestsScreen(),
       ),
-      GoRoute(path: '/my-doctor', builder: (_, _) => const MyDoctorScreen()),
     ],
   );
 });
