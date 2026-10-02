@@ -116,8 +116,7 @@ String? routeRedirect({
   if (location == '/login' || location == '/splash' || location == '/register') return '/home';
 
   const memberRequired = {
-    '/records', '/records/new', '/vitals/new', '/lab-upload', '/complaints/new', '/cases',
-    '/appointments', '/appointments/book',
+    '/records/new', '/vitals/new', '/lab-upload', '/complaints/new',
   };
   final requiresMember =
       memberRequired.contains(location) ||
