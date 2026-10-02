@@ -32,6 +32,12 @@ function todayDate(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
+function memberOptionLabel(member: MemberDto): string {
+  if (member.role === 'Head') return `${member.displayName} (Family Head)`
+  if (member.role === 'MinorMember') return `${member.displayName} (Minor)`
+  return member.displayName
+}
+
 export function AppointmentsPage() {
   const user = useAppSelector((state) => state.auth.user)
   const isHead = user?.role === 'FAMILY_HEAD'

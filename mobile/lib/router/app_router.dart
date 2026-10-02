@@ -22,6 +22,7 @@ import 'package:family_veda/screens/risk/approved_guidance_screen.dart';
 import 'package:family_veda/screens/triage/case_status_screen.dart';
 import 'package:family_veda/screens/triage/cases_screen.dart';
 import 'package:family_veda/screens/triage/submit_complaint_screen.dart';
+import 'package:family_veda/widgets/shared/app_shell.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -39,20 +40,32 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       );
     },
     routes: [
-      // ===== S1 — Identity, Family, Consent =====
+      // ===== Auth & Splash (Full screen, no bottom nav) =====
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
-      GoRoute(path: '/members', builder: (_, _) => const MembersScreen()),
 
-      // ===== S3 — Home, Triage, Notifications =====
-      GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
+      // ===== Core 5 Destinations wrapped in Persistent Bottom Nav =====
+      ShellRoute(
+        builder: (context, state, child) => AppShell(
+          currentLocation: state.matchedLocation,
+          child: child,
+        ),
+        routes: [
+          GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
+          GoRoute(path: '/members', builder: (_, _) => const MembersScreen()),
+          GoRoute(path: '/records', builder: (_, _) => const RecordsScreen()),
+          GoRoute(path: '/cases', builder: (_, _) => const CasesScreen()),
+          GoRoute(path: '/appointments', builder: (_, _) => const AppointmentsScreen()),
+        ],
+      ),
+
+      // ===== Sub-flows & Details (Focused full-screen with Back navigation) =====
       GoRoute(path: '/profile', builder: (_, _) => const ProfileScreen()),
       GoRoute(
         path: '/complaints/new',
         builder: (_, _) => const SubmitComplaintScreen(),
       ),
-      GoRoute(path: '/cases', builder: (_, _) => const CasesScreen()),
       GoRoute(
         path: '/cases/:caseId',
         builder: (_, state) =>
@@ -62,14 +75,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/notifications',
         builder: (_, _) => const NotificationsScreen(),
       ),
-
-      // ===== S2 — Health Records & Extraction =====
-      GoRoute(path: '/records', builder: (_, _) => const RecordsScreen()),
       GoRoute(path: '/records/new', builder: (_, _) => const RecordEntryScreen()),
       GoRoute(path: '/vitals/new', builder: (_, _) => const VitalEntryScreen()),
       GoRoute(path: '/lab-upload', builder: (_, _) => const LabUploadScreen()),
-
-      // ===== S4 — Risk, Approval, Emergency =====
       GoRoute(
         path: '/guidance/:caseId',
         builder: (_, state) => ApprovedGuidanceScreen(
@@ -77,9 +85,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(path: '/emergency', builder: (_, _) => const EmergencyScreen()),
-
-      // ===== S4 — Three-portal family features (spec: docs/Three_Portal_Feature_Spec.md) =====
-      GoRoute(path: '/appointments', builder: (_, _) => const AppointmentsScreen()),
       GoRoute(
         path: '/appointments/book',
         builder: (_, _) => const BookAppointmentScreen(),
