@@ -18,6 +18,7 @@ import {
 import { FriendlyStatusBadge } from './threePortalShared'
 import { extractErrorMessage, formatDateTime } from './threePortalUtils'
 import { PageHero } from '../dashboard/dashboardParts'
+import { todayLocalDate } from '../records/recordSummaryMeta'
 
 function isMinor(member: MemberDto): boolean {
   const dob = new Date(member.dateOfBirth)
@@ -25,10 +26,6 @@ function isMinor(member: MemberDto): boolean {
   const cutoff = new Date()
   cutoff.setUTCFullYear(cutoff.getUTCFullYear() - 18)
   return dob > cutoff
-}
-
-function todayDate(): string {
-  return new Date().toISOString().slice(0, 10)
 }
 
 export function AppointmentsPage() {
@@ -49,17 +46,10 @@ export function AppointmentsPage() {
 
   const [familyId, setFamilyId] = useState('')
   const [familyDoctor, setFamilyDoctor] = useState<DoctorSummaryDto | null>(null)
-  const [directoryDoctors, setDirectoryDoctors] = useState<DoctorSummaryDto[]>([])
-  const [selectedDoctorId, setSelectedDoctorId] = useState('')
   const [selectedDate, setSelectedDate] = useState('')
   const [attachmentName, setAttachmentName] = useState('')
   const [slots, setSlots] = useState<DoctorSlotsDto | null>(null)
   const [slotMessage, setSlotMessage] = useState('')
-
-  const otherDoctors = useMemo(
-    () => directoryDoctors.filter((doc) => doc.id !== familyDoctor?.id),
-    [directoryDoctors, familyDoctor],
-  )
 
   // Free slots come from the doctor's weekly hours (DECISIONS 2026-09-29h). No hours set → free time entry.
   async function loadSlots(date: string) {
@@ -83,23 +73,12 @@ export function AppointmentsPage() {
       setMembers(family.members)
       setFamilyId(family.id)
 
+      // Bookings always go to the family's assigned doctor (the server decides), so this is display only.
       try {
-        const [docRes, dirRes] = await Promise.all([
-          apiClient.get<DoctorSummaryDto | null>(`/families/${family.id}/doctor`).catch(() => ({ data: null })),
-          apiClient.get<DoctorSummaryDto[]>('/doctors/directory').catch(() => ({ data: [] })),
-        ])
-        if (docRes?.data) {
-          setFamilyDoctor(docRes.data)
-          setSelectedDoctorId((curr) => curr || docRes.data!.id)
-        }
-        if (Array.isArray(dirRes?.data)) {
-          setDirectoryDoctors(dirRes.data)
-          if (!docRes?.data && dirRes.data.length > 0) {
-            setSelectedDoctorId((curr) => curr || dirRes.data[0].id)
-          }
-        }
+        const { data: doctor } = await apiClient.get<DoctorSummaryDto | null>(`/families/${family.id}/doctor`)
+        setFamilyDoctor(doctor?.id ? doctor : null)
       } catch {
-        // Non-blocking
+        setFamilyDoctor(null)
       }
 
       setStatus('ready')
@@ -120,28 +99,11 @@ export function AppointmentsPage() {
     const date = String(form.get('date') || '')
     const time = String(form.get('time') || '')
     const slot = String(form.get('slot') || '')
-    let reason = String(form.get('reason') || '').trim()
-    const attachment = form.get('attachment') as File | null
+    const reason = String(form.get('reason') || '').trim()
+    const attachment = (formElement.elements.namedItem('attachment') as HTMLInputElement | null)?.files?.[0]
     if (!memberId || !date || !(time || slot) || !reason) {
       setMessage('Please fill in all appointment details.')
       return
-    }
-
-    if (attachment && attachment.size > 0) {
-      try {
-        const uploadForm = new FormData()
-        uploadForm.append('file', attachment)
-        uploadForm.append('collectedAt', new Date(date || Date.now()).toISOString())
-        await apiClient.post(`/members/${memberId}/lab-reports`, uploadForm, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        })
-      } catch {
-        // Non-blocking for appointment request
-      }
-      const tag = ` [File: ${attachment.name}]`
-      if ((reason + tag).length <= 200) {
-        reason += tag
-      }
     }
 
     const startsAt = slot || new Date(`${date}T${time}:00`).toISOString()
@@ -154,11 +116,26 @@ export function AppointmentsPage() {
         reason,
         durationMinutes: slots?.availabilityConfigured ? slots.slotMinutes : 30,
       })
+      // Upload only after the booking exists, and say so plainly if the file did not go through.
+      let attachmentNote = ''
+      if (attachment instanceof File && attachment.size > 0) {
+        const uploadForm = new FormData()
+        uploadForm.append('file', attachment)
+        uploadForm.append('collectedAt', new Date().toISOString())
+        try {
+          await apiClient.post(`/members/${memberId}/lab-reports`, uploadForm, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          })
+          attachmentNote = ` "${attachment.name}" was saved to the member's lab reports.`
+        } catch {
+          attachmentNote = ` "${attachment.name}" could not be uploaded — add it from Health records (PNG, JPEG or PDF, up to 10 MB).`
+        }
+      }
       formElement.reset()
       setAttachmentName('')
       setSelectedDate('')
       setSlots(null)
-      setMessage('Appointment requested. You will be notified once the doctor confirms it.')
+      setMessage(`Appointment requested. You will be notified once the doctor confirms it.${attachmentNote}`)
       await load()
     } catch (error) {
       setMessage(extractErrorMessage(error, 'Appointment could not be booked.'))
@@ -205,45 +182,25 @@ export function AppointmentsPage() {
               ))}
             </select>
           </label>
-          <label>
-            Doctor
-            <select
-              name="doctorId"
-              value={selectedDoctorId}
-              aria-label="Doctor"
-              onChange={(e) => {
-                setSelectedDoctorId(e.target.value)
-                if (selectedDate) void loadSlots(selectedDate)
-              }}
-            >
-              {familyDoctor && (
-                <optgroup label="Assigned Doctor">
-                  <option value={familyDoctor.id}>
-                    {familyDoctor.displayName} {familyDoctor.specialty ? `(${familyDoctor.specialty})` : ''} - Primary
-                  </option>
-                </optgroup>
-              )}
-              {otherDoctors.length > 0 && (
-                <optgroup label={familyDoctor ? 'Other Available Doctors' : 'Available Doctors'}>
-                  {otherDoctors.map((doc) => (
-                    <option key={doc.id} value={doc.id}>
-                      {doc.displayName} {doc.specialty ? `(${doc.specialty})` : ''}
-                    </option>
-                  ))}
-                </optgroup>
-              )}
-              {!familyDoctor && otherDoctors.length === 0 && (
-                <option value="">Family Doctor (Default)</option>
-              )}
-            </select>
-          </label>
+          <div>
+            <span>Doctor</span>
+            {familyDoctor ? (
+              <p>
+                <strong>{familyDoctor.displayName}</strong>
+                {familyDoctor.specialty ? ` (${familyDoctor.specialty})` : ''}
+                <small className="muted"> — your family doctor. Appointments are booked with them.</small>
+              </p>
+            ) : (
+              <p className="muted">No family doctor is assigned yet. Choose one under My Doctor before booking.</p>
+            )}
+          </div>
           <label>
             Date
             <input
               name="date"
               type="date"
               required
-              min={todayDate()}
+              min={todayLocalDate()}
               value={selectedDate}
               onChange={(event) => {
                 setSelectedDate(event.target.value)
