@@ -40,6 +40,9 @@ public static class DependencyInjection
         services.AddScoped<IFamilyHeadTransferService, FamilyHeadTransferService>();
         services.AddScoped<IRecordService, RecordService>();
         services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.SectionName));
+        services.Configure<GoogleDriveOptions>(configuration.GetSection(GoogleDriveOptions.SectionName));
+        services.AddSingleton<GoogleDriveSession>();
+        services.AddHttpClient<IExternalReportFileStore, GoogleDriveReportFileStore>(client => client.Timeout = TimeSpan.FromSeconds(30));
         services.AddSingleton<IOcrService, TesseractOcrService>();
         services.AddScoped<ILabExtractionService, LabExtractionService>();
         services.AddScoped<ITriageService, TriageService>();

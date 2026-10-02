@@ -19,6 +19,14 @@ services:
         value: "false" # apply migrations manually (see docs/DEPLOYMENT.md) — MigrateOnStartup hits a known Npgsql 8.0.11 bug
       - key: Seed__Enabled
         value: "true"
+      - key: Storage__Provider
+        value: GoogleDrive # falls back to PostgreSQL while the three GoogleDrive__ secrets are unset (ADR-014)
+      - key: GoogleDrive__ClientId
+        sync: false
+      - key: GoogleDrive__ClientSecret
+        sync: false
+      - key: GoogleDrive__RefreshToken
+        sync: false
       - key: ConnectionStrings__DefaultConnection
         sync: false # secret — paste the Neon connection string in the Render dashboard
       - key: Jwt__Key
