@@ -83,7 +83,8 @@ public sealed partial class SafetyValidationService
 
     public static bool IsApprovedPatientGuidance(string text) => ApprovedPatientGuidance.Contains(text.Trim());
 
-    [GeneratedRegex(@"\b\d+(?:\.\d+)?\s*(?:mg|mcg|g|ml)\b", RegexOptions.IgnoreCase)]
+    // A complete mg/dL lab concentration is evidence, not a medication dose.
+    [GeneratedRegex(@"\b\d+(?:\.\d+)?\s*(?:mg(?!/dL\b)|mcg|g|ml)\b", RegexOptions.IgnoreCase)]
     private static partial Regex DosePattern();
 
     [GeneratedRegex(@"\b(?:diagnos(?:e|ed|is|tic)|(?:you|patient|they|he|she)\s+(?:have|has|had|are|is)\s+(?:a|an)?\s*[a-z-]+)\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
