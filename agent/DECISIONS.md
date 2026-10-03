@@ -280,3 +280,11 @@ User requested restoring the missing vitals/reports sections. Recovered only the
 ## 2026-10-03 — Preserve lab concentration evidence in deterministic safety checks
 
 User approved the narrow correction after a genuine synthetic family pipeline failed with DOSING_CONTENT on 92 mg/dL and 104 mg/dL. Recognize only complete mg/dL as a concentration in the existing dose regex; retain mg/mcg/g/mL dosing rejection and every other safety gate. Reject bypassing validation, editing case status or fabricating traces. Tests reproduce the three false positives before the fix and cover real doses, mixed dose/lab evidence, malformed denominator suffixes and medication content. Full backend suite: 246 passed; touched source coverage: 82.35% lines, 83.33% branches. Independent review and approved PR/deployment follow before creating a replacement genuine case; no patient advisory approval.
+
+## 2026-10-03 — Quantified lab trend nouns and evidence-bound unknown relatives
+
+User approved this follow-up safety/agent behavior plan, tests, reviewed PR/merge/deploy and one genuine hosted rerun. Exempt only the matched noun `increase` in `despite a minor/modest/small increase from [the baseline of] N mg/dL`; run all other command, drug, dose and diagnosis checks on unchanged text. Reject a broad `increase` exemption or sentence masking, which could hide medication instructions.
+
+Rebuild FamilialRisk `UnknownParties` deterministically from the existing allowed biological relationship graph minus member IDs in consent-filtered manually confirmed flags. Absence means history unavailable or unknown, never disease absent. Replace model identities rather than unioning hallucinated parties. Validate the final output against the existing schema. No permission expansion, raw-record access, migration, patient auto-approval or status bypass. Retain failed case audit history and leave the successful rerun awaiting doctor review.
+
+Independent review identified raw related-member GUID disclosure in persisted UnknownParties. Remove those identifiers and emit case-local relationship ordinals only. Reject widening the trace endpoint auth in this follow-up; that separate existing concern needs its own ownership/auth plan. Add a final-schema failure regression (blank screening indication).

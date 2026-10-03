@@ -24,6 +24,20 @@ public sealed class FamilialRiskAgent(IToolDispatcher dispatcher, IOllamaClient 
             new { context = context.InputJson, toolData },
             cancellationToken);
         if (result.Value.Confidence is < 0 or > 1) throw new JsonException("Confidence must be between zero and one.");
-        return new AgentRunResult(Kind, JsonSerializer.Serialize(result.Value), result.Value.Confidence, Tools, Tools, [], true, result.ModelName, result.InputTokens, result.OutputTokens);
+        // The model cannot erase an unknown relative or invent an unavailable identity.
+        // These tools return biological links and consent-filtered confirmed flags only.
+        var relationships = JsonSerializer.SerializeToElement(toolData["read_relationship_graph"]);
+        var flags = JsonSerializer.SerializeToElement(toolData["read_consented_hereditary_flags"]);
+        var knownMembers = flags.EnumerateArray()
+            .Select(flag => flag.GetProperty("MemberId").GetGuid()).ToHashSet();
+        var unknownParties = relationships.EnumerateArray()
+            .GroupBy(link => link.GetProperty("RelatedMemberId").GetGuid())
+            .Select(group => group.First())
+            .Where(link => !knownMembers.Contains(link.GetProperty("RelatedMemberId").GetGuid()))
+            .Select((link, index) => $"Biological {link.GetProperty("RelationshipType")} {index + 1}: hereditary history unavailable or unknown in consented confirmed flags.")
+            .ToList();
+        var output = result.Value with { UnknownParties = unknownParties };
+        AgentOutputValidator.Validate(output);
+        return new AgentRunResult(Kind, JsonSerializer.Serialize(output), result.Value.Confidence, Tools, Tools, [], true, result.ModelName, result.InputTokens, result.OutputTokens);
     }
 }
