@@ -476,36 +476,85 @@ Sign in with a seeded synthetic account (see *Live demo access* for emails) usin
 
 ## Live demo access
 
-- Web: <https://family-veda-web.vercel.app>
-- API health: <https://family-veda-api.onrender.com/health>
-- Mobile API base URL: `https://family-veda-api.onrender.com/api/v1`
+- Hosted web: <https://family-veda-web.vercel.app>
+- Hosted API health: <https://family-veda-api.onrender.com/health>
+- Hosted mobile API base URL: `https://family-veda-api.onrender.com/api/v1`
+- Local web: <http://localhost:5173>
+- Local API base URL: `http://127.0.0.1:5000/api/v1` (Android emulator: `http://10.0.2.2:5000/api/v1`)
 
-All accounts below are synthetic and use the same demo password.
+**Shared synthetic demo password (local and hosted): `Demo@123456!!`**
 
-| Role | Email |
+All 44 accounts below exist in both the running local and hosted demo databases, checked on 2026-10-03. Local core logins and hosted admin login were verified with this password; every individual hosted login was not tested. Seeded accounts use the shared demo password unless it has subsequently been changed for that account. Changing `Seed:DefaultPassword` does not reset existing passwords.
+
+These are public synthetic test credentials for the demo only. Do not reuse this password for real accounts or production data. No new accounts or password resets are performed by these instructions.
+
+### Core demo accounts
+
+| Role / scenario | Email |
 |---|---|
 | Family Head | `demo-head@example.invalid` |
 | Adult Member | `demo-member@example.invalid` |
 | Verified Doctor | `demo-doctor@example.invalid` |
 | Pending Doctor | `demo-pending@example.invalid` |
 | Clinic Admin | `demo-admin@example.invalid` |
+| Adult Member | `demo-tharushi@example.invalid` |
+| Family Head — Silva | `demo-silva@example.invalid` |
+| Family Head — Fernando | `demo-fernando@example.invalid` |
+| Family Head — Wijesinghe | `demo-wijesinghe@example.invalid` |
+| Family join requester | `demo-ruwan@example.invalid` |
+| Family join requester | `demo-shalini@example.invalid` |
+| Verified Doctor — Silva | `demo-doctor-silva@example.invalid` |
+| Verified Doctor — Fernando | `demo-doctor-fernando@example.invalid` |
+| Suspended Doctor | `demo-doctor-suspended@example.invalid` |
 
-The password is intentionally not committed. On the deployment owner's Mac, copy it from Keychain without printing it into terminal history:
+### Viva accounts
 
-```bash
-security find-generic-password \
-  -a demo-evaluator \
-  -s FamilyVedaDemoPassword \
-  -w | pbcopy
-```
+| Role / scenario | Email |
+|---|---|
+| Adult Member — shared demo family | `viva-adult-01@example.invalid` |
+| Adult Member — shared demo family | `viva-adult-02@example.invalid` |
+| Adult Member — shared demo family | `viva-adult-03@example.invalid` |
+| Family Head — separate family | `viva-adult-04@example.invalid` |
+| Family Head — separate family | `viva-adult-05@example.invalid` |
+| Verified Doctor | `viva-doctor-01@example.invalid` |
+| Verified Doctor | `viva-doctor-02@example.invalid` |
+| Verified Doctor | `viva-doctor-03@example.invalid` |
+| Verified Doctor | `viva-doctor-04@example.invalid` |
 
-Paste it into the app, then clear the clipboard immediately:
+### Phase 1b scenario accounts
 
-```bash
-pbcopy </dev/null
-```
+| Role / scenario | Email |
+|---|---|
+| Family Head — alpha | `phase1b-alpha-head@example.invalid` |
+| Adult Member — alpha | `phase1b-alpha-adult1@example.invalid` |
+| Adult Member — alpha | `phase1b-alpha-adult2@example.invalid` |
+| Family Head — beta | `phase1b-beta-head@example.invalid` |
+| Adult Member — beta | `phase1b-beta-adult1@example.invalid` |
+| Adult Member — beta | `phase1b-beta-adult2@example.invalid` |
+| Family Head — gamma | `phase1b-gamma-head@example.invalid` |
+| Adult Member — gamma | `phase1b-gamma-adult1@example.invalid` |
+| Adult Member — gamma | `phase1b-gamma-adult2@example.invalid` |
+| Verified Doctor | `phase1b-doctor-jaffna@example.invalid` |
+| Verified Doctor | `phase1b-doctor-badulla@example.invalid` |
+| Verified Doctor | `phase1b-doctor-matara@example.invalid` |
+| Pending Doctor | `phase1b-doctor-pending@example.invalid` |
+| Suspended Doctor | `phase1b-doctor-suspended@example.invalid` |
 
-Avoid retrieving it while screen-sharing or recording. Share the password with evaluators through a private channel. Never place it in Git, issues, screenshots or chat history.
+### Coverage and restricted-state accounts
+
+| Role / scenario | Email |
+|---|---|
+| Deactivated family user — sign-in blocked | `coverage-deactivated@example.invalid` |
+| Deactivated doctor — sign-in blocked | `coverage-deactivated-doctor@example.invalid` |
+| Family user — joined request fixture | `coverage-joined@example.invalid` |
+| Family user — declined request fixture | `coverage-declined@example.invalid` |
+| Doctor — rejected verification | `coverage-doctor-rejected@example.invalid` |
+| Doctor — pending verification | `coverage-doctor-pending@example.invalid` |
+| Doctor — more information requested | `coverage-doctor-moreinfo@example.invalid` |
+
+Pending, suspended, rejected and more-information-requested doctors have restricted access; successful authentication does not grant verified-clinician permissions. Deactivated users cannot sign in. Coverage accounts deliberately exercise these states.
+
+Authentication endpoints allow 10 requests per minute per client IP. If you receive HTTP `429`, wait one minute before retrying. Testing many accounts in succession can reach this limit.
 
 ## Testing
 
