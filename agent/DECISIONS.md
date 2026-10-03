@@ -255,3 +255,9 @@ What is already decided. Record at the moment of decision, including rejected al
 
 ## 2026-10-01 — Viva report originals and storage
 Use synthetic, provenance-labelled image fixtures and retain actual originals in hosted Neon until a separately authorized Google Drive storage provider is verified. A shared folder URL alone is insufficient for backend access. Recommend owner OAuth with drive.file and app-created report files; reject public links and personal-Drive service-account uploads (ownership/quota limits). Keep adult sharing opt-in, isolated demo families separate, and OCR failures visible for manual review. Preserve existing seeded passwords rather than resetting them at startup. Exclude handwriting fixtures containing medication/diet instructions from the selected viva pack.
+
+## 2026-10-03 — Preserve Flutter member and appointment API failures
+
+**Decision:** For the user-requested fixes to Janith's recent changes, keep the existing `/families/me` and `/appointments/mine` GET contracts and propagate transport/status/parsing errors to Riverpod's existing error/retry states. A successful empty list remains empty. Remove silent fallback requests rather than masking failures as missing data.
+
+**Reason and alternatives:** The backend implements both canonical routes; `/appointments` only supports POST. Dashboard member summaries are not a substitute for the consent-scoped member DTOs returned by `/families/me`. Broad catch-and-fallback handling can hide authentication, permission, server and malformed-response failures. No backend, authorization, schema, dependency, layout, commit or deployment changes are included.

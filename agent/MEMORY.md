@@ -83,3 +83,9 @@ Confirmed reference-range diagrams use only finite confirmed source values and v
 - Actual handwritten MRI appointment time was mistakenly recognized by the generic value regex. Date-bearing analytes and uppercase AM/PM units are now excluded; regression tests added.
 - Hosted share/revoke verification: head404 → adult shares → head200 → adult revokes → head404; outsider404, ungranted doctor403. Restored private sharing after test.
 - Corrected Google Drive backup: 24 images, 1 PDF, sources.json (26 uploads complete). Initial outdated folder was moved to recoverable Bin. Owner OAuth consent decision remains pending.
+
+## 2026-10-03 — Flutter member/appointment error propagation
+
+- `/families/me` GET exists in `FamiliesController.cs`; searching `Family*` filenames misses `FamiliesController`. It returns the consent-scoped family `members` DTO list. Keep this contract rather than falling back to dashboard summaries or `/members/me`.
+- `/appointments/mine` GET is the canonical appointment list. `/appointments` supports POST, not a list GET. Removed catch-all fallback handling from both Flutter API methods; HTTP/transport/parsing failures now reach the existing Riverpod error/retry UI rather than masquerading as empty results. Valid empty lists remain successful.
+- Scope is Flutter API behavior/tests only; web desktop and web mobile require no matching visual change because no layout, copy, component or flow was changed. Decisions recorded in `agent/DECISIONS.md`.
