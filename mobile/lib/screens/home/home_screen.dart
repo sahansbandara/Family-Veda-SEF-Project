@@ -10,6 +10,7 @@ import 'package:family_veda/providers/core_providers.dart';
 import 'package:family_veda/providers/family_portal_provider.dart';
 import 'package:family_veda/providers/members_provider.dart';
 import 'package:family_veda/providers/notifications_provider.dart';
+import 'package:family_veda/providers/records_provider.dart';
 import 'package:family_veda/theme/app_theme.dart';
 import 'package:family_veda/theme/glass.dart';
 import 'package:family_veda/widgets/family/incoming_invitations_section.dart';
@@ -479,9 +480,27 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: SafeArea(
         top: false,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-          children: [
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(familyDashboardProvider);
+            ref.invalidate(membersProvider);
+            ref.invalidate(unreadNotificationsCountProvider);
+            ref.invalidate(memberRecordsProvider);
+            ref.invalidate(memberLabReportsProvider);
+            final familyId =
+                ref.read(familyDashboardProvider).asData?.value.familyId;
+            if (familyId != null && familyId.isNotEmpty) {
+              ref.invalidate(pendingJoinRequestsProvider(familyId));
+              ref.invalidate(familySentInvitationsProvider(familyId));
+            }
+            await ref.read(familyDashboardProvider.future).catchError((_) => null);
+          },
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+            children: [
             // If the user is Head of Family, HeadDashboardSection renders the unified Family Head Hero + Metrics!
             // If not Head, render the standard active patient profile hero.
             if (!isHead) ...[
@@ -972,7 +991,8 @@ class HomeScreen extends ConsumerWidget {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 }
 
