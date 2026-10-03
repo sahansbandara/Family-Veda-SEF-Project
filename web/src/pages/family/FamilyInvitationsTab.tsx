@@ -97,10 +97,57 @@ export function FamilyInvitationsTab({ familyId, onChanged, onMessage }: Props) 
           </button>
         </form>
         {issued && (
-          <label className="field">
-            <span>One-time invitation token (shown once)</span>
-            <input readOnly value={issued.token} onFocus={(event) => event.currentTarget.select()} />
-          </label>
+          <div
+            style={{
+              marginTop: '16px',
+              padding: '16px',
+              backgroundColor: '#EFF6FF',
+              borderRadius: '12px',
+              border: '1.5px solid #93C5FD',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <strong style={{ color: '#1E40AF', fontSize: '14px' }}>
+                One-time invitation token (shown once)
+              </strong>
+              <span style={{ fontSize: '12px', color: '#3B82F6', fontWeight: 600 }}>
+                Valid until {formatDateTime(issued.expiresAt)}
+              </span>
+            </div>
+            <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#1E3A8A' }}>
+              Share this token privately with the invited adult. They will enter it during registration or join family setup.
+            </p>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <input
+                readOnly
+                value={issued.token}
+                onFocus={(event) => event.currentTarget.select()}
+                style={{
+                  flex: 1,
+                  fontFamily: 'monospace',
+                  fontWeight: 700,
+                  fontSize: '15px',
+                  letterSpacing: '0.5px',
+                  backgroundColor: '#FFFFFF',
+                  color: '#0F172A',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  border: '1px solid #BFDBFE',
+                }}
+              />
+              <button
+                type="button"
+                className="button button--secondary"
+                onClick={async () => {
+                  await navigator.clipboard.writeText(issued.token)
+                  onMessage('Invitation token copied to clipboard.')
+                }}
+                style={{ whiteSpace: 'nowrap', padding: '10px 16px' }}
+              >
+                Copy Token
+              </button>
+            </div>
+          </div>
         )}
       </section>
 
