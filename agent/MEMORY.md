@@ -101,3 +101,5 @@ SafetyValidationService dose regex previously matched numeric mg inside mg/dL la
 ## 2026-10-03 — Synthetic family review follow-up
 
 Factual `minor/modest increase` lab-trend clauses triggered the deterministic medication verb detector after the mg/dL dose fix. Exclude only the quantified noun match; other commands remain checked. FamilialRisk models can omit unknown relatives, so its final UnknownParties now derives from biological relationship IDs absent from consent-filtered confirmed hereditary flags. Empty filtered flags never establish absence of disease. Hosted rerun/deployment evidence is recorded separately after execution.
+
+2026-10-04: PR119 deployed; genuine synthetic caseb94621d8-6407-4b91-b69c-2c872abc86e1 reached PendingDoctorReview. Doctor overview/evidence has real pipeline outputs and supporting private Drive PDFs; no patient auto-approval. Security review corrected its initial trace-leak claim: AgentTraceDto maps metadata only; full review outputs require Doctor authorization. Identifier-free unknown labels retained as data minimization.

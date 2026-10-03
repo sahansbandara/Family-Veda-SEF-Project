@@ -292,5 +292,5 @@ Nav: `Dashboard | Calendar | My Families | Triage Cases | Approvals | Profile & 
 ## 2026-10-03 — Approved synthetic family review follow-up
 
 - [x] Reproduce quantified lab noun false positives and missing/hallucinated unknown relatives with failing regression tests; implement deterministic corrections without permission expansion.
-- [ ] Independent code/security review, CI, reviewed PR and deployed revision verification.
-- [ ] One genuine hosted synthetic-family rerun; verify all doctor-review evidence sections and pending approval, private Drive originals, and unavailable paternal history.
+- [x] Independent code/security review, CI, reviewed PR and deployed revision verification (PR119).
+- [x] One genuine hosted synthetic-family rerun: caseb94621d8 PendingDoctorReview; all sections/5 traces populated, private Drive original readback verified, unavailable paternal history retained.
