@@ -79,10 +79,30 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final languages = {'English'};
   XFile? licence;
   bool terms = false, loading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirm = true;
   String? error;
   Map<String, String> serverErrors = {};
+
+  @override
+  void initState() {
+    super.initState();
+    password.addListener(_onPasswordChanged);
+    confirm.addListener(_onConfirmChanged);
+  }
+
+  void _onPasswordChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _onConfirmChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   void dispose() {
+    password.removeListener(_onPasswordChanged);
+    confirm.removeListener(_onConfirmChanged);
     for (final x in [
       name,
       email,
@@ -124,24 +144,53 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   String? strong(String? v) {
     final x = v ?? '';
-    return x.length >= 8 &&
-            x.length <= 128 &&
-            RegExp(r'[A-Z]').hasMatch(x) &&
-            RegExp(r'[a-z]').hasMatch(x) &&
-            RegExp(r'\d').hasMatch(x) &&
-            RegExp(r'[^A-Za-z0-9]').hasMatch(x)
-        ? null
-        : 'Use 8+ characters with upper/lower case, number and symbol.';
+    if (x.isEmpty) return 'Password is required.';
+    if (x.length < 8) return 'Password must be at least 8 characters.';
+    if (x.length > 128) return 'Password cannot exceed 128 characters.';
+    if (!RegExp(r'[A-Z]').hasMatch(x)) return 'Must include at least one uppercase letter (A-Z).';
+    if (!RegExp(r'[a-z]').hasMatch(x)) return 'Must include at least one lowercase letter (a-z).';
+    if (!RegExp(r'\d').hasMatch(x)) return 'Must include at least one number (0-9).';
+    if (!RegExp(r'[^A-Za-z0-9]').hasMatch(x)) return 'Must include at least one symbol (e.g. !@#\$%).';
+    return null;
   }
 
   String? adult(String? v) {
-    final d = DateTime.tryParse(v?.trim() ?? '');
+    if (v == null || v.trim().isEmpty) {
+      return 'Enter or pick your date of birth.';
+    }
+    final d = DateTime.tryParse(v.trim());
     if (d == null || d.year < 1900 || !d.isBefore(DateTime.now())) {
-      return 'Enter a valid date of birth.';
+      return 'Enter a valid date of birth (YYYY-MM-DD).';
     }
     return DateTime(d.year + 18, d.month, d.day).isAfter(DateTime.now())
         ? 'You must be at least 18 years old.'
         : null;
+  }
+
+  Future<void> _pickDob() async {
+    final now = DateTime.now();
+    DateTime initial = DateTime(now.year - 25, now.month, now.day);
+    if (dob.text.isNotEmpty) {
+      final parsed = DateTime.tryParse(dob.text.trim());
+      if (parsed != null && parsed.isBefore(now)) {
+        initial = parsed;
+      }
+    }
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1900),
+      lastDate: now,
+      helpText: 'Select Date of Birth',
+      fieldLabelText: 'Enter date of birth',
+    );
+    if (picked != null) {
+      final formatted =
+          '${picked.year.toString().padLeft(4, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+      setState(() {
+        dob.text = formatted;
+      });
+    }
   }
 
   void next() {
@@ -278,7 +327,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     required String key,
     String? Function(String?)? validator,
     bool obscure = false,
+    Widget? suffixIcon,
     TextInputType? type,
+    ValueChanged<String>? onChanged,
+    VoidCallback? onTap,
+    bool readOnly = false,
   }) => Padding(
     padding: const EdgeInsets.only(bottom: 12),
     child: Column(
@@ -288,10 +341,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           controller: c,
           obscureText: obscure,
           keyboardType: type,
+          readOnly: readOnly,
+          onTap: onTap,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           validator: validator,
+          onChanged: onChanged,
           decoration: InputDecoration(
             labelText: label,
+            errorMaxLines: 3,
+            suffixIcon: suffixIcon,
             filled: true,
             fillColor: Theme.of(context).brightness == Brightness.dark 
                 ? Colors.black.withValues(alpha: 0.3) 
@@ -450,58 +508,181 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }),
   );
 
-  Widget account() => Column(
-    children: [
-      field(
-        'Full name',
-        name,
-        key: 'account.fullname',
-        validator: (v) =>
-            RegExp(
-              r"^[\p{L}][\p{L} .'\-]{1,119}$",
-              unicode: true,
-            ).hasMatch(v?.trim() ?? '')
-            ? null
-            : 'Enter your full name.',
+  Widget _buildPasswordRuleItem(String text, bool met) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Icon(
+            met ? Icons.check_circle_rounded : Icons.circle_outlined,
+            size: 14,
+            color: met
+                ? (isDark ? Colors.greenAccent : const Color(0xFF16A34A))
+                : (isDark ? Colors.white38 : Colors.black38),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: met ? FontWeight.w600 : FontWeight.normal,
+              color: met
+                  ? (isDark ? Colors.greenAccent : const Color(0xFF16A34A))
+                  : (isDark ? Colors.white60 : Colors.black54),
+            ),
+          ),
+        ],
       ),
-      field(
-        'Email address',
-        email,
-        key: 'account.email',
-        validator: (v) =>
-            RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v?.trim() ?? '')
-            ? null
-            : 'Enter a valid email address.',
-        type: TextInputType.emailAddress,
-      ),
-      field(
-        'Sri Lankan mobile',
-        mobile,
-        key: 'account.mobilenumber',
-        validator: (v) =>
-            RegExp(
-              r'^(?:0|\+94)7\d{8}$',
-            ).hasMatch((v ?? '').replaceAll(' ', ''))
-            ? null
-            : 'Use 0771234567 or +94771234567.',
-        type: TextInputType.phone,
-      ),
-      field(
-        'Password',
-        password,
-        key: 'account.password',
-        validator: strong,
-        obscure: true,
-      ),
-      field(
-        'Confirm password',
-        confirm,
-        key: 'account.confirmpassword',
-        validator: (v) => v == password.text ? null : 'Passwords do not match.',
-        obscure: true,
-      ),
-    ],
-  );
+    );
+  }
+
+  Widget account() {
+    final passText = password.text;
+    final confirmText = confirm.text;
+    final hasLen = passText.length >= 8;
+    final hasUpper = RegExp(r'[A-Z]').hasMatch(passText);
+    final hasLower = RegExp(r'[a-z]').hasMatch(passText);
+    final hasDigit = RegExp(r'\d').hasMatch(passText);
+    final hasSymbol = RegExp(r'[^A-Za-z0-9]').hasMatch(passText);
+    final allMet = hasLen && hasUpper && hasLower && hasDigit && hasSymbol;
+    final isMatching = confirmText.isNotEmpty && confirmText == passText;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      children: [
+        field(
+          'Full name',
+          name,
+          key: 'account.fullname',
+          validator: (v) =>
+              RegExp(
+                r"^[\p{L}][\p{L} .'\-]{1,119}$",
+                unicode: true,
+              ).hasMatch(v?.trim() ?? '')
+              ? null
+              : 'Enter your full name.',
+        ),
+        field(
+          'Email address',
+          email,
+          key: 'account.email',
+          validator: (v) =>
+              RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v?.trim() ?? '')
+              ? null
+              : 'Enter a valid email address.',
+          type: TextInputType.emailAddress,
+        ),
+        field(
+          'Sri Lankan mobile',
+          mobile,
+          key: 'account.mobilenumber',
+          validator: (v) =>
+              RegExp(
+                r'^(?:0|\+94)7\d{8}$',
+              ).hasMatch((v ?? '').replaceAll(' ', ''))
+              ? null
+              : 'Use 0771234567 or +94771234567.',
+          type: TextInputType.phone,
+        ),
+        field(
+          'Password',
+          password,
+          key: 'account.password',
+          validator: strong,
+          obscure: _obscurePassword,
+          suffixIcon: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (allMet)
+                const Padding(
+                  padding: EdgeInsets.only(right: 4),
+                  child: Icon(
+                    Icons.check_circle,
+                    size: 18,
+                    color: Colors.green,
+                  ),
+                ),
+              IconButton(
+                icon: Icon(
+                  _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                  size: 20,
+                  color: isDark ? Colors.white70 : Colors.black54,
+                ),
+                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                tooltip: _obscurePassword ? 'Show password' : 'Hide password',
+              ),
+            ],
+          ),
+        ),
+        if (passText.isNotEmpty && !allMet)
+          Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.03),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isDark ? Colors.white12 : Colors.black12,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Password Requirements:',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white70 : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                _buildPasswordRuleItem('At least 8 characters', hasLen),
+                _buildPasswordRuleItem('Uppercase letter (A-Z)', hasUpper),
+                _buildPasswordRuleItem('Lowercase letter (a-z)', hasLower),
+                _buildPasswordRuleItem('Number (0-9)', hasDigit),
+                _buildPasswordRuleItem('Special symbol (!@#\$%^&*)', hasSymbol),
+              ],
+            ),
+          ),
+        field(
+          'Confirm password',
+          confirm,
+          key: 'account.confirmpassword',
+          validator: (v) {
+            if (v == null || v.isEmpty) return 'Confirm your password.';
+            if (v != password.text) return 'Passwords do not match.';
+            return null;
+          },
+          obscure: _obscureConfirm,
+          suffixIcon: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (confirmText.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: Icon(
+                    isMatching ? Icons.check_circle : Icons.cancel,
+                    size: 18,
+                    color: isMatching ? Colors.green : Colors.red,
+                  ),
+                ),
+              IconButton(
+                icon: Icon(
+                  _obscureConfirm ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                  size: 20,
+                  color: isDark ? Colors.white70 : Colors.black54,
+                ),
+                onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                tooltip: _obscureConfirm ? 'Show password' : 'Hide password',
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
   Widget personal() => Column(
     children: [
       field(
@@ -510,6 +691,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         key: 'personal.dateofbirth',
         validator: adult,
         type: TextInputType.datetime,
+        suffixIcon: IconButton(
+          icon: const Icon(Icons.calendar_month_outlined),
+          onPressed: _pickDob,
+          tooltip: 'Pick date from calendar',
+        ),
       ),
       select(
         'Clinical sex',
@@ -861,6 +1047,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             child: Image.asset(
               'assets/images/mobile-login.png',
               fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => const SizedBox.shrink(),
             ),
           ),
           SafeArea(

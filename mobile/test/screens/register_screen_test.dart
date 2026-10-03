@@ -49,4 +49,32 @@ void main() {
       );
     },
   );
+
+  testWidgets(
+    'shows calendar picker button on date of birth field',
+    (tester) async {
+      tester.view.physicalSize = const Size(900, 2400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        const ProviderScope(child: MaterialApp(home: RegisterScreen())),
+      );
+      await tester.pumpAndSettle();
+      await _continue(tester);
+
+      await _enter(tester, 'Full name', 'Synthetic Head');
+      await _enter(tester, 'Email address', 'synthetic.head@example.invalid');
+      await _enter(tester, 'Sri Lankan mobile', '0771234567');
+      await _enter(tester, 'Password', 'Synthetic-Pass-42!');
+      await _enter(tester, 'Confirm password', 'Synthetic-Pass-42!');
+      await _continue(tester);
+
+      expect(find.byIcon(Icons.calendar_month_outlined), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.calendar_month_outlined));
+      await tester.pumpAndSettle();
+      expect(find.text('Select Date of Birth'), findsOneWidget);
+    },
+  );
 }

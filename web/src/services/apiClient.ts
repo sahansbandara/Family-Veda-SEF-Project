@@ -292,7 +292,7 @@ export const threePortalApi = {
   getDoctorAppointments: (params?: { from?: string; to?: string }) =>
     apiClient.get<AppointmentDto[]>('/doctors/me/appointments', { params }),
   setAppointmentStatus: (id: string, action: 'confirm' | 'complete' | 'no-show' | 'cancel', note?: string) =>
-    apiClient.post(`/doctors/me/appointments/${id}/${action}`, { note }),
+    apiClient.post<AppointmentDto>(`/doctors/me/appointments/${id}/${action}`, { note }),
 
   getNotifications: (unreadOnly?: boolean) =>
     apiClient.get<NotificationDto[]>('/notifications', { 

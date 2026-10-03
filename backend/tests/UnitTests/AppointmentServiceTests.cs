@@ -124,6 +124,41 @@ public sealed class AppointmentServiceTests
         await act.Should().ThrowAsync<ConflictException>();
     }
 
+    [Fact]
+    public async Task GetForDoctor_MapsEveryAppointmentWithMemberFamilyAndDoctor()
+    {
+        await using var db = NewDb();
+        var f = await SeedAsync(db);
+        var headService = new AppointmentService(db, new StubCurrentUser(f.Head.Id));
+        var later = await headService.BookAsync(new CreateAppointmentRequest(f.MinorMember.Id, DateTimeOffset.UtcNow.AddDays(2), 30, "Minor visit"), CancellationToken.None);
+        var sooner = await headService.BookAsync(new CreateAppointmentRequest(f.HeadMember.Id, DateTimeOffset.UtcNow.AddDays(1), 30, "Head visit"), CancellationToken.None);
+        var doctorService = new AppointmentService(db, new StubCurrentUser(f.Doctor.UserId, UserType.Doctor));
+
+        var list = await doctorService.GetForDoctorAsync(null, null, CancellationToken.None);
+
+        list.Select(x => x.Id).Should().Equal(sooner.Id, later.Id);
+        list.Select(x => x.MemberDisplayName).Should().Equal("Head", "Minor");
+        list.Should().OnlyContain(x => x.FamilyName == "F" && x.Doctor.Id == f.Doctor.Id && x.Doctor.DisplayName == "Doc");
+    }
+
+    [Fact]
+    public async Task GetForDoctor_NeverReturnsAnotherDoctorsAppointments()
+    {
+        await using var db = NewDb();
+        var f = await SeedAsync(db);
+        var headService = new AppointmentService(db, new StubCurrentUser(f.Head.Id));
+        await headService.BookAsync(new CreateAppointmentRequest(f.MinorMember.Id, DateTimeOffset.UtcNow.AddDays(1), 30, "Minor visit"), CancellationToken.None);
+        var otherDoctorUser = new UserAccount { Email = "doc2@example.invalid", PasswordHash = "x", DisplayName = "Doc Two", UserType = UserType.Doctor };
+        var otherDoctor = new Doctor { User = otherDoctorUser, RegistrationNumberHash = "h2", RegistrationNumberLastFour = "5678", VerificationStatus = VerificationStatus.Verified };
+        db.AddRange(otherDoctorUser, otherDoctor);
+        await db.SaveChangesAsync();
+        var otherDoctorService = new AppointmentService(db, new StubCurrentUser(otherDoctorUser.Id, UserType.Doctor));
+
+        var list = await otherDoctorService.GetForDoctorAsync(null, null, CancellationToken.None);
+
+        list.Should().BeEmpty();
+    }
+
     private sealed class StubCurrentUser(Guid userId, UserType userType = UserType.FamilyUser) : ICurrentUser
     {
         public bool IsAuthenticated => true;
