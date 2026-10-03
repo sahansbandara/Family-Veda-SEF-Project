@@ -524,7 +524,7 @@ public sealed class ClinicalService(
              x.AccessGrants.Any(g => g.RevokedAt == null && g.ExpiresAt > now && g.CreatedAt <= slaCutoff)));
         var total = await query.CountAsync(cancellationToken);
         var items = await query.OrderByDescending(x => x.Priority).ThenBy(x => x.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize)
-            .Select(x => new AvailableCaseDto(x.Id, x.Priority, x.CreatedAt)).ToListAsync(cancellationToken);
+            .Select(x => new AvailableCaseDto(x.Id, x.Priority, x.CreatedAt, x.Status)).ToListAsync(cancellationToken);
         dbContext.AuditLogs.Add(new AuditLog
         {
             ActorUserId = currentUser.UserId,
