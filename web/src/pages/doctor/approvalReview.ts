@@ -83,16 +83,43 @@ function displayValue(value: unknown): string {
     .join(' · ')
 }
 
+// Routing flags the backend stamps on a draft. The tile already states them in words.
+const internalFields = new Set(['forDoctorReviewOnly'])
+
+/**
+ * The orchestrator stores each agent output as a JSON string inside the draft, so a
+ * value can itself be encoded JSON. Decode those; leave ordinary text untouched.
+ */
+function unwrapEncoded(value: unknown): unknown {
+  if (typeof value === 'string') {
+    const text = value.trim()
+    if (!text.startsWith('{') && !text.startsWith('[')) return value
+    try {
+      return unwrapEncoded(JSON.parse(text))
+    } catch {
+      return value
+    }
+  }
+  if (Array.isArray(value)) return value.map(unwrapEncoded)
+  if (value && typeof value === 'object')
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, nested]) => [key, unwrapEncoded(nested)]),
+    )
+  return value
+}
+
 /** Turns a doctor-only agent JSON blob into labelled, readable rows. */
 export function structuredEntries(raw?: string | null): EvidenceEntry[] {
   if (!raw) return []
   try {
-    const parsed: unknown = JSON.parse(raw)
+    const parsed: unknown = unwrapEncoded(JSON.parse(raw))
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-      return Object.entries(parsed as Record<string, unknown>).map(([key, value]) => ({
-        label: fieldLabel(key),
-        values: Array.isArray(value) && value.length > 0 ? value.map(displayValue) : [displayValue(value)],
-      }))
+      return Object.entries(parsed as Record<string, unknown>)
+        .filter(([key]) => !internalFields.has(key))
+        .map(([key, value]) => ({
+          label: fieldLabel(key),
+          values: Array.isArray(value) && value.length > 0 ? value.map(displayValue) : [displayValue(value)],
+        }))
     }
     return [{ label: 'Summary', values: Array.isArray(parsed) ? parsed.map(displayValue) : [displayValue(parsed)] }]
   } catch {
