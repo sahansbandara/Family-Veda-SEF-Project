@@ -6,7 +6,10 @@ import { Provider } from 'react-redux'
 
 import './index.css'
 import App from './App.tsx'
+import { warmUpApi } from './services/apiClient'
 import { store } from './store'
+
+warmUpApi()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
