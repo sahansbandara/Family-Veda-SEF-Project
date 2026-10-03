@@ -4,6 +4,32 @@
 // free-text never becomes patient-visible. Enforcement stays in the backend gate.
 import { useEffect } from 'react'
 
+import { IconCheck } from './ApprovalIcons'
+
+const IconMessage = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px', flexShrink: 0}}>
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+  </svg>
+)
+
+const IconEscalate = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px', flexShrink: 0}}>
+    <polygon points="12 2 22 22 2 22"/><path d="M12 8v8"/><path d="M12 16h.01"/>
+  </svg>
+)
+
+const BtnIconCheck = () => <span style={{marginRight: '6px', display: 'flex'}}><IconCheck /></span>
+const BtnIconEdit = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px', flexShrink: 0}}>
+    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+  </svg>
+)
+const BtnIconX = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px', flexShrink: 0}}>
+    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+  </svg>
+)
+
 import { approvedGuidance, decisionLabels, type DecisionAction } from './approvalReview'
 
 type PanelProps = {
@@ -16,18 +42,18 @@ type PanelProps = {
   onDecide: (action: DecisionAction) => void
 }
 
-const actionOrder: Array<{ action: DecisionAction; tone: string }> = [
-  { action: 'approve', tone: 'button--primary' },
-  { action: 'revise', tone: 'button--secondary' },
-  { action: 'request-info', tone: 'button--secondary' },
-  { action: 'escalate', tone: 'button--secondary approval-action--warn' },
-  { action: 'reject', tone: 'button--danger' },
+const actionOrder: Array<{ action: DecisionAction; tone: string; icon: React.ReactNode }> = [
+  { action: 'approve', tone: 'btn-approve', icon: <BtnIconCheck /> },
+  { action: 'revise', tone: 'btn-revise', icon: <BtnIconEdit /> },
+  { action: 'request-info', tone: 'btn-request', icon: <IconMessage /> },
+  { action: 'escalate', tone: 'btn-escalate', icon: <IconEscalate /> },
+  { action: 'reject', tone: 'btn-reject', icon: <BtnIconX /> },
 ]
 
 export function ApprovalDecisionPanel(props: PanelProps) {
   const { advisory, notes, disabled, message, onAdvisory, onNotes, onDecide } = props
   return (
-    <article className="care-panel approval-decision" aria-labelledby="decision-heading">
+    <article className="care-panel approval-decision premium-decision-panel" aria-labelledby="decision-heading">
       <p className="care-eyebrow">Decision gate · human approval</p>
       <h2 id="decision-heading">Doctor review and final guidance</h2>
       <p className="care-caption">
@@ -35,8 +61,8 @@ export function ApprovalDecisionPanel(props: PanelProps) {
       </p>
       <div className="care-form">
         <label className="field">
-          <span>Final Patient Guidance</span>
-          <select value={advisory} onChange={(event) => onAdvisory(event.target.value)} disabled={disabled}>
+          <span>Final Patient Guidance <span style={{color: '#eab308'}}>*</span></span>
+          <select value={advisory} aria-label="Final Patient Guidance" onChange={(event) => onAdvisory(event.target.value)} disabled={disabled}>
             <option value="">Select approved guidance</option>
             {approvedGuidance.map((guidance) => (
               <option key={guidance} value={guidance}>
@@ -45,7 +71,9 @@ export function ApprovalDecisionPanel(props: PanelProps) {
             ))}
           </select>
         </label>
-        <p className="care-caption approval-hint">Required for Approve and Revise and Approve.</p>
+        <p className="care-caption approval-hint" style={{color: '#94a3b8'}}>
+          Doctor-authored or explicitly reviewed text only. No diagnosis, prescriptions or doses in this prototype.
+        </p>
         <label className="field">
           <span>Internal Clinical Notes</span>
           <textarea
@@ -67,19 +95,23 @@ export function ApprovalDecisionPanel(props: PanelProps) {
         </p>
       )}
       <div className="approval-actions">
-        {actionOrder.map(({ action, tone }) => (
+        {actionOrder.map(({ action, tone, icon }) => (
           <button
             key={action}
             type="button"
-            className={`button ${tone}`}
+            className={`premium-btn ${tone}`}
             disabled={disabled}
             onClick={() => onDecide(action)}
           >
+            {icon}
             {decisionLabels[action]}
           </button>
         ))}
       </div>
-      <p className="care-caption approval-decision__foot">Every decision is recorded in the audit log.</p>
+      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', paddingTop: '12px', borderTop: '1px solid #1e293b'}}>
+        <p className="care-caption" style={{margin: 0, color: '#94a3b8'}}>Every decision is recorded in the audit log.</p>
+        <button type="button" onClick={() => { onAdvisory(''); onNotes(''); }} disabled={disabled} style={{background: 'transparent', border: 'none', color: '#3b82f6', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer'}}>Clear draft fields</button>
+      </div>
     </article>
   )
 }

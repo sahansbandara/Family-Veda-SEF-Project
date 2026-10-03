@@ -5,6 +5,8 @@ import { queueDateTime } from './approvalReview'
 
 type EvidenceState = { status: 'loading' | 'error' | 'ready'; data?: MemberWorkspaceDto }
 
+import { IconActivity, IconClipboardList } from './ApprovalIcons'
+
 export function ApprovalSupportingEvidence({ memberId }: { memberId: string }) {
   const [state, setState] = useState<EvidenceState>({ status: 'loading' })
   const [reload, setReload] = useState(0)
@@ -28,16 +30,32 @@ export function ApprovalSupportingEvidence({ memberId }: { memberId: string }) {
   const vitals = [...(state.data?.vitals ?? [])].sort((a, b) => Date.parse(b.measuredAt) - Date.parse(a.measuredAt))
     .filter((vital, index, all) => all.findIndex((item) => item.vitalType.toLowerCase() === vital.vitalType.toLowerCase()) === index)
   return <>
-    <article className="care-panel approval-tile">
-      <h3>Latest recorded vitals</h3>
+    <article className="care-panel approval-tile approval-vitals-panel">
+      <h3><IconActivity /> Latest recorded vitals</h3>
       {unavailable('vitals') ?? (vitals.length ? <div className="approval-vitals">{vitals.map((vital) => <div className="approval-vital" key={vital.vitalType}>
         <span>{vital.vitalType.replace(/([a-z])([A-Z])/g, '$1 $2').replaceAll('_', ' ')}</span>
         <strong>{vital.value} <small>{vital.unit}</small></strong>
         <small>Recorded {queueDateTime(vital.measuredAt)}</small>
-      </div>)}</div> : <p className="care-caption">No vitals have been recorded in the available records.</p>)}
+      </div>)}</div> : <div className="approval-vitals approval-vitals--empty">
+        {[
+          { key: 'Temperature', label: 'Temperature' },
+          { key: 'HeartRate', label: 'Heart rate' },
+          { key: 'SpO2', label: <>SpO<sub>2</sub></> },
+          { key: 'RespiratoryRate', label: 'Resp. rate' }
+        ].map((v) => (
+          <div className="approval-vital approval-vital--empty" key={v.key}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="vital-empty-icon">
+              <circle cx="12" cy="12" r="10" />
+            </svg>
+            <strong>&mdash;</strong>
+            <span>{v.label}</span>
+            <small>Not available</small>
+          </div>
+        ))}
+      </div>)}
     </article>
     <article className="care-panel approval-tile approval-reports">
-      <h3>Supporting reports</h3>
+      <h3><IconClipboardList /> Supporting reports</h3>
       {unavailable('labReports') ?? (state.data?.labReports?.length ? state.data.labReports.map((report) => <details className="approval-report" key={report.id}>
         <summary>{report.fileName}</summary>
         <p className="care-caption">{report.collectedAt ? `Collected ${queueDateTime(report.collectedAt)}` : 'Collection date not recorded'}</p>
