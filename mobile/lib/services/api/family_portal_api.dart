@@ -5,6 +5,7 @@
 import 'package:family_veda/models/appointment.dart';
 import 'package:family_veda/models/doctor_summary.dart';
 import 'package:family_veda/models/family_dashboard.dart';
+import 'package:family_veda/models/family_invitation.dart';
 import 'package:family_veda/models/incoming_invitation.dart';
 import 'package:family_veda/models/join_request.dart';
 import 'package:family_veda/services/api/api_client.dart';
@@ -33,6 +34,22 @@ abstract interface class FamilyPortalApi {
   Future<List<IncomingInvitation>> getIncomingInvitations();
   Future<void> approveInvitation(String id);
   Future<void> rejectInvitation(String id);
+
+  Future<List<FamilyInvitationSummary>> getInvitations(String familyId);
+  Future<FamilyInvitationIssued> createInvitation(
+    String familyId, {
+    required String email,
+    String? relationshipType,
+  });
+  Future<FamilyInvitationIssued> resendInvitation(
+    String familyId,
+    String invitationId,
+    String email,
+  );
+  Future<void> cancelInvitation(String familyId, String invitationId);
+
+  Future<void> renameFamily(String familyId, String name);
+  Future<void> proposeHeadTransfer(String familyId, String toMemberId);
 
   Future<DoctorSummary?> getFamilyDoctor(String familyId);
   Future<List<DoctorSummary>> searchDoctorDirectory({
@@ -65,20 +82,14 @@ class DioFamilyPortalApi implements FamilyPortalApi {
 
   @override
   Future<List<Appointment>> getMyAppointments() async {
-    try {
-      final response = await _client.dio.get<dynamic>('/appointments/mine');
-      return _listFrom(response.data)
-          .map(Appointment.fromJson)
-          .toList(growable: false);
-    } catch (_) {
-      try {
-        final resp = await _client.dio.get<dynamic>('/appointments');
-        return _listFrom(resp.data)
-            .map(Appointment.fromJson)
-            .toList(growable: false);
-      } catch (_) {}
-      return const <Appointment>[];
-    }
+    final response = await _client.dio.get<dynamic>('/appointments/mine');
+    final data = response.data;
+    final items = data is Map<String, dynamic>
+        ? (data['items'] ?? data['data'])
+        : data;
+    return _listFrom(items)
+        .map(Appointment.fromJson)
+        .toList(growable: false);
   }
 
   @override
@@ -164,6 +175,73 @@ class DioFamilyPortalApi implements FamilyPortalApi {
   @override
   Future<void> rejectInvitation(String id) async {
     await _client.dio.post<void>('/invitations/$id/reject');
+  }
+
+  @override
+  Future<List<FamilyInvitationSummary>> getInvitations(String familyId) async {
+    final response = await _client.dio.get<dynamic>(
+      '/families/$familyId/invitations',
+    );
+    return _listFrom(response.data)
+        .map(FamilyInvitationSummary.fromJson)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<FamilyInvitationIssued> createInvitation(
+    String familyId, {
+    required String email,
+    String? relationshipType,
+  }) async {
+    final response = await _client.dio.post<Map<String, dynamic>>(
+      '/families/$familyId/invitations',
+      data: {
+        'email': email.trim(),
+        if (relationshipType != null && relationshipType.trim().isNotEmpty)
+          'relationshipType': relationshipType.trim(),
+      },
+    );
+    final data = response.data;
+    if (data == null) throw const FormatException('Empty invitation response');
+    return FamilyInvitationIssued.fromJson(data);
+  }
+
+  @override
+  Future<FamilyInvitationIssued> resendInvitation(
+    String familyId,
+    String invitationId,
+    String email,
+  ) async {
+    final response = await _client.dio.post<Map<String, dynamic>>(
+      '/families/$familyId/invitations/$invitationId/resend',
+      data: {'email': email.trim()},
+    );
+    final data = response.data;
+    if (data == null) throw const FormatException('Empty resend response');
+    return FamilyInvitationIssued.fromJson(data);
+  }
+
+  @override
+  Future<void> cancelInvitation(String familyId, String invitationId) async {
+    await _client.dio.post<void>(
+      '/families/$familyId/invitations/$invitationId/cancel',
+    );
+  }
+
+  @override
+  Future<void> renameFamily(String familyId, String name) async {
+    await _client.dio.put<void>(
+      '/families/$familyId',
+      data: {'name': name.trim()},
+    );
+  }
+
+  @override
+  Future<void> proposeHeadTransfer(String familyId, String toMemberId) async {
+    await _client.dio.post<void>(
+      '/families/$familyId/head-transfers',
+      data: {'toMemberId': toMemberId},
+    );
   }
 
   @override

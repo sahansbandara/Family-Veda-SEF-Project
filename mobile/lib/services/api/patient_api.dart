@@ -45,35 +45,14 @@ class DioPatientApi implements PatientApi {
 
   @override
   Future<List<Member>> getMembers() async {
-    try {
-      final response = await _client.dio.get<dynamic>('/families/me');
-      final list = _listFrom(
-        response.data is Map<String, dynamic>
-            ? (response.data as Map<String, dynamic>)['members']
-            : response.data,
-      ).map(Member.fromJson).toList(growable: false);
-      if (list.isNotEmpty) return list;
-    } catch (_) {}
-
-    try {
-      final dashboardResp = await _client.dio.get<Map<String, dynamic>>('/dashboard/family');
-      final rawMembers = dashboardResp.data?['members'];
-      if (rawMembers is List && rawMembers.isNotEmpty) {
-        return rawMembers
-            .whereType<Map<String, dynamic>>()
-            .map(Member.fromJson)
-            .toList(growable: false);
-      }
-    } catch (_) {}
-
-    try {
-      final myMemberResp = await _client.dio.get<Map<String, dynamic>>('/members/me');
-      if (myMemberResp.data != null) {
-        return [Member.fromJson(myMemberResp.data!)];
-      }
-    } catch (_) {}
-
-    return const <Member>[];
+    final response = await _client.dio.get<dynamic>('/families/me');
+    final data = response.data;
+    if (data is! Map<String, dynamic> || data['members'] is! List) {
+      throw const FormatException('Expected family members list');
+    }
+    return _listFrom(data['members'])
+        .map(Member.fromJson)
+        .toList(growable: false);
   }
 
   @override
