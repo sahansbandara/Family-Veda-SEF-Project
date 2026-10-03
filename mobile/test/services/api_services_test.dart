@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:family_veda/services/api/api_client.dart';
 import 'package:family_veda/services/api/auth_api.dart';
+import 'package:family_veda/services/api/family_portal_api.dart';
 import 'package:family_veda/services/api/mobile_api.dart';
 import 'package:family_veda/services/api/patient_api.dart';
 import 'package:family_veda/services/storage/secure_token_store.dart';
@@ -62,6 +63,17 @@ class _FakeTokenStore implements TokenStore {
 
 class _JsonAdapter implements HttpClientAdapter {
   RequestOptions? lastRequest;
+  final failures = <String, Object>{};
+  final requests = <RequestOptions>[];
+  final responses = <String, ({int status, Object? body})>{};
+
+  void fail(String path, Object error) {
+    failures[path] = error;
+  }
+
+  void respond(String path, {required int status, required Object? body}) {
+    responses[path] = (status: status, body: body);
+  }
 
   @override
   Future<ResponseBody> fetch(
@@ -70,7 +82,10 @@ class _JsonAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     lastRequest = options;
+    requests.add(options);
     final path = options.uri.path;
+    final failure = failures[path];
+    if (failure != null) throw failure;
     final (status, body) = switch (path) {
       '/api/v1/auth/login' || '/api/v1/auth/refresh' => (
         200,
@@ -177,9 +192,10 @@ class _JsonAdapter implements HttpClientAdapter {
       '/api/v1/unauthorized' => (401, {'title': 'Unauthorized'}),
       _ => (404, {'title': 'Not found'}),
     };
+    final configured = responses[path];
     return ResponseBody.fromString(
-      jsonEncode(body),
-      status,
+      jsonEncode(configured == null ? body : configured.body),
+      configured?.status ?? status,
       headers: {
         Headers.contentTypeHeader: [Headers.jsonContentType],
       },
@@ -238,7 +254,10 @@ void main() {
     );
 
     expect(userFacingApiError(errorFor(401)), contains('incorrect'));
-    expect(userFacingApiError(errorFor(403)), 'Email or password is incorrect.');
+    expect(
+      userFacingApiError(errorFor(403)),
+      'Email or password is incorrect.',
+    );
     expect(
       userFacingApiError(errorFor(500)),
       contains('temporarily unavailable'),
@@ -306,6 +325,162 @@ void main() {
       symptoms: const ['Fever'],
     );
     expect(caseId, 'case-2');
+  });
+
+  test('patient members accepts a valid empty canonical response', () async {
+    adapter.respond(
+      '/api/v1/families/me',
+      status: 200,
+      body: const {'members': <Object>[]},
+    );
+
+    final members = await DioPatientApi(
+      client,
+      devicePlatform: MobileDevicePlatform.android,
+    ).getMembers();
+
+    expect(members, isEmpty);
+    expect(adapter.requests.map((request) => request.uri.path), [
+      '/api/v1/families/me',
+    ]);
+  });
+
+  for (final status in [401, 403, 500]) {
+    test('patient members propagates HTTP $status without fallback', () async {
+      adapter.respond(
+        '/api/v1/families/me',
+        status: status,
+        body: {'title': 'Synthetic HTTP $status'},
+      );
+
+      await expectLater(
+        DioPatientApi(
+          client,
+          devicePlatform: MobileDevicePlatform.android,
+        ).getMembers(),
+        throwsA(isA<DioException>()),
+      );
+      expect(adapter.requests.map((request) => request.uri.path), [
+        '/api/v1/families/me',
+      ]);
+    });
+  }
+
+  test('patient members rejects a missing members field', () async {
+    adapter.respond(
+      '/api/v1/families/me',
+      status: 200,
+      body: const <String, dynamic>{},
+    );
+
+    await expectLater(
+      DioPatientApi(
+        client,
+        devicePlatform: MobileDevicePlatform.android,
+      ).getMembers(),
+      throwsA(isA<FormatException>()),
+    );
+    expect(adapter.requests.map((request) => request.uri.path), [
+      '/api/v1/families/me',
+    ]);
+  });
+
+  test('patient members propagates connection failures', () async {
+    adapter.fail(
+      '/api/v1/families/me',
+      Exception('Synthetic connection failure'),
+    );
+
+    await expectLater(
+      DioPatientApi(
+        client,
+        devicePlatform: MobileDevicePlatform.android,
+      ).getMembers(),
+      throwsA(isA<DioException>()),
+    );
+    expect(adapter.requests.map((request) => request.uri.path), [
+      '/api/v1/families/me',
+    ]);
+  });
+
+  test('appointments accepts a valid empty canonical response', () async {
+    adapter.respond(
+      '/api/v1/appointments/mine',
+      status: 200,
+      body: const <Object>[],
+    );
+
+    final appointments = await DioFamilyPortalApi(client).getMyAppointments();
+
+    expect(appointments, isEmpty);
+    expect(adapter.requests.map((request) => request.uri.path), [
+      '/api/v1/appointments/mine',
+    ]);
+  });
+
+  for (final status in [401, 403, 500]) {
+    test('appointments propagates HTTP $status without fallback', () async {
+      adapter.respond(
+        '/api/v1/appointments/mine',
+        status: status,
+        body: {'title': 'Synthetic HTTP $status'},
+      );
+
+      await expectLater(
+        DioFamilyPortalApi(client).getMyAppointments(),
+        throwsA(isA<DioException>()),
+      );
+      expect(adapter.requests.map((request) => request.uri.path), [
+        '/api/v1/appointments/mine',
+      ]);
+    });
+  }
+
+  test('appointments rejects malformed canonical data', () async {
+    adapter.respond(
+      '/api/v1/appointments/mine',
+      status: 200,
+      body: const {'items': 'malformed'},
+    );
+
+    await expectLater(
+      DioFamilyPortalApi(client).getMyAppointments(),
+      throwsA(isA<FormatException>()),
+    );
+    expect(adapter.requests.map((request) => request.uri.path), [
+      '/api/v1/appointments/mine',
+    ]);
+  });
+
+  test('appointments rejects a missing list envelope', () async {
+    adapter.respond(
+      '/api/v1/appointments/mine',
+      status: 200,
+      body: const <String, dynamic>{},
+    );
+
+    await expectLater(
+      DioFamilyPortalApi(client).getMyAppointments(),
+      throwsA(isA<FormatException>()),
+    );
+    expect(adapter.requests.map((request) => request.uri.path), [
+      '/api/v1/appointments/mine',
+    ]);
+  });
+
+  test('appointments propagates connection failures', () async {
+    adapter.fail(
+      '/api/v1/appointments/mine',
+      Exception('Synthetic connection failure'),
+    );
+
+    await expectLater(
+      DioFamilyPortalApi(client).getMyAppointments(),
+      throwsA(isA<DioException>()),
+    );
+    expect(adapter.requests.map((request) => request.uri.path), [
+      '/api/v1/appointments/mine',
+    ]);
   });
 
   test('patient API registers Android device tokens as ANDROID', () async {
