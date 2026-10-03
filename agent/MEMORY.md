@@ -97,3 +97,7 @@ Confirmed reference-range diagrams use only finite confirmed source values and v
 
 ### 2026-10-03 — Lab concentration safety regression
 SafetyValidationService dose regex previously matched numeric mg inside mg/dL lab measurements and blocked legitimate analysis as DOSING_CONTENT. Narrow negative lookahead on the mg alternative recognizes complete mg/dL while malformed suffixes and real dosage units remain blocked. Regression tests: lab concentration/case variants, actual mg/mcg/g/mL doses, mixed evidence+dose, malformed mg/dL suffixes, medication instruction/name. Full UnitTests 246/246; source coverage 82.35% lines. Deployment/live replacement case pending at commit preparation. The original failed case remains untouched and no draft is patient-approved.
+
+## 2026-10-03 — Synthetic family review follow-up
+
+Factual `minor/modest increase` lab-trend clauses triggered the deterministic medication verb detector after the mg/dL dose fix. Exclude only the quantified noun match; other commands remain checked. FamilialRisk models can omit unknown relatives, so its final UnknownParties now derives from biological relationship IDs absent from consent-filtered confirmed hereditary flags. Empty filtered flags never establish absence of disease. Hosted rerun/deployment evidence is recorded separately after execution.

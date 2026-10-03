@@ -47,6 +47,48 @@ public sealed class SafetyValidationServiceTests
         Assert.Contains("PROHIBITED_CONTENT", result.Violations);
     }
 
+    [Theory]
+    [InlineData("Total cholesterol remains within normal reference range, despite a minor increase from 178mg/dL to 188mg/dL.")]
+    [InlineData("Total cholesterol remains within the standard reference range at 188mg/dL, despite a modest increase from the baseline of 178mg/dL.")]
+    public void Validate_WhenQuantifiedTrendUsesIncreaseAsNoun_AllowsEvidence(string draft)
+    {
+        var result = new SafetyValidationService().Validate(new SafetyInput(false, draft, true, .9m, .6m));
+        Assert.True(result.CanContinue);
+    }
+
+    [Theory]
+    [InlineData("Increase from 178mg/dL to 188mg/dL.")]
+    [InlineData("Despite a minor increase from 178mg/dL, increase medication.")]
+    [InlineData("Despite a modest increase from 178mg/dL, take aspirin.")]
+    [InlineData("Despite a minor increase from 178mg/dLextra.")]
+    [InlineData("Despite a minor increase from 178mg/dL, you have pneumonia.")]
+    public void Validate_WhenTrendContainsOtherProhibitedText_StillBlocks(string draft)
+    {
+        var result = new SafetyValidationService().Validate(new SafetyInput(false, draft, true, .9m, .6m));
+        Assert.False(result.CanContinue);
+    }
+
+    [Theory]
+    [InlineData("take")]
+    [InlineData("start")]
+    [InlineData("stop")]
+    [InlineData("continue")]
+    [InlineData("increase")]
+    [InlineData("decrease")]
+    [InlineData("use")]
+    [InlineData("apply")]
+    [InlineData("inject")]
+    [InlineData("swallow")]
+    public void Validate_WhenFactualNounIsAdjacentToCommand_BlocksEveryCommand(string command)
+    {
+        var draft = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            StablePatterns = new[] { "Despite a minor increase from 178mg/dL.", $"{command} medication." }
+        });
+        var result = new SafetyValidationService().Validate(new SafetyInput(false, draft, true, .9m, .6m));
+        Assert.Contains("PROHIBITED_CONTENT", result.Violations);
+    }
+
     [Fact]
     public void Validate_WhenEmergencyRedFlagExists_HaltsBeforeLlmAndReturnsReferralOnly()
     {

@@ -72,7 +72,7 @@ public sealed partial class SafetyValidationService
         }
 
         if (DiagnosisPattern().IsMatch(input.DraftText) ||
-            MedicationInstructionPattern().IsMatch(input.DraftText) ||
+            HasMedicationInstruction(input.DraftText) ||
             MedicationNamePattern().IsMatch(input.DraftText))
         {
             violations.Add("PROHIBITED_CONTENT");
@@ -89,6 +89,19 @@ public sealed partial class SafetyValidationService
 
     [GeneratedRegex(@"\b(?:diagnos(?:e|ed|is|tic)|(?:you|patient|they|he|she)\s+(?:have|has|had|are|is)\s+(?:a|an)?\s*[a-z-]+)\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex DiagnosisPattern();
+
+    private static bool HasMedicationInstruction(string text)
+    {
+        // Ignore only the noun in a quantified factual clause. Other command words,
+        // diagnoses, drug names and doses still run against the untouched draft.
+        var factualNouns = FactualLabIncreasePattern().Matches(text)
+            .Select(match => match.Groups["noun"].Index).ToHashSet();
+        return MedicationInstructionPattern().Matches(text)
+            .Any(match => !factualNouns.Contains(match.Index));
+    }
+
+    [GeneratedRegex(@"\bdespite\s+a\s+(?:minor|modest|small)\s+(?<noun>increase)\s+from\s+(?:the\s+baseline\s+of\s+)?\d+(?:\.\d+)?\s*mg/dL\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex FactualLabIncreasePattern();
 
     [GeneratedRegex(@"\b(?:take|start|stop|continue|increase|decrease|use|apply|inject|swallow)\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex MedicationInstructionPattern();

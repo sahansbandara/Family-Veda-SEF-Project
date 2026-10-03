@@ -288,3 +288,9 @@ Nav: `Dashboard | Calendar | My Families | Triage Cases | Approvals | Profile & 
 - [x] Web regression coverage and code/security review; baseline backend/web suites passed.
 - [ ] Verify updated running API/browser end to end after rebuild/restart; Flutter doctor console is separate scope.
 - [x] Combine stashed plain-language/vitals/reports UI with current case-specific review reasons; local authenticated browser and responsive checks passed.
+
+## 2026-10-03 — Approved synthetic family review follow-up
+
+- [x] Reproduce quantified lab noun false positives and missing/hallucinated unknown relatives with failing regression tests; implement deterministic corrections without permission expansion.
+- [ ] Independent code/security review, CI, reviewed PR and deployed revision verification.
+- [ ] One genuine hosted synthetic-family rerun; verify all doctor-review evidence sections and pending approval, private Drive originals, and unavailable paternal history.
