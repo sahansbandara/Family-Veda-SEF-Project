@@ -108,6 +108,75 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
         _inviteRelationshipController.clear();
       });
       ref.invalidate(familySentInvitationsProvider(familyId));
+      if (mounted) {
+        showDialog<void>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A)),
+                SizedBox(width: 8),
+                Text('Invitation Created', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Share this one-time token privately with the invited adult:',
+                  style: TextStyle(fontSize: 13),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFF93C5FD)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SelectableText(
+                          issued.token,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                            color: Color(0xFF1E3A8A),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.copy_rounded, color: Color(0xFF2563EB)),
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: issued.token));
+                          _showMessage('Token copied to clipboard.', isSuccess: true);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                if (issued.expiresAt != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Valid until ${DateFormat('MMM d, yyyy · h:mm a').format(issued.expiresAt!)}',
+                    style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
+                  ),
+                ],
+              ],
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1D61E0)),
+                child: const Text('Done', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        );
+      }
       _showMessage('Invitation created. Share the token privately.', isSuccess: true);
     } catch (_) {
       _showMessage('The invitation could not be created. Try again.', isError: true);
@@ -480,13 +549,27 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
     required String? activeId,
     required bool isDark,
   }) {
+    final dashboard = ref.watch(familyDashboardProvider).valueOrNull;
+    final fallbackMembers = (dashboard?.members ?? const [])
+        .map((dm) => Member(
+              id: dm.id,
+              displayName: dm.displayName,
+              relationshipLabel: dm.role,
+            ))
+        .toList();
+
     return membersAsync.when(
-      loading: () => const LoadingStateView(label: 'Loading members'),
-      error: (_, _) => ErrorRetryView(
-        onRetry: () => ref.invalidate(membersProvider),
-      ),
+      loading: () => fallbackMembers.isNotEmpty
+          ? _renderRoster(fallbackMembers, activeId, isDark)
+          : const LoadingStateView(label: 'Loading members'),
+      error: (_, _) => fallbackMembers.isNotEmpty
+          ? _renderRoster(fallbackMembers, activeId, isDark)
+          : ErrorRetryView(
+              onRetry: () => ref.invalidate(membersProvider),
+            ),
       data: (items) {
-        if (items.isEmpty) {
+        final displayItems = items.isNotEmpty ? items : fallbackMembers;
+        if (displayItems.isEmpty) {
           return Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -503,56 +586,60 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
           );
         }
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        return _renderRoster(displayItems, activeId, isDark);
+      },
+    );
+  }
+
+  Widget _renderRoster(List<Member> items, String? activeId, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'ROSTER (${items.length})',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.8,
-                    color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
-                  ),
-                ),
-                Text(
-                  'Tap to switch active member',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
-                  ),
-                ),
-              ],
+            Text(
+              'ROSTER (${items.length})',
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.8,
+                color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
+              ),
             ),
-            const SizedBox(height: 10),
-            ...items.map(
-              (member) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: MemberCard(
-                  member: member,
-                  isActive: member.id == activeId,
-                  onSelected: () async {
-                    final userId = ref.read(authProvider).userId;
-                    if (userId == null) return;
-                    ref.read(activeMemberProvider.notifier).state = member.id;
-                    try {
-                      await ref
-                          .read(memberPreferenceStoreProvider)
-                          .writeActiveMemberId(
-                            userId: userId,
-                            memberId: member.id,
-                          );
-                    } on Object {}
-                  },
-                ),
+            Text(
+              'Tap to switch active member',
+              style: TextStyle(
+                fontSize: 11.5,
+                color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
               ),
             ),
           ],
-        );
-      },
+        ),
+        const SizedBox(height: 10),
+        ...items.map(
+          (member) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: MemberCard(
+              member: member,
+              isActive: member.id == activeId,
+              onSelected: () async {
+                final userId = ref.read(authProvider).userId;
+                if (userId == null) return;
+                ref.read(activeMemberProvider.notifier).state = member.id;
+                try {
+                  await ref
+                      .read(memberPreferenceStoreProvider)
+                      .writeActiveMemberId(
+                        userId: userId,
+                        memberId: member.id,
+                      );
+                } on Object {}
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 
