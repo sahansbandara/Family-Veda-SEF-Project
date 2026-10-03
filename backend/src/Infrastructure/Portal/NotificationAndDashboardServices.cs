@@ -237,46 +237,55 @@ public sealed class PortalDashboardService(AppDbContext dbContext, ICurrentUser 
 
     public async Task<DoctorDashboardDto> GetDoctorDashboardAsync(CancellationToken cancellationToken)
     {
-        var doctor = await dbContext.Doctors.Include(x => x.User).SingleOrDefaultAsync(x => x.UserId == currentUser.UserId, cancellationToken) ?? throw new NotFoundException();
-        var today = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero);
-        var tomorrow = today.AddDays(1);
-        var todayAppointmentEntities = await dbContext.Appointments.AsNoTracking()
-            .Where(x => x.DoctorId == doctor.Id && x.StartsAt >= today && x.StartsAt < tomorrow)
-            .OrderBy(x => x.StartsAt)
-            .ToListAsync(cancellationToken);
-        var todayAppointments = new List<AppointmentDto>();
-        foreach (var appointment in todayAppointmentEntities)
-        {
-            var member = await dbContext.Members.AsNoTracking().SingleAsync(x => x.Id == appointment.MemberId, cancellationToken);
-            var family = await dbContext.Families.AsNoTracking().SingleAsync(x => x.Id == member.FamilyId, cancellationToken);
-            var doctorDto = new DoctorSummaryDto(doctor.Id, doctor.User?.DisplayName ?? "Unknown", doctor.Specialty, doctor.HospitalClinic, doctor.District, doctor.City, doctor.Languages);
-            todayAppointments.Add(new AppointmentDto(appointment.Id, member.Id, member.DisplayName, family.Name, doctorDto,
-                appointment.StartsAt, appointment.DurationMinutes, appointment.Reason, appointment.Status, appointment.DoctorNote, appointment.CreatedAt));
-        }
-
+        // The doctor row and every scalar count travel in one round trip; the database is remote,
+        // so each separate query costs a full network hop.
         // Clinical work is scoped by active, unexpired case grants — access by grant, not by role (RULE 8).
         var now = DateTimeOffset.UtcNow;
+        var userId = currentUser.UserId;
+        var head = await dbContext.Doctors.AsNoTracking().Where(x => x.UserId == userId).Select(x => new
+        {
+            x.Id,
+            DisplayName = x.User != null ? x.User.DisplayName : null,
+            x.Specialty,
+            x.HospitalClinic,
+            x.District,
+            x.City,
+            x.Languages,
+            x.VerificationStatus,
+            PendingFamilyRequests = dbContext.FamilyDoctorRequests.Count(r => r.DoctorId == x.Id && r.Status == PortalRequestStatus.Pending),
+            Unread = dbContext.PortalNotifications.Count(n => n.UserId == userId && n.ReadAt == null),
+            GrantedCases = dbContext.TriageCases
+                .Where(c => dbContext.CaseAccessGrants.Any(g => g.DoctorId == x.Id && g.RevokedAt == null && g.ExpiresAt > now && g.TriageCaseId == c.Id))
+                .Select(c => new { c.Status, c.Priority }).ToList()
+        }).SingleOrDefaultAsync(cancellationToken) ?? throw new NotFoundException();
         var grantedCaseIds = dbContext.CaseAccessGrants
-            .Where(x => x.DoctorId == doctor.Id && x.RevokedAt == null && x.ExpiresAt > now)
+            .Where(x => x.DoctorId == head.Id && x.RevokedAt == null && x.ExpiresAt > now)
             .Select(x => x.TriageCaseId);
-        var pendingApprovals = await dbContext.TriageCases.CountAsync(x => grantedCaseIds.Contains(x.Id) &&
-            (x.Status == TriageStatus.PendingDoctorReview || x.Status == TriageStatus.LowConfidence || x.Status == TriageStatus.Claimed), cancellationToken);
-        var openCases = await dbContext.TriageCases.CountAsync(x => grantedCaseIds.Contains(x.Id) && !ClosedStatuses.Contains(x.Status), cancellationToken);
-        var pendingFamilyRequests = await dbContext.FamilyDoctorRequests.CountAsync(x => x.DoctorId == doctor.Id && x.Status == PortalRequestStatus.Pending, cancellationToken);
-        var assignedFamilies = await dbContext.FamilyDoctorAssignments.CountAsync(x => x.DoctorId == doctor.Id && x.IsPrimary && x.EndedAt == null, cancellationToken);
-        var unread = await dbContext.PortalNotifications.CountAsync(x => x.UserId == currentUser.UserId && x.ReadAt == null, cancellationToken);
+        var pendingApprovals = head.GrantedCases.Count(x => x.Status is TriageStatus.PendingDoctorReview or TriageStatus.LowConfidence or TriageStatus.Claimed);
+        var openCases = head.GrantedCases.Count(x => !ClosedStatuses.Contains(x.Status));
+        var priorityOpenCases = head.GrantedCases.Count(x => !ClosedStatuses.Contains(x.Status) && x.Priority != TriagePriority.Routine);
+        var pendingFamilyRequests = head.PendingFamilyRequests;
+        var unread = head.Unread;
 
-        var priorityOpenCases = await dbContext.TriageCases.CountAsync(x => grantedCaseIds.Contains(x.Id) && !ClosedStatuses.Contains(x.Status)
-            && x.Priority != TriagePriority.Routine, cancellationToken);
+        var today = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero);
+        var tomorrow = today.AddDays(1);
+        var doctorDto = new DoctorSummaryDto(head.Id, head.DisplayName ?? "Unknown", head.Specialty, head.HospitalClinic, head.District, head.City, head.Languages);
+        var todayRows = await dbContext.Appointments.AsNoTracking()
+            .Where(x => x.DoctorId == head.Id && x.StartsAt >= today && x.StartsAt < tomorrow)
+            .OrderBy(x => x.StartsAt)
+            .Select(x => new { x.Id, x.MemberId, MemberName = x.Member!.DisplayName, FamilyName = x.Member.Family!.Name, x.StartsAt, x.DurationMinutes, x.Reason, x.Status, x.DoctorNote, x.CreatedAt })
+            .ToListAsync(cancellationToken);
+        var todayAppointments = todayRows.Select(x => new AppointmentDto(x.Id, x.MemberId, x.MemberName, x.FamilyName, doctorDto,
+            x.StartsAt, x.DurationMinutes, x.Reason, x.Status, x.DoctorNote, x.CreatedAt)).ToList();
 
         // Families table: active primary assignments only; visit dates come from this doctor's own appointments.
         var assignedFamilyRows = await dbContext.FamilyDoctorAssignments.AsNoTracking()
-            .Where(x => x.DoctorId == doctor.Id && x.IsPrimary && x.EndedAt == null)
+            .Where(x => x.DoctorId == head.Id && x.IsPrimary && x.EndedAt == null)
             .Select(x => new { x.FamilyId, x.Family!.Name, MemberCount = x.Family.Members.Count })
             .ToListAsync(cancellationToken);
         var familyIds = assignedFamilyRows.Select(x => x.FamilyId).ToList();
         var familyAppointments = await dbContext.Appointments.AsNoTracking()
-            .Where(x => x.DoctorId == doctor.Id && familyIds.Contains(x.Member!.FamilyId))
+            .Where(x => x.DoctorId == head.Id && familyIds.Contains(x.Member!.FamilyId))
             .Select(x => new { x.Member!.FamilyId, x.StartsAt, x.Status })
             .ToListAsync(cancellationToken);
         var families = assignedFamilyRows.Select(f =>
@@ -290,7 +299,7 @@ public sealed class PortalDashboardService(AppDbContext dbContext, ICurrentUser 
 
         // Timeline: only this doctor's appointments and granted cases (permitted activity).
         var appointmentActivity = await dbContext.Appointments.AsNoTracking()
-            .Where(x => x.DoctorId == doctor.Id && x.UpdatedAt <= now)
+            .Where(x => x.DoctorId == head.Id && x.UpdatedAt <= now)
             .OrderByDescending(x => x.UpdatedAt).Take(5)
             .Select(x => new DashboardActivityDto("Appointment " + x.Status.ToString().ToLower(), x.Member!.DisplayName, x.UpdatedAt))
             .ToListAsync(cancellationToken);
@@ -303,8 +312,8 @@ public sealed class PortalDashboardService(AppDbContext dbContext, ICurrentUser 
             .Concat(caseActivity.Select(x => new DashboardActivityDto($"Triage case {HumanStatus(x.Status)}", x.DisplayName, x.UpdatedAt)))
             .OrderByDescending(x => x.OccurredAt).Take(6).ToList();
 
-        return new DoctorDashboardDto(todayAppointments, pendingApprovals, openCases, pendingFamilyRequests, assignedFamilies, unread,
-            doctor.User?.DisplayName ?? "Doctor", doctor.Specialty, doctor.VerificationStatus.ToString(), priorityOpenCases, families, activity);
+        return new DoctorDashboardDto(todayAppointments, pendingApprovals, openCases, pendingFamilyRequests, assignedFamilyRows.Count, unread,
+            head.DisplayName ?? "Doctor", head.Specialty, head.VerificationStatus.ToString(), priorityOpenCases, families, activity);
     }
 
     private static string HumanStatus(TriageStatus status) => status switch

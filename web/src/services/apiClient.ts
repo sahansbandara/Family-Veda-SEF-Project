@@ -9,6 +9,15 @@ const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:5000/api/
 
 export const apiClient = axios.create({ baseURL, timeout: 15_000 })
 
+/**
+ * The hosted API sleeps when idle and takes up to a minute to wake. Calling this as the app opens
+ * starts the wake-up while the person is still signing in. It carries no credentials and its
+ * result is ignored: a failure here changes nothing, the real requests report their own errors.
+ */
+export function warmUpApi() {
+  void fetch(`${baseURL.replace(/\/api\/v1\/?$/, '')}/health`, { mode: 'no-cors', cache: 'no-store' }).catch(() => undefined)
+}
+
 export function setSessionTokens(next: Tokens | null) {
   tokens = next
 }
