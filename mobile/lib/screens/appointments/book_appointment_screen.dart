@@ -506,6 +506,8 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
 
                       // Member Dropdown
                       DropdownButtonFormField<String>(
+                        // initialValue would stop the field following state changes.
+                        // ignore: deprecated_member_use
                         value: _selectedMemberId,
                         decoration: InputDecoration(
                           labelText: 'Who is this for?',
@@ -574,6 +576,8 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
 
                       // Duration Dropdown
                       DropdownButtonFormField<int>(
+                        // initialValue would stop the field following state changes.
+                        // ignore: deprecated_member_use
                         value: _durationMinutes,
                         decoration: InputDecoration(
                           labelText: 'Duration',
