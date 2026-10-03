@@ -26,10 +26,6 @@ describe('ApprovalsPage', () => {
   beforeEach(() => {
     mocks.get.mockReset()
     mocks.post.mockReset()
-    vi.stubGlobal(
-      'confirm',
-      vi.fn(() => true),
-    )
   })
 
   it('shows a retryable error when selected case evidence fails to load', async () => {
@@ -101,7 +97,7 @@ describe('ApprovalsPage', () => {
     expect(mocks.get).toHaveBeenCalledWith('/triage-cases/case-b/review')
   })
 
-  it('keeps decisions disabled until the current review is ready and preserves approval confirmation', async () => {
+  it('keeps decisions disabled until the current review is ready and saves only after confirmation', async () => {
     let resolveReview!: (value: { data: ReturnType<typeof review> }) => void
     const pendingReview = new Promise<{ data: ReturnType<typeof review> }>((resolve) => {
       resolveReview = resolve
@@ -127,9 +123,60 @@ describe('ApprovalsPage', () => {
     })
     fireEvent.click(approve)
 
+    const dialog = await screen.findByRole('dialog', { name: /approve · request case-a/i })
+    expect(dialog).toHaveTextContent('Please arrange an in-person clinical review.')
+    expect(mocks.post).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm decision' }))
+
     await waitFor(() =>
       expect(mocks.post).toHaveBeenCalledWith('/triage-cases/case-a/approve', expect.any(Object)),
     )
-    expect(window.confirm).toHaveBeenCalledWith(expect.stringMatching(/Confirm approve decision/))
+  })
+
+  it('blocks approval without approved guidance and lets the doctor cancel a decision', async () => {
+    mocks.get.mockImplementation((url: string) =>
+      url === '/doctors/me/cases'
+        ? Promise.resolve({ data: { items: [queuedCase('case-a')] } })
+        : Promise.resolve({ data: review('case-a') }),
+    )
+
+    render(
+      <MemoryRouter>
+        <ApprovalsPage />
+      </MemoryRouter>,
+    )
+    const approve = await screen.findByRole('button', { name: 'Approve' })
+    await waitFor(() => expect(approve).toBeEnabled())
+    fireEvent.click(approve)
+    expect(screen.getByText(/choose one approved guidance option/i)).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reject' }))
+    await screen.findByRole('dialog')
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(mocks.post).not.toHaveBeenCalled()
+  })
+
+  it('filters the queue by priority and by search text', async () => {
+    mocks.get.mockImplementation((url: string) => {
+      if (url === '/doctors/me/cases')
+        return Promise.resolve({ data: { items: [queuedCase('case-a'), queuedCase('case-b', 'Priority')] } })
+      return Promise.resolve({ data: review('case-a') })
+    })
+
+    render(
+      <MemoryRouter>
+        <ApprovalsPage />
+      </MemoryRouter>,
+    )
+    await screen.findByRole('button', { name: /review case case-b/i })
+    fireEvent.click(screen.getByRole('button', { name: 'Priority (1)' }))
+    expect(screen.queryByRole('button', { name: /review case case-a/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /review case case-b/i })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'All (2)' }))
+    fireEvent.change(screen.getByLabelText('Search cases'), { target: { value: 'zzz' } })
+    expect(screen.getByText(/no matching cases/i)).toBeInTheDocument()
   })
 })

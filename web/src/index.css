@@ -6,6 +6,7 @@
 @import './styles/portal-dashboard.css';
 @import './styles/auth-shell.css';
 @import './styles/care-workspace.css';
+@import './styles/approval-desk.css';
 
 /* Base and reset. Tokens are defined in styles/tokens.css. */
 

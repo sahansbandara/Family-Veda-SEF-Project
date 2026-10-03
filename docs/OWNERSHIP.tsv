@@ -220,6 +220,9 @@ S4	web/src/pages/admin/DoctorVerificationPage.tsx
 S4	web/src/pages/audit/AuditPage.tsx
 S4	web/src/pages/doctor/ApprovalsPage.tsx
 S4	web/src/pages/doctor/ApprovalsPage.test.tsx
+S4	web/src/pages/doctor/ApprovalDecisionPanel.tsx
+S4	web/src/pages/doctor/ApprovalEvidenceTabs.tsx
+S4	web/src/pages/doctor/approvalReview.ts
 S4	web/src/pages/doctor/SafetyChecks.tsx
 S4	web/src/pages/doctor/safetyRules.ts
 S4	web/src/pages/doctor/safetyRules.test.ts
@@ -234,6 +237,7 @@ S4	web/src/components/auth/AuthRoleSelector.tsx
 S4	web/src/components/auth/PasswordField.tsx
 S4	web/src/styles/auth-shell.css
 S4	web/src/styles/care-workspace.css
+S4	web/src/styles/approval-desk.css
 S4	web/src/pages/system/SystemPages.tsx
 S4	mobile/lib/models/approved_guidance.dart
 S4	mobile/lib/providers/guidance_provider.dart
