@@ -244,6 +244,16 @@ S4	web/src/pages/doctor/safetyRules.test.ts
 S4	web/src/pages/family/FamilyRiskPage.tsx
 S4	web/src/pages/family/FamilyRiskPage.test.tsx
 S4	web/src/pages/doctor/CasesPage.tsx
+S4	web/src/pages/doctor/CasesPage.test.tsx
+S4	web/src/pages/doctor/CasePreview.tsx
+S4	web/src/pages/doctor/triageQueue.ts
+S4	web/src/styles/triage-queue.css
+S4	mobile/lib/models/doctor_queue_case.dart
+S4	mobile/lib/services/api/doctor_cases_api.dart
+S4	mobile/lib/providers/doctor_cases_provider.dart
+S4	mobile/lib/screens/doctor/doctor_triage_cases_screen.dart
+S4	mobile/lib/widgets/doctor/triage_queue_parts.dart
+S4	mobile/test/screens/doctor_triage_cases_screen_test.dart
 S4	web/src/pages/doctor/DoctorStatusPage.tsx
 S4	web/src/components/auth/AuthShell.tsx
 S4	web/src/components/auth/AuthHero.tsx

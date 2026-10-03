@@ -77,7 +77,7 @@ describe('AppRoutes', () => {
 
   it('shows verified doctors the live triage case queue', async () => {
     renderRoute('/cases', 'DOCTOR')
-    expect(screen.getByRole('heading', { name: /triage cases/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /triage case management/i })).toBeInTheDocument()
     expect(await screen.findByText('No matching cases')).toBeInTheDocument()
     expect(screen.queryByText('FV-TR-1048')).not.toBeInTheDocument()
   })
