@@ -43,6 +43,8 @@ function RawJson({ title, raw }: { title: string; raw?: string | null }) {
   )
 }
 
+import { IconStethoscope, IconBrain, IconDna } from './ApprovalIcons'
+
 export function ApprovalEvidenceTabs({ review }: { review: CaseReviewDto }) {
   const [tab, setTab] = useState<TabId>('overview')
 
@@ -69,7 +71,7 @@ export function ApprovalEvidenceTabs({ review }: { review: CaseReviewDto }) {
         {tab === 'overview' && (
           <div className="approval-grid">
             <article className="care-panel approval-tile approval-tile--attention">
-              <h3>Why this case needs review</h3>
+              <h3><IconStethoscope /> Why this case needs review</h3>
               <ul className="approval-reasons">
                 {reviewReasons(review).map((reason) => (
                   <li key={reason}>{reason}</li>
@@ -77,7 +79,7 @@ export function ApprovalEvidenceTabs({ review }: { review: CaseReviewDto }) {
               </ul>
             </article>
             <article className="care-panel approval-tile approval-tile--draft">
-              <h3>AI findings — plain language</h3>
+              <h3><IconBrain /> AI findings — plain language</h3>
               <p className="approval-tag">Unapproved AI draft</p>
               <div className="approval-findings">
                 <EvidenceList raw={review.draftAdvisoryJson} empty="No AI draft advisory was produced for this request." />
@@ -89,7 +91,7 @@ export function ApprovalEvidenceTabs({ review }: { review: CaseReviewDto }) {
             </article>
             <ApprovalSupportingEvidence key={review.id} memberId={review.memberId} />
             <article className="care-panel approval-tile approval-family">
-              <h3>Consented family-history context</h3>
+              <h3><IconDna /> Consented family-history context</h3>
               <EvidenceList
                 raw={review.familialRiskJson}
                 empty="No consented family-history screening indication is available."

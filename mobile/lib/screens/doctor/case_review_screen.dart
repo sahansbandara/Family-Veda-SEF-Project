@@ -224,18 +224,27 @@ class _CaseReviewScreenState extends State<CaseReviewScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: _buildCard('⚠ Why this needs review', 'Patient reports fever > 38.5°C\nAI suggests clinical review')),
+              Expanded(child: _buildCard(Icons.medical_services_outlined, Colors.orange, 'Why this case needs review', 'Patient reports fever > 38.5°C\nAI suggests clinical review')),
               const SizedBox(width: 24),
-              Expanded(child: _buildCard('🧠 AI Summary', 'Symptoms: Fever, body ache.\nRisk Signals: Possible viral infection.')),
+              Expanded(child: _buildCard(Icons.psychology_outlined, Colors.purpleAccent, 'AI findings — plain language', 'Symptoms: Fever, body ache.\nRisk Signals: Possible viral infection.')),
             ],
           ),
           const SizedBox(height: 24),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: _buildCard('🛡 Safety checks', '✅ Triage questionnaire completed\n✅ No red flag symptoms detected')),
+              Expanded(child: _buildSafetyChecksCard()),
               const SizedBox(width: 24),
-              Expanded(child: _buildCard('❤ Vitals Snapshot', '38.8°C Temperature\n92 bpm Heart rate')),
+              Expanded(child: _buildVitalsCard()),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: _buildCard(Icons.fingerprint_outlined, Colors.blue, 'Consented family-history context', 'No consented family-history screening indication is available.\n\nA screening indication only — never a diagnosis.')),
+              const SizedBox(width: 24),
+              Expanded(child: _buildCard(Icons.fact_check_outlined, Colors.blue, 'Supporting reports', 'No supporting reports are available in the authorized records.')),
             ],
           ),
           const SizedBox(height: 24),
@@ -305,7 +314,7 @@ class _CaseReviewScreenState extends State<CaseReviewScreen> {
     );
   }
 
-  Widget _buildCard(String title, String content) {
+  Widget _buildCard(IconData icon, Color iconColor, String title, String content) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -316,9 +325,131 @@ class _CaseReviewScreenState extends State<CaseReviewScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: TextStyle(color: _textDark, fontSize: 16, fontWeight: FontWeight.bold)),
+          Row(
+            children: [
+              Icon(icon, color: iconColor, size: 20),
+              const SizedBox(width: 8),
+              Expanded(child: Text(title, style: TextStyle(color: _textDark, fontSize: 16, fontWeight: FontWeight.bold))),
+            ],
+          ),
           const SizedBox(height: 12),
           Text(content, style: TextStyle(color: _textMuted, height: 1.5)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSafetyChecksCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _cardDark,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.gpp_good_outlined, color: Colors.green, size: 20),
+              const SizedBox(width: 8),
+              Expanded(child: Text('Deterministic safety checks', style: TextStyle(color: _textDark, fontSize: 16, fontWeight: FontWeight.bold))),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildCheckItem('Schema validation passed', true),
+          _buildCheckItem('Tool permissions passed', true),
+          _buildCheckItem('No emergency red flag recorded in submitted form', true),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCheckItem(String label, bool passed) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Icon(
+              passed ? Icons.check : Icons.close,
+              color: passed ? Colors.green : Colors.red,
+              size: 18,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(color: _textMuted, fontSize: 13, height: 1.4),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVitalsCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _cardDark,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.monitor_heart_outlined, color: Colors.blue, size: 20),
+              const SizedBox(width: 8),
+              Expanded(child: Text('Latest recorded vitals', style: TextStyle(color: _textDark, fontSize: 16, fontWeight: FontWeight.bold))),
+            ],
+          ),
+          const SizedBox(height: 16),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final double cardWidth = (constraints.maxWidth - 24) / 4;
+              // If it gets too narrow, we'd normally wrap, but for this demo let's use a Wrap
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _buildEmptyVitalItem('Temperature', cardWidth > 80 ? cardWidth : constraints.maxWidth / 2 - 4),
+                  _buildEmptyVitalItem('Heart rate', cardWidth > 80 ? cardWidth : constraints.maxWidth / 2 - 4),
+                  _buildEmptyVitalItem('SpO₂', cardWidth > 80 ? cardWidth : constraints.maxWidth / 2 - 4),
+                  _buildEmptyVitalItem('Resp. rate', cardWidth > 80 ? cardWidth : constraints.maxWidth / 2 - 4),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyVitalItem(String label, double width) {
+    return Container(
+      width: width,
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.radio_button_unchecked, color: _primary, size: 24),
+          const SizedBox(height: 8),
+          Text('—', style: TextStyle(color: _textDark, fontSize: 24, fontWeight: FontWeight.w300, height: 1)),
+          const SizedBox(height: 8),
+          Text(label, style: TextStyle(color: _textMuted, fontSize: 12), textAlign: TextAlign.center),
+          const SizedBox(height: 2),
+          Text('Not available', style: TextStyle(color: _textMuted.withValues(alpha: 0.7), fontSize: 10), textAlign: TextAlign.center),
         ],
       ),
     );
@@ -328,30 +459,25 @@ class _CaseReviewScreenState extends State<CaseReviewScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: _cardDark,
+        color: const Color(0xFF0B172A), // Dark blue premium background
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: const Color(0xFF1E293B)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('📝 Doctor Notes', style: TextStyle(color: _textDark, fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _notesController,
-            maxLines: 3,
-            style: TextStyle(color: _textDark),
-            decoration: InputDecoration(
-              hintText: 'Add your clinical notes...',
-              hintStyle: TextStyle(color: _textMuted),
-              filled: true,
-              fillColor: _bgDark,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-            ),
-          ),
+          Text('DECISION GATE · HUMAN APPROVAL', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+          const SizedBox(height: 4),
+          Text('Doctor review and final guidance', style: TextStyle(color: Color(0xFFF8FAFC), fontSize: 20, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 6),
+          Text('Choose exactly what may become visible to the patient. The AI draft is never approved automatically.', style: TextStyle(color: Color(0xFFCBD5E1), fontSize: 13)),
+          
           const SizedBox(height: 24),
-          Text('📄 Final Guidance', style: TextStyle(color: _textDark, fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
+          RichText(text: const TextSpan(children: [
+            TextSpan(text: 'Final Patient Guidance ', style: TextStyle(color: Color(0xFFF8FAFC), fontSize: 14, fontWeight: FontWeight.w600)),
+            TextSpan(text: '*', style: TextStyle(color: Colors.amber, fontSize: 14, fontWeight: FontWeight.w600)),
+          ])),
+          const SizedBox(height: 8),
           DropdownButtonFormField<String>(
             /* value: _advisory.isEmpty ? null : _advisory, */
             items: const [
@@ -361,59 +487,84 @@ class _CaseReviewScreenState extends State<CaseReviewScreen> {
             onChanged: (v) => setState(() => _advisory = v!),
             decoration: InputDecoration(
               filled: true,
-              fillColor: _bgDark,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+              fillColor: const Color(0xFF0F172A),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF334155))),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF334155))),
             ),
-            dropdownColor: _bgDark,
-            style: TextStyle(color: _textDark),
+            dropdownColor: const Color(0xFF0F172A),
+            style: const TextStyle(color: Color(0xFFF8FAFC)),
           ),
+          const SizedBox(height: 6),
+          Text('Doctor-authored or explicitly reviewed text only. No diagnosis, prescriptions or doses in this prototype.', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
+          
+          const SizedBox(height: 20),
+          Text('Internal Clinical Notes', style: TextStyle(color: Color(0xFFF8FAFC), fontSize: 14, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _notesController,
+            maxLines: 3,
+            style: const TextStyle(color: Color(0xFFF8FAFC)),
+            decoration: InputDecoration(
+              hintText: 'Record your decision rationale or why more information is needed...',
+              hintStyle: const TextStyle(color: Color(0xFF64748B)),
+              filled: true,
+              fillColor: const Color(0xFF0F172A),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF334155))),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF334155))),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text('Doctor-only. Never shown to the patient. ${_notesController.text.length}/1000', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
+          
           const SizedBox(height: 24),
-          Row(
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
             children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.check_circle_outline),
-                  label: const Text('Approve Guidance'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.all(16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.edit),
-                  label: const Text('Edit Before Approving'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: _textDark,
-                    side: BorderSide(color: _textMuted),
-                    padding: const EdgeInsets.all(16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.warning_amber),
-                  label: const Text('Reject'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red.withValues(alpha: 0.8),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.all(16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                ),
-              ),
+              _buildPremiumButton('Approve', Icons.check, const Color(0xFF3B82F6), const Color(0xFF2563EB), const Color(0xFFFFFFFF)),
+              _buildPremiumButton('Revise', Icons.edit, const Color(0xFF1E293B), const Color(0xFF334155), const Color(0xFFF8FAFC)),
+              _buildPremiumButton('Request info', Icons.message_outlined, const Color(0xFF1E293B), const Color(0xFF334155), const Color(0xFFF8FAFC)),
+              _buildPremiumButton('Escalate', Icons.call_made, const Color(0xFF452920), const Color(0xFF7C2D12), const Color(0xFFFDBA74)),
+              _buildPremiumButton('Reject', Icons.close, const Color(0xFF4C1D25), const Color(0xFF881337), const Color(0xFFFDA4AF)),
             ],
           ),
+          
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.only(top: 12),
+            decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(0xFF1E293B)))),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Every decision is recorded in the audit log.', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
+                InkWell(
+                  onTap: () {
+                    setState(() { _advisory = ''; _notesController.clear(); });
+                  },
+                  child: Text('Clear draft fields', style: TextStyle(color: Color(0xFF3B82F6), fontSize: 12, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+          )
         ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumButton(String label, IconData icon, Color bgColor, Color borderColor, Color textColor) {
+    return ElevatedButton.icon(
+      onPressed: () {},
+      icon: Icon(icon, size: 16, color: textColor),
+      label: Text(label, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: bgColor,
+        foregroundColor: textColor,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: borderColor),
+        ),
       ),
     );
   }

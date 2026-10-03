@@ -4,18 +4,21 @@
 // This is a read-only view; enforcement stays in the backend approval gate (Rule 3).
 import type { AgentTraceDto } from '../../services/apiClient'
 import { buildSafetyChecks } from './safetyRules'
+import { IconShieldCheck, IconCheck, IconX } from './ApprovalIcons'
 
 export function SafetyChecks({ traces }: { traces: AgentTraceDto[] }) {
   const checks = buildSafetyChecks(traces)
   const failed = checks.filter((check) => !check.passed).length
   return (
     <section aria-labelledby="safety-heading">
-      <h3 id="safety-heading" style={{ marginTop: 'var(--sp-4)' }}>Deterministic safety checks</h3>
-      <ul className="safety-checks">
+      <h3 id="safety-heading" style={{ marginTop: 'var(--sp-4)' }}><IconShieldCheck /> Deterministic safety checks</h3>
+      <ul className="safety-checks" style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {checks.map((check) => (
-          <li key={check.label}>
-            <span>{check.label}</span>
-            <span className={`status-badge status-badge--${check.passed ? 'success' : 'danger'}`}>{check.passed ? 'Pass' : 'Fail'}</span>
+          <li key={check.label} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', gap: '8px' }}>
+            <div role="img" aria-label={check.passed ? 'Pass' : 'Fail'} style={{ marginTop: '1px' }}>
+              {check.passed ? <IconCheck /> : <IconX />}
+            </div>
+            <span style={{ fontSize: '0.8rem', lineHeight: '1.4', color: 'var(--care-muted)', marginTop: '2px' }}>{check.label}</span>
           </li>
         ))}
       </ul>

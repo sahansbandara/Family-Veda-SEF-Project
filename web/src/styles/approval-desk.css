@@ -394,14 +394,130 @@
 }
 .approval-findings .approval-facts dt { color: var(--primary); font-size: 0.82rem; }
 .approval-findings .approval-facts dd { margin-top: 8px; }
-.approval-vitals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.approval-vital { display: grid; gap: 9px; padding: 14px; border: 1px solid var(--care-line); border-radius: 12px; background: var(--care-blue-soft); overflow-wrap: anywhere; }
-.approval-vital strong { font-size: 1.3rem; }
+.approval-vitals { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.approval-vital { display: flex; flex-direction: column; gap: 6px; padding: 14px; border: 1px solid var(--care-line); border-radius: 12px; background: var(--care-blue-soft); overflow-wrap: anywhere; }
+.approval-vital strong { font-size: 1.3rem; margin-top: auto; }
 .approval-vital small { font-size: 0.72rem; color: var(--care-muted); }
+
+.approval-vitals--empty { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.approval-vital--empty { align-items: center; text-align: center; background: transparent; padding: 12px 4px; gap: 6px; justify-content: center; }
+.vital-empty-icon { color: var(--primary); margin-bottom: 2px; }
+.approval-vital--empty strong { font-size: 1.3rem; line-height: 0.5; font-weight: 400; margin-top: 0; margin-bottom: 2px; color: var(--text); }
+.approval-vital--empty span { font-size: 0.75rem; color: var(--care-muted); }
 .approval-report { padding: 14px; border: 1px solid var(--care-line); border-radius: 12px; overflow-wrap: anywhere; }
 .approval-report summary { cursor: pointer; font-weight: 650; }
 .approval-report p { margin-top: 10px; }
 @media (min-width: 1081px) {
+  .approval-vitals-panel { grid-column: 2; grid-row: 2; }
   .approval-family { grid-column: 1; grid-row: 3; }
   .approval-reports { grid-column: 2; grid-row: 3; }
 }
+
+@media (max-width: 600px) {
+  .approval-vitals--empty { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ── Premium Decision Panel (Image 2 Redesign) ────────────────────────── */
+.premium-decision-panel {
+  background: #0b172a !important;
+  border: 1px solid #1e293b !important;
+  color: #fff !important;
+  border-radius: 12px;
+}
+.premium-decision-panel .care-eyebrow {
+  color: #94a3b8 !important;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+.premium-decision-panel h2 {
+  color: #f8fafc !important;
+  margin-top: 4px;
+}
+.premium-decision-panel .care-caption {
+  color: #cbd5e1 !important;
+}
+
+/* Premium form fields */
+.premium-decision-panel .field span {
+  color: #f8fafc !important;
+}
+.premium-decision-panel .field select,
+.premium-decision-panel .field textarea {
+  background: #0f172a !important;
+  border: 1px solid #334155 !important;
+  color: #f8fafc !important;
+  border-radius: 8px;
+}
+.premium-decision-panel .field select:focus,
+.premium-decision-panel .field textarea:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Premium actions */
+.premium-decision-panel .approval-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.premium-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1 1 auto;
+}
+.premium-btn svg {
+  margin-right: 8px !important;
+}
+
+/* Button colors */
+.btn-approve {
+  background: #3b82f6;
+  color: #fff;
+  border: 1px solid #2563eb;
+}
+.btn-approve:hover { background: #2563eb; }
+.btn-approve svg { color: #fff !important; }
+
+.btn-revise {
+  background: #1e293b;
+  color: #f8fafc;
+  border: 1px solid #334155;
+}
+.btn-revise:hover { background: #334155; }
+
+.btn-request {
+  background: #1e293b;
+  color: #f8fafc;
+  border: 1px solid #334155;
+}
+.btn-request:hover { background: #334155; }
+
+.btn-escalate {
+  background: #452920;
+  color: #fdba74;
+  border: 1px solid #7c2d12;
+}
+.btn-escalate:hover { background: #5a3528; }
+
+.btn-reject {
+  background: #4c1d25;
+  color: #fda4af;
+  border: 1px solid #881337;
+}
+.btn-reject:hover { background: #602530; }
+
+.premium-decision-panel .approval-decision__foot {
+  margin-top: 24px;
+  border-top-color: #1e293b;
+}
+

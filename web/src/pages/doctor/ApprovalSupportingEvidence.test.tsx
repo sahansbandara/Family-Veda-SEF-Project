@@ -22,7 +22,8 @@ it('distinguishes restricted records from empty records and allows failure retry
   render(<ApprovalSupportingEvidence memberId="synthetic-member" />)
   await screen.findAllByText(/Records could not be loaded/)
   fireEvent.click(screen.getAllByRole('button', { name: 'Retry supporting evidence' })[0])
-  expect(await screen.findByText(/No vitals have been recorded/)).toBeInTheDocument()
+  const emptyNotes = await screen.findAllByText('Not available')
+  expect(emptyNotes).toHaveLength(4)
   expect(screen.getByText(/current grant or consent/)).toBeInTheDocument()
 })
 it('does not show stale records after changing the selected member', async () => {
