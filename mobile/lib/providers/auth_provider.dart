@@ -16,13 +16,26 @@ class AuthState {
   const AuthState({
     required this.status,
     this.userId,
+    this.displayName,
+    this.userType,
+    this.familyRole,
     this.errorMessage,
     this.fieldErrors = const {},
   });
 
   const AuthState.loading() : this(status: AuthStatus.loading);
-  const AuthState.authenticated({required String userId})
-    : this(status: AuthStatus.authenticated, userId: userId);
+  const AuthState.authenticated({
+    required String userId,
+    String? displayName,
+    String? userType,
+    String? familyRole,
+  }) : this(
+         status: AuthStatus.authenticated,
+         userId: userId,
+         displayName: displayName,
+         userType: userType,
+         familyRole: familyRole,
+       );
   const AuthState.unauthenticated({String? errorMessage})
     : this(status: AuthStatus.unauthenticated, errorMessage: errorMessage);
   const AuthState.cleanupRequired({String? userId})
@@ -35,6 +48,9 @@ class AuthState {
 
   final AuthStatus status;
   final String? userId;
+  final String? displayName;
+  final String? userType;
+  final String? familyRole;
   final String? errorMessage;
   final Map<String, String> fieldErrors;
 }
@@ -110,7 +126,12 @@ class AuthController extends StateNotifier<AuthState> {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
       );
-      state = AuthState.authenticated(userId: tokens.userId);
+      state = AuthState.authenticated(
+        userId: tokens.userId,
+        displayName: tokens.displayName,
+        userType: tokens.userType,
+        familyRole: tokens.familyRole,
+      );
       return true;
     } on Object catch (error) {
       await _clearTokensBestEffort();
@@ -129,7 +150,12 @@ class AuthController extends StateNotifier<AuthState> {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
       );
-      state = AuthState.authenticated(userId: tokens.userId);
+      state = AuthState.authenticated(
+        userId: tokens.userId,
+        displayName: tokens.displayName,
+        userType: tokens.userType,
+        familyRole: tokens.familyRole,
+      );
       return true;
     } on Object catch (error) {
       await _clearTokensBestEffort();

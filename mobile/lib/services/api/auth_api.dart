@@ -9,11 +9,17 @@ class AuthTokens {
     required this.userId,
     required this.accessToken,
     required this.refreshToken,
+    this.displayName,
+    this.userType,
+    this.familyRole,
   });
 
   final String userId;
   final String accessToken;
   final String refreshToken;
+  final String? displayName;
+  final String? userType;
+  final String? familyRole;
 }
 
 abstract class AuthApi {
@@ -46,9 +52,12 @@ class DioAuthApi implements AuthApi {
     final data = response.data;
     if (data == null) throw const FormatException('Empty login response');
     return AuthTokens(
-      userId: data['userId'] as String,
+      userId: (data['userId'] ?? data['id']) as String,
       accessToken: data['accessToken'] as String,
       refreshToken: data['refreshToken'] as String,
+      displayName: data['displayName'] as String?,
+      userType: data['userType']?.toString(),
+      familyRole: data['familyRole']?.toString(),
     );
   }
 

@@ -55,8 +55,12 @@ class HomeScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     Member? member,
-    String? userId,
-  ) {
+    String? userId, {
+    String? fallbackName,
+    String? fallbackRole,
+  }) {
+    final displayName =
+        member?.displayName ?? fallbackName ?? 'No active member';
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet<void>(
       context: context,
@@ -117,7 +121,7 @@ class HomeScreen extends ConsumerWidget {
                       ),
                       alignment: Alignment.center,
                       child: Text(
-                        _getInitials(member?.displayName),
+                        _getInitials(displayName),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 20,
@@ -131,7 +135,7 @@ class HomeScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            member?.displayName ?? 'No active member',
+                            displayName,
                             style: TextStyle(
                               fontSize: 19,
                               fontWeight: FontWeight.w700,
@@ -157,7 +161,9 @@ class HomeScreen extends ConsumerWidget {
                                   borderRadius: BorderRadius.circular(999),
                                 ),
                                 child: Text(
-                                  member?.relationshipLabel ?? 'Patient',
+                                  member?.relationshipLabel ??
+                                      fallbackRole ??
+                                      'Patient',
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
@@ -226,8 +232,8 @@ class HomeScreen extends ConsumerWidget {
                     children: [
                       _ProfileDetailRow(
                         icon: Icons.fingerprint,
-                        label: 'Member ID',
-                        value: member?.id ?? '—',
+                        label: member != null ? 'Member ID' : 'User ID',
+                        value: member?.id ?? userId ?? '—',
                       ),
                       if (member?.dateOfBirth != null) ...[
                         const Divider(height: 16),
@@ -298,41 +304,43 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final auth = ref.watch(authProvider);
+    final isClinicAdmin = auth.userType == 'Admin' || auth.userType == '2';
+    final isDoctor = auth.userType == 'Doctor' || auth.userType == '1';
+
     final activeId = ref.watch(activeMemberProvider);
     final membersAsync = ref.watch(membersProvider);
     final members = membersAsync.valueOrNull ?? const [];
     final activeMember = members
         .where((member) => member.id == activeId)
         .firstOrNull;
-    final activeName = activeMember?.displayName;
-    final activeRole = activeMember?.relationshipLabel;
+
+    final activeName = isClinicAdmin
+        ? (auth.displayName?.isNotEmpty == true ? auth.displayName! : 'Clinic Admin')
+        : isDoctor
+            ? (auth.displayName?.isNotEmpty == true ? auth.displayName! : 'Doctor')
+            : (activeMember?.displayName ?? auth.displayName ?? 'Choose a family member');
+
+    final activeRole = isClinicAdmin
+        ? 'Admin'
+        : isDoctor
+            ? 'Doctor'
+            : activeMember?.relationshipLabel;
+
     final theme = Theme.of(context);
-    final hasMember = activeId != null;
+    final hasMember = isClinicAdmin || isDoctor || activeId != null;
 
     final dashboardAsync = ref.watch(familyDashboardProvider);
-    final isHead = dashboardAsync.valueOrNull?.isHead ?? false;
+    final isHead = !isClinicAdmin && !isDoctor && (dashboardAsync.valueOrNull?.isHead ?? false);
 
-    // Auto-select first member if none is currently selected
-    ref.listen<AsyncValue<List<Member>>>(membersProvider, (_, next) {
-      final items = next.valueOrNull;
-      if (items != null &&
-          items.isNotEmpty &&
-          ref.read(activeMemberProvider) == null) {
-        final firstId = items.first.id;
-        ref.read(activeMemberProvider.notifier).state = firstId;
-        final userId = ref.read(authProvider).userId;
-        if (userId != null) {
-          ref
-              .read(memberPreferenceStoreProvider)
-              .writeActiveMemberId(userId: userId, memberId: firstId);
-        }
-      }
-    });
-
-    if (activeId == null && members.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (ref.read(activeMemberProvider) == null) {
-          final firstId = members.first.id;
+    // Auto-select first member if none is currently selected (only for patient/family accounts)
+    if (!isClinicAdmin && !isDoctor) {
+      ref.listen<AsyncValue<List<Member>>>(membersProvider, (_, next) {
+        final items = next.valueOrNull;
+        if (items != null &&
+            items.isNotEmpty &&
+            ref.read(activeMemberProvider) == null) {
+          final firstId = items.first.id;
           ref.read(activeMemberProvider.notifier).state = firstId;
           final userId = ref.read(authProvider).userId;
           if (userId != null) {
@@ -342,6 +350,21 @@ class HomeScreen extends ConsumerWidget {
           }
         }
       });
+
+      if (activeId == null && members.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (ref.read(activeMemberProvider) == null) {
+            final firstId = members.first.id;
+            ref.read(activeMemberProvider.notifier).state = firstId;
+            final userId = ref.read(authProvider).userId;
+            if (userId != null) {
+              ref
+                  .read(memberPreferenceStoreProvider)
+                  .writeActiveMemberId(userId: userId, memberId: firstId);
+            }
+          }
+        });
+      }
     }
 
     final isDark = theme.brightness == Brightness.dark;
@@ -402,6 +425,8 @@ class HomeScreen extends ConsumerWidget {
               ref,
               activeMember,
               ref.read(authProvider).userId,
+              fallbackName: activeName,
+              fallbackRole: activeRole,
             ),
             icon: CircleAvatar(
               radius: 13,
@@ -493,7 +518,9 @@ class HomeScreen extends ConsumerWidget {
               ref.invalidate(pendingJoinRequestsProvider(familyId));
               ref.invalidate(familySentInvitationsProvider(familyId));
             }
-            await ref.read(familyDashboardProvider.future).catchError((_) => null);
+            try {
+              await ref.read(familyDashboardProvider.future);
+            } catch (_) {}
           },
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(
@@ -569,6 +596,8 @@ class HomeScreen extends ConsumerWidget {
                             ref,
                             activeMember,
                             ref.read(authProvider).userId,
+                            fallbackName: activeName,
+                            fallbackRole: activeRole,
                           ),
                           borderRadius: BorderRadius.circular(18),
                           child: Padding(
@@ -599,7 +628,11 @@ class HomeScreen extends ConsumerWidget {
                                         ),
                                       ),
                                       child: Text(
-                                        'WORKSPACE OVERVIEW',
+                                        isClinicAdmin
+                                            ? 'CLINIC ADMINISTRATION'
+                                            : isDoctor
+                                                ? 'DOCTOR WORKSPACE'
+                                                : 'WORKSPACE OVERVIEW',
                                         style: TextStyle(
                                           fontSize: 9.5,
                                           fontWeight: FontWeight.w700,
@@ -701,8 +734,7 @@ class HomeScreen extends ConsumerWidget {
                                             children: [
                                               Flexible(
                                                 child: Text(
-                                                  activeName ??
-                                                      'Choose a family member',
+                                                  activeName,
                                                   style: TextStyle(
                                                     fontSize: 17,
                                                     fontWeight: FontWeight.w700,
@@ -756,9 +788,13 @@ class HomeScreen extends ConsumerWidget {
                                           ),
                                           const SizedBox(height: 2),
                                           Text(
-                                            hasMember
-                                                ? 'Active profile • Tap for details'
-                                                : 'Tap to select a family member',
+                                            isClinicAdmin
+                                                ? 'System Administrator • Full access'
+                                                : isDoctor
+                                                    ? 'Clinical Practitioner • Patient access'
+                                                    : hasMember
+                                                        ? 'Active profile • Tap for details'
+                                                        : 'Tap to select a family member',
                                             style: TextStyle(
                                               fontSize: 11.5,
                                               color: isDark

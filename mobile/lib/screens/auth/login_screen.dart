@@ -1,4 +1,5 @@
 // Owner: S1 · Family, Identity & Consent
+import 'package:family_veda/providers/active_member_provider.dart';
 import 'package:family_veda/providers/auth_provider.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -28,13 +29,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final formState = _formKey.currentState;
     if (formState == null || !formState.validate()) return;
 
+    ref.read(activeMemberProvider.notifier).state = null;
     final success = await ref
         .read(authProvider.notifier)
         .login(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
-    if (success && mounted) context.go('/home');
+    if (success && mounted) {
+      context.go('/home');
+    }
   }
 
   @override
