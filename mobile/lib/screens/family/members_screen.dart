@@ -584,56 +584,62 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
           );
         }
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        return _renderRoster(displayItems, activeId, isDark);
+      },
+    );
+  }
+
+  Widget _renderRoster(List<Member> items, String? activeId, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'ROSTER (${items.length})',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.8,
-                    color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
-                  ),
-                ),
-                Text(
-                  'Tap to switch active member',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
-                  ),
-                ),
-              ],
+            Text(
+              'ROSTER (${items.length})',
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.8,
+                color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
+              ),
             ),
-            const SizedBox(height: 10),
-            ...items.map(
-              (member) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: MemberCard(
-                  member: member,
-                  isActive: member.id == activeId,
-                  onSelected: () async {
-                    final userId = ref.read(authProvider).userId;
-                    if (userId == null) return;
-                    ref.read(activeMemberProvider.notifier).state = member.id;
-                    try {
-                      await ref
-                          .read(memberPreferenceStoreProvider)
-                          .writeActiveMemberId(
-                            userId: userId,
-                            memberId: member.id,
-                          );
-                    } on Object {}
-                  },
-                ),
+            Text(
+              'Tap to switch active member',
+              style: TextStyle(
+                fontSize: 11.5,
+                color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
               ),
             ),
           ],
-        );
-      },
+        ),
+        const SizedBox(height: 10),
+        ...items.map(
+          (member) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: MemberCard(
+              member: member,
+              isActive: member.id == activeId,
+              onSelected: () async {
+                final userId = ref.read(authProvider).userId;
+                if (userId == null) return;
+                ref.read(activeMemberProvider.notifier).state = member.id;
+                try {
+                  await ref
+                      .read(memberPreferenceStoreProvider)
+                      .writeActiveMemberId(
+                        userId: userId,
+                        memberId: member.id,
+                      );
+                } on Object {
+                  // Remembering the choice is a convenience; the selection above already applied.
+                }
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -715,7 +721,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                                 req.requesterDisplayName ?? 'Family Member',
                                 style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5),
                               ),
-                                Container(
+                              Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFEFF6FF),
@@ -1189,8 +1195,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                   )
                 else ...[
                   DropdownButtonFormField<String>(
-                    // ignore: deprecated_member_use
-                    value: _selectedTransferMemberId,
+                    initialValue: _selectedTransferMemberId,
                     decoration: const InputDecoration(
                       labelText: 'Select new Family Head',
                       border: OutlineInputBorder(),

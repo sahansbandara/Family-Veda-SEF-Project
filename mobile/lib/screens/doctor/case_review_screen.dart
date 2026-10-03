@@ -10,6 +10,8 @@ class CaseReviewScreen extends StatefulWidget {
 class _CaseReviewScreenState extends State<CaseReviewScreen> {
   
   bool _isNightMode = true;
+  // Written by the advisory picker; read once the approval call is wired to it.
+  // ignore: unused_field
   String _advisory = '';
   final TextEditingController _notesController = TextEditingController();
 
