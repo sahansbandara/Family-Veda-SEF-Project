@@ -261,3 +261,7 @@ Use synthetic, provenance-labelled image fixtures and retain actual originals in
 **Decision:** For the user-requested fixes to Janith's recent changes, keep the existing `/families/me` and `/appointments/mine` GET contracts and propagate transport/status/parsing errors to Riverpod's existing error/retry states. A successful empty list remains empty. Remove silent fallback requests rather than masking failures as missing data.
 
 **Reason and alternatives:** The backend implements both canonical routes; `/appointments` only supports POST. Dashboard member summaries are not a substitute for the consent-scoped member DTOs returned by `/families/me`. Broad catch-and-fallback handling can hide authentication, permission, server and malformed-response failures. No backend, authorization, schema, dependency, layout, commit or deployment changes are included.
+
+## 2026-10-03 — Publish synthetic demo access inventory
+
+**Decision:** The user's explicit request to publish the shared synthetic demo password in README supersedes the prior private-Keychain README instructions and the generic project prohibition on credentials in Markdown for this demo credential only. Real credentials remain excluded. List all 44 synthetic accounts found in both local and hosted inventories, including restricted/deactivated states; distinguish confirmed logins from inventory checks. No account creation, password reset, security-setting change or deployment is included.

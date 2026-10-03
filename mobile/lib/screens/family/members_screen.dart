@@ -3,9 +3,7 @@
 // [S1] Identity, Family & Consent — My Family screen with 4 Sub-Tabs:
 // Members | Join Requests | Invitations | Family Settings
 // Precisely matching Web FamilyPage (media_1791011646559.png).
-import 'package:family_veda/models/family_dashboard.dart';
 import 'package:family_veda/models/family_invitation.dart';
-import 'package:family_veda/models/join_request.dart';
 import 'package:family_veda/models/member.dart';
 import 'package:family_veda/providers/active_member_provider.dart';
 import 'package:family_veda/providers/auth_provider.dart';
@@ -586,60 +584,56 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
           );
         }
 
-        return _renderRoster(displayItems, activeId, isDark);
-      },
-    );
-  }
-
-  Widget _renderRoster(List<Member> items, String? activeId, bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'ROSTER (${items.length})',
-              style: TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.8,
-                color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'ROSTER (${items.length})',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.8,
+                    color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
+                  ),
+                ),
+                Text(
+                  'Tap to switch active member',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
+                  ),
+                ),
+              ],
             ),
-            Text(
-              'Tap to switch active member',
-              style: TextStyle(
-                fontSize: 11.5,
-                color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
+            const SizedBox(height: 10),
+            ...items.map(
+              (member) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: MemberCard(
+                  member: member,
+                  isActive: member.id == activeId,
+                  onSelected: () async {
+                    final userId = ref.read(authProvider).userId;
+                    if (userId == null) return;
+                    ref.read(activeMemberProvider.notifier).state = member.id;
+                    try {
+                      await ref
+                          .read(memberPreferenceStoreProvider)
+                          .writeActiveMemberId(
+                            userId: userId,
+                            memberId: member.id,
+                          );
+                    } on Object {}
+                  },
+                ),
               ),
             ),
           ],
-        ),
-        const SizedBox(height: 10),
-        ...items.map(
-          (member) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: MemberCard(
-              member: member,
-              isActive: member.id == activeId,
-              onSelected: () async {
-                final userId = ref.read(authProvider).userId;
-                if (userId == null) return;
-                ref.read(activeMemberProvider.notifier).state = member.id;
-                try {
-                  await ref
-                      .read(memberPreferenceStoreProvider)
-                      .writeActiveMemberId(
-                        userId: userId,
-                        memberId: member.id,
-                      );
-                } on Object {}
-              },
-            ),
-          ),
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -721,7 +715,6 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                                 req.requesterDisplayName ?? 'Family Member',
                                 style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5),
                               ),
-                              if (req.relationshipType != null)
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
@@ -729,7 +722,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    req.relationshipType!,
+                                    req.relationshipType,
                                     style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1D4ED8)),
                                   ),
                                 ),
@@ -1196,6 +1189,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                   )
                 else ...[
                   DropdownButtonFormField<String>(
+                    // ignore: deprecated_member_use
                     value: _selectedTransferMemberId,
                     decoration: const InputDecoration(
                       labelText: 'Select new Family Head',
