@@ -1,0 +1,654 @@
+/* Owner: S4 · whole-project waiver (agent/DECISIONS.md 2026-09-28b) */
+/* Doctor Profile & Availability. Scoped under .dprof; built on the shared tokens so it follows
+   day and night mode. Layout: summary tiles → practice + weekly hours → time off. */
+.dprof {
+  --dp-line: color-mix(in srgb, var(--text) 13%, transparent);
+  --dp-panel: color-mix(in srgb, var(--surface) 97%, var(--background));
+  --dp-raised: color-mix(in srgb, var(--primary) 6%, var(--dp-panel));
+  --dp-raised-on: color-mix(in srgb, var(--primary) 11%, var(--dp-panel));
+  --dp-field: color-mix(in srgb, var(--background) 55%, var(--surface));
+  --dp-accent: color-mix(in srgb, var(--primary) 70%, var(--text-heading));
+  display: grid;
+  gap: 18px;
+  max-width: 1200px;
+  min-width: 0;
+  margin: 0 auto;
+  font-size: 14px;
+  color: var(--text);
+}
+.dprof :is(h1, h2, h3, p, dl, dd, ul) {
+  margin: 0;
+}
+.dprof ul {
+  padding: 0;
+  list-style: none;
+}
+.dprof svg {
+  flex-shrink: 0;
+}
+
+/* ── heading ───────────────────────────────────────────────────────────── */
+.dprof-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.dprof-head h1 {
+  margin: 4px 0 8px;
+  font-size: 27px;
+  letter-spacing: -0.03em;
+  color: var(--text-heading);
+}
+.dprof-head p:last-child {
+  color: var(--muted);
+  line-height: 1.5;
+}
+.dprof .dprof-eyebrow {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--dp-accent);
+}
+.dprof-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  border: 1px solid var(--status-pill-border);
+  border-radius: 999px;
+  background: var(--status-pill-bg);
+  color: var(--status-pill-text);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.dprof-pill--warn {
+  border-color: color-mix(in srgb, var(--warning) 40%, transparent);
+  background: color-mix(in srgb, var(--warning) 13%, var(--dp-panel));
+  color: var(--warning);
+}
+.dprof-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ── summary tiles ─────────────────────────────────────────────────────── */
+.dprof-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.dprof-metric {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 17px;
+  border: 1px solid var(--dp-line);
+  border-radius: 14px;
+  background: var(--dp-panel);
+}
+.dprof-metric dt {
+  margin-bottom: 7px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.dprof-metric dd {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-heading);
+}
+.dprof-metric__icon {
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--primary) 16%, var(--dp-panel));
+  color: var(--dp-accent);
+}
+
+/* ── cards ─────────────────────────────────────────────────────────────── */
+.dprof-content {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 16px;
+  align-items: start;
+}
+.dprof-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--dp-line);
+  border-radius: 17px;
+  background: var(--dp-panel);
+  box-shadow: var(--shadow-md);
+}
+.dprof-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 21px 22px 17px;
+  border-bottom: 1px solid var(--dp-line);
+}
+.dprof-card__head h2 {
+  margin: 3px 0 5px;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+  color: var(--text-heading);
+}
+.dprof-card__head p:last-child {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.dprof-card__body {
+  padding: 20px 22px 22px;
+}
+.dprof-identity {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 20px;
+  padding: 11px 13px;
+  border: 1px solid var(--dp-line);
+  border-radius: 12px;
+  background: var(--dp-raised);
+}
+.dprof-identity > div {
+  flex: 1;
+  min-width: 0;
+}
+.dprof-identity strong,
+.dprof-identity small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.dprof-identity strong {
+  font-size: 13px;
+  color: var(--text-heading);
+}
+.dprof-identity small,
+.dprof-reg {
+  font-size: 11px;
+  color: var(--muted);
+}
+.dprof-reg {
+  font-family: var(--font-data);
+  white-space: nowrap;
+}
+.dprof-initial {
+  display: grid;
+  place-items: center;
+  width: 41px;
+  height: 41px;
+  flex-shrink: 0;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--primary) 22%, var(--dp-panel));
+  color: var(--dp-accent);
+  font-weight: 800;
+}
+
+/* ── form controls ─────────────────────────────────────────────────────── */
+.dprof-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+.dprof-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+}
+.dprof-field :is(input, select) {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  padding: 0 11px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--dp-field);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 400;
+}
+.dprof-field :is(input, select):focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
+  outline: none;
+}
+.dprof-field input::placeholder {
+  color: var(--faint);
+}
+.dprof-switchline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 19px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--dp-line));
+  border-radius: 12px;
+  background: var(--dp-raised-on);
+}
+.dprof-switchline b {
+  display: block;
+  font-size: 12px;
+  color: var(--text-heading);
+}
+.dprof-switchline small {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.dprof-switch {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  width: 46px;
+  height: 26px;
+}
+.dprof-switch input {
+  position: absolute;
+  inset: -9px;
+  z-index: 1;
+  width: calc(100% + 18px);
+  height: calc(100% + 18px);
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.dprof-track {
+  width: 46px;
+  height: 26px;
+  border: 1px solid color-mix(in srgb, var(--text) 30%, transparent);
+  border-radius: 30px;
+  background: color-mix(in srgb, var(--text) 26%, var(--dp-panel));
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+.dprof-track::before {
+  content: "";
+  display: block;
+  width: 18px;
+  height: 18px;
+  margin: 3px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  transition: transform 200ms ease;
+}
+.dprof-switch input:checked + .dprof-track {
+  border-color: var(--primary-lum);
+  background: var(--primary);
+}
+.dprof-switch input:checked + .dprof-track::before {
+  transform: translateX(20px);
+}
+.dprof-switch input:focus-visible + .dprof-track {
+  outline: 3px solid var(--primary-lum);
+  outline-offset: 2px;
+}
+.dprof-btn {
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 180ms ease, border-color 180ms ease;
+}
+.dprof-btn--primary {
+  border-color: transparent;
+  background: linear-gradient(120deg, var(--primary), var(--primary-lum));
+  color: #fff;
+  box-shadow: 0 6px 17px color-mix(in srgb, var(--primary) 26%, transparent);
+}
+.dprof-btn--primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+.dprof-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+/* ── weekly hours ──────────────────────────────────────────────────────── */
+.dprof-schedule-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  margin-bottom: 15px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.dprof-schedule-summary span:last-child {
+  font-size: 10px;
+  color: var(--dp-accent);
+}
+.dprof-days {
+  display: grid;
+  gap: 8px;
+}
+.dprof-day {
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 13px;
+  border: 1px solid var(--dp-line);
+  border-radius: 12px;
+  background: var(--dp-raised);
+}
+.dprof-day.is-on {
+  border-color: color-mix(in srgb, var(--primary) 32%, var(--dp-line));
+  background: var(--dp-raised-on);
+}
+.dprof-day__info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dprof-day__info .dprof-switch {
+  transform: scale(0.83);
+  transform-origin: left center;
+  margin-right: -7px;
+}
+.dprof-day__name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+.dprof-day__state {
+  margin-top: 3px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.dprof-windows {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.dprof-window {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 4px 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--dp-field);
+  color: var(--muted);
+}
+.dprof-window input {
+  width: 88px;
+  height: 34px;
+  padding: 3px 1px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+}
+.dprof-window button {
+  width: 32px;
+  height: 34px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 17px;
+  cursor: pointer;
+}
+.dprof-window button:hover {
+  color: var(--danger);
+}
+.dprof-add {
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px dashed color-mix(in srgb, var(--primary) 50%, transparent);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--dp-accent);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.dprof-add:hover {
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+.dprof-off {
+  font-size: 11px;
+  color: var(--muted);
+}
+.dprof-schedule-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--dp-line);
+}
+.dprof-schedule-foot small {
+  max-width: 330px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.dprof .dprof-notice {
+  margin-top: 15px;
+  padding: 11px 13px;
+  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--dp-line));
+  border-radius: 11px;
+  background: var(--dp-raised-on);
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/* ── time off ──────────────────────────────────────────────────────────── */
+.dprof-timeoff {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 20px;
+  padding: 20px 22px;
+}
+.dprof-timeoff__form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 11px;
+  align-content: start;
+}
+.dprof-field--wide,
+.dprof-timeoff__form .dprof-btn {
+  grid-column: 1 / -1;
+}
+.dprof-blocks {
+  min-width: 0;
+  padding-left: 20px;
+  border-left: 1px solid var(--dp-line);
+}
+.dprof-blocks h3 {
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: var(--text-heading);
+}
+.dprof-block {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 11px;
+  border: 1px solid var(--dp-line);
+  border-radius: 10px;
+  background: var(--dp-raised);
+}
+.dprof-block strong {
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.dprof-block small {
+  display: block;
+  margin-top: 5px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.dprof-block button {
+  min-height: 36px;
+  padding: 5px 8px;
+  border: 0;
+  background: none;
+  color: var(--danger);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.dprof .dprof-note {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* ── status toast ──────────────────────────────────────────────────────── */
+.dprof .dprof-toast {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 25;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: min(420px, calc(100% - 32px));
+  padding: 12px 12px 12px 16px;
+  border: 1px solid color-mix(in srgb, var(--primary) 45%, var(--dp-line));
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.dprof-toast button {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ── responsive ────────────────────────────────────────────────────────── */
+@media (max-width: 1000px) {
+  .dprof-content {
+    grid-template-columns: 1fr;
+  }
+  .dprof-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 710px) {
+  .dprof-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .dprof-head h1 {
+    font-size: 24px;
+  }
+  .dprof-metric {
+    padding: 13px;
+  }
+  .dprof-metric dd {
+    font-size: 14px;
+  }
+  .dprof-metric__icon {
+    width: 28px;
+    height: 28px;
+  }
+  .dprof-card__head,
+  .dprof-card__body,
+  .dprof-timeoff {
+    padding: 16px;
+  }
+  .dprof-card__head {
+    flex-wrap: wrap;
+  }
+  .dprof-grid,
+  .dprof-timeoff,
+  .dprof-timeoff__form {
+    grid-template-columns: 1fr;
+  }
+  .dprof-identity {
+    flex-wrap: wrap;
+  }
+  /* Phone: day name left, switch right, ranges stacked underneath (touch targets ≥ 44px). */
+  .dprof-day {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+  .dprof-day__info {
+    flex-direction: row-reverse;
+    justify-content: space-between;
+  }
+  .dprof-day__info .dprof-switch {
+    transform: none;
+    margin-right: 0;
+  }
+  .dprof-window {
+    flex: 1 1 100%;
+  }
+  .dprof-window input {
+    flex: 1;
+    height: 44px;
+    font-size: 14px;
+  }
+  .dprof-window button,
+  .dprof-add {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .dprof-field :is(input, select) {
+    height: 46px;
+    font-size: 16px;
+  }
+  .dprof-blocks {
+    padding: 15px 0 0;
+    border-top: 1px solid var(--dp-line);
+    border-left: 0;
+  }
+  .dprof-btn {
+    min-height: 46px;
+  }
+  .dprof-actions .dprof-btn,
+  .dprof-schedule-foot .dprof-btn {
+    width: 100%;
+  }
+  .dprof .dprof-toast {
+    right: 16px;
+    bottom: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dprof *,
+  .dprof *::before {
+    transition: none !important;
+  }
+}

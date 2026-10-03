@@ -4,6 +4,7 @@ import 'package:family_veda/providers/core_providers.dart';
 import 'package:family_veda/widgets/shared/async_state_views.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 final myProfileProvider = FutureProvider.autoDispose<Map<String, dynamic>>((
   ref,
@@ -89,6 +90,8 @@ class ProfileScreen extends ConsumerWidget {
               final name = p['displayName'] as String? ?? '';
               final role = p['familyRole'] as String?;
               final sex = p['sexForClinicalReference'] as String?;
+              final userType = p['userType']?.toString();
+              final isDoctor = userType == 'Doctor' || userType == '1';
               final rows = <(String, String?)>[
                 ('Name', name),
                 ('Email', p['email'] as String?),
@@ -125,6 +128,15 @@ class ProfileScreen extends ConsumerWidget {
                     icon: const Icon(Icons.edit_outlined),
                     label: const Text('Edit display name'),
                   ),
+                  if (isDoctor) ...[
+                    const SizedBox(height: 10),
+                    // Same destination as the web doctor navigation item.
+                    OutlinedButton.icon(
+                      onPressed: () => context.push('/doctor-profile'),
+                      icon: const Icon(Icons.event_available_outlined),
+                      label: const Text('Profile & Availability'),
+                    ),
+                  ],
                 ],
               );
             },
