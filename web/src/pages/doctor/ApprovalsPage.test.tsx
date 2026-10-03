@@ -33,6 +33,7 @@ describe('ApprovalsPage', () => {
       .mockResolvedValueOnce({ data: { items: [queuedCase('synthetic-case-01')] } })
       .mockRejectedValueOnce(new Error('synthetic fetch failure'))
       .mockResolvedValueOnce({ data: review('synthetic-case-01') })
+      .mockResolvedValueOnce({ data: { clinicalAccess: true, vitals: [], labReports: [] } })
 
     render(
       <MemoryRouter>
@@ -45,7 +46,7 @@ describe('ApprovalsPage', () => {
     await waitFor(() =>
       expect(screen.getByRole('heading', { name: /review case synthetic-case-01/i })).toBeInTheDocument(),
     )
-    expect(mocks.get).toHaveBeenCalledTimes(3)
+    expect(mocks.get).toHaveBeenCalledWith('/doctors/me/members/member')
   })
 
   it('keeps a stale review response from replacing the current selected case', async () => {
@@ -210,4 +211,15 @@ describe('ApprovalsPage', () => {
     fireEvent.change(screen.getByLabelText('Search cases'), { target: { value: 'zzz' } })
     expect(screen.getByText(/no matching cases/i)).toBeInTheDocument()
   })
+  it('shows submitted symptoms in Why this case needs review for a routine request', async () => {
+    mocks.get.mockImplementation((url: string) => Promise.resolve({ data: url === '/doctors/me/cases'
+      ? { items: [queuedCase('synthetic-review')] }
+      : { ...review('synthetic-review'), submittedEpisode: {
+          id: 'synthetic-episode', memberId: 'member', symptoms: ['Synthetic symptom'],
+          durationDays: 2, severity: 4, createdAt: '2026-10-03T08:00:00Z',
+        } } }))
+    render(<MemoryRouter><ApprovalsPage /></MemoryRouter>)
+    expect(await screen.findByText('Submitted symptoms: Synthetic symptom. Reported duration: 2 days. This submitted episode requires clinician review.')).toBeInTheDocument()
+  })
+
 })

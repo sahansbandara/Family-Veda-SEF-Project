@@ -73,64 +73,80 @@ export function filterQueue(cases: TriageCaseDto[], filter: QueueFilter, search:
   })
 }
 
-function displayValue(value: unknown): string {
-  if (value === null || value === undefined || value === '') return '—'
-  if (typeof value === 'string') return value
-  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
-  if (Array.isArray(value)) return value.map(displayValue).join(', ')
-  return Object.entries(value as Record<string, unknown>)
-    .map(([key, nested]) => `${fieldLabel(key)}: ${displayValue(nested)}`)
-    .join(' · ')
+const hiddenFields = new Set(['fordoctorreviewonly', 'confidence'])
+const readableLabels: Record<string, string> = {
+  summary: 'Summary of supplied information', memberprofile: 'Recorded patient context',
+  recentvitals: 'Previously recorded vitals', episodes: 'Recorded symptom episodes',
+  conditions: 'Recorded conditions', deviations: 'Findings for review',
+  stablepatterns: 'Recorded stable patterns', consentedsignals: 'Consented family-history information',
+  unknownparties: 'Missing family-history information', screeningindication: 'Screening review note',
 }
 
-// Routing flags the backend stamps on a draft. The tile already states them in words.
-const internalFields = new Set(['forDoctorReviewOnly'])
-
-/**
- * The orchestrator stores each agent output as a JSON string inside the draft, so a
- * value can itself be encoded JSON. Decode those; leave ordinary text untouched.
- */
-function unwrapEncoded(value: unknown): unknown {
-  if (typeof value === 'string') {
-    const text = value.trim()
-    if (!text.startsWith('{') && !text.startsWith('[')) return value
-    try {
-      return unwrapEncoded(JSON.parse(text))
-    } catch {
-      return value
-    }
-  }
-  if (Array.isArray(value)) return value.map(unwrapEncoded)
-  if (value && typeof value === 'object')
-    return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>).map(([key, nested]) => [key, unwrapEncoded(nested)]),
-    )
-  return value
-}
-
-/** Turns a doctor-only agent JSON blob into labelled, readable rows. */
+/** Decode nested serialized agent outputs without interpreting their clinical meaning. */
 export function structuredEntries(raw?: string | null): EvidenceEntry[] {
-  if (!raw) return []
-  try {
-    const parsed: unknown = unwrapEncoded(JSON.parse(raw))
-    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-      return Object.entries(parsed as Record<string, unknown>)
-        .filter(([key]) => !internalFields.has(key))
-        .map(([key, value]) => ({
-          label: fieldLabel(key),
-          values: Array.isArray(value) && value.length > 0 ? value.map(displayValue) : [displayValue(value)],
-        }))
+  const entries: EvidenceEntry[] = []
+  function visit(value: unknown, label: string, depth: number) {
+    if (depth > 8) {
+      entries.push({ label, values: ['This structured output could not be displayed. Check the technical trace.'] })
+      return
     }
-    return [{ label: 'Summary', values: Array.isArray(parsed) ? parsed.map(displayValue) : [displayValue(parsed)] }]
-  } catch {
-    return [{ label: 'Summary', values: [raw] }]
+    if (typeof value === 'string') {
+      const text = value.trim()
+      if (!text) return
+      if (/^[{["]/.test(text)) {
+        try { visit(JSON.parse(text), label, depth + 1) }
+        catch { entries.push({ label, values: ['This structured output could not be displayed. Check the technical trace.'] }) }
+      } else entries.push({ label, values: [text] })
+    } else if (Array.isArray(value)) {
+      value.forEach((item) => visit(item, label, depth + 1))
+    } else if (value && typeof value === 'object') {
+      Object.entries(value).forEach(([key, nested]) => {
+        const normalized = key.replaceAll('_', '').toLowerCase()
+        if (hiddenFields.has(normalized)) return
+        const nextLabel = readableLabels[normalized] ?? fieldLabel(key)
+        if (normalized === 'screeningindication' && typeof nested === 'string' && nested.trim().toLowerCase() === 'none') {
+          entries.push({ label: nextLabel, values: ['No additional consented screening indication was reported.'] })
+        } else visit(nested, nextLabel, depth + 1)
+      })
+    } else if (typeof value === 'number') entries.push({ label, values: [String(value)] })
+    else if (typeof value === 'boolean') entries.push({ label, values: [value ? 'Yes' : 'No'] })
   }
+  if (raw) visit(raw, 'Summary of supplied information', 0)
+  return entries.reduce<EvidenceEntry[]>((result, entry) => {
+    const existing = result.find((item) => item.label === entry.label)
+    if (existing) existing.values.push(...entry.values)
+    else result.push(entry)
+    return result
+  }, [])
 }
 
 /** Deterministic, non-clinical reasons this request is sitting in the doctor's queue. */
 export function reviewReasons(review: CaseReviewDto): string[] {
   const failed = buildSafetyChecks(review.traces).filter((check) => !check.passed).length
   const reasons: string[] = []
+  const episode = review.submittedEpisode
+  if (episode?.memberId === review.memberId && episode.symptoms.length > 0) {
+    const duration = Number.isInteger(episode.durationDays) && episode.durationDays >= 0
+      ? ` Reported duration: ${episode.durationDays} ${episode.durationDays === 1 ? 'day' : 'days'}.`
+      : ''
+    reasons.push(`Submitted symptoms: ${episode.symptoms.map((symptom) => statusLabel(symptom).replaceAll('_', ' ')).join(', ')}.${duration} This submitted episode requires clinician review.`)
+  }
+  // Display existing observations as attributed draft evidence; never infer a diagnosis.
+  try {
+    const analysis: unknown = JSON.parse(review.analysisJson ?? 'null')
+    if (analysis && typeof analysis === 'object' && !Array.isArray(analysis)) {
+      const fields = Object.entries(analysis)
+      const deviations = fields.find(([key]) => key.toLowerCase() === 'deviations')?.[1]
+      if (Array.isArray(deviations)) {
+        deviations.filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+          .slice(0, 5).forEach((finding) => reasons.push(`AI draft finding for clinician review: ${finding}`))
+      }
+    }
+  } catch {
+    // Malformed output remains available in the doctor-only technical trace.
+  }
+  if (reasons.length === 0)
+    reasons.push('Specific review findings are unavailable; review the submitted information during clinical assessment.')
   if (review.status === 'LowConfidence')
     reasons.push('Agent confidence fell below the configured threshold, so the draft may be unreliable.')
   if (isPriority(review)) reasons.push(`Triage priority for this request is ${review.priority}.`)

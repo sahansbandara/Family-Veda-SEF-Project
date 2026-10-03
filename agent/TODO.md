@@ -281,3 +281,10 @@ Nav: `Dashboard | Calendar | My Families | Triage Cases | Approvals | Profile & 
 - [x] Make notification bell a clean icon without background boxes
 - [x] Remove unused `EN` language switcher
 - [x] Upgrade profile menu to premium dark style matching reference
+
+## 2026-10-03 — Case-specific approval reasons
+- [x] Doctor-only review response includes exact linked submitted episode with member-match guard.
+- [x] Plain-language symptoms/duration, attributed analysis findings and missing-evidence fallback in review reasons.
+- [x] Web regression coverage and code/security review; baseline backend/web suites passed.
+- [ ] Verify updated running API/browser end to end after rebuild/restart; Flutter doctor console is separate scope.
+- [x] Combine stashed plain-language/vitals/reports UI with current case-specific review reasons; local authenticated browser and responsive checks passed.
