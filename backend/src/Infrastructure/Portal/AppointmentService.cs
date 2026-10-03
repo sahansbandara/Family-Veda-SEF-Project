@@ -86,16 +86,9 @@ public sealed class AppointmentService(AppDbContext dbContext, ICurrentUser curr
             memberIds.AddRange(minorIds);
         }
 
-        var appointments = await dbContext.Appointments.AsNoTracking()
+        return await ProjectAsync(dbContext.Appointments.AsNoTracking()
             .Where(x => memberIds.Contains(x.MemberId))
-            .OrderByDescending(x => x.StartsAt)
-            .ToListAsync(cancellationToken);
-        var results = new List<AppointmentDto>();
-        foreach (var appointment in appointments)
-        {
-            results.Add(await MapAsync(appointment, cancellationToken));
-        }
-        return results;
+            .OrderByDescending(x => x.StartsAt), cancellationToken);
     }
 
     public async Task<AppointmentDto> CancelAsync(Guid id, CancellationToken cancellationToken)
@@ -125,13 +118,7 @@ public sealed class AppointmentService(AppDbContext dbContext, ICurrentUser curr
         var query = dbContext.Appointments.AsNoTracking().Where(x => x.DoctorId == doctor.Id);
         if (from is not null) query = query.Where(x => x.StartsAt >= from);
         if (to is not null) query = query.Where(x => x.StartsAt <= to);
-        var appointments = await query.OrderBy(x => x.StartsAt).ToListAsync(cancellationToken);
-        var results = new List<AppointmentDto>();
-        foreach (var appointment in appointments)
-        {
-            results.Add(await MapAsync(appointment, cancellationToken));
-        }
-        return results;
+        return await ProjectAsync(query.OrderBy(x => x.StartsAt), cancellationToken);
     }
 
     public Task<AppointmentDto> ConfirmAsync(Guid id, AppointmentActionRequest request, CancellationToken cancellationToken) =>
@@ -268,15 +255,18 @@ public sealed class AppointmentService(AppDbContext dbContext, ICurrentUser curr
         await dbContext.Doctors.SingleOrDefaultAsync(x => x.UserId == currentUser.UserId && x.VerificationStatus == Domain.Common.VerificationStatus.Verified, cancellationToken)
             ?? throw new ForbiddenException();
 
-    private async Task<AppointmentDto> MapAsync(Appointment appointment, CancellationToken cancellationToken)
-    {
-        var member = await dbContext.Members.AsNoTracking().SingleAsync(x => x.Id == appointment.MemberId, cancellationToken);
-        var family = await dbContext.Families.AsNoTracking().SingleAsync(x => x.Id == member.FamilyId, cancellationToken);
-        var doctor = await dbContext.Doctors.AsNoTracking().Include(x => x.User).SingleAsync(x => x.Id == appointment.DoctorId, cancellationToken);
-        var doctorDto = new DoctorSummaryDto(doctor.Id, doctor.User?.DisplayName ?? "Unknown", doctor.Specialty, doctor.HospitalClinic, doctor.District, doctor.City, doctor.Languages);
-        return new AppointmentDto(appointment.Id, appointment.MemberId, member.DisplayName, family.Name, doctorDto,
-            appointment.StartsAt, appointment.DurationMinutes, appointment.Reason, appointment.Status, appointment.DoctorNote, appointment.CreatedAt);
-    }
+    /// <summary>
+    /// One joined query for any number of appointments. Mapping row by row cost three round trips per
+    /// appointment, which is what made the calendar slow against a hosted database.
+    /// </summary>
+    private static async Task<IReadOnlyList<AppointmentDto>> ProjectAsync(IQueryable<Appointment> query, CancellationToken cancellationToken) =>
+        await query.Select(x => new AppointmentDto(x.Id, x.MemberId, x.Member!.DisplayName, x.Member.Family!.Name,
+            new DoctorSummaryDto(x.DoctorId, x.Doctor!.User != null ? x.Doctor.User.DisplayName : "Unknown",
+                x.Doctor.Specialty, x.Doctor.HospitalClinic, x.Doctor.District, x.Doctor.City, x.Doctor.Languages),
+            x.StartsAt, x.DurationMinutes, x.Reason, x.Status, x.DoctorNote, x.CreatedAt)).ToListAsync(cancellationToken);
+
+    private async Task<AppointmentDto> MapAsync(Appointment appointment, CancellationToken cancellationToken) =>
+        (await ProjectAsync(dbContext.Appointments.AsNoTracking().Where(x => x.Id == appointment.Id), cancellationToken)).Single();
 
     private void AddAudit(string eventType, Guid resourceId) => dbContext.AuditLogs.Add(new AuditLog
     {
