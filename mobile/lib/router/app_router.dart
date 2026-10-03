@@ -5,6 +5,8 @@ import 'package:family_veda/screens/profile/profile_screen.dart';
 import 'package:family_veda/screens/auth/login_screen.dart';
 import 'package:family_veda/screens/auth/register_screen.dart';
 import 'package:family_veda/screens/auth/splash_screen.dart';
+// ===== S1 — Public information routes =====
+import 'package:family_veda/screens/public/public_information_screen.dart';
 import 'package:family_veda/screens/appointments/appointments_screen.dart';
 import 'package:family_veda/screens/appointments/book_appointment_screen.dart';
 import 'package:family_veda/screens/emergency/emergency_screen.dart';
@@ -46,6 +48,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
+      GoRoute(path: '/about', builder: (_, _) => const PublicInformationScreen(kind: PublicInformationKind.about)),
+      GoRoute(path: '/privacy-policy', builder: (_, _) => const PublicInformationScreen(kind: PublicInformationKind.privacy)),
+      GoRoute(path: '/terms', builder: (_, _) => const PublicInformationScreen(kind: PublicInformationKind.terms)),
 
       // ===== Core 7 Portal Destinations wrapped in Persistent Shell & Web Subnav =====
       ShellRoute(
@@ -114,7 +119,7 @@ String? routeRedirect({
 
   final authenticated = auth.status == AuthStatus.authenticated;
   if (!authenticated) {
-    if (location == '/login' || location == '/register') return null;
+    if (location == '/login' || location == '/register' || location == '/about' || location == '/privacy-policy' || location == '/terms') return null;
     return '/login';
   }
   if (location == '/login' || location == '/splash' || location == '/register') return '/home';

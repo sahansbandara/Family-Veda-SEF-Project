@@ -1,6 +1,7 @@
 // Owner: S1 · Family, Identity & Consent — Samaranayaka S.G.V.S (IT23544154)
 // Final wizard step: grouped summary styled like the form (label over value, hairline rules).
 import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 
 export type ReviewSection = {
   title: string
@@ -38,7 +39,7 @@ export function RegistrationReview({ sections, onEdit, acceptTerms, onAcceptTerm
       ))}
       <label className="reg-review-terms">
         <input type="checkbox" checked={acceptTerms} onChange={(e) => onAcceptTermsChange(e.target.checked)} />
-        <span>I accept the Terms of Service and Privacy Policy.</span>
+        <span>I accept the <Link to="/terms">Terms of Service</Link> and <Link to="/privacy-policy">Privacy Policy</Link>.</span>
       </label>
       {termsError}
     </div>

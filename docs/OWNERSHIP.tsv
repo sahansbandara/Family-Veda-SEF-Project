@@ -282,3 +282,8 @@ S2	mobile/test/models/record_summary_meta_test.dart
 S2	web/src/pages/records/RecordSummaryText.tsx
 S2	web/src/pages/records/recordSummaryMeta.test.ts
 S2	web/src/pages/records/recordSummaryMeta.ts
+S1	web/src/pages/public/PublicInformationPage.tsx
+S1	web/src/pages/public/PublicInformationPage.test.tsx
+S1	web/src/pages/public/public-information.css
+S1	mobile/lib/screens/public/public_information_screen.dart
+S1	mobile/test/screens/public_information_screen_test.dart

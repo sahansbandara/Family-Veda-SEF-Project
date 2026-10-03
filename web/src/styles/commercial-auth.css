@@ -250,11 +250,22 @@ select.auth-form-input option {
   flex-shrink: 0;
 }
 
+.auth-legal-links {
+  display: flex;
+  gap: 14px;
+  margin: 18px 0 0;
+  font-size: .85rem;
+}
+
+.auth-legal-links a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+
 /* Mobile responsive */
 @media (max-width: 768px) {
   .auth-main-container {
     flex-direction: column;
-    height: 100%;
+    /* A percentage height resolves to 0 here: the page root only has a min-height. */
+    height: 100vh;
+    height: 100dvh;
   }
   .auth-glass-panel {
     position: absolute;
@@ -508,6 +519,9 @@ input[type="password"].auth-form-input::placeholder {
 .mobile-mode-switch {
   display: none;
 }
+.auth-legal-links--mobile {
+  display: none;
+}
 @media (max-width: 768px) {
   .mobile-mode-switch {
     display: block;
@@ -522,6 +536,12 @@ input[type="password"].auth-form-input::placeholder {
     cursor: pointer;
     padding: 12px;
   }
+  .auth-legal-links--mobile {
+    display: flex;
+    justify-content: center;
+    margin-top: 4px;
+    color: white;
+  }
 }
 
 
@@ -533,4 +553,3 @@ input[type="password"].auth-form-input::placeholder {
     display: none;
   }
 }
-

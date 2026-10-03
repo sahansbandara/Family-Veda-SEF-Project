@@ -162,4 +162,11 @@ describe('AuthPage', () => {
 
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('The terms must be accepted.'))
   })
+
+  it('links the public about, privacy and terms pages from sign-in', () => {
+    renderAuth('/login')
+    expect(screen.getAllByRole('link', { name: 'About' })[0]).toHaveAttribute('href', '/about')
+    expect(screen.getAllByRole('link', { name: 'Privacy' })[0]).toHaveAttribute('href', '/privacy-policy')
+    expect(screen.getAllByRole('link', { name: 'Terms' })[0]).toHaveAttribute('href', '/terms')
+  })
 })
