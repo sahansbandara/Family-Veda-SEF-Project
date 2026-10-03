@@ -873,7 +873,22 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       CheckboxListTile(
         contentPadding: EdgeInsets.zero,
         value: terms,
-        title: const Text('I accept the Terms of Service and Privacy Notice.'),
+        title: Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            const Text('I accept the '),
+            TextButton(
+              onPressed: () => context.push('/terms'),
+              child: const Text('Terms of Service'),
+            ),
+            const Text(' and '),
+            TextButton(
+              onPressed: () => context.push('/privacy-policy'),
+              child: const Text('Privacy Notice'),
+            ),
+            const Text('.'),
+          ],
+        ),
         onChanged: (v) => setState(() => terms = v ?? false),
       ),
       if (!terms && error?.contains('Accept the terms') == true)

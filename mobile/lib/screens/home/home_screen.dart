@@ -518,9 +518,7 @@ class HomeScreen extends ConsumerWidget {
               ref.invalidate(pendingJoinRequestsProvider(familyId));
               ref.invalidate(familySentInvitationsProvider(familyId));
             }
-            try {
-              await ref.read(familyDashboardProvider.future);
-            } catch (_) {}
+            await ref.read(familyDashboardProvider.future).catchError((_) => null);
           },
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(

@@ -91,10 +91,11 @@ public sealed class TriageService(
     {
         await RequireCaseAccessAsync(caseId, tracesOnly: true, cancellationToken);
         if (currentUser.UserType != UserType.Doctor) throw new NotFoundException();
-        var item = await dbContext.TriageCases.AsNoTracking().Include(x => x.Traces).SingleAsync(x => x.Id == caseId, cancellationToken);
+        var item = await dbContext.TriageCases.AsNoTracking().Include(x => x.Traces).Include(x => x.Episode).SingleAsync(x => x.Id == caseId, cancellationToken);
         return new CaseReviewDto(item.Id, item.MemberId, item.Status, item.Priority, item.ContextOutputJson,
             item.AnalysisOutputJson, item.FamilialRiskOutputJson, item.DraftAdvisoryJson,
-            item.Traces.OrderBy(x => x.StepNumber).Select(MapTrace).ToList());
+            item.Traces.OrderBy(x => x.StepNumber).Select(MapTrace).ToList(),
+            item.Episode is { } episode && episode.MemberId == item.MemberId ? MapEpisode(episode) : null);
     }
 
     public async Task<ApprovedGuidanceDto> GetApprovedGuidanceAsync(Guid caseId, CancellationToken cancellationToken)

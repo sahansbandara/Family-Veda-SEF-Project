@@ -77,7 +77,7 @@ describe('AppRoutes', () => {
 
   it('shows verified doctors the live triage case queue', async () => {
     renderRoute('/cases', 'DOCTOR')
-    expect(screen.getByRole('heading', { name: /triage cases/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /triage case management/i })).toBeInTheDocument()
     expect(await screen.findByText('No matching cases')).toBeInTheDocument()
     expect(screen.queryByText('FV-TR-1048')).not.toBeInTheDocument()
   })
@@ -115,6 +115,15 @@ describe('AppRoutes', () => {
     renderRoute('/register')
     // New design: main landmark labelled "Create account"
     expect(screen.getByRole('main', { name: /create account/i })).toBeInTheDocument()
+  })
+
+  it.each([
+    ['/about', 'About Family Veda'],
+    ['/privacy-policy', 'Privacy and data use'],
+    ['/terms', 'Terms for using Family Veda'],
+  ])('exposes the public %s page without signing in', (path, heading) => {
+    renderRoute(path)
+    expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
   })
 
   it('exposes public doctor registration', () => {

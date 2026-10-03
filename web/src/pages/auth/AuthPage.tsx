@@ -1,7 +1,7 @@
 // Owner: S1 · Family, Identity & Consent — Samaranayaka S.G.V.S (IT23544154)
 import { useState, useEffect } from 'react'
 import type { FormEvent } from 'react'
-import { useNavigate, useLocation, Navigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { z } from 'zod'
 import { isAxiosError } from 'axios'
 
@@ -380,6 +380,7 @@ export function AuthPage() {
             <button type="button" className="auth-mode-switch-btn" onClick={toggleMode} style={{ marginTop: '48px' }}>
               Already a Member? Sign In <span className="switch-arrow right-arrow">→</span>
             </button>
+            <p className="auth-legal-links"><Link to="/about">About</Link><Link to="/privacy-policy">Privacy</Link><Link to="/terms">Terms</Link></p>
           </div>
         </div>
 
@@ -402,6 +403,7 @@ export function AuthPage() {
             <button type="button" className="auth-mode-switch-btn" onClick={toggleMode} style={{ marginTop: '48px' }}>
               <span className="switch-arrow left-arrow">←</span> Not a member? Sign Up
             </button>
+            <p className="auth-legal-links"><Link to="/about">About</Link><Link to="/privacy-policy">Privacy</Link><Link to="/terms">Terms</Link></p>
           </div>
         </div>
 
@@ -687,6 +689,7 @@ export function AuthPage() {
             <button type="button" className="mobile-mode-switch" onClick={toggleMode}>
               Already a Member? Sign In
             </button>
+            <p className="auth-legal-links auth-legal-links--mobile"><Link to="/about">About</Link><Link to="/privacy-policy">Privacy</Link><Link to="/terms">Terms</Link></p>
           </div>
 
           {/* Login Form */}
@@ -720,6 +723,7 @@ export function AuthPage() {
             <button type="button" className="mobile-mode-switch" onClick={toggleMode}>
               Not a member? Sign Up
             </button>
+            <p className="auth-legal-links auth-legal-links--mobile"><Link to="/about">About</Link><Link to="/privacy-policy">Privacy</Link><Link to="/terms">Terms</Link></p>
           </div>
 
         </div>

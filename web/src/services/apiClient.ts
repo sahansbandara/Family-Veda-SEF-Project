@@ -9,6 +9,15 @@ const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:5000/api/
 
 export const apiClient = axios.create({ baseURL, timeout: 15_000 })
 
+/**
+ * The hosted API sleeps when idle and takes up to a minute to wake. Calling this as the app opens
+ * starts the wake-up while the person is still signing in. It carries no credentials and its
+ * result is ignored: a failure here changes nothing, the real requests report their own errors.
+ */
+export function warmUpApi() {
+  void fetch(`${baseURL.replace(/\/api\/v1\/?$/, '')}/health`, { mode: 'no-cors', cache: 'no-store' }).catch(() => undefined)
+}
+
 export function setSessionTokens(next: Tokens | null) {
   tokens = next
 }
@@ -72,12 +81,12 @@ export type PagedResult<T> = { items: T[]; page: number; pageSize: number; total
 export type HealthRecordDto = { id: string; memberId: string; recordType: string; title: string; summary?: string; occurredOn: string; sharedWithFamilyHead?: boolean }
 export type EpisodeDto = { id: string; memberId: string; symptoms: string[]; durationDays: number; severity: number; notes?: string; createdAt: string }
 export type TriageCaseDto = { id: string; episodeId: string; memberId: string; status: string; priority: string; createdAt: string }
-export type AvailableCaseDto = { id: string; priority: string; createdAt: string }
+export type AvailableCaseDto = { id: string; priority: string; createdAt: string; status?: string }
 export type AuditDto = { id: string; eventType: string; resourceType: string; resourceId?: string; outcome: string; createdAt: string }
 export type FamilyDashboardDto = { membersVisible: number; openCases: number; awaitingDoctorReview: number; approvedCases: number; recordsCount: number }
 export type AgentTraceDto = { stepNumber: number; agent: string; status: string; toolsRequested: string[]; toolsAllowed: string[]; toolsDenied: string[]; confidence: number; latencyMilliseconds: number; outputSchemaValid: boolean }
 export type ApprovalDto = { id: string; triageCaseId: string; doctorId: string; action: string; decidedAt: string }
-export type CaseReviewDto = { id: string; memberId: string; status: string; priority: string; contextJson?: string; analysisJson?: string; familialRiskJson?: string; draftAdvisoryJson?: string; traces: AgentTraceDto[] }
+export type CaseReviewDto = { id: string; memberId: string; status: string; priority: string; contextJson?: string; analysisJson?: string; familialRiskJson?: string; draftAdvisoryJson?: string; traces: AgentTraceDto[]; submittedEpisode?: { id: string; memberId: string; symptoms: string[]; durationDays: number; severity: number; notes?: string | null; createdAt: string } | null }
 export type ConsentDto = { id: string; memberId: string; category: string; status: string; grantedByGuardian: boolean }
 export type RelationshipDto = { id: string; memberId: string; relatedMemberId: string; relationshipType: string; isBiological: boolean }
 export type DoctorDto = { id: string; userId: string; registrationNumberLastFour: string; verificationStatus: string; specialty?: string; hospitalClinic?: string; phoneNumber?: string; displayName?: string; email?: string; registrationNumber?: string }
@@ -292,7 +301,7 @@ export const threePortalApi = {
   getDoctorAppointments: (params?: { from?: string; to?: string }) =>
     apiClient.get<AppointmentDto[]>('/doctors/me/appointments', { params }),
   setAppointmentStatus: (id: string, action: 'confirm' | 'complete' | 'no-show' | 'cancel', note?: string) =>
-    apiClient.post(`/doctors/me/appointments/${id}/${action}`, { note }),
+    apiClient.post<AppointmentDto>(`/doctors/me/appointments/${id}/${action}`, { note }),
 
   getNotifications: (unreadOnly?: boolean) =>
     apiClient.get<NotificationDto[]>('/notifications', { 

@@ -227,6 +227,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ),
                                 ],
                               ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                alignment: WrapAlignment.center,
+                                children: [
+                                  TextButton(onPressed: () => context.push('/about'), child: const Text('About')),
+                                  TextButton(onPressed: () => context.push('/privacy-policy'), child: const Text('Privacy')),
+                                  TextButton(onPressed: () => context.push('/terms'), child: const Text('Terms')),
+                                ],
+                              ),
                             ],
                           ),
                         ),

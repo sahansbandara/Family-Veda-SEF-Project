@@ -265,3 +265,13 @@ Use synthetic, provenance-labelled image fixtures and retain actual originals in
 ## 2026-10-03 — Publish synthetic demo access inventory
 
 **Decision:** The user's explicit request to publish the shared synthetic demo password in README supersedes the prior private-Keychain README instructions and the generic project prohibition on credentials in Markdown for this demo credential only. Real credentials remain excluded. List all 44 synthetic accounts found in both local and hosted inventories, including restricted/deactivated states; distinguish confirmed logins from inventory checks. No account creation, password reset, security-setting change or deployment is included.
+
+## 2026-10-03 — Case-specific doctor review reasons
+
+User explicitly approved adding submitted episode information to the existing doctor-review response and plain-language case-specific reasons on web. Add optional SubmittedEpisode to CaseReviewDto, populated from the exact case Episode only when its member matches the case. Keep existing verified-doctor case-grant authorization and audit flow. Display reported symptoms/duration and existing analysis deviations as attributed AI draft observations; retain priority, low-confidence, safety and human-approval reasons. Missing evidence gets an explicit fallback. No diagnosis generation, new LLM, schema/migration, permission-setting or deployment changes. Flutter has no doctor review console and remains outside this approved web-console scope.
+
+Checkout was clean develop at 2d3223d; earlier plain-language/vitals changes were absent. This change does not restore or overwrite that separate patch.
+
+## 2026-10-03 — Combine saved approval desk UI
+
+User requested restoring the missing vitals/reports sections. Recovered only the approved UI files from GitHub Desktop stash c40a7cd, combining its nested JSON presentation formatter with current case-specific reviewReasons instead of replacing the whole helper. Preserved current backend and optional episode contract; retained the stash as recovery evidence. Vital identifiers now display underscores as spaces. No branch switch, commit, push, deployment or runtime configuration change.

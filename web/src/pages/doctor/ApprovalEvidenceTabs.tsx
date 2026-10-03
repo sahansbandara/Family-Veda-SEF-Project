@@ -5,6 +5,7 @@ import { useState } from 'react'
 
 import type { CaseReviewDto } from '../../services/apiClient'
 import { reviewReasons, statusLabel, structuredEntries } from './approvalReview'
+import { ApprovalSupportingEvidence } from './ApprovalSupportingEvidence'
 import { SafetyChecks } from './SafetyChecks'
 
 type TabId = 'overview' | 'evidence' | 'technical'
@@ -76,15 +77,18 @@ export function ApprovalEvidenceTabs({ review }: { review: CaseReviewDto }) {
               </ul>
             </article>
             <article className="care-panel approval-tile approval-tile--draft">
-              <h3>AI findings</h3>
+              <h3>AI findings — plain language</h3>
               <p className="approval-tag">Unapproved AI draft</p>
-              <EvidenceList raw={review.draftAdvisoryJson} empty="No AI draft advisory was produced for this request." />
+              <div className="approval-findings">
+                <EvidenceList raw={review.draftAdvisoryJson} empty="No AI draft advisory was produced for this request." />
+              </div>
               <p className="care-caption">Not a diagnosis. Not visible to the patient.</p>
             </article>
             <article className="care-panel approval-tile">
               <SafetyChecks traces={review.traces} />
             </article>
-            <article className="care-panel approval-tile">
+            <ApprovalSupportingEvidence key={review.id} memberId={review.memberId} />
+            <article className="care-panel approval-tile approval-family">
               <h3>Consented family-history context</h3>
               <EvidenceList
                 raw={review.familialRiskJson}

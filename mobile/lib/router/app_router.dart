@@ -5,6 +5,8 @@ import 'package:family_veda/screens/profile/profile_screen.dart';
 import 'package:family_veda/screens/auth/login_screen.dart';
 import 'package:family_veda/screens/auth/register_screen.dart';
 import 'package:family_veda/screens/auth/splash_screen.dart';
+// ===== S1 — Public information routes =====
+import 'package:family_veda/screens/public/public_information_screen.dart';
 import 'package:family_veda/screens/appointments/appointments_screen.dart';
 import 'package:family_veda/screens/appointments/book_appointment_screen.dart';
 import 'package:family_veda/screens/emergency/emergency_screen.dart';
@@ -26,6 +28,7 @@ import 'package:family_veda/widgets/shared/app_shell.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:family_veda/screens/doctor/case_review_screen.dart';
+import 'package:family_veda/screens/doctor/doctor_triage_cases_screen.dart';
 import 'package:family_veda/screens/doctor/doctor_calendar_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -46,6 +49,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/splash', builder: (_, _) => const SplashScreen()),
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, _) => const RegisterScreen()),
+      GoRoute(path: '/about', builder: (_, _) => const PublicInformationScreen(kind: PublicInformationKind.about)),
+      GoRoute(path: '/privacy-policy', builder: (_, _) => const PublicInformationScreen(kind: PublicInformationKind.privacy)),
+      GoRoute(path: '/terms', builder: (_, _) => const PublicInformationScreen(kind: PublicInformationKind.terms)),
 
       // ===== Core 7 Portal Destinations wrapped in Persistent Shell & Web Subnav =====
       ShellRoute(
@@ -63,6 +69,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/profile', builder: (_, _) => const ProfileScreen()),
           GoRoute(path: '/case-review', builder: (_, _) => const CaseReviewScreen()),
           GoRoute(path: '/calendar', builder: (_, _) => const DoctorCalendarScreen()),
+          GoRoute(path: '/triage-cases', builder: (_, _) => const DoctorTriageCasesScreen()),
         ],
       ),
 
@@ -114,7 +121,7 @@ String? routeRedirect({
 
   final authenticated = auth.status == AuthStatus.authenticated;
   if (!authenticated) {
-    if (location == '/login' || location == '/register') return null;
+    if (location == '/login' || location == '/register' || location == '/about' || location == '/privacy-policy' || location == '/terms') return null;
     return '/login';
   }
   if (location == '/login' || location == '/splash' || location == '/register') return '/home';

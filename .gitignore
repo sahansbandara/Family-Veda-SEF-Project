@@ -78,3 +78,4 @@ neon-backup-*.sql
 
 # Local API runtime files, including private Data Protection keys
 /backend/src/Api/storage/
+.vercel

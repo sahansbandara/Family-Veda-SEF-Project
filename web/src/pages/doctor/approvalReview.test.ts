@@ -5,37 +5,61 @@ import { describe, expect, it } from 'vitest'
 import { structuredEntries } from './approvalReview'
 
 describe('structuredEntries', () => {
-  it('unwraps agent outputs that were stored as JSON-encoded strings', () => {
-    const raw = JSON.stringify({
-      forDoctorReviewOnly: true,
-      context: '{"summary":"Synthetic demonstration context"}',
-      analysis: '{"summary":"Symptoms recorded for doctor review. No diagnosis is made."}',
-      familialRisk: '{"screeningIndication":"none"}',
-    })
+  it('decodes nested JSON strings into readable evidence without serialized braces', () => {
+    const entries = structuredEntries(JSON.stringify({
+      summary: JSON.stringify({
+        episodes: JSON.stringify(['Synthetic symptom history']),
+      }),
+    }))
 
-    expect(structuredEntries(raw)).toEqual([
-      { label: 'Context', values: ['Summary: Synthetic demonstration context'] },
-      { label: 'Analysis', values: ['Summary: Symptoms recorded for doctor review. No diagnosis is made.'] },
-      { label: 'Familial Risk', values: ['Screening Indication: none'] },
+    expect(entries).toEqual([
+      { label: 'Recorded symptom episodes', values: ['Synthetic symptom history'] },
+    ])
+    expect(entries.flatMap((entry) => entry.values).join(' ')).not.toMatch(/[{}]/)
+  })
+
+  it('omits doctor-only and confidence fields from structured evidence', () => {
+    const entries = structuredEntries(JSON.stringify({
+      summary: 'Synthetic review summary',
+      forDoctorReviewOnly: 'Synthetic technical note',
+      confidence: 0.42,
+    }))
+
+    expect(entries).toEqual([
+      { label: 'Summary of supplied information', values: ['Synthetic review summary'] },
     ])
   })
 
-  it('renders nested objects the same way when they are not string-encoded', () => {
-    const raw = JSON.stringify({ context: { summary: 'Synthetic demonstration context' }, familialRisk: null })
+  it('explains when no additional screening indication was reported', () => {
+    const entries = structuredEntries(JSON.stringify({ screeningIndication: 'none' }))
 
-    expect(structuredEntries(raw)).toEqual([
-      { label: 'Context', values: ['Summary: Synthetic demonstration context'] },
-      { label: 'Familial Risk', values: ['—'] },
+    expect(entries).toEqual([
+      {
+        label: 'Screening review note',
+        values: ['No additional consented screening indication was reported.'],
+      },
     ])
   })
 
-  it('keeps plain text that only looks like JSON', () => {
-    expect(structuredEntries(JSON.stringify({ note: '{not json' }))).toEqual([
-      { label: 'Note', values: ['{not json'] },
+  it('uses a safe fallback for malformed serialized output', () => {
+    const entries = structuredEntries('{"summary":"Synthetic review summary"')
+
+    expect(entries).toEqual([
+      {
+        label: 'Summary of supplied information',
+        values: ['This structured output could not be displayed. Check the technical trace.'],
+      },
     ])
   })
 
-  it('falls back to a summary row for non-JSON input', () => {
-    expect(structuredEntries('free text')).toEqual([{ label: 'Summary', values: ['free text'] }])
+  it('retains ordinary plain text', () => {
+    const entries = structuredEntries('Synthetic plain-text summary')
+
+    expect(entries).toEqual([
+      {
+        label: 'Summary of supplied information',
+        values: ['Synthetic plain-text summary'],
+      },
+    ])
   })
 })
