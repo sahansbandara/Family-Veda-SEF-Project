@@ -172,6 +172,23 @@ public sealed class DoctorWorkspaceServiceTests
     }
 
     [Fact]
+    public async Task AmendNote_AfterTheGrantEnds_IsForbidden_AndAppendsNothing()
+    {
+        await using var db = NewDb();
+        var f = await SeedAsync(db);
+        var service = Workspace(db, f.DoctorUser.Id);
+        var visit = await ConfirmedVisitAsync(db, f, DateTimeOffset.UtcNow.AddHours(2));
+        var note = await service.AddNoteAsync(f.Adult.Id, new CreateClinicalNoteRequest("Synthetic note", ClinicalNoteType.VisitNote, null), CancellationToken.None);
+
+        // The family doctor assignment stays; only the member-specific visit grant is revoked.
+        await Appointments(db, f.DoctorUser.Id).DoctorCancelAsync(visit.Id, new AppointmentActionRequest(null), CancellationToken.None);
+
+        await FluentActions.Awaiting(() => service.AmendNoteAsync(note.Id, new AmendClinicalNoteRequest("Synthetic late amendment"), CancellationToken.None))
+            .Should().ThrowAsync<ForbiddenException>();
+        (await db.ClinicalNotes.CountAsync()).Should().Be(1, "a denied amendment appends nothing");
+    }
+
+    [Fact]
     public async Task Availability_RejectsOverlap_AndSlotsSkipBookedTime()
     {
         await using var db = NewDb();
