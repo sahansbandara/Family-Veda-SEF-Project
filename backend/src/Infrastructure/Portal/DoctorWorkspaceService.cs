@@ -247,6 +247,13 @@ public sealed class DoctorWorkspaceService(AppDbContext dbContext, ICurrentUser 
         var original = await dbContext.ClinicalNotes.AsNoTracking().SingleOrDefaultAsync(x => x.Id == noteId && x.DoctorId == doctor.Id, cancellationToken)
             ?? throw new NotFoundException();
         await RequireAssignmentAsync(doctor.Id, original.FamilyId, cancellationToken);
+        // Same rule as a new note: the assignment is eligibility only. An amendment is a clinical write,
+        // so it needs a grant that is active now for this specific member.
+        if (original.MemberId is not { } memberId ||
+            (await FindActiveGrantAsync(doctor.Id, memberId, DateTimeOffset.UtcNow, cancellationToken)).Basis is null)
+        {
+            throw new ForbiddenException();
+        }
         var latestVersion = await dbContext.ClinicalNotes.Where(x => x.Id == noteId || x.AmendsNoteId == noteId).MaxAsync(x => x.Version, cancellationToken);
         var amendment = new ClinicalNote
         {

@@ -30,6 +30,9 @@ import 'package:go_router/go_router.dart';
 import 'package:family_veda/screens/doctor/case_review_screen.dart';
 import 'package:family_veda/screens/doctor/doctor_triage_cases_screen.dart';
 import 'package:family_veda/screens/doctor/doctor_calendar_screen.dart';
+import 'package:family_veda/screens/doctor/doctor_families_screen.dart';
+import 'package:family_veda/screens/doctor/doctor_family_detail_screen.dart';
+import 'package:family_veda/screens/doctor/doctor_member_workspace_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final auth = ref.watch(authProvider);
@@ -70,6 +73,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/case-review', builder: (_, _) => const CaseReviewScreen()),
           GoRoute(path: '/calendar', builder: (_, _) => const DoctorCalendarScreen()),
           GoRoute(path: '/triage-cases', builder: (_, _) => const DoctorTriageCasesScreen()),
+          GoRoute(path: '/families', builder: (_, _) => const DoctorFamiliesScreen()),
         ],
       ),
 
@@ -97,6 +101,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(path: '/emergency', builder: (_, _) => const EmergencyScreen()),
+      GoRoute(
+        path: '/families/members/:memberId',
+        builder: (_, state) => DoctorMemberWorkspaceScreen(
+          memberId: state.pathParameters['memberId'] ?? '',
+        ),
+      ),
+      GoRoute(
+        path: '/families/:familyId',
+        builder: (_, state) => DoctorFamilyDetailScreen(
+          familyId: state.pathParameters['familyId'] ?? '',
+        ),
+      ),
       GoRoute(
         path: '/appointments/book',
         builder: (_, _) => const BookAppointmentScreen(),
