@@ -3,79 +3,36 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
+import '../../styles/approval-desk.css'
+
 import { AiBadge } from '../../components/shared/AiBadge'
 import { StatusBadge } from '../../components/shared/StatusBadge'
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { apiClient, type CaseReviewDto, type PagedResult, type TriageCaseDto } from '../../services/apiClient'
-import { SafetyChecks } from './SafetyChecks'
+import { ApprovalConfirmDialog, ApprovalDecisionPanel } from './ApprovalDecisionPanel'
+import { ApprovalEvidenceTabs } from './ApprovalEvidenceTabs'
+import {
+  approvedGuidance,
+  filterQueue,
+  isPriority,
+  queueBucket,
+  queueDate,
+  queueDateTime,
+  reviewableStatuses,
+  safeDate,
+  shortRef,
+  statusLabel,
+  type DecisionAction,
+  type QueueFilter,
+} from './approvalReview'
+import { buildSafetyChecks } from './safetyRules'
 
-const approvedGuidance = [
-  'Please arrange an in-person clinical review.',
-  'Please discuss appropriate screening with a licensed clinician.',
-  'Continue monitoring symptoms and seek in-person care if they worsen.',
+const filterLabels: Array<{ id: QueueFilter; label: string }> = [
+  { id: 'all', label: 'All' },
+  { id: 'priority', label: 'Priority' },
+  { id: 'routine', label: 'Routine' },
+  { id: 'low', label: 'Low confidence' },
 ]
-const reviewableStatuses = new Set(['PendingDoctorReview', 'LowConfidence', 'Claimed'])
-
-function statusLabel(status: string) {
-  return status.replace(/([a-z])([A-Z])/g, '$1 $2')
-}
-
-function safeDate(value?: string) {
-  const date = value ? new Date(value) : null
-  return date && !Number.isNaN(date.valueOf()) ? date : null
-}
-
-function queueDate(value?: string) {
-  const date = safeDate(value)
-  return date ? date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : 'Date unavailable'
-}
-
-function caseLabel(item: TriageCaseDto) {
-  return `Patient request · ${queueDate(item.createdAt)}`
-}
-
-function structuredEntries(raw?: string | null) {
-  if (!raw) return [] as Array<[string, string]>
-  try {
-    const parsed: unknown = JSON.parse(raw)
-    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-      return Object.entries(parsed as Record<string, unknown>).map(([key, value]) => [
-        statusLabel(key),
-        typeof value === 'string' ? value : JSON.stringify(value),
-      ])
-    }
-    return [['Summary', typeof parsed === 'string' ? parsed : JSON.stringify(parsed)]]
-  } catch {
-    return [['Summary', raw]]
-  }
-}
-
-function EvidenceSection({ title, raw }: { title: string; raw?: string | null }) {
-  const entries = structuredEntries(raw)
-  return (
-    <section className="care-evidence">
-      <h3>{title}</h3>
-      {entries.length === 0 ? (
-        <p className="care-caption">No structured output was available for this stage.</p>
-      ) : (
-        <dl>
-          {entries.map(([label, value]) => (
-            <div key={label}>
-              <dt>{label}</dt>
-              <dd>{value}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
-      {raw && (
-        <details>
-          <summary>Raw doctor-only JSON</summary>
-          <pre>{raw}</pre>
-        </details>
-      )}
-    </section>
-  )
-}
 
 export function ApprovalsPage() {
   const [searchParams] = useSearchParams()
@@ -89,6 +46,10 @@ export function ApprovalsPage() {
   const [reviewReload, setReviewReload] = useState(0)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
+  const [notice, setNotice] = useState<{ tone: 'success' | 'warning'; text: string } | null>(null)
+  const [filter, setFilter] = useState<QueueFilter>('all')
+  const [search, setSearch] = useState('')
+  const [pending, setPending] = useState<DecisionAction | null>(null)
 
   const loadQueue = useCallback(async () => {
     setStatus('loading')
@@ -120,6 +81,7 @@ export function ApprovalsPage() {
     setAdvisory('')
     setNotes('')
     setMessage('')
+    setPending(null)
     if (!selectedId) {
       setReviewStatus('idle')
       return () => {
@@ -143,50 +105,73 @@ export function ApprovalsPage() {
   }, [selectedId, reviewReload])
 
   const retryReview = () => setReviewReload((value) => value + 1)
+  const cancelPending = useCallback(() => setPending(null), [])
   const reviewReady = reviewStatus === 'ready' && review?.id === selectedId && !saving
-  const priorityCount = cases.filter(
-    (item) => item.priority === 'Priority' || item.priority === 'Emergency',
-  ).length
+  const priorityCount = cases.filter(isPriority).length
   const oldest = [...cases].sort(
     (left, right) => (safeDate(left.createdAt)?.valueOf() ?? 0) - (safeDate(right.createdAt)?.valueOf() ?? 0),
   )[0]
+  const visible = filterQueue(cases, filter, search)
+  const selectedCase = cases.find((item) => item.id === selectedId)
+  const failedChecks = review ? buildSafetyChecks(review.traces).filter((check) => !check.passed).length : 0
+  const countFor = (id: QueueFilter) =>
+    id === 'all' ? cases.length : cases.filter((item) => queueBucket(item) === id).length
 
-  async function decide(action: 'approve' | 'revise' | 'request-info' | 'reject' | 'escalate') {
+  function requestDecision(action: DecisionAction) {
     if (!reviewReady || !selectedId) return
     if ((action === 'approve' || action === 'revise') && !approvedGuidance.includes(advisory)) {
       setMessage('Choose one approved guidance option before saving this decision.')
       return
     }
-    if (!window.confirm(`Confirm ${action.replace('-', ' ')} decision? This action is audited.`)) return
-    setSaving(true)
     setMessage('')
+    setPending(action)
+  }
+
+  async function confirmDecision() {
+    if (!pending || !reviewReady || !selectedId) return
+    setSaving(true)
+    setNotice(null)
     try {
-      await apiClient.post(`/triage-cases/${selectedId}/${action}`, {
+      await apiClient.post(`/triage-cases/${selectedId}/${pending}`, {
         doctorNotes: notes.trim() || null,
         finalAdvisory: advisory.trim() || null,
       })
-      setMessage('Decision saved. Patient visibility remains controlled by the approval gate.')
+      setNotice({
+        tone: 'success',
+        text: `Decision saved for request ${shortRef(selectedId)}. Patient visibility remains controlled by the approval gate.`,
+      })
+      setPending(null)
       setReview(null)
       setReviewStatus('idle')
       setSelectedId('')
       await loadQueue()
     } catch {
-      setMessage('Decision was not saved. Review access, wording, safety validation, and retry.')
+      setPending(null)
+      setNotice({
+        tone: 'warning',
+        text: 'Decision was not saved. Review access, wording, safety validation, and retry.',
+      })
     } finally {
       setSaving(false)
     }
   }
 
   return (
-    <div className="care-workspace">
+    <div className="care-workspace approval-desk">
       <header className="care-header">
         <div>
-          <p className="care-eyebrow">Doctor review workspace</p>
-          <h1>Approval desk</h1>
-          <p>Review AI-supported triage evidence before an audited clinical decision.</p>
+          <p className="care-eyebrow">Clinical decision workspace</p>
+          <h1>Case review center</h1>
+          <p>Read the evidence, review AI-supported findings and record your clinical decision.</p>
         </div>
-        <span className="status-badge status-badge--primary">Doctor-only review</span>
+        <span className="status-badge status-badge--primary">Doctor-only · Approval required</span>
       </header>
+
+      {notice && (
+        <p role="status" className={`care-note care-note--${notice.tone}`}>
+          {notice.text}
+        </p>
+      )}
 
       {status === 'loading' ? (
         <LoadingState label="Loading approval queue" />
@@ -201,10 +186,10 @@ export function ApprovalsPage() {
         <>
           <section className="care-metrics" aria-label="Approval queue summary">
             <div className="care-metric">
-              <span>Awaiting review</span>
+              <span>Requests awaiting review</span>
               <strong>{cases.length}</strong>
             </div>
-            <div className="care-metric">
+            <div className="care-metric approval-metric--attention">
               <span>Priority attention</span>
               <strong>{priorityCount}</strong>
             </div>
@@ -214,168 +199,152 @@ export function ApprovalsPage() {
             </div>
           </section>
 
-          <section className="care-split care-split--review">
-            <aside className="care-panel care-review-queue" aria-label="Review queue">
-              <div className="care-panel-heading">
-                <div>
-                  <p className="care-eyebrow">Queue</p>
-                  <h2>Requests needing review</h2>
-                </div>
-                <span>{cases.length}</span>
+          <section className="approval-workspace">
+            <aside className="care-panel approval-queue" aria-label="Review queue">
+              <div className="approval-queue__head">
+                <h2>Review queue</h2>
+                <span className="approval-count">{visible.length}</span>
               </div>
-              {cases.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className="care-selection-card"
-                  aria-pressed={item.id === selectedId}
-                  onClick={() => setSelectedId(item.id)}
-                >
-                  <span>
-                    <strong>{caseLabel(item)}</strong>
-                    <small className="care-caption">Reference {item.id.slice(0, 8)}</small>
-                    <small>Submitted {queueDate(item.createdAt)}</small>
-                  </span>
-                  <span>
-                    <StatusBadge status={item.priority} />
-                    <small>{statusLabel(item.status)}</small>
-                  </span>
-                  <span className="sr-only">Review case {item.id}</span>
-                </button>
-              ))}
+              <input
+                type="search"
+                className="approval-search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search reference or status..."
+                aria-label="Search cases"
+              />
+              <div className="care-chips" role="group" aria-label="Filter queue">
+                {filterLabels.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="care-chip"
+                    aria-pressed={filter === item.id}
+                    onClick={() => setFilter(item.id)}
+                  >
+                    {item.label} ({countFor(item.id)})
+                  </button>
+                ))}
+              </div>
+              <div className="approval-case-list">
+                {visible.length === 0 ? (
+                  <p className="care-caption approval-empty">No matching cases. Try another filter or search.</p>
+                ) : (
+                  visible.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className="care-selection-card approval-case"
+                      aria-pressed={item.id === selectedId}
+                      onClick={() => setSelectedId(item.id)}
+                    >
+                      <span className="approval-case__top">
+                        <span className="approval-avatar" aria-hidden="true">
+                          {shortRef(item.id).slice(0, 2).toUpperCase()}
+                        </span>
+                        <span>
+                          <strong>Patient request</strong>
+                          <small>Reference {shortRef(item.id)}</small>
+                        </span>
+                        <span className="approval-case__chevron" aria-hidden="true">
+                          ›
+                        </span>
+                      </span>
+                      <span className="approval-case__foot">
+                        <StatusBadge status={item.priority} />
+                        <small>
+                          {statusLabel(item.status)} · {queueDate(item.createdAt)}
+                        </small>
+                      </span>
+                      <span className="sr-only">Review case {item.id}</span>
+                    </button>
+                  ))
+                )}
+              </div>
             </aside>
 
-            <article className="care-panel care-detail">
+            <div className="approval-detail">
               {reviewStatus === 'loading' ? (
-                <LoadingState label="Loading selected case evidence" />
+                <article className="care-panel">
+                  <LoadingState label="Loading selected case evidence" />
+                </article>
               ) : reviewStatus === 'error' ? (
-                <ErrorState message="Case evidence could not be loaded." onRetry={retryReview} />
+                <article className="care-panel">
+                  <ErrorState message="Case evidence could not be loaded." onRetry={retryReview} />
+                </article>
               ) : review ? (
                 <>
-                  <div className="care-panel-heading">
-                    <div>
-                      <p className="care-eyebrow">Doctor-only review</p>
-                      <h2 aria-label={`Review case ${review.id}`}>Request {review.id.slice(0, 8)}</h2>
-                      <p className="care-caption">
-                        Submitted {queueDate(cases.find((item) => item.id === review.id)?.createdAt)}
-                      </p>
+                  <article className="care-panel approval-case-head">
+                    <div className="approval-case-head__row">
+                      <div className="approval-case-head__person">
+                        <span className="approval-avatar approval-avatar--lg" aria-hidden="true">
+                          {shortRef(review.id).slice(0, 2).toUpperCase()}
+                        </span>
+                        <div>
+                          <h2 aria-label={`Review case ${review.id}`}>Request {shortRef(review.id)}</h2>
+                          <p className="care-caption">Identity is limited to what your case grant allows.</p>
+                        </div>
+                      </div>
+                      <span className="approval-case-head__tags">
+                        <AiBadge label="AI draft" />
+                        <StatusBadge status={review.priority} />
+                        <span className="status-badge status-badge--primary">{statusLabel(review.status)}</span>
+                      </span>
                     </div>
+                    <dl className="approval-meta">
+                      <div>
+                        <dt>Case reference</dt>
+                        <dd>{shortRef(review.id)}</dd>
+                      </div>
+                      <div>
+                        <dt>Submitted</dt>
+                        <dd>{queueDateTime(selectedCase?.createdAt)}</dd>
+                      </div>
+                      <div>
+                        <dt>Safety checks</dt>
+                        <dd>{failedChecks === 0 ? 'All passed' : `${failedChecks} not passed`}</dd>
+                      </div>
+                    </dl>
+                  </article>
+                  <div className="care-note">
                     <span>
-                      <AiBadge label="AI draft" />
-                      <StatusBadge status={review.priority} />
+                      <strong>Decision gate:</strong> AI findings are drafts for clinical review. Nothing is
+                      released to the patient until you save an approved decision.
                     </span>
                   </div>
-                  <div className="care-note">
-                    <strong>Decision gate:</strong> AI output remains doctor-only until you save an approved
-                    decision.
-                  </div>
-                  <SafetyChecks traces={review.traces} />
-                  <div className="care-evidence-grid">
-                    <EvidenceSection title="Context" raw={review.contextJson} />
-                    <EvidenceSection title="Analysis" raw={review.analysisJson} />
-                    <EvidenceSection title="Familial risk" raw={review.familialRiskJson} />
-                  </div>
-                  {review.draftAdvisoryJson && (
-                    <section className="care-draft">
-                      <p className="care-eyebrow">Unapproved AI draft</p>
-                      <EvidenceSection title="Draft advisory" raw={review.draftAdvisoryJson} />
-                    </section>
-                  )}
-                  <section className="care-caption">
-                    <strong>Trace steps:</strong> {review.traces.length} · Case status:{' '}
-                    {statusLabel(review.status)}
-                  </section>
+                  <ApprovalEvidenceTabs review={review} />
                 </>
               ) : (
-                <p className="care-caption">Choose a request from the authorized review queue.</p>
+                <article className="care-panel">
+                  <p className="care-caption">Choose a request from the authorized review queue.</p>
+                </article>
               )}
-            </article>
 
-            <aside className="care-panel care-actions" aria-labelledby="decision-heading">
-              <div className="care-panel-heading">
-                <div>
-                  <p className="care-eyebrow">Decision gate</p>
-                  <h2 id="decision-heading">Review actions</h2>
-                </div>
-              </div>
-              <div className="care-form">
-                <label className="field">
-                  <span>Final Patient Guidance</span>
-                  <select
-                    value={advisory}
-                    onChange={(event) => setAdvisory(event.target.value)}
-                    disabled={!reviewReady}
-                  >
-                    <option value="">Select approved guidance</option>
-                    {approvedGuidance.map((guidance) => (
-                      <option key={guidance} value={guidance}>
-                        {guidance}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="field">
-                  <span>Internal Clinical Notes</span>
-                  <textarea
-                    rows={4}
-                    value={notes}
-                    onChange={(event) => setNotes(event.target.value)}
-                    maxLength={1000}
-                    placeholder="Enter clinical rationale or review notes..."
-                    disabled={!reviewReady}
-                  />
-                </label>
-              </div>
-              {message && (
-                <p role="status" className="care-note">
-                  {message}
-                </p>
-              )}
-              <div className="care-review-actions">
-                <button
-                  type="button"
-                  className="button button--primary"
-                  disabled={!reviewReady}
-                  onClick={() => void decide('approve')}
-                >
-                  Approve
-                </button>
-                <button
-                  type="button"
-                  className="button button--secondary"
-                  disabled={!reviewReady}
-                  onClick={() => void decide('revise')}
-                >
-                  Revise and Approve
-                </button>
-                <button
-                  type="button"
-                  className="button button--secondary"
-                  disabled={!reviewReady}
-                  onClick={() => void decide('request-info')}
-                >
-                  Request Information
-                </button>
-                <button
-                  type="button"
-                  className="button button--danger"
-                  disabled={!reviewReady}
-                  onClick={() => void decide('reject')}
-                >
-                  Reject
-                </button>
-                <button
-                  type="button"
-                  className="button button--danger"
-                  disabled={!reviewReady}
-                  onClick={() => void decide('escalate')}
-                >
-                  Escalate
-                </button>
-              </div>
-            </aside>
+              <ApprovalDecisionPanel
+                advisory={advisory}
+                notes={notes}
+                disabled={!reviewReady}
+                message={message}
+                onAdvisory={setAdvisory}
+                onNotes={setNotes}
+                onDecide={requestDecision}
+              />
+            </div>
           </section>
         </>
+      )}
+
+      {pending && review && (
+        <ApprovalConfirmDialog
+          action={pending}
+          caseRef={shortRef(review.id)}
+          advisory={advisory}
+          notes={notes}
+          failedChecks={failedChecks}
+          saving={saving}
+          onCancel={cancelPending}
+          onConfirm={() => void confirmDecision()}
+        />
       )}
     </div>
   )
