@@ -275,3 +275,8 @@ Checkout was clean develop at 2d3223d; earlier plain-language/vitals changes wer
 ## 2026-10-03 — Combine saved approval desk UI
 
 User requested restoring the missing vitals/reports sections. Recovered only the approved UI files from GitHub Desktop stash c40a7cd, combining its nested JSON presentation formatter with current case-specific reviewReasons instead of replacing the whole helper. Preserved current backend and optional episode contract; retained the stash as recovery evidence. Vital identifiers now display underscores as spaces. No branch switch, commit, push, deployment or runtime configuration change.
+
+
+## 2026-10-03 — Preserve lab concentration evidence in deterministic safety checks
+
+User approved the narrow correction after a genuine synthetic family pipeline failed with DOSING_CONTENT on 92 mg/dL and 104 mg/dL. Recognize only complete mg/dL as a concentration in the existing dose regex; retain mg/mcg/g/mL dosing rejection and every other safety gate. Reject bypassing validation, editing case status or fabricating traces. Tests reproduce the three false positives before the fix and cover real doses, mixed dose/lab evidence, malformed denominator suffixes and medication content. Full backend suite: 246 passed; touched source coverage: 82.35% lines, 83.33% branches. Independent review and approved PR/deployment follow before creating a replacement genuine case; no patient advisory approval.

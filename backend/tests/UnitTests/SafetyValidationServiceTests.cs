@@ -7,6 +7,46 @@ namespace FamilyVeda.UnitTests;
 
 public sealed class SafetyValidationServiceTests
 {
+    [Theory]
+    [InlineData("Fasting glucose increased from 92 mg/dL to 104 mg/dL.")]
+    [InlineData("Total cholesterol: 188 mg/dL.")]
+    [InlineData("Glucose: 104MG/DL.")]
+    public void Validate_WhenDraftContainsLabConcentration_AllowsEvidence(string draft)
+    {
+        var result = new SafetyValidationService().Validate(new SafetyInput(false, draft, true, 0.9m, 0.6m));
+
+        Assert.True(result.CanContinue);
+        Assert.Empty(result.Violations);
+    }
+
+    [Theory]
+    [InlineData("Dose: 5 mg.")]
+    [InlineData("Dose: 0.5 mcg.")]
+    [InlineData("Dose: 1 g.")]
+    [InlineData("Dose: 2 mL.")]
+    [InlineData("Glucose: 92 mg/dL. Dose: 5 mg.")]
+    [InlineData("Value: 5 mg/dLextra.")]
+    [InlineData("Value: 5 mg/dL2.")]
+    [InlineData("Value: 5 mg/dL_daily.")]
+    public void Validate_WhenDraftContainsDoseOrMalformedConcentration_BlocksDosing(string draft)
+    {
+        var result = new SafetyValidationService().Validate(new SafetyInput(false, draft, true, 0.9m, 0.6m));
+
+        Assert.False(result.CanContinue);
+        Assert.Contains("DOSING_CONTENT", result.Violations);
+    }
+
+    [Theory]
+    [InlineData("Glucose: 92 mg/dL. Take medication.")]
+    [InlineData("Glucose: 92 mg/dL. Metformin.")]
+    public void Validate_WhenLabEvidenceContainsMedicationContent_StillBlocksContent(string draft)
+    {
+        var result = new SafetyValidationService().Validate(new SafetyInput(false, draft, true, 0.9m, 0.6m));
+
+        Assert.False(result.CanContinue);
+        Assert.Contains("PROHIBITED_CONTENT", result.Violations);
+    }
+
     [Fact]
     public void Validate_WhenEmergencyRedFlagExists_HaltsBeforeLlmAndReturnsReferralOnly()
     {
