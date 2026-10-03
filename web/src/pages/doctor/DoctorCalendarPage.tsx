@@ -5,14 +5,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Link } from 'react-router-dom'
 
-import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
+import { ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { doctorWorkspaceApi, threePortalApi, type AppointmentDto } from '../../services/apiClient'
 import { SubTabs } from '../dashboard/dashboardParts'
 import { FriendlyStatusBadge } from '../family/threePortalShared'
-import { extractErrorMessage, formatDateTime, formatDay } from '../family/threePortalUtils'
+import { extractErrorMessage, formatDateTime } from '../family/threePortalUtils'
+import '../../styles/doctor-calendar.css'
 
 type Action = 'confirm' | 'complete' | 'no-show' | 'cancel'
-type View = 'today' | 'week' | 'all'
+type View = 'today' | 'week' | 'month'
 
 // Local calendar date (the same date the page displays), never the UTC prefix of the ISO string.
 const dayKey = (date: Date) =>
@@ -45,11 +46,14 @@ export function DoctorCalendarPage() {
   const [appointments, setAppointments] = useState<AppointmentDto[]>([])
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [message, setMessage] = useState('')
-  const [view, setView] = useState<View>('week')
+  const [view, setView] = useState<View>('month')
   const [currentMonth, setCurrentMonth] = useState<Date>(() => new Date())
-  const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [selectedDate, setSelectedDate] = useState<string | null>(dayKey(new Date()))
+  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentDto | null>(null)
+  
   const [rescheduling, setRescheduling] = useState<string | null>(null)
   const [newTime, setNewTime] = useState('')
+  const [actionLoading, setActionLoading] = useState(false)
 
   const load = useCallback(async () => {
     setStatus('loading')
@@ -66,6 +70,54 @@ export function DoctorCalendarPage() {
     void load()
   }, [load])
 
+  const act = async (appointment: AppointmentDto, action: Action) => {
+    if (!window.confirm(`Are you sure you want to ${actionLabel[action]} this appointment?`)) return
+    setActionLoading(true)
+    try {
+      if (action === 'confirm') await doctorWorkspaceApi.confirmAppointment(appointment.id)
+      if (action === 'complete') await doctorWorkspaceApi.completeAppointment(appointment.id)
+      if (action === 'no-show') await doctorWorkspaceApi.noShowAppointment(appointment.id)
+      if (action === 'cancel') await doctorWorkspaceApi.cancelAppointment(appointment.id, 'Cancelled by doctor')
+      
+      const updated = { ...appointment }
+      if (action === 'confirm') updated.status = 'Confirmed'
+      if (action === 'complete') updated.status = 'Completed'
+      if (action === 'no-show') updated.status = 'NoShow'
+      if (action === 'cancel') updated.status = 'Cancelled'
+      
+      setAppointments((prev) => prev.map((a) => (a.id === appointment.id ? updated : a)))
+      if (selectedAppointment?.id === appointment.id) {
+        setSelectedAppointment(updated)
+      }
+      setMessage(`Successfully marked as ${actionLabel[action]}.`)
+    } catch (err) {
+      alert(extractErrorMessage(err))
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const reschedule = async (appointment: AppointmentDto) => {
+    if (!newTime) return
+    setActionLoading(true)
+    try {
+      await doctorWorkspaceApi.rescheduleAppointment(appointment.id, new Date(newTime).toISOString())
+      const { data } = await threePortalApi.getDoctorAppointments()
+      setAppointments(data)
+      const updated = data.find((a) => a.id === appointment.id)
+      if (updated && selectedAppointment?.id === appointment.id) {
+        setSelectedAppointment(updated)
+      }
+      setRescheduling(null)
+      setNewTime('')
+      setMessage('Successfully rescheduled.')
+    } catch (err) {
+      alert(extractErrorMessage(err))
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
   // Lookup map: dayKey (YYYY-MM-DD) -> appointments on that date
   const appointmentsByDate = useMemo(() => {
     const map = new Map<string, AppointmentDto[]>()
@@ -78,7 +130,6 @@ export function DoctorCalendarPage() {
     return map
   }, [appointments])
 
-  // Generate 7-column calendar matrix for the currently viewed month
   const calendarDays = useMemo(() => {
     const year = currentMonth.getFullYear()
     const month = currentMonth.getMonth()
@@ -87,349 +138,244 @@ export function DoctorCalendarPage() {
     const daysInPrevMonth = new Date(year, month, 0).getDate()
 
     const days: { date: Date; dateKey: string; isCurrentMonth: boolean; dayNumber: number }[] = []
-
-    // Padding days from previous month
     for (let i = firstDayIndex - 1; i >= 0; i--) {
       const d = new Date(year, month - 1, daysInPrevMonth - i)
-      days.push({
-        date: d,
-        dateKey: dayKey(d),
-        isCurrentMonth: false,
-        dayNumber: daysInPrevMonth - i,
-      })
+      days.push({ date: d, dateKey: dayKey(d), isCurrentMonth: false, dayNumber: daysInPrevMonth - i })
     }
-
-    // Days in current month
     for (let i = 1; i <= daysInMonth; i++) {
       const d = new Date(year, month, i)
-      days.push({
-        date: d,
-        dateKey: dayKey(d),
-        isCurrentMonth: true,
-        dayNumber: i,
-      })
+      days.push({ date: d, dateKey: dayKey(d), isCurrentMonth: true, dayNumber: i })
     }
-
-    // Padding days from next month to complete the row
     const remaining = (7 - (days.length % 7)) % 7
     for (let i = 1; i <= remaining; i++) {
       const d = new Date(year, month + 1, i)
-      days.push({
-        date: d,
-        dateKey: dayKey(d),
-        isCurrentMonth: false,
-        dayNumber: i,
-      })
+      days.push({ date: d, dateKey: dayKey(d), isCurrentMonth: false, dayNumber: i })
     }
-
     return days
   }, [currentMonth])
 
   const todayStr = useMemo(() => dayKey(new Date()), [])
+  const monthTitle = useMemo(() => currentMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }), [currentMonth])
 
-  const monthTitle = useMemo(() => {
-    return currentMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
-  }, [currentMonth])
+  const { todayVisits, pendingRequests, thisMonthVisits } = useMemo(() => {
+    const t = appointmentsByDate.get(todayStr) ?? []
+    const pending = appointments.filter(a => a.status === 'Requested').length
+    const currentMonthKeyPrefix = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}`
+    const monthVisits = appointments.filter((a) => dayKey(new Date(a.startsAt)).startsWith(currentMonthKeyPrefix)).length
+    return { todayVisits: t.length, pendingRequests: pending, thisMonthVisits: monthVisits }
+  }, [appointments, appointmentsByDate, todayStr, currentMonth])
 
-  const currentMonthKeyPrefix = useMemo(() => {
-    return `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}`
-  }, [currentMonth])
+  const selectedDayAppointments = useMemo(() => {
+    if (!selectedDate) return []
+    return (appointmentsByDate.get(selectedDate) ?? []).sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime())
+  }, [selectedDate, appointmentsByDate])
 
-  const thisMonthCount = useMemo(() => {
-    return appointments.filter((a) => dayKey(new Date(a.startsAt)).startsWith(currentMonthKeyPrefix)).length
-  }, [appointments, currentMonthKeyPrefix])
-
-  const selectedDateFormatted = useMemo(() => {
-    if (!selectedDate) return ''
-    try {
-      const [y, m, d] = selectedDate.split('-').map(Number)
-      return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })
-    } catch {
-      return selectedDate
+  // Week view strip (for mobile)
+  const mobileDateStrip = useMemo(() => {
+    const days = []
+    const base = new Date()
+    for (let i = -3; i <= 3; i++) {
+      const d = new Date(base)
+      d.setDate(base.getDate() + i)
+      days.push({
+        date: d,
+        dateKey: dayKey(d),
+        dayName: d.toLocaleDateString(undefined, { weekday: 'short' }),
+        dayNum: d.getDate()
+      })
     }
-  }, [selectedDate])
+    return days
+  }, [])
 
-  const byDay = useMemo(() => {
-    const groups = new Map<string, AppointmentDto[]>()
-    const now = new Date()
-    const today = dayKey(now)
-    const weekEnd = dayKey(new Date(now.getTime() + 7 * 86_400_000))
-    const visible = appointments.filter((a) => {
-      const key = dayKey(new Date(a.startsAt))
-      if (selectedDate) return key === selectedDate
-      return view === 'all' || (view === 'today' ? key === today : key >= today && key <= weekEnd)
-    })
-    for (const appointment of [...visible].sort((a, b) => a.startsAt.localeCompare(b.startsAt))) {
-      const key = dayKey(new Date(appointment.startsAt))
-      const list = groups.get(key) ?? []
-      list.push(appointment)
-      groups.set(key, list)
-    }
-    return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b))
-  }, [appointments, view, selectedDate])
-
-  const handlePrevMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))
-  }
-
-  const handleNextMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))
-  }
-
-  const handleToday = () => {
-    const now = new Date()
-    setCurrentMonth(now)
-    setSelectedDate(dayKey(now))
-  }
-
-  async function act(appointment: AppointmentDto, action: Action) {
-    try {
-      await threePortalApi.setAppointmentStatus(appointment.id, action)
-      setMessage(`${appointment.memberDisplayName}'s appointment updated.`)
-      await load()
-    } catch (error) {
-      setMessage(extractErrorMessage(error, 'Appointment status could not be updated.'))
-    }
-  }
-
-  async function reschedule(appointment: AppointmentDto) {
-    if (!newTime) return
-    try {
-      await doctorWorkspaceApi.reschedule(appointment.id, new Date(newTime).toISOString())
-      setMessage(`${appointment.memberDisplayName}'s appointment moved. The family has been notified.`)
-      setRescheduling(null); setNewTime('')
-      await load()
-    } catch (error) {
-      setMessage(extractErrorMessage(error, 'The appointment could not be moved to that time.'))
-    }
-  }
-
-  if (status === 'loading') return <LoadingState label="Loading calendar" />
-  if (status === 'error') return <ErrorState message="Calendar could not be loaded." onRetry={() => void load()} />
+  if (status === 'loading') return <LoadingState text="Loading your calendar..." />
+  if (status === 'error') return <ErrorState title="Failed to load" message="Could not load your appointments." onRetry={load} />
 
   return (
-    <div className="page-stack">
-      <header className="fv-hero">
+    <div className="doc-cal-container">
+      {message && <div className="fv-alert" style={{ background: 'var(--primary-subtle)', color: 'var(--primary)', padding: '12px', borderRadius: '8px' }}>{message} <button onClick={() => setMessage('')} style={{ float: 'right', background: 'none', border: 'none', cursor: 'pointer' }}>×</button></div>}
+
+      <header className="doc-cal-header">
         <div>
-          <p className="fv-eyebrow">Scheduling</p>
-          <h1>Calendar</h1>
-          <p>Your appointments. Confirm, reschedule, complete or cancel them. Confirming opens the patient's records from 24 h before the visit to 24 h after.</p>
+          <h1 className="doc-cal-header-title">My Calendar</h1>
+          <p className="doc-cal-header-subtitle">Manage appointments and availability</p>
+        </div>
+        <div className="doc-cal-metrics">
+          <div className="doc-cal-metric-item">
+            <span className="doc-cal-metric-val">{todayVisits}</span>
+            <span className="doc-cal-metric-lbl">Today's visits</span>
+          </div>
+          <div className="doc-cal-metric-item">
+            <span className="doc-cal-metric-val">{pendingRequests}</span>
+            <span className="doc-cal-metric-lbl">Pending</span>
+          </div>
+          <div className="doc-cal-metric-item">
+            <span className="doc-cal-metric-val">{thisMonthVisits}</span>
+            <span className="doc-cal-metric-lbl">This month</span>
+          </div>
         </div>
       </header>
 
-      {message && <p role="status" className="status-banner">{message}</p>}
-
-      {/* Unified Professional Month Calendar UI */}
-      <section className="fv-cal-board" aria-label="Monthly Calendar Overview">
-        <header className="fv-cal-topbar">
-          <div className="fv-cal-title-group">
-            <h2 className="fv-cal-month-title">{monthTitle}</h2>
-            <span className="fv-badge fv-badge--info">
-              {thisMonthCount} {thisMonthCount === 1 ? 'appointment' : 'appointments'} this month
-            </span>
-          </div>
-          <div className="fv-cal-nav-group">
-            <button
-              type="button"
-              className="fv-cal-nav-btn"
-              onClick={handlePrevMonth}
-              title="Previous month"
-              aria-label="Previous month"
-            >
-              ‹ Prev
-            </button>
-            <button
-              type="button"
-              className="fv-cal-nav-btn fv-cal-nav-btn--today"
-              onClick={handleToday}
-              title="Jump to today"
-            >
-              Today
-            </button>
-            <button
-              type="button"
-              className="fv-cal-nav-btn"
-              onClick={handleNextMonth}
-              title="Next month"
-              aria-label="Next month"
-            >
-              Next ›
-            </button>
-          </div>
-        </header>
-
-        {/* 7-column Weekday Headers */}
-        <div className="fv-cal-weekdays" role="row">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((wd) => (
-            <div key={wd} className="fv-cal-weekday" role="columnheader">
-              {wd}
+      <div className="doc-cal-body">
+        {/* Desktop Calendar */}
+        <div className="doc-cal-main">
+          <div className="fv-cal-topbar" style={{ marginBottom: 16 }}>
+            <div className="fv-cal-title-group">
+              <h2 className="fv-cal-month-title">{monthTitle}</h2>
             </div>
-          ))}
-        </div>
+            
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <SubTabs<View>
+                label=""
+                active={view}
+                onChange={(newView) => setView(newView)}
+                tabs={[
+                  { id: 'month', label: 'Month' },
+                  { id: 'week', label: 'Week' },
+                  { id: 'today', label: 'Day' },
+                ]}
+              />
+              <div className="fv-cal-nav-group">
+                <button type="button" className="fv-cal-nav-btn" onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}>‹ Prev</button>
+                <button type="button" className="fv-cal-nav-btn fv-cal-nav-btn--today" onClick={() => setCurrentMonth(new Date())}>Today</button>
+                <button type="button" className="fv-cal-nav-btn" onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}>Next ›</button>
+              </div>
+            </div>
+          </div>
 
-        {/* 7-column Calendar Day Cells with hairline dividers */}
-        <div className="fv-cal-grid" role="grid" aria-label={`Calendar for ${monthTitle}`}>
-          {calendarDays.map((cell) => {
-            const dayAppts = appointmentsByDate.get(cell.dateKey) ?? []
-            const isToday = cell.dateKey === todayStr
-            const isSelected = cell.dateKey === selectedDate
+          {/* Mobile date strip */}
+          <div className="mobile-date-strip">
+            {mobileDateStrip.map(d => {
+              const count = (appointmentsByDate.get(d.dateKey) ?? []).length
+              return (
+                <div key={d.dateKey} className={`mobile-date-btn ${selectedDate === d.dateKey ? 'selected' : ''}`} onClick={() => setSelectedDate(d.dateKey)}>
+                  <span className="day-lbl">{d.dayName}</span>
+                  <span className="day-num">{d.dayNum}</span>
+                  <div className="dots">
+                    {count > 0 && Array.from({length: Math.min(count, 3)}).map((_, i) => <div key={i} className="dot" />)}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
 
-            return (
-              <div
-                key={cell.dateKey}
-                role="button"
-                tabIndex={0}
-                aria-label={`${cell.dayNumber} ${cell.date.toLocaleDateString(undefined, { month: 'short' })}, ${dayAppts.length} appointments`}
-                aria-pressed={isSelected}
-                className={[
-                  'fv-cal-cell',
-                  !cell.isCurrentMonth ? 'fv-cal-cell--outside' : '',
-                  isToday ? 'fv-cal-cell--today' : '',
-                  isSelected ? 'fv-cal-cell--selected' : '',
-                ].filter(Boolean).join(' ')}
-                onClick={() => {
-                  if (isSelected) {
-                    setSelectedDate(null)
-                  } else {
-                    setSelectedDate(cell.dateKey)
-                    if (!cell.isCurrentMonth) {
-                      setCurrentMonth(new Date(cell.date.getFullYear(), cell.date.getMonth(), 1))
-                    }
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault()
-                    setSelectedDate(isSelected ? null : cell.dateKey)
-                  }
-                }}
-              >
-                <div className="fv-cal-cell-head">
-                  {isToday ? (
-                    <span className="fv-cal-today-badge">{cell.dayNumber}</span>
-                  ) : (
-                    <span className="fv-cal-cell-num">{cell.dayNumber}</span>
+          <div className="fv-cal-weekdays">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((wd) => (
+              <div key={wd} className="fv-cal-weekday">{wd}</div>
+            ))}
+          </div>
+
+          <div className="fv-cal-grid">
+            {calendarDays.map((cell) => {
+              const dayAppts = appointmentsByDate.get(cell.dateKey) ?? []
+              const isToday = cell.dateKey === todayStr
+              const isSelected = cell.dateKey === selectedDate
+
+              return (
+                <div
+                  key={cell.dateKey}
+                  className={['fv-cal-cell', !cell.isCurrentMonth && 'fv-cal-cell--outside', isToday && 'fv-cal-cell--today', isSelected && 'fv-cal-cell--selected'].filter(Boolean).join(' ')}
+                  onClick={() => { setSelectedDate(cell.dateKey); if (!cell.isCurrentMonth) setCurrentMonth(new Date(cell.date.getFullYear(), cell.date.getMonth(), 1)) }}
+                >
+                  <div className="fv-cal-cell-head">
+                    <span className={isToday ? "fv-cal-today-badge" : "fv-cal-cell-num"}>{cell.dayNumber}</span>
+                  </div>
+                  {dayAppts.length > 0 && (
+                    <div className="fv-cal-cell-events" style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                      {dayAppts.map(a => (
+                        <div key={a.id} title={`${formatTimeOnly(a.startsAt)} ${a.memberDisplayName}`} style={{ width: 8, height: 8, borderRadius: '50%', background: a.status === 'Confirmed' ? 'var(--primary)' : a.status === 'Requested' ? 'var(--warning)' : a.status === 'Completed' ? 'var(--success)' : 'var(--muted)' }} />
+                      ))}
+                    </div>
                   )}
                 </div>
+              )
+            })}
+          </div>
+        </div>
 
-                {dayAppts.length > 0 && (
-                  <div className="fv-cal-cell-events">
-                    {dayAppts.slice(0, 2).map((a) => (
-                      <div
-                        key={a.id}
-                        className={`fv-cal-event-chip fv-cal-event-chip--${a.status}`}
-                        title={`${formatDateTime(a.startsAt)} · ${a.memberDisplayName}`}
-                      >
-                        <span className="fv-cal-chip-time">{formatTimeOnly(a.startsAt)}</span>
-                        <span className="fv-cal-chip-name">{a.memberDisplayName}</span>
-                      </div>
-                    ))}
-                    {dayAppts.length > 2 && (
-                      <span className="fv-cal-more-chip">+{dayAppts.length - 2} more</span>
-                    )}
-                  </div>
-                )}
+        {/* Sidebar Agenda */}
+        <div className="doc-cal-sidebar">
+          <h3 style={{ margin: '0 0 16px', fontSize: '1.1rem' }}>
+            {selectedDate ? new Date(selectedDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) : 'Select a date'}
+            {selectedDate && <span style={{ fontSize: '0.8rem', color: 'var(--muted)', marginLeft: 8 }}>({selectedDayAppointments.length} visits)</span>}
+          </h3>
+          
+          {selectedDayAppointments.length === 0 ? (
+            <p style={{ color: 'var(--muted)', textAlign: 'center', margin: '40px 0' }}>No appointments</p>
+          ) : (
+            selectedDayAppointments.map(a => (
+              <div key={a.id} className="doc-cal-agenda-item" onClick={() => setSelectedAppointment(a)}>
+                <div className="doc-cal-agenda-time">{formatTimeOnly(a.startsAt)} - {formatTimeOnly(a.endsAt)}</div>
+                <div className="doc-cal-agenda-title">{a.memberDisplayName}</div>
+                <div className="doc-cal-agenda-meta">{a.reason}</div>
+                <FriendlyStatusBadge status={a.status} />
               </div>
-            )
-          })}
+            ))
+          )}
         </div>
-      </section>
+      </div>
 
-      {/* Selected date filter feedback */}
-      {selectedDate && (
-        <div className="fv-cal-filter-banner">
-          <span>
-            📅 Filtered to <strong>{selectedDateFormatted}</strong> ({byDay.reduce((sum, [, items]) => sum + items.length, 0)} visits)
-          </span>
-          <button
-            type="button"
-            className="button button--secondary"
-            style={{ padding: '5px 12px', fontSize: '12px' }}
-            onClick={() => setSelectedDate(null)}
-          >
-            Clear date filter
-          </button>
-        </div>
-      )}
-
-      {/* SubTabs Range Filter */}
-      <SubTabs<View>
-        label="Calendar range"
-        active={view}
-        onChange={(newView) => {
-          setSelectedDate(null)
-          setView(newView)
-        }}
-        tabs={[
-          { id: 'today', label: 'Today' },
-          { id: 'week', label: 'Next 7 days' },
-          { id: 'all', label: 'All' },
-        ]}
-      />
-
-      {/* Day-by-day Appointments Agenda */}
-      {byDay.length === 0 ? (
-        <EmptyState
-          title={selectedDate ? `No appointments on ${selectedDateFormatted}` : 'No appointments in this range'}
-          message={
-            selectedDate
-              ? 'There are no appointments scheduled for this date. Click another date on the calendar or clear the filter.'
-              : 'Booked appointments will appear here, grouped by day. Try another range.'
-          }
-        />
-      ) : (
-        byDay.map(([day, dayAppointments]) => (
-          <section className="panel" key={day}>
-            <h2>{formatDay(dayAppointments[0].startsAt)}</h2>
-            <div className="table-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th className="fv-date">Time</th>
-                    <th>Member</th>
-                    <th>Family</th>
-                    <th>Reason</th>
-                    <th className="fv-nowrap">Status</th>
-                    <th className="fv-nowrap">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dayAppointments.map((appointment) => (
-                    <tr key={appointment.id}>
-                      <td className="fv-date">{formatDateTime(appointment.startsAt)}</td>
-                      <td><Link to={`/members/${appointment.memberId}`}>{appointment.memberDisplayName}</Link></td>
-                      <td>{appointment.familyName}</td>
-                      <td>{appointment.reason}</td>
-                      <td className="fv-nowrap"><FriendlyStatusBadge status={appointment.status} /></td>
-                      <td className="fv-nowrap">
-                        {nextActions[appointment.status].map((action) => (
-                          <button
-                            key={action}
-                            className={`button ${action === 'cancel' ? 'button--danger' : 'button--secondary'}`}
-                            type="button"
-                            onClick={() => void act(appointment, action)}
-                            style={{ marginRight: 6 }}
-                          >
-                            {actionLabel[action]}
-                          </button>
-                        ))}
-                        {(appointment.status === 'Requested' || appointment.status === 'Confirmed') && (rescheduling === appointment.id ? (
-                          <span>
-                            <input aria-label="New time" type="datetime-local" value={newTime} onChange={(event) => setNewTime(event.target.value)} />
-                            <button className="button button--primary" type="button" onClick={() => void reschedule(appointment)}>Save</button>
-                            <button className="button button--secondary" type="button" onClick={() => setRescheduling(null)}>Close</button>
-                          </span>
-                        ) : (
-                          <button className="button button--secondary" type="button" onClick={() => { setRescheduling(appointment.id); setNewTime('') }}>Reschedule</button>
-                        ))}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      {/* Appointment Detail Drawer */}
+      {selectedAppointment && (
+        <div className="doc-cal-drawer-overlay" onClick={(e) => { if (e.target === e.currentTarget) setSelectedAppointment(null) }}>
+          <div className="doc-cal-drawer">
+            <div className="doc-cal-drawer-header">
+              <h2 style={{ margin: 0, fontSize: '1.25rem' }}>Appointment Details</h2>
+              <button onClick={() => setSelectedAppointment(null)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>×</button>
             </div>
-          </section>
-        ))
+            <div className="doc-cal-drawer-content">
+              <div>
+                <span style={{ fontSize: '0.8rem', color: 'var(--muted)', textTransform: 'uppercase' }}>Patient</span>
+                <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>{selectedAppointment.memberDisplayName}</div>
+                <div style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>Family: {selectedAppointment.familyName}</div>
+              </div>
+              
+              <div>
+                <span style={{ fontSize: '0.8rem', color: 'var(--muted)', textTransform: 'uppercase' }}>Time</span>
+                <div style={{ fontWeight: 500 }}>{formatDateTime(selectedAppointment.startsAt)}</div>
+                <div style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>Duration: {Math.round((new Date(selectedAppointment.endsAt).getTime() - new Date(selectedAppointment.startsAt).getTime()) / 60000)} mins</div>
+              </div>
+              
+              <div>
+                <span style={{ fontSize: '0.8rem', color: 'var(--muted)', textTransform: 'uppercase' }}>Reason</span>
+                <div>{selectedAppointment.reason}</div>
+              </div>
+
+              <div>
+                <span style={{ fontSize: '0.8rem', color: 'var(--muted)', textTransform: 'uppercase' }}>Status</span>
+                <div style={{ marginTop: 4 }}><FriendlyStatusBadge status={selectedAppointment.status} /></div>
+              </div>
+              
+              {rescheduling === selectedAppointment.id && (
+                <div style={{ background: 'var(--surface-subtle)', padding: 12, borderRadius: 8, marginTop: 8 }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', marginBottom: 4 }}>Select new time</label>
+                  <input type="datetime-local" value={newTime} onChange={e => setNewTime(e.target.value)} style={{ width: '100%', padding: 8, borderRadius: 4, border: '1px solid var(--border-subtle)', marginBottom: 8 }} />
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button className="button button--primary" onClick={() => void reschedule(selectedAppointment)} disabled={actionLoading || !newTime}>Save</button>
+                    <button className="button button--secondary" onClick={() => { setRescheduling(null); setNewTime('') }}>Cancel</button>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="doc-cal-drawer-footer">
+              {nextActions[selectedAppointment.status].map(action => (
+                <button
+                  key={action}
+                  className={`button ${action === 'cancel' ? 'button--danger' : 'button--secondary'}`}
+                  disabled={actionLoading}
+                  onClick={() => void act(selectedAppointment, action)}
+                >
+                  {actionLabel[action]}
+                </button>
+              ))}
+              {(selectedAppointment.status === 'Requested' || selectedAppointment.status === 'Confirmed') && !rescheduling && (
+                <button className="button button--secondary" onClick={() => { setRescheduling(selectedAppointment.id); setNewTime('') }}>Reschedule</button>
+              )}
+              {selectedAppointment.status === 'Confirmed' && (
+                <Link to={`/cases/new?appointmentId=${selectedAppointment.id}`} className="button button--primary">View Records</Link>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

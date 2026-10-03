@@ -25,6 +25,8 @@ import 'package:family_veda/screens/triage/submit_complaint_screen.dart';
 import 'package:family_veda/widgets/shared/app_shell.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:family_veda/screens/doctor/case_review_screen.dart';
+import 'package:family_veda/screens/doctor/doctor_calendar_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final auth = ref.watch(authProvider);
@@ -59,6 +61,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/my-doctor', builder: (_, _) => const MyDoctorScreen()),
           GoRoute(path: '/appointments', builder: (_, _) => const AppointmentsScreen()),
           GoRoute(path: '/profile', builder: (_, _) => const ProfileScreen()),
+          GoRoute(path: '/case-review', builder: (_, _) => const CaseReviewScreen()),
+          GoRoute(path: '/calendar', builder: (_, _) => const DoctorCalendarScreen()),
         ],
       ),
 
