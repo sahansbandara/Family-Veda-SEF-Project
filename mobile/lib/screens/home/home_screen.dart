@@ -493,7 +493,11 @@ class HomeScreen extends ConsumerWidget {
               ref.invalidate(pendingJoinRequestsProvider(familyId));
               ref.invalidate(familySentInvitationsProvider(familyId));
             }
-            await ref.read(familyDashboardProvider.future).catchError((_) => null);
+            try {
+              await ref.read(familyDashboardProvider.future);
+            } on Object {
+              // The dashboard's own error state shows the failure; the pull only has to end.
+            }
           },
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(
