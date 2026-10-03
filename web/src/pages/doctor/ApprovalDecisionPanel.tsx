@@ -99,16 +99,17 @@ export function ApprovalConfirmDialog(props: ConfirmProps) {
   const { action, caseRef, advisory, notes, failedChecks, saving, onCancel, onConfirm } = props
   const approving = action === 'approve' || action === 'revise'
 
+  // Once the audited POST is in flight the dialog must stay open until it settles.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onCancel()
+      if (event.key === 'Escape' && !saving) onCancel()
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [onCancel])
+  }, [onCancel, saving])
 
   return (
-    <div className="approval-overlay" onClick={(event) => event.target === event.currentTarget && onCancel()}>
+    <div className="approval-overlay" onClick={(event) => event.target === event.currentTarget && !saving && onCancel()}>
       <div className="approval-dialog" role="dialog" aria-modal="true" aria-labelledby="approval-dialog-title">
         <p className="care-eyebrow">Confirm decision</p>
         <h2 id="approval-dialog-title">

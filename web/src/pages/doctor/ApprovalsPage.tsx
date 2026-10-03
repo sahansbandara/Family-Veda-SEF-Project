@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
+import '../../styles/approval-desk.css'
+
 import { AiBadge } from '../../components/shared/AiBadge'
 import { StatusBadge } from '../../components/shared/StatusBadge'
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'

@@ -158,6 +158,37 @@ describe('ApprovalsPage', () => {
     expect(mocks.post).not.toHaveBeenCalled()
   })
 
+  it('keeps the confirm dialog open when Escape is pressed while the decision is saving', async () => {
+    mocks.get.mockImplementation((url: string) =>
+      url === '/doctors/me/cases'
+        ? Promise.resolve({ data: { items: [queuedCase('case-a')] } })
+        : Promise.resolve({ data: review('case-a') }),
+    )
+    let resolvePost!: (value: { data: object }) => void
+    mocks.post.mockReturnValue(
+      new Promise<{ data: object }>((resolve) => {
+        resolvePost = resolve
+      }),
+    )
+
+    render(
+      <MemoryRouter>
+        <ApprovalsPage />
+      </MemoryRouter>,
+    )
+    const reject = await screen.findByRole('button', { name: 'Reject' })
+    await waitFor(() => expect(reject).toBeEnabled())
+    fireEvent.click(reject)
+    fireEvent.click(await screen.findByRole('button', { name: 'Confirm decision' }))
+    await waitFor(() => expect(mocks.post).toHaveBeenCalled())
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+    resolvePost({ data: {} })
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
   it('filters the queue by priority and by search text', async () => {
     mocks.get.mockImplementation((url: string) => {
       if (url === '/doctors/me/cases')
