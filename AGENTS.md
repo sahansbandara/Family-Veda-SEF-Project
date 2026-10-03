@@ -148,15 +148,52 @@ The seven shared files: `Program.cs` [S1] · `AppDbContext.cs` [S1] · `IAgent.c
 
 ## UI parity rule — change all three surfaces together (mandatory)
 
-Any UI change — layout, styling, component, copy, colour, spacing, flow, new screen — must be applied to **all three** UI surfaces in the same change:
+This rule fires automatically on **any** UI request — redesign, improvement, new page, new feature, layout, styling, component, copy, colour, spacing or flow. The user does not need to ask for it. One requested UI change = all three interfaces updated and verified:
 
-1. **Mobile app** — Flutter (`mobile/`)
-2. **Web desktop** — React (`web/`) at desktop widths
-3. **Web mobile** — React (`web/`) at phone widths (responsive breakpoints, ~375px)
+1. **Web desktop** — React (`web/`) at desktop widths
+2. **Web mobile** — React (`web/`) responsive at phone and tablet widths
+3. **Mobile app** — Flutter (`mobile/`), Android and iOS
 
-Never change only one UI. If a request names one surface ("fix the login page on web"), still update the matching screen on the other two, or state in the completion report exactly why a surface does not apply (e.g. screen exists only in the clinician web console).
+**A UI task is not complete if only one surface is updated.** If a request names one surface ("fix the login page on web"), still update the matching screen on the other two, or state in the completion report exactly why a surface does not apply (e.g. the screen exists only in the clinician web console).
 
-Before claiming done: check each surface (Flutter screen, React at desktop width, React at mobile width) and list all three in the completion report.
+### Per surface
+
+- **Web desktop** — implement the full requested design; keep spacing, typography and layout professional; preserve existing functionality.
+- **Web mobile** — adapt navigation, cards, tables, forms and actions for small screens. No horizontal overflow, overlapping text or clipped buttons. Check **375 px, 390 px, 768 px and desktop**.
+- **Flutter** — build the equivalent screen with native Flutter widgets; same branding, terminology, functionality and information hierarchy, adapted for touch and for different phone sizes. Do not copy the desktop layout into Flutter.
+- **Mockups** are a visual reference to adapt per screen size, not a layout to clone.
+
+### Functional consistency
+
+- All three surfaces use the same ASP.NET Core API, permissions, validation and business rules (invariants 1 and 2).
+- Never replace a working API integration with hardcoded or mock data.
+- Every control must work. No buttons that only look functional.
+- Doctor approval and patient-data access stay enforced by the backend, never by the UI alone.
+- Raw JSON and technical output are shown through readable UI components. Technical traces stay in an expandable, doctor-only section — never on a patient screen.
+
+### Workflow
+
+1. Inspect the latest `develop` and the existing React and Flutter implementations of the screen.
+2. Check file ownership.
+3. Implement desktop, responsive web and Flutter, reusing existing APIs and components.
+4. Add or update tests on both `web/` and `mobile/`.
+5. No database migration unless explicitly required and the migration lock is held.
+
+If the corresponding Flutter screen does not exist, decide whether it must be created. Either create it or name the blocker — do not report the task complete without one of the two.
+
+### Completion table
+
+End every UI task with this table. Report what was actually verified: a surface that was only covered by automated tests, or not run on a device, is stated as such — never ticked as verified.
+
+| Platform | Status |
+|---|---|
+| Web Desktop | Complete / Pending |
+| Web Mobile | Complete / Pending |
+| Flutter Android | Complete / Pending |
+| Flutter iOS | Complete / Pending |
+| API Integration | Verified / Pending |
+| Tests | Passed / Failed / Not Run |
+| Evidence | Screenshot per surface, or the reason one could not be captured |
 
 ## Change control
 
