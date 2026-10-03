@@ -3,9 +3,7 @@
 // [S1] Identity, Family & Consent — My Family screen with 4 Sub-Tabs:
 // Members | Join Requests | Invitations | Family Settings
 // Precisely matching Web FamilyPage (media_1791011646559.png).
-import 'package:family_veda/models/family_dashboard.dart';
 import 'package:family_veda/models/family_invitation.dart';
-import 'package:family_veda/models/join_request.dart';
 import 'package:family_veda/models/member.dart';
 import 'package:family_veda/providers/active_member_provider.dart';
 import 'package:family_veda/providers/auth_provider.dart';
@@ -545,7 +543,9 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                             userId: userId,
                             memberId: member.id,
                           );
-                    } on Object {}
+                    } on Object {
+                      // Best-effort: failing to persist the choice must not block switching.
+                    }
                   },
                 ),
               ),
@@ -634,7 +634,6 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                                 req.requesterDisplayName ?? 'Family Member',
                                 style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5),
                               ),
-                              if (req.relationshipType != null)
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
@@ -642,7 +641,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    req.relationshipType!,
+                                    req.relationshipType,
                                     style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1D4ED8)),
                                   ),
                                 ),
@@ -1109,6 +1108,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                   )
                 else ...[
                   DropdownButtonFormField<String>(
+                    // ignore: deprecated_member_use
                     value: _selectedTransferMemberId,
                     decoration: const InputDecoration(
                       labelText: 'Select new Family Head',
