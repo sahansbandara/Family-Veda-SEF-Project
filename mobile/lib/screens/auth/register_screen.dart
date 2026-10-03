@@ -545,6 +545,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final hasLower = RegExp(r'[a-z]').hasMatch(passText);
     final hasDigit = RegExp(r'\d').hasMatch(passText);
     final hasSymbol = RegExp(r'[^A-Za-z0-9]').hasMatch(passText);
+    final allMet = hasLen && hasUpper && hasLower && hasDigit && hasSymbol;
     final isMatching = confirmText.isNotEmpty && confirmText == passText;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -590,17 +591,31 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           key: 'account.password',
           validator: strong,
           obscure: _obscurePassword,
-          suffixIcon: IconButton(
-            icon: Icon(
-              _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-              size: 20,
-              color: isDark ? Colors.white70 : Colors.black54,
-            ),
-            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-            tooltip: _obscurePassword ? 'Show password' : 'Hide password',
+          suffixIcon: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (allMet)
+                const Padding(
+                  padding: EdgeInsets.only(right: 4),
+                  child: Icon(
+                    Icons.check_circle,
+                    size: 18,
+                    color: Colors.green,
+                  ),
+                ),
+              IconButton(
+                icon: Icon(
+                  _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                  size: 20,
+                  color: isDark ? Colors.white70 : Colors.black54,
+                ),
+                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                tooltip: _obscurePassword ? 'Show password' : 'Hide password',
+              ),
+            ],
           ),
         ),
-        if (passText.isNotEmpty)
+        if (passText.isNotEmpty && !allMet)
           Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(12),
