@@ -117,6 +117,15 @@ describe('AppRoutes', () => {
     expect(screen.getByRole('main', { name: /create account/i })).toBeInTheDocument()
   })
 
+  it.each([
+    ['/about', 'About Family Veda'],
+    ['/privacy-policy', 'Privacy and data use'],
+    ['/terms', 'Terms for using Family Veda'],
+  ])('exposes the public %s page without signing in', (path, heading) => {
+    renderRoute(path)
+    expect(screen.getByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
+  })
+
   it('exposes public doctor registration', () => {
     renderRoute('/register/doctor')
     // DoctorRegisterPage: main landmark "Doctor registration", heading "Create your account"

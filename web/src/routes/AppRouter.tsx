@@ -34,6 +34,8 @@ import { ProfilePage } from '../pages/profile/ProfilePage'
 import { PrivacyPage } from '../pages/family/PrivacyPage'
 import { MyFamilyPage } from '../pages/family/MyFamilyPage'
 import { RouteGuard } from './RouteGuard'
+// ===== S1 — Public information routes =====
+import { PublicInformationPage } from '../pages/public/PublicInformationPage'
 
 const allRoles = ['DOCTOR', 'ADMIN', 'FAMILY_HEAD', 'MEMBER', 'ONBOARDING'] as const
 
@@ -46,6 +48,9 @@ export function AppRoutes() {
       <Route path="/register/doctor" element={<DoctorRegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/about" element={<PublicInformationPage />} />
+      <Route path="/privacy-policy" element={<PublicInformationPage />} />
+      <Route path="/terms" element={<PublicInformationPage />} />
       <Route path="/access-denied" element={<Navigate to="/dashboard" replace />} />
 
       <Route element={<RouteGuard allowedRoles={[...allRoles]} allowUnverifiedDoctor allowUnverifiedFamilyHead><AppLayout /></RouteGuard>}>

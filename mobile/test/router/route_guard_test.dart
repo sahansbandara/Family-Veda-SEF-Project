@@ -48,4 +48,32 @@ void main() {
       isNull,
     );
   });
+
+  test('public information routes are reachable without signing in', () {
+    for (final location in ['/about', '/privacy-policy', '/terms']) {
+      expect(
+        routeRedirect(
+          auth: const AuthState.unauthenticated(),
+          activeMemberId: null,
+          location: location,
+        ),
+        isNull,
+        reason: location,
+      );
+    }
+  });
+
+  test('public information routes stay reachable when signed in', () {
+    for (final location in ['/about', '/privacy-policy', '/terms']) {
+      expect(
+        routeRedirect(
+          auth: const AuthState.authenticated(userId: 'synthetic-user'),
+          activeMemberId: null,
+          location: location,
+        ),
+        isNull,
+        reason: location,
+      );
+    }
+  });
 }
