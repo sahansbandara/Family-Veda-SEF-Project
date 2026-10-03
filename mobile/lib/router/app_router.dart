@@ -32,6 +32,7 @@ import 'package:family_veda/screens/doctor/doctor_calendar_screen.dart';
 import 'package:family_veda/screens/doctor/doctor_families_screen.dart';
 import 'package:family_veda/screens/doctor/doctor_family_detail_screen.dart';
 import 'package:family_veda/screens/doctor/doctor_member_workspace_screen.dart';
+import 'package:family_veda/screens/doctor/doctor_profile_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final auth = ref.watch(authProvider);
@@ -110,6 +111,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => DoctorFamilyDetailScreen(
           familyId: state.pathParameters['familyId'] ?? '',
         ),
+      ),
+      GoRoute(
+        path: '/doctor-profile',
+        builder: (_, _) => const DoctorProfileScreen(),
       ),
       GoRoute(
         path: '/appointments/book',
