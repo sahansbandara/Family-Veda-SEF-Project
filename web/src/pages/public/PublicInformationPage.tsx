@@ -50,7 +50,7 @@ export function PublicInformationPage() {
   const page = pageContent[pageKind(useLocation().pathname)]
 
   return (
-    <main className="auth-page-root" style={{ backgroundImage: `url(${loginBg})` }}>
+    <main className="auth-page-root" aria-labelledby="public-information-title" style={{ backgroundImage: `url(${loginBg})` }}>
       <div className="auth-overlay"></div>
       <div className="auth-main-container public-glass-container">
         <div className="auth-glass-panel public-glass-panel">
@@ -68,7 +68,7 @@ export function PublicInformationPage() {
           <div className="public-glass-scroll">
             <article>
               <p className="public-glass-eyebrow">{page.eyebrow}</p>
-              <h1 className="public-glass-title">{page.title}</h1>
+              <h1 id="public-information-title" className="public-glass-title">{page.title}</h1>
               <p className="public-glass-lead">{page.lead}</p>
               
               {page.sections.map((section) => (
