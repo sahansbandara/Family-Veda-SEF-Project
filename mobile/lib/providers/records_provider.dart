@@ -3,6 +3,7 @@
 // [S2] Health Records & Extraction.
 import 'package:family_veda/models/health_record.dart';
 import 'package:family_veda/models/lab_report.dart';
+import 'package:family_veda/models/vital.dart';
 import 'package:family_veda/providers/active_member_provider.dart';
 import 'package:family_veda/providers/core_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,3 +31,13 @@ final memberLabReportsProvider = FutureProvider.autoDispose<List<LabReport>>((
 final myMemberIdProvider = FutureProvider.autoDispose<String?>(
   (ref) => ref.watch(mobileApiProvider).getMyMemberId(),
 );
+
+/// Vitals of the active profile. The API refuses another adult's vitals, so the screen
+/// never requests them for a read-only shared view.
+final memberVitalsProvider = FutureProvider.autoDispose<List<Vital>>((
+  ref,
+) async {
+  final memberId = ref.watch(activeMemberProvider);
+  if (memberId == null) return const [];
+  return ref.watch(mobileApiProvider).getVitals(memberId);
+});

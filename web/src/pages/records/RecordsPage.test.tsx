@@ -583,4 +583,28 @@ describe('RecordsPage', () => {
       )
     })
   })
+
+  it('adds a manual record from the quick-add row and shows record visibility', async () => {
+    const user = userEvent.setup()
+    stubLists()
+    mocks.post.mockResolvedValueOnce({ data: { id: 'r3' } })
+    render(
+      <MemoryRouter initialEntries={['/records?tab=records']}>
+        <RecordsPage />
+      </MemoryRouter>,
+    )
+    await screen.findByText('Newer synthetic note')
+    expect(screen.getByText('Manual health records (1)')).toBeInTheDocument()
+    expect(screen.getByText('Showing 1 to 1 of 1 records')).toBeInTheDocument()
+    expect(screen.getByText('Private', { selector: 'span' })).toBeInTheDocument()
+    await user.type(screen.getByLabelText('Quick record title'), 'Synthetic asthma')
+    await user.click(screen.getAllByRole('button', { name: 'Add record' })[1])
+    await waitFor(() =>
+      expect(mocks.post).toHaveBeenCalledWith(
+        '/members/synthetic-member-01/records',
+        expect.objectContaining({ recordType: 'Condition', title: 'Synthetic asthma' }),
+      ),
+    )
+    expect(await screen.findByText('Health record added.')).toBeInTheDocument()
+  })
 })
