@@ -12,7 +12,7 @@ const pageContent: Record<PageKind, { eyebrow: string; title: string; lead: stri
     lead: 'Family Veda is a synthetic-data prototype for learning and demonstrating family health-record workflows.',
     sections: [
       { title: 'What this prototype does', paragraphs: ['It brings together family health records, consent-aware sharing, doctor review and educational decision-support workflows. All examples, accounts and records in the prototype are synthetic.'] },
-      { title: 'How automated support is used', paragraphs: ['The hosted architecture uses Gemini as the primary provider and Groq as a fallback. Automated output is treated as untrusted input and is subject to validation. Doctor approval and backend consent rules remain in control of patient-data access.'] },
+      { title: 'How automated support is used', paragraphs: ['The hosted architecture uses Gemini as the primary provider and Groq as a fallback. Automated output is treated as untrusted input and is subject to validation. Doctor approval is required before AI guidance becomes patient-visible. Backend consent rules control access to relevant records.'] },
       { title: 'Important safety notice', paragraphs: ['Family Veda provides educational information only. It does not provide a clinical diagnosis, prescription, medication dosing or meal plan. If there is an emergency or urgent concern, seek immediate care from local emergency services or a qualified healthcare professional.'] },
     ],
   },
@@ -22,7 +22,7 @@ const pageContent: Record<PageKind, { eyebrow: string; title: string; lead: stri
     lead: 'This policy describes the data handling of the Family Veda university prototype.',
     sections: [
       { title: 'Synthetic information only', paragraphs: ['This prototype is designed for synthetic information only. Do not enter real patient data, national identity numbers or professional registration numbers.'] },
-      { title: 'Storage and service providers', paragraphs: ['When configured, the prototype uses Vercel, Render and Neon for its web, API and database services. Original report files may be stored in a private Google Drive location configured for the application.'] },
+      { title: 'Storage and service providers', paragraphs: ['When configured, the prototype uses Vercel, Render and Neon for its web, API and database services. Original report files may be stored in a private Google Drive location configured for the application. Consented context may be processed by hosted Gemini (primary) or Groq (fallback); this prototype does not promise offline-only processing.'] },
       { title: 'Consent and access', paragraphs: ['The backend enforces consent and doctor approval rules for relevant workflows. Revoking access stops future access through the application; it does not promise deletion of original files or records already stored by configured services.'] },
       { title: 'Prototype limits', paragraphs: ['This page is an educational transparency notice for the assignment prototype. It does not make retention, deletion or clinical-care guarantees.'] },
     ],
