@@ -37,15 +37,17 @@ class _LabUploadScreenState extends ConsumerState<LabUploadScreen> {
 
   Future<void> _pickPdf() async {
     try {
-      final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: const ['pdf']);
+      final file = await FilePicker.pickFile(type: FileType.custom, allowedExtensions: const ['pdf']);
       if (!mounted) return;
-      final file = result?.files.single;
       final path = file?.path;
       if (file == null || path == null) {
         setState(() => _message = 'No PDF selected.');
         return;
       }
-      if (!file.name.toLowerCase().endsWith('.pdf') || file.size > 10485760) {
+      // A null length means the size could not be read, so the cap cannot be verified.
+      final size = await file.length();
+      if (!mounted) return;
+      if (!file.name.toLowerCase().endsWith('.pdf') || size == null || size > 10485760) {
         setState(() => _message = 'Choose a PDF report up to 10 MB.');
         return;
       }
