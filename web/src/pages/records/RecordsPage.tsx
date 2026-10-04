@@ -1245,6 +1245,15 @@ function RecordsPanel(props: RecordsPanelProps) {
   )
 }
 
+const PRESET_VITALS = [
+  { type: 'Heart Rate', unit: 'bpm', icon: '❤️' },
+  { type: 'Blood Pressure', unit: 'mmHg', icon: '🩺' },
+  { type: 'Blood Glucose', unit: 'mg/dL', icon: '🩸' },
+  { type: 'Body Temperature', unit: '°C', icon: '🌡️' },
+  { type: 'Oxygen (SpO2)', unit: '%', icon: '🫁' },
+  { type: 'Body Weight', unit: 'kg', icon: '⚖️' },
+] as const
+
 function VitalsPanel({
   vitals,
   trends,
@@ -1254,72 +1263,202 @@ function VitalsPanel({
   trends: VitalTrendDto[]
   onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>
 }) {
+  const [selectedType, setSelectedType] = useState('')
+  const [selectedUnit, setSelectedUnit] = useState('')
+
+  const applyPreset = (preset: (typeof PRESET_VITALS)[number]) => {
+    setSelectedType(preset.type)
+    setSelectedUnit(preset.unit)
+  }
+
   return (
-    <section className="care-panel">
-      <div className="care-panel-heading">
-        <div>
-          <p className="care-eyebrow">Manual readings</p>
-          <h2>Vitals</h2>
+    <div className="care-split vitals-split">
+      {/* Left Column: Log Measurement Form */}
+      <section className="care-panel vitals-form-panel">
+        <div className="care-panel-heading">
+          <div>
+            <p className="care-eyebrow">Manual readings</p>
+            <h2>Log New Vital</h2>
+            <p className="care-muted">Record blood pressure, heart rate, blood glucose or other body metrics.</p>
+          </div>
+          <div className="vitals-header-icon" title="Vital Signs">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+          </div>
         </div>
-      </div>
-      <form className="care-form" onSubmit={(event) => void onSubmit(event)}>
-        <label className="field">
-          <span>Type</span>
-          <input name="vitalType" required maxLength={64} />
-        </label>
-        <label className="field">
-          <span>Value</span>
-          <input name="value" type="number" step="any" required />
-        </label>
-        <label className="field">
-          <span>Unit</span>
-          <input name="unit" required maxLength={32} />
-        </label>
-        <label className="field">
-          <span>Measured at</span>
-          <input name="measuredAt" type="datetime-local" required />
-        </label>
-        <button className="button button--primary" type="submit">
-          Save vital
-        </button>
-      </form>
-      {vitals.length === 0 ? (
-        <div className="care-empty">
-          <EmptyState title="No vitals recorded" message="Add a reading to keep a dated record." />
+
+        {/* Quick Presets */}
+        <div className="vital-presets">
+          <span className="vital-presets__label">Quick Presets:</span>
+          <div className="vital-presets__list">
+            {PRESET_VITALS.map((preset) => (
+              <button
+                key={preset.type}
+                type="button"
+                className={`vital-preset-chip ${selectedType === preset.type ? 'is-active' : ''}`}
+                onClick={() => applyPreset(preset)}
+              >
+                <span>{preset.icon}</span>
+                <span>{preset.type}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      ) : (
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Type</th>
-                <th>Value</th>
-                <th>Measured</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vitals.map((vital) => (
-                <tr key={vital.id}>
-                  <td>
-                    <strong>{vital.vitalType}</strong>
-                  </td>
-                  <td>
-                    {vital.value} {vital.unit}
-                  </td>
-                  <td>{new Date(vital.measuredAt).toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+
+        <form className="care-form" onSubmit={(event) => void onSubmit(event)}>
+          <div className="care-field-grid">
+            <label className="field">
+              <span>Type</span>
+              <input
+                name="vitalType"
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                placeholder="e.g. Heart Rate"
+                required
+                maxLength={64}
+              />
+            </label>
+            <label className="field">
+              <span>Unit</span>
+              <input
+                name="unit"
+                value={selectedUnit}
+                onChange={(e) => setSelectedUnit(e.target.value)}
+                placeholder="e.g. bpm, mmHg, mg/dL"
+                required
+                maxLength={32}
+              />
+            </label>
+          </div>
+
+          <div className="care-field-grid">
+            <label className="field">
+              <span>Value</span>
+              <input
+                name="value"
+                type="number"
+                step="any"
+                placeholder="e.g. 72"
+                required
+              />
+            </label>
+            <label className="field">
+              <span>Measured at</span>
+              <input
+                name="measuredAt"
+                type="datetime-local"
+                defaultValue={new Date().toISOString().slice(0, 16)}
+                required
+              />
+            </label>
+          </div>
+
+          <div className="care-actions" style={{ marginTop: '8px' }}>
+            <button className="button button--primary" type="submit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              Save vital
+            </button>
+          </div>
+        </form>
+      </section>
+
+      {/* Right Column: Vitals History & Trends */}
+      <section className="care-panel vitals-history-panel">
+        <div className="care-panel-heading">
+          <div>
+            <p className="care-eyebrow">Health Timeline</p>
+            <h2>Recorded Vitals</h2>
+          </div>
+          <span className="vitals-count-badge">{vitals.length} recorded</span>
         </div>
-      )}
-      <p className="care-note">Recorded trends show values only and are not a clinical interpretation.</p>
-      {trends.map((trend) => (
-        <article key={trend.vitalType} className="care-value-card">
-          <h3>{trend.vitalType}</h3>
-          <p>{trend.points.map((point) => `${point.value} ${point.unit}`).join(' → ')}</p>
-        </article>
-      ))}
-    </section>
+
+        {vitals.length === 0 ? (
+          <div className="care-empty vitals-empty-placeholder">
+            <div className="vitals-empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+              </svg>
+            </div>
+            <EmptyState title="No vitals recorded" message="Add a reading to keep a dated record." />
+          </div>
+        ) : (
+          <>
+            <div className="table-scroll vitals-table-scroll">
+              <table className="vitals-table">
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Measurement</th>
+                    <th>Measured Date & Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {vitals.map((vital) => (
+                    <tr key={vital.id}>
+                      <td>
+                        <div className="vital-type-cell">
+                          <span className="vital-dot"></span>
+                          <strong>{vital.vitalType}</strong>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="vital-value-pill">
+                          {vital.value} <small>{vital.unit}</small>
+                        </span>
+                      </td>
+                      <td className="vital-date-cell">
+                        {new Date(vital.measuredAt).toLocaleString(undefined, {
+                          dateStyle: 'medium',
+                          timeStyle: 'short',
+                        })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {trends.length > 0 && (
+              <div className="vitals-trends-section">
+                <h3 className="trends-heading">Trend Progress</h3>
+                <div className="vitals-trends-grid">
+                  {trends.map((trend) => (
+                    <article key={trend.vitalType} className="care-value-card vital-trend-card">
+                      <div className="trend-header">
+                        <h4>{trend.vitalType}</h4>
+                        <span className="trend-points-count">{trend.points.length} readings</span>
+                      </div>
+                      <div className="trend-timeline">
+                        {trend.points.map((point, i) => (
+                          <span key={i} className="trend-step">
+                            <strong>{point.value}</strong>
+                            <small>{point.unit}</small>
+                            {i < trend.points.length - 1 && <span className="trend-arrow">→</span>}
+                          </span>
+                        ))}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        <p className="care-note vitals-safety-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16, flexShrink: 0 }}>
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <span>Recorded trends show values only and are not a clinical interpretation.</span>
+        </p>
+      </section>
+    </div>
   )
 }
