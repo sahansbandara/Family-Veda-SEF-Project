@@ -432,6 +432,11 @@ label.hr-search:not(.hr-field):focus-within,
   font-variant-numeric: tabular-nums;
 }
 
+/* The report list panel is a grid: let its children shrink instead of forcing the page wider. */
+.health-records .care-report-list > * {
+  min-width: 0;
+}
+
 /* ── Labs ─────────────────────────────────────────────────────────────── */
 .hr-dropzone {
   display: flex;
@@ -847,7 +852,7 @@ label.hr-search:not(.hr-field):focus-within,
   }
 }
 /* Tables become stacked cards: no sideways scrolling on a phone. */
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   .hr-table--stack thead {
     display: none;
   }
@@ -868,23 +873,21 @@ label.hr-search:not(.hr-field):focus-within,
     background: var(--surface-subtle);
   }
   .hr-table--stack td {
-    display: grid;
-    grid-template-columns: 96px minmax(0, 1fr);
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 10px;
+    gap: 4px 10px;
     padding: 0;
     border: 0;
   }
   .hr-table--stack td::before {
     content: attr(data-label);
+    flex: 0 0 96px;
     font-size: 0.66rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--care-muted);
-  }
-  .hr-table--stack td:first-child {
-    grid-template-columns: 1fr;
   }
   .hr-table--stack td:first-child::before {
     display: none;

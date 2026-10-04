@@ -619,7 +619,7 @@ export function RecordsPage() {
             </div>
           )}
           {activeTab === 'labs' && (
-            <section className="hr-stack">
+            <section className="care-report-workspace">
               <div className="care-panel hr-section care-report-list">
                 <header className="hr-section__head">
                   <span className="hr-section__icon"><RecordIcon name="flask" /></span>
