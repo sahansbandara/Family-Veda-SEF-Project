@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
-
-import './public-information.css'
+import loginBg from '../../assets/Loging.webp'
+import '../../styles/commercial-auth.css'
+import '../../styles/public-information.css'
 
 type PageKind = 'about' | 'privacy' | 'terms'
 
@@ -49,32 +50,40 @@ export function PublicInformationPage() {
   const page = pageContent[pageKind(useLocation().pathname)]
 
   return (
-    <main className="public-information" aria-labelledby="public-information-title">
-      <header className="public-information__header">
-        <Link className="public-information__brand" to="/about">Family Veda</Link>
-        <nav aria-label="Public information">
-          <Link to="/about">About</Link>
-          <Link to="/privacy-policy">Privacy</Link>
-          <Link to="/terms">Terms</Link>
-          <Link className="public-information__signin" to="/login">Sign in</Link>
-        </nav>
-      </header>
-      <article className="public-information__content">
-        <p className="public-information__eyebrow">{page.eyebrow}</p>
-        <h1 id="public-information-title">{page.title}</h1>
-        <p className="public-information__lead">{page.lead}</p>
-        {page.sections.map((section) => (
-          <section key={section.title} className="public-information__section">
-            <h2>{section.title}</h2>
-            {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-          </section>
-        ))}
-      </article>
-      <footer className="public-information__footer">
-        <span>Family Veda · Synthetic SE3090 prototype</span>
-        <Link to="/privacy-policy">Privacy policy</Link>
-        <Link to="/terms">Terms of service</Link>
-      </footer>
+    <main className="auth-page-root" style={{ backgroundImage: \`url(\${loginBg})\` }}>
+      <div className="auth-overlay"></div>
+      <div className="auth-main-container public-glass-container">
+        <div className="auth-glass-panel public-glass-panel">
+          
+          <header className="public-glass-header">
+            <Link to="/about" className="public-glass-brand">Family Veda</Link>
+            <nav aria-label="Public information" className="public-glass-nav">
+              <Link to="/about" className="public-glass-link">About</Link>
+              <Link to="/privacy-policy" className="public-glass-link">Privacy</Link>
+              <Link to="/terms" className="public-glass-link">Terms</Link>
+              <Link to="/login" className="public-glass-signin">Sign in</Link>
+            </nav>
+          </header>
+
+          <div className="public-glass-scroll">
+            <article>
+              <p className="public-glass-eyebrow">{page.eyebrow}</p>
+              <h1 className="public-glass-title">{page.title}</h1>
+              <p className="public-glass-lead">{page.lead}</p>
+              
+              {page.sections.map((section) => (
+                <section key={section.title} className="public-glass-section">
+                  <h2>{section.title}</h2>
+                  {section.paragraphs.map((paragraph) => (
+                    <p key={paragraph}>{paragraph}</p>
+                  ))}
+                </section>
+              ))}
+            </article>
+          </div>
+
+        </div>
+      </div>
     </main>
   )
 }
