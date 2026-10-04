@@ -258,9 +258,52 @@
   gap: 9px;
   font-size: 0.82rem;
 }
-.approval-raw {
-  display: grid;
-  gap: 8px;
+.approval-tile--wide {
+  grid-column: 1 / -1;
+}
+.approval-agent__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.approval-agent__head h3 {
+  margin: 0 !important;
+}
+.approval-toggle {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--care-line);
+  border-radius: 999px;
+}
+.approval-toggle button {
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--care-muted);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+.approval-toggle button[aria-pressed='true'] {
+  background: var(--primary);
+  color: #fff;
+}
+.approval-json {
+  max-height: 360px;
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  border: 1px solid var(--care-line);
+  border-radius: 10px;
+  font-size: 0.74rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 /* ── decision gate ─────────────────────────────────────────────────────── */

@@ -22,6 +22,8 @@ public sealed class TriageCase : Entity
     public Episode? Episode { get; set; }
     public Guid MemberId { get; set; }
     public Member? Member { get; set; }
+    /// <summary>Short, human-readable reference assigned by the database in creation order.</summary>
+    public int CaseNumber { get; set; }
     public TriageStatus Status { get; set; } = TriageStatus.Submitted;
     public TriagePriority Priority { get; set; } = TriagePriority.Routine;
     public string? ContextOutputJson { get; set; }

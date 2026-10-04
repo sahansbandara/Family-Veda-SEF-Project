@@ -20,6 +20,7 @@ import {
   queueDateTime,
   reviewableStatuses,
   safeDate,
+  caseInitials,
   shortRef,
   statusLabel,
   type DecisionAction,
@@ -138,7 +139,7 @@ export function ApprovalsPage() {
       })
       setNotice({
         tone: 'success',
-        text: `Decision saved for request ${shortRef(selectedId)}. Patient visibility remains controlled by the approval gate.`,
+        text: `Decision saved for case ${review ? shortRef(review) : selectedId.slice(0, 8)}. Patient visibility remains controlled by the approval gate.`,
       })
       setPending(null)
       setReview(null)
@@ -210,7 +211,7 @@ export function ApprovalsPage() {
                 className="approval-search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search reference or status..."
+                placeholder="Search name, case number or status..."
                 aria-label="Search cases"
               />
               <div className="care-chips" role="group" aria-label="Filter queue">
@@ -240,11 +241,13 @@ export function ApprovalsPage() {
                     >
                       <span className="approval-case__top">
                         <span className="approval-avatar" aria-hidden="true">
-                          {shortRef(item.id).slice(0, 2).toUpperCase()}
+                          {caseInitials(item)}
                         </span>
                         <span>
-                          <strong>Patient request</strong>
-                          <small>Reference {shortRef(item.id)}</small>
+                          <strong>{item.memberDisplayName || 'Patient request'}</strong>
+                          <small>
+                            {item.familyName ? `${item.familyName} · ` : ''}Case {shortRef(item)}
+                          </small>
                         </span>
                         <span className="approval-case__chevron" aria-hidden="true">
                           ›
@@ -278,11 +281,16 @@ export function ApprovalsPage() {
                     <div className="approval-case-head__row">
                       <div className="approval-case-head__person">
                         <span className="approval-avatar approval-avatar--lg" aria-hidden="true">
-                          {shortRef(review.id).slice(0, 2).toUpperCase()}
+                          {caseInitials(review)}
                         </span>
                         <div>
-                          <h2 aria-label={`Review case ${review.id}`}>Request {shortRef(review.id)}</h2>
-                          <p className="care-caption">Identity is limited to what your case grant allows.</p>
+                          <h2 aria-label={`Review case ${review.id}`}>
+                            {review.memberDisplayName || `Case ${shortRef(review)}`}
+                          </h2>
+                          <p className="care-caption">
+                            {review.familyName ? `${review.familyName} · ` : ''}Identity is shown under your active
+                            case grant.
+                          </p>
                         </div>
                       </div>
                       <span className="approval-case-head__tags">
@@ -293,8 +301,8 @@ export function ApprovalsPage() {
                     </div>
                     <dl className="approval-meta">
                       <div>
-                        <dt>Case reference</dt>
-                        <dd>{shortRef(review.id)}</dd>
+                        <dt>Case number</dt>
+                        <dd>{shortRef(review)}</dd>
                       </div>
                       <div>
                         <dt>Submitted</dt>
@@ -337,7 +345,7 @@ export function ApprovalsPage() {
       {pending && review && (
         <ApprovalConfirmDialog
           action={pending}
-          caseRef={shortRef(review.id)}
+          caseRef={shortRef(review)}
           advisory={advisory}
           notes={notes}
           failedChecks={failedChecks}

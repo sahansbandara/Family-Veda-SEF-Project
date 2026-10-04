@@ -507,8 +507,19 @@ public sealed class ClinicalService(
             .OrderByDescending(x => x.Priority).ThenBy(x => x.CreatedAt);
         var total = await query.CountAsync(cancellationToken);
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize)
-            .Select(x => new TriageCaseDto(x.Id, x.EpisodeId, x.MemberId, x.Status, x.Priority, x.CreatedAt))
+            // Names are released only for cases this doctor holds an active grant on.
+            .Select(x => new TriageCaseDto(x.Id, x.EpisodeId, x.MemberId, x.Status, x.Priority, x.CreatedAt,
+                x.CaseNumber, x.Member!.DisplayName, x.Member!.Family!.Name))
             .ToListAsync(cancellationToken);
+        dbContext.AuditLogs.Add(new AuditLog
+        {
+            ActorUserId = currentUser.UserId,
+            EventType = "DOCTOR_GRANTED_CASES_READ",
+            ResourceType = "TriageCase",
+            Outcome = "SUCCESS",
+            MetadataJson = "{}"
+        });
+        await dbContext.SaveChangesAsync(cancellationToken);
         return new PagedResult<TriageCaseDto>(items, page, pageSize, total);
     }
 
@@ -524,7 +535,7 @@ public sealed class ClinicalService(
              x.AccessGrants.Any(g => g.RevokedAt == null && g.ExpiresAt > now && g.CreatedAt <= slaCutoff)));
         var total = await query.CountAsync(cancellationToken);
         var items = await query.OrderByDescending(x => x.Priority).ThenBy(x => x.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize)
-            .Select(x => new AvailableCaseDto(x.Id, x.Priority, x.CreatedAt, x.Status)).ToListAsync(cancellationToken);
+            .Select(x => new AvailableCaseDto(x.Id, x.Priority, x.CreatedAt, x.Status, x.CaseNumber)).ToListAsync(cancellationToken);
         dbContext.AuditLogs.Add(new AuditLog
         {
             ActorUserId = currentUser.UserId,
