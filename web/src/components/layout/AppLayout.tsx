@@ -280,7 +280,7 @@ export function AppLayout() {
         </div>
       </header>
 
-      <div className="app-main" style={{ padding: '32px clamp(20px, 4vw, 48px)' }}>
+      <div className="app-main" style={{ padding: '24px clamp(16px, 2.5vw, 40px)' }}>
         <main id="main-content" className="main-content" tabIndex={-1} style={{ paddingTop: 0 }}>
           {user?.role === 'MEMBER' && <HeadTransferBanner />}
           <Outlet />

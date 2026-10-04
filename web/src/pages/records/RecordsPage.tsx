@@ -515,6 +515,11 @@ export function RecordsPage() {
           <strong>{records.length}</strong>
           <small>Current profile</small>
         </article>
+        <article className="care-metric">
+          <span>Clinical Status</span>
+          <strong>Active</strong>
+          <small>{isHead ? 'Multi-generational consent active' : 'Individual patient scope active'}</small>
+        </article>
       </div>
       <div className="care-actions" role="tablist" aria-label="Health record views">
         {(
@@ -645,16 +650,67 @@ export function RecordsPage() {
                   </div>
                 )}
                 {selectedReport?.memberId !== memberId ? (
-                  <div className="care-selection-card">
-                    <p className="care-eyebrow">
-                      {isSharedView ? 'Shared report library' : 'Choose a report'}
-                    </p>
-                    <h2>{isSharedView ? 'Shared reports' : 'Check extracted values'}</h2>
-                    <p className="care-muted">
-                      {isSharedView
-                        ? 'View the original image of reports shared with you.'
-                        : 'Select a report to compare extracted values with its original image.'}
-                    </p>
+                  <div className="care-selection-card care-selection-card--placeholder">
+                    <div className="care-placeholder-hero">
+                      <div className="care-placeholder-badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="care-placeholder-icon">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                          <polyline points="14 2 14 8 20 8"></polyline>
+                          <line x1="16" y1="13" x2="8" y2="13"></line>
+                          <line x1="16" y1="17" x2="8" y2="17"></line>
+                          <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        <span>{isSharedView ? 'SHARED CLINICAL VAULT' : 'LAB EXTRACTION STUDIO'}</span>
+                      </div>
+                      <h2>{isSharedView ? 'Shared Reports & Records' : 'Review & Verify Lab Reports'}</h2>
+                      <p className="care-muted">
+                        {isSharedView
+                          ? 'View the original documents and clinical summaries shared with you by family members.'
+                          : 'Select any report from the list on the left to inspect extracted analyte values, check printed reference ranges, and verify against the original scanned image.'}
+                      </p>
+                    </div>
+
+                    <div className="care-workflow-steps">
+                      <div className="care-workflow-step">
+                        <span className="step-num">1</span>
+                        <div>
+                          <strong>Select or Upload</strong>
+                          <p>Choose an authorized report or upload a new PNG, JPEG, or PDF lab document.</p>
+                        </div>
+                      </div>
+                      <div className="care-workflow-step">
+                        <span className="step-num">2</span>
+                        <div>
+                          <strong>Verify Extracted Analytes</strong>
+                          <p>Side-by-side verification of test values against reference ranges from the original lab slip.</p>
+                        </div>
+                      </div>
+                      <div className="care-workflow-step">
+                        <span className="step-num">3</span>
+                        <div>
+                          <strong>Confirm & Track</strong>
+                          <p>Confirmed records populate your unified family health timeline with tamper-evident audit protection.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="care-placeholder-footer">
+                      <div className="care-safety-tip">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                        <span>Safety Notice: Extracted lab values reflect recorded laboratory parameters and are for patient-doctor review, not automated diagnosis.</span>
+                      </div>
+                      {!isSharedView && (
+                        <button
+                          type="button"
+                          className="button button--primary"
+                          onClick={() => setShowUploadForm(true)}
+                        >
+                          Upload New Report
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ) : (
                   <ReportDetail
