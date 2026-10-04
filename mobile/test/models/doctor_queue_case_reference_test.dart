@@ -25,6 +25,8 @@ void main() {
         item.identityLabel,
         'Synthetic Arun Screening · Synthetic Screening Family',
       );
+      expect(item.title, 'Synthetic Arun Screening');
+      expect(item.caseLine, 'Synthetic Screening Family · Case 0007');
     },
   );
 
@@ -39,6 +41,8 @@ void main() {
 
       expect(item.reference, '0012');
       expect(item.identityLabel, isNull);
+      expect(item.title, 'Case 0012');
+      expect(item.caseLine, isNull);
     },
   );
 
