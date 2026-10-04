@@ -234,17 +234,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   TextButton(
                                     onPressed: () => context.push('/about'),
                                     style: TextButton.styleFrom(foregroundColor: isDark ? Colors.white70 : Colors.black54),
-                                    child: const Text('About', style: TextStyle(decoration: TextDecoration.underline, decorationColor: Colors.white70)),
+                                    child: const Text('About', style: TextStyle(decoration: TextDecoration.none)),
                                   ),
                                   TextButton(
                                     onPressed: () => context.push('/privacy-policy'),
                                     style: TextButton.styleFrom(foregroundColor: isDark ? Colors.white70 : Colors.black54),
-                                    child: const Text('Privacy', style: TextStyle(decoration: TextDecoration.underline, decorationColor: Colors.white70)),
+                                    child: const Text('Privacy', style: TextStyle(decoration: TextDecoration.none)),
                                   ),
                                   TextButton(
                                     onPressed: () => context.push('/terms'),
                                     style: TextButton.styleFrom(foregroundColor: isDark ? Colors.white70 : Colors.black54),
-                                    child: const Text('Terms', style: TextStyle(decoration: TextDecoration.underline, decorationColor: Colors.white70)),
+                                    child: const Text('Terms', style: TextStyle(decoration: TextDecoration.none)),
                                   ),
                                 ],
                               ),
