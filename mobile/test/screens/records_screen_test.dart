@@ -1,4 +1,5 @@
 import 'package:family_veda/models/health_record.dart';
+import 'package:family_veda/providers/active_member_provider.dart';
 import 'package:family_veda/providers/records_provider.dart';
 import 'package:family_veda/screens/records/lab_upload_screen.dart';
 import 'package:family_veda/screens/records/records_screen.dart';
@@ -7,10 +8,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('records screen filters and sorts synthetic history', (tester) async {
+  testWidgets('records screen filters and sorts synthetic history', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          activeMemberProvider.overrideWith((ref) => null),
+          myMemberIdProvider.overrideWith((ref) async => null),
           memberRecordsProvider.overrideWith(
             (ref) async => [
               HealthRecord(
@@ -59,7 +64,13 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: LabUploadScreen())),
+      ProviderScope(
+        overrides: [
+          activeMemberProvider.overrideWith((ref) => null),
+          myMemberIdProvider.overrideWith((ref) async => null),
+        ],
+        child: const MaterialApp(home: LabUploadScreen()),
+      ),
     );
 
     expect(find.text('Take photo'), findsOneWidget);

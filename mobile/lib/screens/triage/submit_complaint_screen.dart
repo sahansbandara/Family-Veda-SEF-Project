@@ -30,17 +30,20 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
     'Seizure',
     'Unresponsive',
   ];
+  final _scrollController = ScrollController();
   final _formKey = GlobalKey<FormState>();
   final _complaintController = TextEditingController();
   final _durationController = TextEditingController();
   final _notesController = TextEditingController();
   final _selectedSymptoms = <String>{};
   double _severity = 3;
+  int _step = 0;
   bool _submitting = false;
   String? _error;
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _complaintController.dispose();
     _durationController.dispose();
     _notesController.dispose();
@@ -71,7 +74,9 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
             notes: _notesController.text,
           );
       ref.invalidate(memberCasesProvider);
-      if (mounted) context.go('/cases/$caseId');
+      if (mounted && ref.read(activeMemberProvider) == memberId) {
+        context.go('/cases/$caseId');
+      }
     } on Object catch (error) {
       if (mounted) setState(() => _error = userFacingApiError(error));
     } finally {
@@ -80,98 +85,198 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Submit complaint')),
-    body: SafeArea(
-      child: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            TextFormField(
-              key: const Key('chief_complaint_field'),
-              controller: _complaintController,
-              maxLength: 500,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Main complaint',
-                alignLabelWithHint: true,
-              ),
-              validator: (value) => (value?.trim().isEmpty ?? true)
-                  ? 'Please describe the main complaint'
-                  : null,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _durationController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Duration in days'),
-              validator: (value) {
-                final days = int.tryParse(value ?? '');
-                return days == null || days < 0 || days > 365
-                    ? 'Enter a duration from 0 to 365 days'
-                    : null;
-              },
-            ),
-            const SizedBox(height: 16),
-            Text('Symptoms', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final symptom in _symptomOptions)
-                  SymptomChip(
-                    label: symptom,
-                    selected: _selectedSymptoms.contains(symptom),
-                    onSelected: (selected) => setState(() {
-                      selected
-                          ? _selectedSymptoms.add(symptom)
-                          : _selectedSymptoms.remove(symptom);
-                    }),
+  Widget build(BuildContext context) {
+    ref.listen<String?>(activeMemberProvider, (previous, next) {
+      if (previous == next) return;
+      setState(() {
+        _step = 0;
+        _complaintController.clear();
+        _durationController.clear();
+        _notesController.clear();
+        _selectedSymptoms.clear();
+        _severity = 3;
+        _error = null;
+      });
+    });
+    return Scaffold(
+      appBar: AppBar(title: const Text('Symptoms')),
+      body: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            controller: _scrollController,
+            padding: const EdgeInsets.all(16),
+            children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Step ${_step + 1} of 3',
+                        style: Theme.of(context).textTheme.labelLarge,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        [
+                          'Tell us what is happening',
+                          'Add a little detail',
+                          'Review your request',
+                        ][_step],
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 12),
+                      LinearProgressIndicator(value: (_step + 1) / 3),
+                    ],
                   ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text('Severity: ${_severity.round()} of 10'),
-            Slider(
-              value: _severity,
-              min: 1,
-              max: 10,
-              divisions: 9,
-              label: _severity.round().toString(),
-              onChanged: (value) => setState(() => _severity = value),
-            ),
-            TextFormField(
-              controller: _notesController,
-              maxLines: 3,
-              maxLength: 1000,
-              decoration: const InputDecoration(
-                labelText: 'Additional notes (optional)',
-                alignLabelWithHint: true,
+                ),
               ),
-            ),
-            if (_error != null) ...[
-              const SizedBox(height: 12),
-              Text(
-                _error!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              const SizedBox(height: 20),
+              if (_step == 0) ...[
+                TextFormField(
+                  key: const Key('chief_complaint_field'),
+                  controller: _complaintController,
+                  maxLength: 500,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Main complaint',
+                    alignLabelWithHint: true,
+                  ),
+                  validator: (value) => (value?.trim().isEmpty ?? true)
+                      ? 'Please describe the main complaint'
+                      : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  key: const Key('duration_field'),
+                  controller: _durationController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Duration in days',
+                  ),
+                  validator: (value) {
+                    final days = int.tryParse(value ?? '');
+                    return days == null || days < 0 || days > 365
+                        ? 'Enter a duration from 0 to 365 days'
+                        : null;
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
+              if (_step == 1) ...[
+                Text(
+                  'Symptoms',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final symptom in _symptomOptions)
+                      SymptomChip(
+                        label: symptom,
+                        selected: _selectedSymptoms.contains(symptom),
+                        onSelected: (selected) => setState(() {
+                          selected
+                              ? _selectedSymptoms.add(symptom)
+                              : _selectedSymptoms.remove(symptom);
+                        }),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text('Severity: ${_severity.round()} of 10'),
+                Slider(
+                  value: _severity,
+                  min: 1,
+                  max: 10,
+                  divisions: 9,
+                  label: _severity.round().toString(),
+                  onChanged: (value) => setState(() => _severity = value),
+                ),
+                TextFormField(
+                  controller: _notesController,
+                  maxLines: 3,
+                  maxLength: 1000,
+                  decoration: const InputDecoration(
+                    labelText: 'Additional notes (optional)',
+                    alignLabelWithHint: true,
+                  ),
+                ),
+              ],
+              if (_step == 2) ...[
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _complaintController.text.trim(),
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 12),
+                        Text('Duration: ${_durationController.text} days'),
+                        Text('Severity: ${_severity.round()} of 10'),
+                        Text(
+                          _selectedSymptoms.isEmpty
+                              ? 'No additional symptoms selected'
+                              : _selectedSymptoms.join(' · '),
+                        ),
+                        if (_notesController.text.trim().isNotEmpty)
+                          Text(_notesController.text.trim()),
+                        const Divider(height: 28),
+                        const Text(
+                          'Your request will be reviewed. Guidance stays hidden until a doctor approves it.',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              if (_error != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  _error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
+              const SizedBox(height: 16),
+              if (_step > 0)
+                TextButton(
+                  onPressed: _submitting ? null : () => setState(() => _step--),
+                  child: const Text('Back'),
+                ),
+              FilledButton(
+                key: const Key('submit_complaint_button'),
+                onPressed: _submitting
+                    ? null
+                    : () {
+                        if (_step < 2) {
+                          if (_step == 0 &&
+                              !(_formKey.currentState?.validate() ?? false)) {
+                            return;
+                          }
+                          FocusScope.of(context).unfocus();
+                          setState(() => _step++);
+                          _scrollController.jumpTo(0);
+                        } else {
+                          _submit();
+                        }
+                      },
+                child: _submitting
+                    ? const SizedBox.square(
+                        dimension: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(_step == 2 ? 'Submit securely' : 'Continue'),
               ),
             ],
-            const SizedBox(height: 16),
-            ElevatedButton(
-              key: const Key('submit_complaint_button'),
-              onPressed: _submitting ? null : _submit,
-              child: _submitting
-                  ? const SizedBox.square(
-                      dimension: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Submit securely'),
-            ),
-          ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

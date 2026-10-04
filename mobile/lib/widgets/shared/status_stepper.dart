@@ -10,29 +10,22 @@ class StatusStepper extends StatelessWidget {
   const StatusStepper({super.key, required this.status});
 
   static const _steps = [
-    ('SUBMITTED', 'Submitted'),
-    ('PLANNING', 'Preparing context'),
-    ('CONTEXT_READY', 'Context ready'),
-    ('ANALYSED', 'Analysis complete'),
-    ('RISK_ASSESSED', 'Safety review'),
-    ('VALIDATED', 'Validated'),
+    ('SUBMITTED', 'Request received'),
+    ('PLANNING', 'Preparing your request'),
     ('PENDING_DOCTOR_REVIEW', 'Doctor review'),
-    ('APPROVED', 'Approved'),
-    ('DELIVERED', 'Delivered'),
+    ('APPROVED', 'Guidance approved'),
   ];
-
   static int get stepCount => _steps.length;
-
-  /// Zero-based position of [status] on the rail; unknown states stay at the start.
-  static int indexOf(String status) {
-    final normalized = switch (status) {
-      'APPROVED_REVISED' || 'CLOSED' => 'APPROVED',
-      'CLAIMED' => 'PENDING_DOCTOR_REVIEW',
-      _ => status,
-    };
-    final index = _steps.indexWhere((step) => step.$1 == normalized);
-    return index < 0 ? 0 : index;
-  }
+  static int indexOf(String status) => switch (status) {
+    'PLANNING' ||
+    'CONTEXT_READY' ||
+    'ANALYSED' ||
+    'RISK_ASSESSED' ||
+    'VALIDATED' => 1,
+    'PENDING_DOCTOR_REVIEW' || 'CLAIMED' => 2,
+    'APPROVED' || 'APPROVED_REVISED' || 'DELIVERED' || 'CLOSED' => 3,
+    _ => 0,
+  };
 
   final String status;
 

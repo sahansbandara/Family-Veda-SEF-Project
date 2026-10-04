@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import { PdfReportCanvas } from './PdfReportCanvas'
 import { apiClient } from '../../services/apiClient'
 
 type PreviewState = 'loading' | 'ready' | 'unavailable' | 'error'
@@ -70,9 +71,7 @@ export function OriginalReportPreview({ reportId, originalFileName, hasOriginalF
       {state === 'error' && <><p role="status">Original report could not be loaded.{reason ? ` ${reason}` : ''}</p><button type="button" className="button button--secondary button--sm" onClick={() => setAttempt((value) => value + 1)}>Retry original report</button></>}
       {state === 'ready' && objectUrl && isPdf && (
         <>
-          <object className="original-report-preview__document" data={objectUrl} type="application/pdf" aria-label={`Original report document: ${originalFileName}`}>
-            <p>This browser cannot show the PDF inline. Open or download the original report.</p>
-          </object>
+          <PdfReportCanvas url={objectUrl} label={`Original report document: ${originalFileName}`} />
           <a className="button button--secondary button--sm" href={objectUrl} target="_blank" rel="noopener noreferrer">Open PDF</a>
           <a className="button button--secondary button--sm" href={objectUrl} download={originalFileName}>Download original report</a>
         </>

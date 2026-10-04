@@ -35,6 +35,7 @@ export function ReportLibraryCard({
       aria-label={`Lab report ${report.originalFileName}`}
     >
       <header>
+        <span className="report-card__kind" aria-hidden="true">{report.originalFileName.toLowerCase().endsWith('.pdf') ? 'PDF' : 'IMAGE'}</span>
         <h3>{report.originalFileName}</h3>
         <p className="muted">
           {ownerName} ·{' '}
@@ -46,7 +47,7 @@ export function ReportLibraryCard({
       <dl className="report-card__facts">
         <div>
           <dt>Visibility</dt>
-          <dd>{shared ? 'Shared with Family Head' : 'Private from Family Head'}</dd>
+          <dd><span className={`report-card__privacy ${shared ? 'is-shared' : ''}`}>{shared ? 'Shared with Family Head' : 'Private from Family Head'}</span></dd>
         </div>
         <div>
           <dt>Report progress</dt>
@@ -58,22 +59,11 @@ export function ReportLibraryCard({
             </span>
           </dd>
         </div>
-        <div>
-          <dt>Original file</dt>
-          <dd>{report.hasOriginalFile ? 'Stored' : 'Not stored'}</dd>
-        </div>
-        <div>
-          <dt>Recorded range position</dt>
-          <dd>
-            {range
-              ? `${range.belowRange} below · ${range.withinRange} within · ${range.aboveRange} above · ${range.rangeUnavailable} no range`
-              : 'No values confirmed yet'}
-          </dd>
-        </div>
       </dl>
-      <div className="button-row">
+      <details className="report-card__more"><summary>Report details</summary><dl className="report-card__facts"><div><dt>Original file</dt><dd>{report.hasOriginalFile ? 'Stored' : 'Not stored'}</dd></div><div><dt>Recorded range position</dt><dd>{range ? `${range.belowRange} below · ${range.withinRange} within · ${range.aboveRange} above · ${range.rangeUnavailable} no range` : 'No values confirmed yet'}</dd></div></dl></details>
+      <div className="button-row care-actions">
         {report.hasOriginalFile && onViewOriginal && (
-          <button type="button" className="button button--secondary" onClick={() => onViewOriginal(report)}>View original report</button>
+          <button type="button" className="button button--secondary" aria-label="View original report" onClick={() => onViewOriginal(report)}>Open report</button>
         )}
         {onReview && (
           <button type="button" className="button button--secondary" onClick={() => onReview(report)}>
@@ -85,9 +75,10 @@ export function ReportLibraryCard({
             type="button"
             className="button button--secondary"
             aria-pressed={shared}
+            aria-label={shared ? 'Keep private from Family Head' : 'Share with Family Head'}
             onClick={() => onToggleSharing(report)}
           >
-            {shared ? 'Keep private from Family Head' : 'Share with Family Head'}
+            {shared ? 'Make private' : 'Share with Family Head'}
           </button>
         )}
       </div>

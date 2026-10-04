@@ -3,6 +3,7 @@
 // Appointments: list mine, book (self, or minors when Head), cancel.
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 
+import { useSearchParams } from 'react-router-dom'
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { useAppSelector } from '../../store/hooks'
 import {
@@ -53,21 +54,24 @@ export function AppointmentsPage() {
 
   const [familyId, setFamilyId] = useState('')
   const [familyDoctor, setFamilyDoctor] = useState<DoctorSummaryDto | null>(null)
-  const [selectedDate, setSelectedDate] = useState('')
+  const [searchParams] = useSearchParams()
+  const initialDate = /^\d{4}-\d{2}-\d{2}$/.test(searchParams.get('date') ?? '') ? searchParams.get('date')! : ''
+  const initialSlot = searchParams.get('slot') ?? ''
+  const [selectedDate, setSelectedDate] = useState(initialDate)
   const [attachmentName, setAttachmentName] = useState('')
   const [slots, setSlots] = useState<DoctorSlotsDto | null>(null)
   const [slotMessage, setSlotMessage] = useState('')
-
-  // Free slots come from the doctor's weekly hours (DECISIONS 2026-09-29h). No hours set → free time entry.
-  async function loadSlots(date: string) {
-    setSlots(null); setSlotMessage('')
-    if (!date || !familyId) return
-    try {
-      setSlots((await doctorWorkspaceApi.getFamilyDoctorSlots(familyId, date)).data)
-    } catch (error) {
-      setSlotMessage(extractErrorMessage(error, 'Free times could not be loaded. You can still request a time.'))
-    }
-  }
+  // One request lifecycle for deep links and manual date changes; old dates cannot replace current slots.
+  useEffect(() => {
+    if (!familyId || !selectedDate) return
+    let active = true
+    setSlots(null)
+    setSlotMessage('')
+    void doctorWorkspaceApi.getFamilyDoctorSlots(familyId, selectedDate).then(({ data }) => {
+      if (active) setSlots(data)
+    }).catch(() => { if (active) setSlotMessage('Free times could not be loaded. Choose another date or enter a time to request it.') })
+    return () => { active = false }
+  }, [familyId, selectedDate])
 
   const load = useCallback(async () => {
     setStatus('loading')
@@ -113,7 +117,8 @@ export function AppointmentsPage() {
       return
     }
 
-    const startsAt = slot || new Date(`${date}T${time}:00`).toISOString()
+    if (slot && (!slots?.slots.includes(slot) || slots.date !== date)) { setMessage('Available times changed. Choose the appointment date and time again.'); return }
+    const startsAt = slot || new Date(`${date}T${time}:00+05:30`).toISOString()
     setSubmitting(true)
     setMessage('')
     try {
@@ -213,7 +218,8 @@ export function AppointmentsPage() {
               value={selectedDate}
               onChange={(event) => {
                 setSelectedDate(event.target.value)
-                void loadSlots(event.target.value)
+                setSlots(null)
+                setSlotMessage('')
               }}
             />
           </label>
@@ -221,9 +227,9 @@ export function AppointmentsPage() {
             <label>
               Free time
               {slots.slots.length === 0 ? <span className="muted">No free times on this day. Try another date.</span> : (
-                <select name="slot" required defaultValue="">
+                <select key={selectedDate} name="slot" required defaultValue={slots.slots.includes(initialSlot) ? initialSlot : ''}>
                   <option value="" disabled>Select a free time</option>
-                  {slots.slots.map((slot) => <option key={slot} value={slot}>{new Date(slot).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</option>)}
+                  {slots.slots.map((slot) => <option key={slot} value={slot}>{new Date(slot).toLocaleTimeString('en-US', { timeZone: 'Asia/Colombo', hour: 'numeric', minute: '2-digit' })}</option>)}
                 </select>
               )}
             </label>

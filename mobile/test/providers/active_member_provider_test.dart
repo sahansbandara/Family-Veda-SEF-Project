@@ -28,13 +28,29 @@ class _FakeMobileApi implements MobileApi {
   }
 
   @override
-  Future<void> addRecord({required String memberId, required String recordType, required String title, String? summary, required DateTime occurredOn}) async { }
+  Future<void> addRecord({
+    required String memberId,
+    required String recordType,
+    required String title,
+    String? summary,
+    required DateTime occurredOn,
+  }) async {}
 
   @override
-  Future<void> addVital({required String memberId, required String vitalType, required double value, required String unit, required DateTime measuredAt}) async { }
+  Future<void> addVital({
+    required String memberId,
+    required String vitalType,
+    required double value,
+    required String unit,
+    required DateTime measuredAt,
+  }) async {}
 
   @override
-  Future<void> uploadLabReport({required String memberId, required String path}) async { }
+  Future<void> uploadLabReport({
+    required String memberId,
+    required String path,
+    bool sharedWithFamilyHead = false,
+  }) async {}
 
   @override
   Future<List<LabReport>> getLabReports(String memberId) async => const [];
@@ -46,10 +62,16 @@ class _FakeMobileApi implements MobileApi {
   Future<String?> getMyMemberId() async => null;
 
   @override
-  Future<void> setRecordSharing({required String recordId, required bool shared}) async { }
+  Future<void> setRecordSharing({
+    required String recordId,
+    required bool shared,
+  }) async {}
 
   @override
-  Future<void> setLabReportSharing({required String reportId, required bool shared}) async { }
+  Future<void> setLabReportSharing({
+    required String reportId,
+    required bool shared,
+  }) async {}
 }
 
 void main() {
