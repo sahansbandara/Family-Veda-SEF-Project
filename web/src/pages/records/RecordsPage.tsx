@@ -662,11 +662,14 @@ export function RecordsPage() {
                         </svg>
                         <span>{isSharedView ? 'SHARED CLINICAL VAULT' : 'LAB EXTRACTION STUDIO'}</span>
                       </div>
-                      <h2>{isSharedView ? 'Shared Reports & Records' : 'Review & Verify Lab Reports'}</h2>
+                      <p className="care-eyebrow">
+                        {isSharedView ? 'Shared report library' : 'Choose a report'}
+                      </p>
+                      <h2>{isSharedView ? 'Shared reports' : 'Check extracted values'}</h2>
                       <p className="care-muted">
                         {isSharedView
-                          ? 'View the original documents and clinical summaries shared with you by family members.'
-                          : 'Select any report from the list on the left to inspect extracted analyte values, check printed reference ranges, and verify against the original scanned image.'}
+                          ? 'View the original image of reports shared with you.'
+                          : 'Select a report to compare extracted values with its original image.'}
                       </p>
                     </div>
 
