@@ -864,6 +864,26 @@
     grid-template-columns: 1fr;
   }
 }
+/* Stack label over value: side-by-side lets the nowrap badge squeeze the label to one letter per line. */
+.care-workspace .report-card__facts > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+.care-workspace .report-card__facts > div > dt {
+  overflow-wrap: normal;
+}
+.care-workspace .report-card__facts > div > dd {
+  max-width: 100%;
+  text-align: left;
+}
+.care-workspace .report-card__facts > div > dd .status-badge {
+  width: auto;
+  max-width: 100%;
+  white-space: normal;
+}
 .fact-item {
   display: flex;
   flex-direction: column;
