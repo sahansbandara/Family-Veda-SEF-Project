@@ -34,6 +34,8 @@ internal sealed class TriageCaseConfiguration : IEntityTypeConfiguration<TriageC
         builder.Property(x => x.FailureCode).HasMaxLength(64);
         builder.HasOne(x => x.Episode).WithMany(x => x.TriageCases).HasForeignKey(x => x.EpisodeId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(x => x.Member).WithMany().HasForeignKey(x => x.MemberId).OnDelete(DeleteBehavior.Restrict);
+        builder.Property(x => x.CaseNumber).UseIdentityByDefaultColumn();
+        builder.HasIndex(x => x.CaseNumber).IsUnique();
         builder.HasIndex(x => new { x.Status, x.Priority, x.CreatedAt });
     }
 }

@@ -51,8 +51,18 @@ export function queueDateTime(value?: string) {
     : 'Date unavailable'
 }
 
-export function shortRef(id: string) {
-  return id.slice(0, 8)
+type CaseRefSource = { id: string; caseNumber?: number }
+
+/** The database case number as 0001; falls back to the id prefix when an older API omits it. */
+export function shortRef(item: CaseRefSource) {
+  return item.caseNumber && item.caseNumber > 0 ? String(item.caseNumber).padStart(4, '0') : item.id.slice(0, 8)
+}
+
+/** Two-letter avatar text: the patient's initials when the grant releases a name, else the case number. */
+export function caseInitials(item: CaseRefSource & { memberDisplayName?: string | null }) {
+  const words = (item.memberDisplayName ?? '').trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0) return shortRef(item).slice(-2).toUpperCase()
+  return (words[0][0] + (words.length > 1 ? words[words.length - 1][0] : '')).toUpperCase()
 }
 
 export function isPriority(item: { priority: string }) {
@@ -69,7 +79,7 @@ export function filterQueue(cases: TriageCaseDto[], filter: QueueFilter, search:
   return cases.filter((item) => {
     if (filter !== 'all' && queueBucket(item) !== filter) return false
     if (!term) return true
-    return `${item.id} ${statusLabel(item.status)} ${item.priority}`.toLowerCase().includes(term)
+    return `${item.id} ${shortRef(item)} ${item.memberDisplayName ?? ''} ${item.familyName ?? ''} ${statusLabel(item.status)} ${item.priority}`.toLowerCase().includes(term)
   })
 }
 
@@ -155,4 +165,18 @@ export function reviewReasons(review: CaseReviewDto): string[] {
   if (!review.draftAdvisoryJson) reasons.push('No AI draft advisory is available for this request.')
   reasons.push('AI output cannot reach the patient until a doctor records a decision.')
   return reasons
+}
+
+/** Matches a trace by agent name fragment, ignoring case and separators (e.g. "FamilialRisk"). */
+export function findTrace(traces: CaseReviewDto['traces'], fragment: string) {
+  return traces.find((trace) => trace.agent.replace(/[^a-z]/gi, '').toLowerCase().includes(fragment))
+}
+
+/** Pretty-prints agent output for reading; text that is not JSON is shown unchanged. */
+export function formatJson(raw: string) {
+  try {
+    return JSON.stringify(JSON.parse(raw), null, 2)
+  } catch {
+    return raw
+  }
 }

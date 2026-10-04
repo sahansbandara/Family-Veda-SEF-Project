@@ -136,8 +136,8 @@ export function CasesPage() {
       setNotice({
         tone: 'success',
         text: acknowledging
-          ? `Emergency referral ${caseReference(item.id)} acknowledged.`
-          : `Case ${caseReference(item.id)} is now assigned to you. Open it from My Cases.`,
+          ? `Emergency referral ${caseReference(item)} acknowledged.`
+          : `Case ${caseReference(item)} is now assigned to you. Open it from My Cases.`,
       })
     } catch (error) {
       const code = httpStatus(error)
@@ -321,8 +321,11 @@ export function CasesPage() {
                     >
                       <div className="triage-card__top">
                         <div>
-                          <h2>Case {caseReference(item.id)}</h2>
+                          <h2>Case {caseReference(item)}</h2>
                           <p className="care-caption">
+                            {item.memberDisplayName
+                              ? `${item.memberDisplayName}${item.familyName ? ` · ${item.familyName}` : ''} · `
+                              : ''}
                             Submitted {formatSubmitted(item.createdAt)}
                             {item.claimable ? ' · Shared review pool' : ''}
                           </p>
@@ -348,7 +351,7 @@ export function CasesPage() {
                             type="button"
                             className="button button--secondary"
                             aria-pressed={selectedId === item.id}
-                            aria-label={`${item.mine ? 'Open case' : 'Preview case'} ${caseReference(item.id)}`}
+                            aria-label={`${item.mine ? 'Open case' : 'Preview case'} ${caseReference(item)}`}
                             onClick={() => select(item)}
                           >
                             {item.mine ? 'Open Case' : 'Preview'}
@@ -360,7 +363,7 @@ export function CasesPage() {
                                 action.kind === 'acknowledge' ? ' triage-button--emergency' : ''
                               }`}
                               disabled={claimingId !== ''}
-                              aria-label={`${action.label} ${caseReference(item.id)}`}
+                              aria-label={`${action.label} ${caseReference(item)}`}
                               onClick={() => void claim(item)}
                             >
                               {busy ? 'Working…' : action.label}

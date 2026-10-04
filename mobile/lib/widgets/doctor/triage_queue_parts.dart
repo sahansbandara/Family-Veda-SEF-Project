@@ -136,6 +136,7 @@ class QueueCaseCard extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
+                '${item.identityLabel == null ? '' : '${item.identityLabel}\n'}'
                 'Submitted ${formatSubmitted(item.createdAt)}'
                 '${item.claimable ? ' · Shared review pool' : ''}',
                 style: TextStyle(color: palette.muted, fontSize: 13),
@@ -222,6 +223,7 @@ class QueueCaseSheet extends ConsumerWidget {
                     ),
                   ),
                   Text(
+                    '${item.identityLabel == null ? '' : '${item.identityLabel}\n'}'
                     'Submitted ${formatSubmitted(item.createdAt)}',
                     style: body,
                   ),

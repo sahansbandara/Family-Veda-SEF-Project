@@ -26,6 +26,9 @@ class DoctorQueueCase {
     required this.createdAt,
     required this.mine,
     required this.claimable,
+    this.caseNumber,
+    this.memberDisplayName,
+    this.familyName,
   });
 
   /// A case from /doctors/me/cases: the doctor holds an active grant.
@@ -36,6 +39,9 @@ class DoctorQueueCase {
     createdAt: DateTime.parse(json['createdAt'] as String),
     mine: true,
     claimable: false,
+    caseNumber: (json['caseNumber'] as num?)?.toInt(),
+    memberDisplayName: json['memberDisplayName'] as String?,
+    familyName: json['familyName'] as String?,
   );
 
   /// A case from /doctors/case-pool: limited metadata, claimable.
@@ -46,6 +52,7 @@ class DoctorQueueCase {
     createdAt: DateTime.parse(json['createdAt'] as String),
     mine: false,
     claimable: true,
+    caseNumber: (json['caseNumber'] as num?)?.toInt(),
   );
 
   final String id;
@@ -55,7 +62,28 @@ class DoctorQueueCase {
   final bool mine;
   final bool claimable;
 
-  String get reference => id.length <= 8 ? id : id.substring(0, 8);
+  /// Database case number; null on an older API build.
+  final int? caseNumber;
+
+  /// Released by the backend only for cases this doctor holds a grant on.
+  final String? memberDisplayName;
+  final String? familyName;
+
+  /// The case number as 0001; falls back to the id prefix when the API omits it.
+  String get reference {
+    final number = caseNumber;
+    if (number != null && number > 0) return number.toString().padLeft(4, '0');
+    return id.length <= 8 ? id : id.substring(0, 8);
+  }
+
+  /// "Patient · Family" for granted cases, null when no identity was released.
+  String? get identityLabel {
+    final name = memberDisplayName;
+    if (name == null || name.isEmpty) return null;
+    final family = familyName;
+    return family == null || family.isEmpty ? name : '$name · $family';
+  }
+
   bool get isEmergencyReferral => status == 'Escalated';
   bool get isAwaitingReview => mine && _awaitingReview.contains(status);
 
@@ -231,7 +259,10 @@ List<DoctorQueueCase> filterAndSortQueue(
         (item) =>
             item.tab == tab &&
             (priority == null || item.priority == priority) &&
-            (term.isEmpty || item.id.toLowerCase().contains(term)),
+            (term.isEmpty ||
+                '${item.id} ${item.reference} ${item.identityLabel ?? ''}'
+                    .toLowerCase()
+                    .contains(term)),
       )
       .toList();
   result.sort((left, right) {

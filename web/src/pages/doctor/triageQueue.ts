@@ -11,6 +11,11 @@ export type QueueActionKind = 'claim' | 'acknowledge' | 'approval' | 'evidence' 
 
 export type QueueCase = {
   id: string
+  /** Database case number; absent on an older API build. */
+  caseNumber?: number
+  /** Released only for cases this doctor holds a grant on. */
+  memberDisplayName?: string | null
+  familyName?: string | null
   priority: string
   status: string
   createdAt: string
@@ -40,6 +45,9 @@ export function mergeQueue(assigned: TriageCaseDto[], pool: AvailableCaseDto[]):
   return [
     ...assigned.map((item) => ({
       id: item.id,
+      caseNumber: item.caseNumber,
+      memberDisplayName: item.memberDisplayName,
+      familyName: item.familyName,
       priority: item.priority,
       status: item.status,
       createdAt: item.createdAt,
@@ -50,6 +58,7 @@ export function mergeQueue(assigned: TriageCaseDto[], pool: AvailableCaseDto[]):
       .filter((item) => !mineIds.has(item.id))
       .map((item) => ({
         id: item.id,
+        caseNumber: item.caseNumber,
         priority: item.priority,
         status: item.status ?? 'Available',
         createdAt: item.createdAt,
@@ -182,7 +191,9 @@ export function workflowSteps(item: QueueCase): WorkflowStep[] {
   ]
 }
 
-export const caseReference = (id: string) => id.slice(0, 8)
+/** The database case number as 0001; falls back to the id prefix when an older API omits it. */
+export const caseReference = (item: { id: string; caseNumber?: number }) =>
+  item.caseNumber && item.caseNumber > 0 ? String(item.caseNumber).padStart(4, '0') : item.id.slice(0, 8)
 
 export function filterAndSort(
   cases: QueueCase[],
@@ -196,7 +207,8 @@ export function filterAndSort(
         tabOf(item) === options.tab &&
         (options.priority === 'ALL' || item.priority === options.priority) &&
         (options.status === 'ALL' || item.status === options.status) &&
-        (term === '' || item.id.toLowerCase().includes(term)),
+        (term === '' ||
+          `${item.id} ${caseReference(item)} ${item.memberDisplayName ?? ''} ${item.familyName ?? ''}`.toLowerCase().includes(term)),
     )
     .sort((left, right) => {
       if (options.sort === 'newest') return time(right) - time(left)

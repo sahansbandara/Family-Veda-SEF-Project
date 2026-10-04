@@ -36,6 +36,25 @@ public sealed class TriageReviewReasonsTests
     }
 
     [Fact]
+    public async Task GetCaseReview_WithActiveGrant_ReturnsCaseNumberAndGrantedIdentity()
+    {
+        await using var db = NewDb();
+        var fixture = await SeedAsync(db);
+        await AddGrantAsync(db, fixture, GrantState.Active);
+        // PostgreSQL assigns the number; the in-memory provider does not, so the test sets it.
+        fixture.LinkedCase.CaseNumber = 7;
+        await db.SaveChangesAsync();
+        var service = CreateService(db, fixture.DoctorUser.Id, UserType.Doctor);
+
+        var review = await service.GetCaseReviewAsync(fixture.LinkedCase.Id, CancellationToken.None);
+
+        review.CaseNumber.Should().Be(7);
+        review.MemberDisplayName.Should().Be(fixture.LinkedMember.DisplayName);
+        var family = await db.Families.SingleAsync(x => x.Id == fixture.LinkedMember.FamilyId);
+        review.FamilyName.Should().Be(family.Name);
+    }
+
+    [Fact]
     public async Task GetCaseReview_WithMismatchedEpisodeMember_DoesNotExposeEpisode()
     {
         await using var db = NewDb();

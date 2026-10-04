@@ -125,13 +125,14 @@ export type FamilyDto = { id: string; name: string; members: MemberDto[]; family
 export type PagedResult<T> = { items: T[]; page: number; pageSize: number; totalCount: number; totalPages: number }
 export type HealthRecordDto = { id: string; memberId: string; recordType: string; title: string; summary?: string; occurredOn: string; sharedWithFamilyHead?: boolean }
 export type EpisodeDto = { id: string; memberId: string; symptoms: string[]; durationDays: number; severity: number; notes?: string; createdAt: string }
-export type TriageCaseDto = { id: string; episodeId: string; memberId: string; status: string; priority: string; createdAt: string }
-export type AvailableCaseDto = { id: string; priority: string; createdAt: string; status?: string }
+// caseNumber and the names are optional so an older API build still renders; names arrive only for cases the doctor holds a grant on.
+export type TriageCaseDto = { id: string; episodeId: string; memberId: string; status: string; priority: string; createdAt: string; caseNumber?: number; memberDisplayName?: string | null; familyName?: string | null }
+export type AvailableCaseDto = { id: string; priority: string; createdAt: string; status?: string; caseNumber?: number }
 export type AuditDto = { id: string; eventType: string; resourceType: string; resourceId?: string; outcome: string; createdAt: string }
 export type FamilyDashboardDto = { membersVisible: number; openCases: number; awaitingDoctorReview: number; approvedCases: number; recordsCount: number }
 export type AgentTraceDto = { stepNumber: number; agent: string; status: string; toolsRequested: string[]; toolsAllowed: string[]; toolsDenied: string[]; confidence: number; latencyMilliseconds: number; outputSchemaValid: boolean }
 export type ApprovalDto = { id: string; triageCaseId: string; doctorId: string; action: string; decidedAt: string }
-export type CaseReviewDto = { id: string; memberId: string; status: string; priority: string; contextJson?: string; analysisJson?: string; familialRiskJson?: string; draftAdvisoryJson?: string; traces: AgentTraceDto[]; submittedEpisode?: { id: string; memberId: string; symptoms: string[]; durationDays: number; severity: number; notes?: string | null; createdAt: string } | null }
+export type CaseReviewDto = { id: string; memberId: string; status: string; priority: string; contextJson?: string; analysisJson?: string; familialRiskJson?: string; draftAdvisoryJson?: string; traces: AgentTraceDto[]; submittedEpisode?: { id: string; memberId: string; symptoms: string[]; durationDays: number; severity: number; notes?: string | null; createdAt: string } | null; caseNumber?: number; memberDisplayName?: string | null; familyName?: string | null }
 export type ConsentDto = { id: string; memberId: string; category: string; status: string; grantedByGuardian: boolean }
 export type RelationshipDto = { id: string; memberId: string; relatedMemberId: string; relationshipType: string; isBiological: boolean }
 export type DoctorDto = { id: string; userId: string; registrationNumberLastFour: string; verificationStatus: string; specialty?: string; hospitalClinic?: string; phoneNumber?: string; displayName?: string; email?: string; registrationNumber?: string }

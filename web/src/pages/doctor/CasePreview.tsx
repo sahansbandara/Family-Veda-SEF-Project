@@ -87,7 +87,13 @@ export function CasePreview({ item, open, busy, onClose, onClaim }: CasePreviewP
         <header className="triage-preview__head">
           <div>
             <p className="care-eyebrow">Selected case</p>
-            <h2>Case {caseReference(item.id)}</h2>
+            <h2>Case {caseReference(item)}</h2>
+            {item.memberDisplayName && (
+              <p className="care-caption">
+                {item.memberDisplayName}
+                {item.familyName ? ` · ${item.familyName}` : ''}
+              </p>
+            )}
             <p className="care-caption">Submitted {formatSubmitted(item.createdAt)}</p>
           </div>
           <button type="button" className="button button--secondary triage-preview__close" onClick={onClose}>
