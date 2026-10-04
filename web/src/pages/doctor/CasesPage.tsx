@@ -3,6 +3,7 @@
 // Triage Cases is the doctor's work queue: find, claim and open cases. The clinical decision
 // itself stays on the Approval Desk (ApprovalsPage).
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 
 import '../../styles/triage-queue.css'
 import { Pagination } from '../../components/shared/Pagination'
@@ -59,7 +60,9 @@ export function CasesPage() {
   const [cases, setCases] = useState<QueueCase[]>([])
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [refreshing, setRefreshing] = useState(false)
-  const [tab, setTab] = useState<QueueTab>('available')
+  const [searchParams] = useSearchParams()
+  const requestedTab = searchParams.get('tab')
+  const [tab, setTab] = useState<QueueTab>(QUEUE_TABS.some((item) => item.id === requestedTab) ? (requestedTab as QueueTab) : 'available')
   const [priorityFilter, setPriorityFilter] = useState('ALL')
   const [statusFilter, setStatusFilter] = useState('ALL')
   const [sort, setSort] = useState<QueueSort>('oldest')

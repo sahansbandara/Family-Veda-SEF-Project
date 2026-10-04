@@ -25,6 +25,23 @@ export const decisionLabels: Record<DecisionAction, string> = {
   reject: 'Reject',
 }
 
+/** What a saved decision did and where the case now lives. Mirrors the backend status transitions. */
+export function decisionOutcome(action: DecisionAction, caseRef: string): { text: string; to?: string; toLabel?: string } {
+  const completed = { to: '/cases?tab=completed', toLabel: 'View in Completed' }
+  switch (action) {
+    case 'approve':
+      return { text: `Decision saved: case ${caseRef} approved. The guidance you selected is now visible to the patient. The case moved to Triage Cases › Completed.`, ...completed }
+    case 'revise':
+      return { text: `Decision saved: case ${caseRef} approved with your revision. The guidance you selected is now visible to the patient. The case moved to Triage Cases › Completed.`, ...completed }
+    case 'reject':
+      return { text: `Decision saved: case ${caseRef} rejected. No guidance was released to the patient. The case moved to Triage Cases › Completed.`, ...completed }
+    case 'escalate':
+      return { text: `Decision saved: case ${caseRef} escalated to urgent in-person care. No AI output was released. The case is now under Triage Cases › Emergency.`, to: '/cases?tab=emergency', toLabel: 'View in Emergency' }
+    case 'request-info':
+      return { text: `Decision saved: information requested for case ${caseRef}. Nothing was released to the patient. The case stays in this review queue.` }
+  }
+}
+
 export function statusLabel(status: string) {
   return status.replace(/([a-z])([A-Z])/g, '$1 $2')
 }
