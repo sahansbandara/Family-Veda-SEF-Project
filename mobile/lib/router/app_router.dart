@@ -58,9 +58,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // ===== Core 7 Portal Destinations wrapped in Persistent Shell & Web Subnav =====
       ShellRoute(
-        builder: (context, state, child) => AppShell(
-          currentLocation: state.matchedLocation,
-          child: child,
+        builder: (context, state, child) => Consumer(
+          builder: (context, ref, _) {
+            final userType = ref.watch(authProvider.select((auth) => auth.userType));
+            return AppShell(
+              currentLocation: state.matchedLocation,
+              isDoctor: userType == 'Doctor' || userType == '1',
+              child: child,
+            );
+          },
         ),
         routes: [
           GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),

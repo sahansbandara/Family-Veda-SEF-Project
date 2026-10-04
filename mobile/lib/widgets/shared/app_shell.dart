@@ -11,10 +11,23 @@ class AppShell extends StatelessWidget {
     super.key,
     required this.child,
     required this.currentLocation,
+    this.isDoctor = false,
   });
 
   final Widget child;
   final String currentLocation;
+
+  /// Doctors get the clinician menu; the family menu would send them to family-only screens.
+  final bool isDoctor;
+
+  // The doctor destinations matching the web doctor portal (Approvals is web-only).
+  static const _doctorTabs = <(String, IconData, IconData, String)>[
+    ('/home', Icons.home_outlined, Icons.home_rounded, 'Dashboard'),
+    ('/calendar', Icons.calendar_month_outlined, Icons.calendar_month_rounded, 'Calendar'),
+    ('/families', Icons.people_outline_rounded, Icons.people_rounded, 'My Families'),
+    ('/triage-cases', Icons.monitor_heart_outlined, Icons.monitor_heart_rounded, 'Triage Cases'),
+    ('/doctor-profile', Icons.badge_outlined, Icons.badge_rounded, 'Profile'),
+  ];
 
   // The 7 web portal subnav destinations matching web/src/components/layout/AppLayout.tsx
   static const _webTabs = <(String, IconData, IconData, String)>[
@@ -37,6 +50,12 @@ class AppShell extends StatelessWidget {
   ];
 
   int _calculateBottomSelectedIndex(String location) {
+    if (isDoctor) {
+      final index = _doctorTabs.indexWhere(
+        (tab) => tab.$1 != '/home' && location.startsWith(tab.$1),
+      );
+      return index < 0 ? 0 : index;
+    }
     if (location.startsWith('/members') || location.startsWith('/join')) {
       return 1;
     }
@@ -53,7 +72,11 @@ class AppShell extends StatelessWidget {
   }
 
   void _onDestinationSelected(BuildContext context, String targetRoute) {
-    if (currentLocation != targetRoute) {
+    if (currentLocation == targetRoute) return;
+    // The doctor profile lives outside the shell, so it is pushed to keep a way back.
+    if (targetRoute == '/doctor-profile') {
+      context.push(targetRoute);
+    } else {
       context.go(targetRoute);
     }
   }
@@ -63,6 +86,7 @@ class AppShell extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final bottomIndex = _calculateBottomSelectedIndex(currentLocation);
+    final bottomTabs = isDoctor ? _doctorTabs : _bottomTabs;
 
     return Scaffold(
       body: SafeArea(
@@ -72,7 +96,7 @@ class AppShell extends StatelessWidget {
             // Top Web-Aligned Subnav Horizontal Tabs
             _WebSubnavBar(
               currentLocation: currentLocation,
-              tabs: _webTabs,
+              tabs: isDoctor ? _doctorTabs : _webTabs,
               onTabSelected: (route) => _onDestinationSelected(context, route),
             ),
             Expanded(child: child),
@@ -127,10 +151,10 @@ class AppShell extends StatelessWidget {
             child: NavigationBar(
               selectedIndex: bottomIndex,
               onDestinationSelected: (index) =>
-                  _onDestinationSelected(context, _bottomTabs[index].$1),
+                  _onDestinationSelected(context, bottomTabs[index].$1),
               elevation: 0,
               labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-              destinations: _bottomTabs.map((tab) {
+              destinations: bottomTabs.map((tab) {
                 final (_, unselectedIcon, selectedIcon, label) = tab;
                 return NavigationDestination(
                   icon: Icon(unselectedIcon),

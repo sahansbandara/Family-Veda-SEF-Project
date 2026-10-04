@@ -112,6 +112,8 @@ class _FakeAuthApi implements AuthApi {
       userId: userId,
       accessToken: 'new-access',
       refreshToken: 'new-refresh',
+      displayName: 'Dr. Synthetic',
+      userType: 'Doctor',
     );
   }
 
@@ -167,6 +169,9 @@ void main() {
 
     expect(controller.state.status, AuthStatus.authenticated);
     expect(controller.state.userId, 'synthetic-user-a');
+    // The role decides which portal menus are shown, so it must survive a restart.
+    expect(controller.state.userType, 'Doctor');
+    expect(controller.state.displayName, 'Dr. Synthetic');
     expect(store.accessToken, 'new-access');
     expect(store.refreshToken, 'new-refresh');
   });

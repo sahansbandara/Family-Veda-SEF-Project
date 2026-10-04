@@ -86,4 +86,41 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Members Screen Content'), findsOneWidget);
   });
+
+  testWidgets('AppShell shows a doctor the clinician menu, never the family menu', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: '/home',
+      routes: [
+        ShellRoute(
+          builder: (context, state, child) => AppShell(
+            currentLocation: state.matchedLocation,
+            isDoctor: true,
+            child: child,
+          ),
+          routes: [
+            GoRoute(path: '/home', builder: (_, _) => const Text('Doctor Home')),
+            GoRoute(path: '/calendar', builder: (_, _) => const Text('Calendar Content')),
+            GoRoute(path: '/families', builder: (_, _) => const Text('Families Content')),
+            GoRoute(path: '/triage-cases', builder: (_, _) => const Text('Queue Content')),
+          ],
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpAndSettle();
+
+    expect(find.text('My Families'), findsWidgets);
+    expect(find.text('Triage Cases'), findsWidgets);
+    expect(find.text('Calendar'), findsWidgets);
+    expect(find.text('My Family'), findsNothing);
+    expect(find.text('Health Records'), findsNothing);
+    expect(find.text('My Doctor'), findsNothing);
+
+    await tester.tap(find.text('Triage Cases').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Queue Content'), findsOneWidget);
+  });
 }
