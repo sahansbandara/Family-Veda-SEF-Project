@@ -56,7 +56,7 @@ export function ApprovalEvidenceTabs({ review, onWorkspace }: { review: CaseRevi
         )}
 
         {tab === 'ai' && (
-          <div className="approval-grid">
+          <div className="approval-grid approval-grid--stack">
             <AgentOutputCard
               wide
               draft

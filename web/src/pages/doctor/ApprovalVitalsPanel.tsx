@@ -4,12 +4,37 @@
 import { useState } from 'react'
 
 import type { MemberWorkspaceDto, WorkspaceVitalDto } from '../../services/apiClient'
-import { IconActivity } from './ApprovalIcons'
 import { queueDateTime } from './approvalReview'
-import { changeSummary, rangePosition, statusText, statusTone, trendArrow, trendText, vitalCards, type VitalCard } from './approvalVitals'
+import { changeSummary, chipMark, chipTone, rangePosition, statusText, trendArrow, trendText, vitalCards, vitalIcon, type VitalCard, type VitalIcon } from './approvalVitals'
 import type { VitalSeries } from './familyWorkspace'
 
 const READINGS_SHOWN = 6
+
+const glyphs: Record<VitalIcon, string[]> = {
+  heart: ['M20.8 4.6a5.1 5.1 0 0 0-7.2 0L12 6.2l-1.6-1.6a5.1 5.1 0 0 0-7.2 7.2L12 20.5l8.8-8.7a5.1 5.1 0 0 0 0-7.2z'],
+  pressure: ['M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 12 0V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3', 'M8 15v1a6 6 0 0 0 12 0v-4', 'M20 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z'],
+  weight: ['M5 4h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', 'M8 11a4 4 0 0 1 8 0', 'M12 11l2-2'],
+  temperature: ['M10 14V5a2 2 0 0 1 4 0v9a5 5 0 1 1-4 0z', 'M12 9v9'],
+  oxygen: ['M12 4v8', 'M12 12c-1.5-2-4-4-5-3-2 2-4 7-3 10 .5 1.5 4 1 5-1 1-1.500 3-4 3-6z', 'M12 12c1.500-2 4-4 5-3 2 2 4 7 3 10-.5 1.500-4 1-5-1-1-1.500-3-4-3-6z'],
+  breath: ['M3 8h11a3 3 0 1 0-3-3', 'M3 12h16a3 3 0 1 1-3 3', 'M3 16h7'],
+  generic: ['M2 12h4l3-8 5 16 3-8h5'],
+}
+
+function VitalGlyph({ icon }: { icon: VitalIcon }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {glyphs[icon].map((path) => <path key={path} d={path} />)}
+    </svg>
+  )
+}
+
+function RangeChip({ status }: { status: keyof typeof statusText }) {
+  return (
+    <span className={`approval-chip approval-chip--${chipTone[status]}`}>
+      <span aria-hidden="true">{chipMark[status]}</span> {statusText[status]}
+    </span>
+  )
+}
 
 function HistoryChart({ series }: { series: VitalSeries }) {
   const points = [...series.readings].reverse()
@@ -60,9 +85,7 @@ function History({ card }: { card: VitalCard }) {
               <li key={`${reading.measuredAt}-${index}`}>
                 <span>{queueDateTime(reading.measuredAt)}</span>
                 <b>{reading.value} {reading.unit}</b>
-                <span className={`approval-chip approval-chip--${statusTone[reading.rangeStatus ?? 'RangeUnavailable']}`}>
-                  {statusText[reading.rangeStatus ?? 'RangeUnavailable']}
-                </span>
+                <RangeChip status={reading.rangeStatus ?? 'RangeUnavailable'} />
               </li>
             ))}
           </ul>
@@ -130,12 +153,15 @@ export function ApprovalVitalsPanel({ workspace }: { workspace: MemberWorkspaceD
         {cards.map((item) => (
           <button key={item.key} type="button" className="approval-vital" aria-expanded={item.key === openKey}
             aria-controls="approval-vital-history" onClick={() => setOpenKey(item.key === openKey ? null : item.key)}>
-            <span className="approval-vital__label"><IconActivity /> {item.label}</span>
+            <span className="approval-vital__label">
+              <span className={`approval-vital__icon approval-vital__icon--${vitalIcon(item.key)}`}><VitalGlyph icon={vitalIcon(item.key)} /></span>
+              {item.label}
+            </span>
             <strong>{item.value} <small>{item.unit}</small></strong>
-            <span className={`approval-chip approval-chip--${statusTone[item.status]}`}>{statusText[item.status]}</span>
+            <RangeChip status={item.status} />
             <small>{item.range ? `Reference ${item.range}` : 'No reference interval for this measurement or age'}</small>
             <span className="approval-vital__foot">
-              <span><span aria-hidden="true">{trendArrow[item.trend]}</span> {trendText[item.trend]}</span>
+              <span className={`approval-trend approval-trend--${item.trend.toLowerCase()}`}><span aria-hidden="true">{trendArrow[item.trend]}</span> {trendText[item.trend]}</span>
               <small>{queueDateTime(item.latest.measuredAt)}</small>
             </span>
             <span className="sr-only">Show {item.label} history</span>

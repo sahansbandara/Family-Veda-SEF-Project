@@ -16,6 +16,8 @@ it('shows the latest value with its backend range status, and report values on r
   const heart = await screen.findByRole('button', { name: /Heart rate/ })
   expect(within(heart).getByText('104')).toBeInTheDocument()
   expect(within(heart).getByText('Above reference range')).toBeInTheDocument()
+  expect(within(heart).getByText('Above reference range').closest('.approval-chip')).toHaveClass('approval-chip--high')
+  expect(heart.querySelector('.approval-vital__icon--heart')).not.toBeNull()
   expect(within(heart).getByText('Reference 60 – 100 bpm')).toBeInTheDocument()
   expect(within(heart).getByText('Rising')).toBeInTheDocument()
   expect(screen.queryByText('75')).not.toBeInTheDocument()

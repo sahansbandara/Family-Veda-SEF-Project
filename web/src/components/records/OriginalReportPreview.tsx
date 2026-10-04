@@ -11,11 +11,22 @@ type OriginalReportPreviewProps = {
   fileUrl?: string
 }
 
+/** Explains a failed load from the HTTP status only; the response body is never shown. */
+function failureReason(error: unknown) {
+  const status = (error as { response?: { status?: number } })?.response?.status
+  if (status === 404) return 'The stored file was not found, or the grant or consent for it is no longer active.'
+  if (status === 401 || status === 403) return 'Your session or permission for this file has ended. Sign in again.'
+  if (status === 422 || status === 503) return 'Report storage is temporarily unavailable. Retry shortly.'
+  if (status == null) return 'The server could not be reached.'
+  return `The server returned status ${status}.`
+}
+
 export function OriginalReportPreview({ reportId, originalFileName, hasOriginalFile, fileUrl }: OriginalReportPreviewProps) {
   const [state, setState] = useState<PreviewState>(hasOriginalFile ? 'loading' : 'unavailable')
   const [objectUrl, setObjectUrl] = useState<string | null>(null)
   const [isPdf, setIsPdf] = useState(false)
   const [attempt, setAttempt] = useState(0)
+  const [reason, setReason] = useState('')
 
   useEffect(() => {
     if (!hasOriginalFile) {
@@ -38,8 +49,10 @@ export function OriginalReportPreview({ reportId, originalFileName, hasOriginalF
         setObjectUrl(url)
         setState('ready')
       })
-      .catch(() => {
-        if (active && !controller.signal.aborted) setState('error')
+      .catch((error: unknown) => {
+        if (!active || controller.signal.aborted) return
+        setReason(failureReason(error))
+        setState('error')
       })
 
     return () => {
@@ -54,7 +67,7 @@ export function OriginalReportPreview({ reportId, originalFileName, hasOriginalF
       <h3>Original report</h3>
       {state === 'loading' && <p role="status">Loading original report…</p>}
       {state === 'unavailable' && <p role="status">Original report unavailable.</p>}
-      {state === 'error' && <><p role="status">Original report could not be loaded.</p><button type="button" className="button button--secondary button--sm" onClick={() => setAttempt((value) => value + 1)}>Retry original report</button></>}
+      {state === 'error' && <><p role="status">Original report could not be loaded.{reason ? ` ${reason}` : ''}</p><button type="button" className="button button--secondary button--sm" onClick={() => setAttempt((value) => value + 1)}>Retry original report</button></>}
       {state === 'ready' && objectUrl && isPdf && (
         <>
           <object className="original-report-preview__document" data={objectUrl} type="application/pdf" aria-label={`Original report document: ${originalFileName}`}>
