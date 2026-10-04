@@ -19,6 +19,7 @@ import 'package:family_veda/screens/notifications/notifications_screen.dart';
 import 'package:family_veda/screens/records/records_screen.dart';
 import 'package:family_veda/screens/records/lab_upload_screen.dart';
 import 'package:family_veda/screens/records/record_entry_screen.dart';
+import 'package:family_veda/models/vital.dart';
 import 'package:family_veda/screens/records/vital_entry_screen.dart';
 import 'package:family_veda/screens/risk/approved_guidance_screen.dart';
 import 'package:family_veda/screens/triage/case_status_screen.dart';
@@ -97,7 +98,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, _) => const NotificationsScreen(),
       ),
       GoRoute(path: '/records/new', builder: (_, _) => const RecordEntryScreen()),
-      GoRoute(path: '/vitals/new', builder: (_, _) => const VitalEntryScreen()),
+      GoRoute(
+        path: '/vitals/new',
+        builder: (_, state) => VitalEntryScreen(
+          initialKind: state.extra is VitalKind ? state.extra as VitalKind : null,
+        ),
+      ),
       GoRoute(path: '/lab-upload', builder: (_, _) => const LabUploadScreen()),
       GoRoute(
         path: '/guidance/:caseId',

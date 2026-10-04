@@ -9,7 +9,9 @@ import 'package:family_veda/models/record_summary_meta.dart';
 import 'package:family_veda/providers/records_provider.dart';
 import 'package:family_veda/models/lab_report.dart';
 import 'package:family_veda/widgets/records/original_report_preview.dart';
+import 'package:family_veda/widgets/records/records_visuals.dart';
 import 'package:family_veda/widgets/records/report_library_card.dart';
+import 'package:family_veda/widgets/records/vitals_tab.dart';
 import 'package:family_veda/widgets/shared/async_state_views.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -84,6 +86,56 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
     }
   }
 
+  Widget _summary(
+    BuildContext context, {
+    required bool isHead,
+    required List<HealthRecord>? records,
+    required List<LabReport>? reports,
+  }) {
+    final ranged = reports?.fold<int>(0, (total, report) {
+      final range = report.rangeSummary;
+      return total +
+          (range == null
+              ? 0
+              : range.belowRange + range.withinRange + range.aboveRange);
+    });
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: RecordsMetricsRow(
+        metrics: [
+          RecordsMetric(
+            label: 'Lab reports',
+            value: reports?.length.toString() ?? '–',
+            caption: 'Authorized reports',
+            icon: Icons.science_outlined,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          RecordsMetric(
+            label: 'Recorded values',
+            value: ranged?.toString() ?? '–',
+            caption: 'With a printed range',
+            icon: Icons.bar_chart,
+            color: RecordTones.sky,
+          ),
+          RecordsMetric(
+            label: 'Manual records',
+            value: records?.length.toString() ?? '–',
+            caption: 'Current profile',
+            icon: Icons.description_outlined,
+            color: RecordTones.green,
+          ),
+          RecordsMetric(
+            label: 'Clinical status',
+            value: 'Active',
+            caption: isHead ? 'Family consent active' : 'Individual scope',
+            icon: Icons.verified_user_outlined,
+            color: RecordTones.violet,
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen<String?>(activeMemberProvider, (previous, next) {
@@ -104,7 +156,7 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
         : ref.watch(recordsByMemberProvider(selected));
     final myMemberId = ref.watch(myMemberIdProvider).valueOrNull;
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Health records'),
@@ -112,6 +164,7 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
             tabs: [
               Tab(text: 'Records'),
               Tab(text: 'Lab reports'),
+              Tab(text: 'Vitals'),
             ],
           ),
           actions: [
@@ -204,6 +257,16 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
                     'Read-only · Only records shared with the Family Head are available.',
                   ),
                 ),
+              _summary(
+                context,
+                isHead: dashboard?.isHead == true,
+                records: records.valueOrNull,
+                reports:
+                    (selected == null
+                            ? ref.watch(memberLabReportsProvider)
+                            : ref.watch(labReportsByMemberProvider(selected)))
+                        .valueOrNull,
+              ),
               Expanded(
                 child: TabBarView(
                   children: [
@@ -302,39 +365,14 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
                                         final meta = RecordSummaryMeta.parse(
                                           record.summary,
                                         );
-                                        return Card(
-                                          child: ListTile(
-                                            leading: const Icon(
-                                              Icons.description_outlined,
-                                            ),
-                                            title: Text(record.title),
-                                            subtitle: Text(
-                                              [
-                                                '${record.type} · ${DateFormat.yMMMd().format(record.recordedAt)}',
-                                                if (meta.metaLine.isNotEmpty)
-                                                  meta.metaLine,
-                                              ].join('\n'),
-                                            ),
-                                            isThreeLine:
-                                                meta.metaLine.isNotEmpty,
-                                            trailing:
-                                                record.memberId == myMemberId
-                                                ? IconButton(
-                                                    tooltip:
-                                                        record
-                                                            .sharedWithFamilyHead
-                                                        ? 'Shared with Family Head · make private'
-                                                        : 'Private · share with Family Head',
-                                                    onPressed: () =>
-                                                        _toggleRecord(record),
-                                                    icon: Icon(
-                                                      record.sharedWithFamilyHead
-                                                          ? Icons.people_outline
-                                                          : Icons.lock_outline,
-                                                    ),
-                                                  )
-                                                : null,
-                                          ),
+                                        return _RecordCard(
+                                          record: record,
+                                          metaLine: meta.metaLine,
+                                          readOnly: readOnly,
+                                          onToggle:
+                                              record.memberId == myMemberId
+                                              ? () => _toggleRecord(record)
+                                              : null,
                                         );
                                       },
                                     ),
@@ -351,6 +389,7 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
                       myMemberId: myMemberId,
                       onToggle: _toggleReport,
                     ),
+                    VitalsTab(readOnly: readOnly),
                   ],
                 ),
               ),
@@ -514,6 +553,90 @@ class _LabReportsTabState extends ConsumerState<_LabReportsTab> {
                 ),
               ],
             ),
+    );
+  }
+}
+
+class _RecordCard extends StatelessWidget {
+  const _RecordCard({
+    required this.record,
+    required this.metaLine,
+    required this.readOnly,
+    this.onToggle,
+  });
+
+  final HealthRecord record;
+  final String metaLine;
+  final bool readOnly;
+
+  /// Present only for the owner: only they may change sharing.
+  final VoidCallback? onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = RecordTones.forRecordType(context, record.type);
+    final shared = record.sharedWithFamilyHead;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 12, 4, 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TonedIcon(icon: recordTypeIcon(record.type), color: color),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(record.title, style: theme.textTheme.titleSmall),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      RecordBadge(label: record.type, color: color),
+                      Text(
+                        DateFormat.yMMMd().format(record.recordedAt),
+                        style: theme.textTheme.bodySmall,
+                      ),
+                      if (onToggle != null || readOnly)
+                        RecordBadge(
+                          label: readOnly
+                              ? 'Shared with you'
+                              : shared
+                              ? 'Shared with Family Head'
+                              : 'Private',
+                          icon: readOnly || shared
+                              ? Icons.people_outline
+                              : Icons.lock_outline,
+                          color: readOnly || shared
+                              ? theme.colorScheme.primary
+                              : RecordTones.rose,
+                        ),
+                    ],
+                  ),
+                  if (metaLine.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(metaLine, style: theme.textTheme.bodySmall),
+                  ],
+                ],
+              ),
+            ),
+            if (onToggle != null)
+              IconButton(
+                tooltip: shared
+                    ? 'Shared with Family Head · make private'
+                    : 'Private · share with Family Head',
+                onPressed: onToggle,
+                icon: Icon(shared ? Icons.people_outline : Icons.lock_outline),
+              )
+            else
+              const SizedBox(width: 8),
+          ],
+        ),
+      ),
     );
   }
 }

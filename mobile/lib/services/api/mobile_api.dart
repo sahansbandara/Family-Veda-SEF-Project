@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:family_veda/models/health_record.dart';
 import 'package:family_veda/models/lab_report.dart';
+import 'package:family_veda/models/vital.dart';
 import 'package:family_veda/services/api/api_client.dart';
 import 'package:dio/dio.dart';
 
@@ -30,6 +31,7 @@ abstract interface class MobileApi {
     bool sharedWithFamilyHead = false,
   });
   Future<List<LabReport>> getLabReports(String memberId);
+  Future<List<Vital>> getVitals(String memberId);
   Future<Uint8List> getLabReportFile(String reportId);
   Future<String?> getMyMemberId();
   Future<void> setRecordSharing({
@@ -145,6 +147,14 @@ class DioMobileApi implements MobileApi {
     return _listFrom(
       response.data,
     ).map(LabReport.fromJson).toList(growable: false);
+  }
+
+  @override
+  Future<List<Vital>> getVitals(String memberId) async {
+    final response = await _client.dio.get<dynamic>(
+      '/members/$memberId/vitals',
+    );
+    return _listFrom(response.data).map(Vital.fromJson).toList(growable: false);
   }
 
   @override
