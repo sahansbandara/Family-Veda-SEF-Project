@@ -132,6 +132,9 @@ describe('ApprovalsPage', () => {
     await waitFor(() =>
       expect(mocks.post).toHaveBeenCalledWith('/triage-cases/case-a/approve', expect.any(Object)),
     )
+    // The outcome names what happened and links to where the case went.
+    expect(await screen.findByText(/approved\. The guidance you selected is now visible to the patient/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'View in Completed' })).toHaveAttribute('href', '/cases?tab=completed')
   })
 
   it('blocks approval without approved guidance and lets the doctor cancel a decision', async () => {

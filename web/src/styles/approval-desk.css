@@ -705,3 +705,11 @@ button.approval-vital strong small { font-size: 0.75rem; font-weight: 500; }
 .approval-section--attention h4 { color: var(--warning); background: color-mix(in srgb, var(--warning) 14%, transparent); }
 .approval-section--muted { border-left-color: var(--care-muted); }
 .approval-section--muted h4 { color: var(--care-muted); background: color-mix(in srgb, var(--care-muted) 12%, transparent); }
+
+/* Decision outcome stays in view and links to where the case went. */
+.approval-toast { position: fixed; left: 50%; bottom: 20px; z-index: 60; transform: translateX(-50%); width: min(760px, calc(100vw - 32px)); justify-content: space-between; flex-wrap: nowrap; border: 1px solid var(--care-line); box-shadow: 0 14px 40px rgb(0 0 0 / 35%); }
+.approval-toast > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.approval-toast__actions { display: flex; flex-shrink: 0; gap: 8px; }
+@media (max-width: 600px) {
+  .approval-toast { flex-wrap: wrap; bottom: 12px; }
+}

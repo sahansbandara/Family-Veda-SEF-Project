@@ -104,9 +104,12 @@ describe('CasesPage', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Claim Case pool0001' }))
     await waitFor(() => expect(mocks.post).toHaveBeenCalledWith('/triage-cases/pool0001-x/claim'))
     expect(await screen.findByText(/Case pool0001 is now assigned to you/)).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('tab', { name: /My Cases/ }))
-    expect(screen.getByRole('heading', { name: 'Case pool0001' })).toBeInTheDocument()
+    // The doctor is taken to My Cases with the claimed case listed and open in the preview.
+    expect(screen.getByRole('tab', { name: /My Cases/ })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getAllByRole('heading', { name: 'Case pool0001' })).toHaveLength(2)
     expect(screen.queryByRole('button', { name: 'Claim Case pool0001' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+    expect(screen.queryByText(/is now assigned to you/)).not.toBeInTheDocument()
   })
 
   it('gives safe conflict feedback when another doctor claims first', async () => {

@@ -7,17 +7,54 @@ type RecordSummaryTextProps = { summary?: string | null; emptyLabel?: string }
 /** Shows the labelled status / severity / provider line apart from the member's own summary text. */
 export function RecordSummaryText({ summary, emptyLabel = '—' }: RecordSummaryTextProps) {
   const meta = parseRecordSummary(summary)
-  const labels = [
-    meta.status && `Status: ${meta.status}`,
-    meta.severity && `Severity: ${meta.severity}`,
-    meta.doctor && `Doctor: ${meta.doctor}`,
-  ].filter(Boolean)
-  if (labels.length === 0 && !meta.cleanSummary) return <>{emptyLabel}</>
+  const hasMeta = Boolean(meta.status || meta.severity || meta.doctor)
+
+  if (!hasMeta && !meta.cleanSummary) return <span className="text-muted">{emptyLabel}</span>
+
+  const statusTone =
+    meta.status?.toLowerCase() === 'active'
+      ? 'meta-pill--active'
+      : meta.status?.toLowerCase() === 'resolved'
+        ? 'meta-pill--resolved'
+        : 'meta-pill--neutral'
+
+  const severityTone =
+    meta.severity?.toLowerCase() === 'severe'
+      ? 'meta-pill--severe'
+      : meta.severity?.toLowerCase() === 'moderate'
+        ? 'meta-pill--moderate'
+        : meta.severity?.toLowerCase() === 'mild'
+          ? 'meta-pill--mild'
+          : 'meta-pill--neutral'
 
   return (
-    <>
-      {labels.length > 0 && <small className="record-meta-line">{labels.join(' · ')}</small>}
-      {meta.cleanSummary && <span className="record-summary-text">{meta.cleanSummary}</span>}
-    </>
+    <div className="record-summary-block">
+      {hasMeta && (
+        <div className="record-meta-line" aria-label="Clinical metadata">
+          {meta.status && (
+            <span className={`meta-pill ${statusTone}`}>
+              <span className="meta-pill-dot" />
+              <span>Status: <strong>{meta.status}</strong></span>
+            </span>
+          )}
+          {meta.severity && (
+            <span className={`meta-pill ${severityTone}`}>
+              <span>Severity: <strong>{meta.severity}</strong></span>
+            </span>
+          )}
+          {meta.doctor && (
+            <span className="meta-pill meta-pill--doctor">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="meta-doctor-icon">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span>Doctor: <strong>{meta.doctor}</strong></span>
+            </span>
+          )}
+        </div>
+      )}
+      {meta.cleanSummary && <p className="record-summary-text">{meta.cleanSummary}</p>}
+    </div>
   )
 }
+
