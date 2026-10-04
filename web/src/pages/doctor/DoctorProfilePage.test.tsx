@@ -53,10 +53,11 @@ describe('DoctorProfilePage', () => {
     mocks.addBlockedTime.mockResolvedValue({ data: {} })
     render(<MemoryRouter><DoctorProfilePage /></MemoryRouter>)
 
-    fireEvent.change(await screen.findByLabelText('Specialty'), { target: { value: 'Family Medicine' } })
+    fireEvent.change(await screen.findByRole('combobox', { name: 'Specialty' }), { target: { value: 'cardio' } })
+    fireEvent.click(screen.getByRole('option', { name: 'Cardiology' }))
     fireEvent.click(screen.getByRole('checkbox', { name: 'Accepting new families' }))
     fireEvent.click(screen.getByRole('button', { name: 'Save profile changes' }))
-    await waitFor(() => expect(mocks.updateProfile).toHaveBeenCalledWith(expect.objectContaining({ specialty: 'Family Medicine', acceptingNewFamilies: false, slotMinutes: 30 })))
+    await waitFor(() => expect(mocks.updateProfile).toHaveBeenCalledWith(expect.objectContaining({ specialty: 'Cardiology', acceptingNewFamilies: false, slotMinutes: 30 })))
     expect(await screen.findByText('Not accepting')).toBeInTheDocument()
 
     fireEvent.change(screen.getByLabelText('From'), { target: { value: '2026-10-12T09:00' } })

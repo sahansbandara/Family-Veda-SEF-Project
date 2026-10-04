@@ -7,6 +7,7 @@ import 'package:family_veda/services/api/doctor_practice_api.dart';
 import 'package:family_veda/widgets/doctor/calendar_parts.dart';
 import 'package:family_veda/widgets/doctor/family_workspace_parts.dart';
 import 'package:family_veda/widgets/doctor/practice_parts.dart';
+import 'package:family_veda/widgets/doctor/practice_profile_form.dart';
 import 'package:family_veda/widgets/doctor/practice_sections.dart';
 import 'package:family_veda/widgets/shared/async_state_views.dart';
 import 'package:flutter/material.dart';

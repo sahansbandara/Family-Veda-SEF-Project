@@ -1,5 +1,6 @@
 // Owner: S4 · whole-project waiver (agent/DECISIONS.md 2026-09-28b)
 import 'package:family_veda/models/doctor_practice.dart';
+import 'package:family_veda/models/practice_options.dart';
 import 'package:family_veda/providers/doctor_practice_provider.dart';
 import 'package:family_veda/screens/doctor/doctor_profile_screen.dart';
 import 'package:family_veda/services/api/doctor_practice_api.dart';
@@ -25,6 +26,11 @@ class _FakeApi implements DoctorPracticeApi {
     ),
   ];
   bool accepting = true;
+  // Stored the way older rows are, so the form has to cope with them.
+  String? district;
+  String? city;
+  String? languages;
+  String? consultationModes;
   final replaced = <List<AvailabilityWindow>>[];
   final updates = <PracticeProfileUpdate>[];
   final added = <(DateTime, DateTime, String?)>[];
@@ -39,6 +45,10 @@ class _FakeApi implements DoctorPracticeApi {
       registrationLastFour: '0001',
       verificationStatus: 'Verified',
       specialty: 'General Practice',
+      district: district,
+      city: city,
+      languages: languages,
+      consultationModes: consultationModes,
       acceptingNewFamilies: accepting,
       slotMinutes: 30,
     ),
@@ -115,6 +125,25 @@ Future<void> _tap(WidgetTester tester, Finder finder) async {
   await tester.pumpAndSettle();
   await tester.tap(finder);
   await tester.pumpAndSettle();
+}
+
+/// Opens the picker behind [field], types [query] into its search box and taps [option].
+Future<void> _pick(
+  WidgetTester tester,
+  String field,
+  String query,
+  Finder option,
+) async {
+  await _tap(tester, find.text(field));
+  await tester.enterText(
+    find.descendant(
+      of: find.byType(BottomSheet),
+      matching: find.byType(TextField),
+    ),
+    query,
+  );
+  await tester.pumpAndSettle();
+  await _tap(tester, option);
 }
 
 /// The list is lazy: scroll back up until the summary tile with [text] is built again.
@@ -235,18 +264,118 @@ void main() {
     await _tap(tester, find.text('Practice'));
     expect(find.text('Dr. Synthetic Perera'), findsOneWidget);
     expect(find.text('SLMC ••••0001'), findsOneWidget);
-    await tester.enterText(
-      find.widgetWithText(TextField, 'Specialty'),
-      'Family Medicine',
-    );
+    await _pick(tester, 'Specialty', 'cardio', find.text('Cardiology'));
     await _tap(tester, find.text('Accepting new families'));
     await _tap(tester, find.text('Save profile changes'));
 
-    expect(api.updates.single.specialty, 'Family Medicine');
+    expect(api.updates.single.specialty, 'Cardiology');
+    // Nothing is pre-selected for the doctor.
+    expect(api.updates.single.languages, isNull);
+    expect(api.updates.single.consultationModes, isNull);
     expect(api.updates.single.acceptingNewFamilies, isFalse);
     expect(api.updates.single.slotMinutes, 30);
     expect(find.text('Practice profile saved.'), findsOneWidget);
     await _seeAbove(tester, 'Not accepting');
+  });
+
+  testWidgets('selects any combination of languages', (tester) async {
+    final api = await _pump(tester);
+
+    await _tap(tester, find.text('Practice'));
+    await _tap(tester, find.text('Languages spoken'));
+    for (final language in ['Tamil', 'Sinhala', 'English']) {
+      await _tap(tester, find.text(language));
+    }
+    await _tap(tester, find.text('Done'));
+    await _tap(tester, find.byTooltip('Remove Sinhala'));
+    await _tap(tester, find.text('Save profile changes'));
+
+    expect(api.updates.single.languages, 'Tamil, English');
+  });
+
+  testWidgets('clears the city when the district changes', (tester) async {
+    final fake = _FakeApi()
+      ..district = 'Gampaha'
+      ..city = 'Negombo';
+    final api = await _pump(tester, api: fake);
+
+    await _tap(tester, find.text('Practice'));
+    await _pick(tester, 'District', 'kand', find.text('Kandy'));
+    expect(find.text('Negombo'), findsNothing);
+    expect(find.textContaining('City cleared'), findsOneWidget);
+
+    await _tap(tester, find.text('City'));
+    expect(find.text('City in Kandy'), findsOneWidget);
+    expect(find.text('Negombo'), findsNothing);
+    await _tap(tester, find.text('Peradeniya'));
+    await _tap(tester, find.text('Save profile changes'));
+
+    expect(api.updates.single.district, 'Kandy');
+    expect(api.updates.single.city, 'Peradeniya');
+    expect(api.updates.single.specialty, 'General Practice');
+  });
+
+  testWidgets(
+    'accepts an unlisted clinic and keeps a saved unsupported mode until removed',
+    (tester) async {
+      final fake = _FakeApi()..consultationModes = 'InPerson,Video';
+      final api = await _pump(tester, api: fake);
+
+      await _tap(tester, find.text('Practice'));
+      await _pick(
+        tester,
+        'Hospital / Clinic',
+        'Synthetic New Clinic',
+        find.textContaining('Not listed — use'),
+      );
+      expect(find.text('Video · saved earlier'), findsOneWidget);
+      // Only in-person can be booked, so it is the only mode offered.
+      await _tap(tester, find.text('Consultation modes'));
+      expect(find.byType(CheckboxListTile), findsOneWidget);
+      await _tap(tester, find.text('Done'));
+      await _tap(tester, find.text('Save profile changes'));
+      expect(api.updates.last.clinic, 'Synthetic New Clinic');
+      expect(api.updates.last.consultationModes, 'In-person, Video');
+
+      await _tap(tester, find.byTooltip('Remove Video'));
+      await _tap(tester, find.text('Save profile changes'));
+      expect(api.updates.last.consultationModes, 'In-person');
+    },
+  );
+
+  testWidgets('blocks an invalid phone number before calling the API', (
+    tester,
+  ) async {
+    final api = await _pump(tester);
+
+    await _tap(tester, find.text('Practice'));
+    await _tap(tester, find.text('Professional phone'));
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Professional phone'),
+      '12345',
+    );
+    await _tap(tester, find.text('Save profile changes'));
+
+    expect(
+      find.textContaining('Enter a Sri Lankan phone number'),
+      findsOneWidget,
+    );
+    expect(api.updates, isEmpty);
+  });
+
+  test('practice option helpers match the web module', () {
+    expect(districts, hasLength(25));
+    expect(parseChoices('sinhala / English', languageOptions), [
+      'Sinhala',
+      'English',
+    ]);
+    expect(joinChoices([]), isNull);
+    for (final ok in ['', '0771234567', '+94771234567', '011 234 5678']) {
+      expect(phoneProblem(ok), isNull);
+    }
+    for (final bad in ['12345', '+1 555 010 0000', 'call me']) {
+      expect(phoneProblem(bad), isNotNull);
+    }
   });
 
   testWidgets('blocks and unblocks time off', (tester) async {
@@ -272,6 +401,11 @@ void main() {
     await _pump(tester, size: const Size(320, 568));
     await _tap(tester, find.text('Practice'));
     await _tap(tester, find.text('Time off'));
+    expect(tester.takeException(), isNull);
+    // The picker sheet has to fit the same width.
+    await _tap(tester, find.text('Practice'));
+    await _tap(tester, find.text('Hospital / Clinic'));
+    expect(find.byType(BottomSheet), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

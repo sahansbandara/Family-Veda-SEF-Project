@@ -9,14 +9,15 @@ import {
   type AvailabilityWindowDto,
   type DoctorPracticeProfileDto,
   type DoctorScheduleDto,
+  type UpdatePracticeProfileRequest,
   type WeekDay,
 } from '../../services/apiClient'
 import { extractErrorMessage } from '../family/threePortalUtils'
-import { Pill, PracticeSummary, Switch, TimeOff, WeeklyHours } from './doctorProfileParts'
+import { Pill, PracticeSummary, TimeOff, WeeklyHours } from './doctorProfileParts'
+import { PracticeProfileForm } from './PracticeProfileForm'
 import { activeDayCount, hhmm, initials, nextWindow, sortWindows, validateWindows } from './doctorSchedule'
 import '../../styles/doctor-profile.css'
 
-const slotOptions = [15, 20, 30, 45, 60]
 const editable = (schedule: DoctorScheduleDto) =>
   schedule.windows.map((w) => ({ ...w, startTime: hhmm(w.startTime), endTime: hhmm(w.endTime) }))
 
@@ -42,23 +43,13 @@ export function DoctorProfilePage() {
   }, [])
   useEffect(() => { void load() }, [load])
 
-  async function saveProfile(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const form = new FormData(event.currentTarget)
-    const text = (key: string) => String(form.get(key) ?? '').trim() || null
-    setBusy(true)
+  async function saveProfile(update: UpdatePracticeProfileRequest) {
     try {
-      const { data } = await doctorWorkspaceApi.updateProfile({
-        specialty: text('specialty'), clinic: text('clinic'), phoneNumber: text('phoneNumber'), district: text('district'),
-        city: text('city'), languages: text('languages'), consultationModes: text('consultationModes'),
-        acceptingNewFamilies: form.get('acceptingNewFamilies') === 'on', slotMinutes: Number(form.get('slotMinutes')),
-      })
+      const { data } = await doctorWorkspaceApi.updateProfile(update)
       setProfile(data)
       setMessage('Practice profile saved.')
     } catch (error) {
       setMessage(extractErrorMessage(error, 'Profile could not be saved. Check the fields and try again.'))
-    } finally {
-      setBusy(false)
     }
   }
 
@@ -149,23 +140,7 @@ export function DoctorProfilePage() {
                   <div><strong>{profile.displayName}</strong><small>{profile.email}</small></div>
                   <span className="dprof-reg">SLMC ••••{profile.registrationNumberLastFour}</span>
                 </div>
-                <form onSubmit={(event) => void saveProfile(event)}>
-                  <div className="dprof-grid">
-                    <label className="dprof-field">Specialty<input name="specialty" defaultValue={profile.specialty ?? ''} maxLength={120} /></label>
-                    <label className="dprof-field">Hospital / Clinic<input name="clinic" defaultValue={profile.clinic ?? ''} maxLength={120} /></label>
-                    <label className="dprof-field">City<input name="city" defaultValue={profile.city ?? ''} maxLength={60} /></label>
-                    <label className="dprof-field">District<input name="district" defaultValue={profile.district ?? ''} maxLength={60} /></label>
-                    <label className="dprof-field">Languages<input name="languages" defaultValue={profile.languages ?? ''} maxLength={120} placeholder="Sinhala, English" /></label>
-                    <label className="dprof-field">Consultation modes<input name="consultationModes" defaultValue={profile.consultationModes ?? ''} maxLength={60} placeholder="In-person" /></label>
-                    <label className="dprof-field">Professional phone<input name="phoneNumber" type="tel" defaultValue={profile.phoneNumber ?? ''} maxLength={32} placeholder="Add professional contact" /></label>
-                    <label className="dprof-field">Appointment length<select name="slotMinutes" defaultValue={profile.slotMinutes}>{slotOptions.map((m) => <option key={m} value={m}>{m} minutes</option>)}</select></label>
-                  </div>
-                  <div className="dprof-switchline">
-                    <div><b>Accepting new families</b><small>Allow new families to request you as their primary doctor.</small></div>
-                    <Switch label="Accepting new families" name="acceptingNewFamilies" defaultChecked={profile.acceptingNewFamilies} />
-                  </div>
-                  <div className="dprof-actions"><button className="dprof-btn dprof-btn--primary" type="submit" disabled={busy}>Save profile changes</button></div>
-                </form>
+                <PracticeProfileForm profile={profile} onSave={saveProfile} />
               </div>
             </section>
             <section className="dprof-card" aria-labelledby="availability-heading">
