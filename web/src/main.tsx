@@ -6,10 +6,13 @@ import { Provider } from 'react-redux'
 
 import './index.css'
 import App from './App.tsx'
-import { warmUpApi } from './services/apiClient'
+import { hasStoredSession, warmUpApi } from './services/apiClient'
 import { store } from './store'
+import { restoreSession } from './store/slices/authSlice'
 
 warmUpApi()
+// Dispatched before the first render so route guards wait for the answer instead of redirecting.
+if (hasStoredSession()) void store.dispatch(restoreSession())
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

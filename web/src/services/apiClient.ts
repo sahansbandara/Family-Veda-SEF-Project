@@ -18,8 +18,34 @@ export function warmUpApi() {
   void fetch(`${baseURL.replace(/\/api\/v1\/?$/, '')}/health`, { mode: 'no-cors', cache: 'no-store' }).catch(() => undefined)
 }
 
+// Only the refresh token is kept, and only for the life of the tab: a reload restores the session,
+// closing the tab ends it. The access token never leaves memory.
+const refreshTokenKey = 'familyveda.refreshToken'
+
+function readStoredRefreshToken(): string | null {
+  try {
+    return sessionStorage.getItem(refreshTokenKey)
+  } catch {
+    return null
+  }
+}
+
+function storeRefreshToken(refreshToken: string | null) {
+  try {
+    if (refreshToken) sessionStorage.setItem(refreshTokenKey, refreshToken)
+    else sessionStorage.removeItem(refreshTokenKey)
+  } catch {
+    // Storage can be blocked (private mode, site data disabled); the session then lasts until reload.
+  }
+}
+
+export function hasStoredSession() {
+  return readStoredRefreshToken() !== null
+}
+
 export function setSessionTokens(next: Tokens | null) {
   tokens = next
+  storeRefreshToken(next?.refreshToken ?? null)
 }
 
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
@@ -60,6 +86,25 @@ export async function refreshSession(): Promise<AuthResponse | null> {
   const { data } = await axios.post<AuthResponse>(`${baseURL}/auth/refresh`, { refreshToken: tokens.refreshToken })
   setSessionTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken })
   return data
+}
+
+/**
+ * Re-issues the session after a page reload from the refresh token kept for this tab. Returns null
+ * when there is nothing to restore or the server no longer accepts the token.
+ */
+export async function restoreStoredSession(): Promise<AuthResponse | null> {
+  const refreshToken = readStoredRefreshToken()
+  if (!refreshToken) return null
+  try {
+    // The hosted API can take up to a minute to wake, so this waits longer than a normal request.
+    const { data } = await axios.post<AuthResponse>(`${baseURL}/auth/refresh`, { refreshToken }, { timeout: 70_000 })
+    setSessionTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken })
+    return data
+  } catch (error) {
+    // A rejected token is discarded; a network failure keeps it so the next reload can try again.
+    if (axios.isAxiosError(error) && error.response) setSessionTokens(null)
+    return null
+  }
 }
 
 export type AuthResponse = {
