@@ -163,7 +163,7 @@ export function DoctorMemberPage() {
         <div className="dfam-panel__body" key={tab}>
           {tab === 'overview' && <Overview data={data} open={setTab} />}
           {tab === 'records' && <RecordsTab records={data.records} />}
-          {tab === 'labs' && <LabsTab labReports={data.labReports} />}
+          {tab === 'labs' && <LabsTab memberId={memberId} labReports={data.labReports} />}
           {tab === 'vitals' && <VitalsTab vitals={data.vitals} />}
           {tab === 'visits' && <VisitsTab visits={data.visits} />}
           {tab === 'notes' && <NotesTab notes={data.notes} canWrite={data.clinicalAccess} onSave={saveNote} />}

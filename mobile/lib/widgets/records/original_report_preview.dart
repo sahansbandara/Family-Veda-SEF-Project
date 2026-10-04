@@ -1,7 +1,8 @@
-// Phase 2 (S2): original lab-report preview (image inline, PDF as a document notice). Shows the stored upload only — no interpretation (RULE 1).
+// Original lab-report preview (image and PDF from protected bytes). Shows the stored upload only — no interpretation (RULE 1).
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:pdfrx/pdfrx.dart';
 
 typedef OriginalReportLoader = Future<Uint8List> Function();
 
@@ -40,7 +41,15 @@ class OriginalReportPreviewDialog extends StatefulWidget {
 
 class _OriginalReportPreviewDialogState
     extends State<OriginalReportPreviewDialog> {
-  late final Future<Uint8List> _image = widget.load();
+  late Future<Uint8List> _file;
+
+  @override
+  void initState() {
+    super.initState();
+    _file = widget.load();
+  }
+
+  void _retry() => setState(() => _file = widget.load());
 
   @override
   Widget build(BuildContext context) => AlertDialog(
@@ -49,7 +58,7 @@ class _OriginalReportPreviewDialogState
     content: SizedBox(
       width: double.maxFinite,
       child: FutureBuilder<Uint8List>(
-        future: _image,
+        future: _file,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
             return const Padding(
@@ -62,32 +71,29 @@ class _OriginalReportPreviewDialogState
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
                   SizedBox(width: 12),
-                  Text('Loading original image…'),
+                  Text('Loading original report…'),
                 ],
               ),
             );
           }
           final bytes = snapshot.data;
           if (snapshot.hasError || bytes == null || bytes.isEmpty) {
-            return const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: Text('Original image could not be loaded.'),
-            );
-          }
-          if (isPdfDocument(bytes)) {
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.picture_as_pdf_outlined, size: 40),
+                  const Text('Original report could not be loaded.'),
                   const SizedBox(height: 12),
-                  Text(
-                    '${widget.fileName} is stored as a PDF document. Open Family Veda on the web to view or download the original.',
-                    textAlign: TextAlign.center,
-                  ),
+                  OutlinedButton(onPressed: _retry, child: const Text('Retry')),
                 ],
               ),
+            );
+          }
+          if (isPdfDocument(bytes)) {
+            return SizedBox(
+              height: MediaQuery.sizeOf(context).height * .7,
+              child: PdfViewer.data(bytes, sourceName: widget.fileName),
             );
           }
           return InteractiveViewer(
@@ -97,7 +103,7 @@ class _OriginalReportPreviewDialogState
               fit: BoxFit.contain,
               semanticLabel: 'Original report image: ${widget.fileName}',
               errorBuilder: (_, _, _) =>
-                  const Text('Original image could not be loaded.'),
+                  const Text('Original report could not be loaded.'),
             ),
           );
         },

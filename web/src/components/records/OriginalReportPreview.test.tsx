@@ -20,7 +20,7 @@ describe('OriginalReportPreview', () => {
     vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:synthetic'), revokeObjectURL: vi.fn() })
     render(<OriginalReportPreview reportId="report-1" originalFileName="synthetic.png" hasOriginalFile />)
 
-    expect(screen.getByText('Loading original image…')).toBeInTheDocument()
+    expect(screen.getByText('Loading original report…')).toBeInTheDocument()
     expect(await screen.findByRole('img', { name: 'Original report image: synthetic.png' })).toHaveAttribute('src', 'blob:synthetic')
     expect(mocks.get).toHaveBeenCalledWith('/lab-reports/report-1/file', expect.objectContaining({ responseType: 'blob' }))
     expect(screen.getByRole('link', { name: 'Download original image' })).toHaveAttribute('download', 'synthetic.png')
@@ -33,12 +33,14 @@ describe('OriginalReportPreview', () => {
 
     expect(await screen.findByLabelText('Original report document: synthetic.pdf')).toHaveAttribute('data', 'blob:synthetic-pdf')
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Open PDF' })).toHaveAttribute('href', 'blob:synthetic-pdf')
+    expect(screen.getByRole('link', { name: 'Open PDF' })).toHaveAttribute('rel', 'noopener noreferrer')
     expect(screen.getByRole('link', { name: 'Download original report' })).toHaveAttribute('download', 'synthetic.pdf')
   })
 
   it('shows unavailable without requesting a missing original', () => {
     render(<OriginalReportPreview reportId="report-2" originalFileName="missing.png" hasOriginalFile={false} />)
-    expect(screen.getByText('Original image unavailable.')).toBeInTheDocument()
+    expect(screen.getByText('Original report unavailable.')).toBeInTheDocument()
     expect(mocks.get).not.toHaveBeenCalled()
   })
 
@@ -76,7 +78,7 @@ describe('OriginalReportPreview', () => {
     view.rerender(<OriginalReportPreview reportId="report-2" originalFileName="second.png" hasOriginalFile={false} />)
 
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:first')
-    expect(screen.getByText('Original image unavailable.')).toBeInTheDocument()
+    expect(screen.getByText('Original report unavailable.')).toBeInTheDocument()
   })
 
 })

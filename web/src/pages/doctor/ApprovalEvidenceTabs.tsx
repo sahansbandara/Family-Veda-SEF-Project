@@ -97,7 +97,7 @@ export function ApprovalEvidenceTabs({ review }: { review: CaseReviewDto }) {
               />
               <p className="care-caption">A screening indication only — never a diagnosis.</p>
             </article>
-            <ApprovalSupportingEvidence key={review.id} memberId={review.memberId} />
+            <ApprovalSupportingEvidence key={review.id} memberId={review.memberId} caseId={review.id} />
           </div>
         )}
 

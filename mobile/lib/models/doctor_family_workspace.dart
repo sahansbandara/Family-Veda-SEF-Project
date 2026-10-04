@@ -219,18 +219,21 @@ class LabReport {
     required this.fileName,
     required this.values,
     this.collectedAt,
+    this.hasOriginalFile = false,
   });
 
   factory LabReport.fromJson(Map<String, dynamic> json) => LabReport(
     id: json['id'] as String,
     fileName: json['fileName'] as String? ?? 'Report',
     collectedAt: _date(json['collectedAt']),
+    hasOriginalFile: json['hasOriginalFile'] == true,
     values: _maps(json['values']).map(LabValue.fromJson).toList(),
   );
 
   final String id;
   final String fileName;
   final DateTime? collectedAt;
+  final bool hasOriginalFile;
   final List<LabValue> values;
 }
 

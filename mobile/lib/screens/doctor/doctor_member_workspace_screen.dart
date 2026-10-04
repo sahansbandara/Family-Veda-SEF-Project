@@ -8,6 +8,7 @@ import 'package:family_veda/services/api/doctor_families_api.dart';
 import 'package:family_veda/widgets/doctor/calendar_parts.dart';
 import 'package:family_veda/widgets/doctor/family_workspace_parts.dart';
 import 'package:family_veda/widgets/doctor/member_workspace_tabs.dart';
+import 'package:family_veda/widgets/records/original_report_preview.dart';
 import 'package:family_veda/widgets/shared/async_state_views.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,6 +32,16 @@ class _DoctorMemberWorkspaceScreenState
   final _note = TextEditingController();
   String? _amendingId;
   bool _saving = false;
+  bool _previewOpen = false;
+
+  @override
+  void didUpdateWidget(covariant DoctorMemberWorkspaceScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.memberId != widget.memberId && _previewOpen) {
+      _previewOpen = false;
+      Navigator.of(context, rootNavigator: true).maybePop();
+    }
+  }
 
   @override
   void dispose() {
@@ -79,6 +90,23 @@ class _DoctorMemberWorkspaceScreenState
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  Future<void> _viewOriginal(String reportId, String fileName) async {
+    if (_previewOpen) return;
+    _previewOpen = true;
+    final memberId = widget.memberId;
+    try {
+      await showOriginalReportPreview(
+        context,
+        fileName: fileName,
+        load: () => ref
+            .read(doctorFamiliesApiProvider)
+            .getMemberLabReportFile(memberId, reportId),
+      );
+    } finally {
+      _previewOpen = false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(doctorMemberWorkspaceProvider(widget.memberId));
@@ -122,7 +150,13 @@ class _DoctorMemberWorkspaceScreenState
                 OverviewTab(workspace: w, onOpen: _tabController.animateTo),
               ),
               _frame(w, RecordsTab(records: w.records)),
-              _frame(w, LabsTab(reports: w.labReports)),
+              _frame(
+                w,
+                LabsTab(
+                  reports: w.labReports,
+                  onViewOriginal: _viewOriginal,
+                ),
+              ),
               _frame(w, VitalsTab(vitals: w.vitals)),
               _frame(w, VisitsTab(workspace: w)),
               _frame(

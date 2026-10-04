@@ -3,6 +3,7 @@
 using FamilyVeda.Domain.Common;
 using FamilyVeda.Domain.Portal;
 using FamilyVeda.Domain.Records;
+using FamilyVeda.Application.Records;
 
 namespace FamilyVeda.Application.Portal;
 
@@ -40,7 +41,7 @@ public sealed record WorkspaceRecordDto(Guid Id, RecordType RecordType, string T
 public sealed record WorkspaceLabValueDto(string Analyte, decimal Value, string Unit, decimal? ReferenceLow, decimal? ReferenceHigh,
     LabRangeStatus RangeStatus, bool Confirmed);
 
-public sealed record WorkspaceLabReportDto(Guid Id, string FileName, DateTimeOffset? CollectedAt, IReadOnlyList<WorkspaceLabValueDto> Values);
+public sealed record WorkspaceLabReportDto(Guid Id, string FileName, DateTimeOffset? CollectedAt, IReadOnlyList<WorkspaceLabValueDto> Values, bool HasOriginalFile = false);
 
 public sealed record WorkspaceVitalDto(string VitalType, decimal Value, string Unit, DateTimeOffset MeasuredAt);
 
@@ -81,6 +82,7 @@ public interface IDoctorWorkspaceService
     Task<DoctorSlotsDto> GetFamilyDoctorSlotsAsync(Guid familyId, DateOnly date, CancellationToken cancellationToken);
     Task<FamilyRosterForDoctorDto> GetFamilyRosterAsync(Guid familyId, CancellationToken cancellationToken);
     Task<MemberWorkspaceDto> GetMemberWorkspaceAsync(Guid memberId, CancellationToken cancellationToken);
+    Task<LabReportFileDto> GetOriginalReportAsync(Guid memberId, Guid reportId, CancellationToken cancellationToken);
     Task<ClinicalNoteDto> AddNoteAsync(Guid memberId, CreateClinicalNoteRequest request, CancellationToken cancellationToken);
     Task<ClinicalNoteDto> AmendNoteAsync(Guid noteId, AmendClinicalNoteRequest request, CancellationToken cancellationToken);
 }

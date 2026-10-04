@@ -8,12 +8,14 @@ type OriginalReportPreviewProps = {
   reportId: string
   originalFileName: string
   hasOriginalFile: boolean
+  fileUrl?: string
 }
 
-export function OriginalReportPreview({ reportId, originalFileName, hasOriginalFile }: OriginalReportPreviewProps) {
+export function OriginalReportPreview({ reportId, originalFileName, hasOriginalFile, fileUrl }: OriginalReportPreviewProps) {
   const [state, setState] = useState<PreviewState>(hasOriginalFile ? 'loading' : 'unavailable')
   const [objectUrl, setObjectUrl] = useState<string | null>(null)
   const [isPdf, setIsPdf] = useState(false)
+  const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
     if (!hasOriginalFile) {
@@ -28,7 +30,7 @@ export function OriginalReportPreview({ reportId, originalFileName, hasOriginalF
     setState('loading')
     setObjectUrl(null)
 
-    void apiClient.get(`/lab-reports/${reportId}/file`, { responseType: 'blob', signal: controller.signal })
+    void apiClient.get(fileUrl ?? `/lab-reports/${reportId}/file`, { responseType: 'blob', signal: controller.signal })
       .then(({ data }) => {
         if (!active) return
         url = URL.createObjectURL(data as Blob)
@@ -45,19 +47,20 @@ export function OriginalReportPreview({ reportId, originalFileName, hasOriginalF
       controller.abort()
       if (url) URL.revokeObjectURL(url)
     }
-  }, [hasOriginalFile, reportId])
+  }, [attempt, fileUrl, hasOriginalFile, reportId])
 
   return (
     <section className="original-report-preview" aria-label="Original report">
       <h3>Original report</h3>
-      {state === 'loading' && <p role="status">Loading original image…</p>}
-      {state === 'unavailable' && <p role="status">Original image unavailable.</p>}
-      {state === 'error' && <p role="status">Original image could not be loaded.</p>}
+      {state === 'loading' && <p role="status">Loading original report…</p>}
+      {state === 'unavailable' && <p role="status">Original report unavailable.</p>}
+      {state === 'error' && <><p role="status">Original report could not be loaded.</p><button type="button" className="button button--secondary button--sm" onClick={() => setAttempt((value) => value + 1)}>Retry original report</button></>}
       {state === 'ready' && objectUrl && isPdf && (
         <>
           <object className="original-report-preview__document" data={objectUrl} type="application/pdf" aria-label={`Original report document: ${originalFileName}`}>
-            <p>This browser cannot show the PDF inline. Download it to view the original report.</p>
+            <p>This browser cannot show the PDF inline. Open or download the original report.</p>
           </object>
+          <a className="button button--secondary button--sm" href={objectUrl} target="_blank" rel="noopener noreferrer">Open PDF</a>
           <a className="button button--secondary button--sm" href={objectUrl} download={originalFileName}>Download original report</a>
         </>
       )}

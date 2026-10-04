@@ -3,6 +3,8 @@
 // append-only notes, weekly hours and free slots. Synthetic data only (RULE 7).
 using FamilyVeda.Application.Common;
 using FamilyVeda.Application.Portal;
+using FamilyVeda.Application.Records;
+using FamilyVeda.Domain.Triage;
 using FamilyVeda.Domain.Clinical;
 using FamilyVeda.Domain.Common;
 using FamilyVeda.Domain.Identity;
@@ -307,6 +309,146 @@ public sealed class DoctorWorkspaceServiceTests
         var directory = new FamilyDoctorService(db, new StubCurrentUser(f.Head.Id));
 
         (await directory.GetDirectoryAsync(null, null, CancellationToken.None)).Should().NotContain(x => x.Id == f.Doctor.Id);
+    }
+
+    [Theory]
+    [InlineData("application/pdf")]
+    [InlineData("image/png")]
+    [InlineData("image/jpeg")]
+    public async Task OriginalReport_WithVisitAndConsent_ReturnsBytesAndAudits(string type)
+    {
+        await using var db = NewDb();
+        var f = await SeedAsync(db);
+        await ConfirmedVisitAsync(db, f, DateTimeOffset.UtcNow.AddHours(2));
+        var report = new LabReport { MemberId = f.Adult.Id, OriginalFileName = "SYNTHETIC.pdf", StoredFileName = "fixture.pdf", ContentType = type };
+        db.Add(report); db.Add(new LabReportFile { LabReport = report, Content = [1, 2, 3] });
+        await db.SaveChangesAsync();
+        var service = new DoctorWorkspaceService(db, new ReportDoctorUser(f.DoctorUser.Id));
+        var result = await service.GetOriginalReportAsync(f.Adult.Id, report.Id, CancellationToken.None);
+        result.Content.Should().Equal(1, 2, 3); result.ContentType.Should().Be(type);
+        var audit = await db.AuditLogs.SingleAsync(x => x.EventType == "DOCTOR_ORIGINAL_REPORT_READ");
+        audit.ResourceId.Should().Be(report.Id); audit.ConsentRefId.Should().NotBeNull();
+        (await service.GetMemberWorkspaceAsync(f.Adult.Id, CancellationToken.None)).LabReports!
+            .Should().ContainSingle(x => x.Id == report.Id && x.HasOriginalFile);
+    }
+
+    [Theory]
+    [InlineData("no-grant")]
+    [InlineData("revoked-consent")]
+    [InlineData("adult-guardian-consent")]
+    [InlineData("wrong-member")]
+    [InlineData("revoked-grant")]
+    [InlineData("expired-grant")]
+    [InlineData("future-grant")]
+    [InlineData("ended-assignment")]
+    [InlineData("missing-file")]
+    [InlineData("unsupported-type")]
+    [InlineData("empty-file")]
+    public async Task OriginalReport_WhenUnavailable_DeniesWithoutStorageRead(string scenario)
+    {
+        await using var db = NewDb(); var f = await SeedAsync(db);
+        if (scenario != "no-grant") await ConfirmedVisitAsync(db, f, DateTimeOffset.UtcNow.AddHours(2));
+        var report = new LabReport { MemberId = f.Adult.Id, OriginalFileName = "SYNTHETIC.pdf", StoredFileName = "fixture.pdf", ContentType = scenario == "unsupported-type" ? "text/html" : "application/pdf" };
+        db.Add(report);
+        if (scenario != "missing-file") db.Add(new LabReportFile { LabReport = report, Content = scenario == "empty-file" ? [] : [1, 2, 3] });
+        var consent = await db.Consents.SingleAsync(x => x.MemberId == f.Adult.Id && x.Category == ConsentCategory.Conditions);
+        if (scenario == "revoked-consent") consent.Status = ConsentStatus.Revoked;
+        if (scenario == "adult-guardian-consent") consent.GrantedByGuardian = true;
+        if (scenario == "ended-assignment") (await db.FamilyDoctorAssignments.SingleAsync()).EndedAt = DateTimeOffset.UtcNow;
+        if (scenario is "revoked-grant" or "expired-grant" or "future-grant")
+        {
+            var grant = await db.VisitAccessGrants.SingleAsync();
+            if (scenario == "revoked-grant") grant.RevokedAt = DateTimeOffset.UtcNow;
+            if (scenario == "expired-grant") grant.ExpiresAt = DateTimeOffset.UtcNow;
+            if (scenario == "future-grant") grant.StartsAt = DateTimeOffset.UtcNow.AddDays(1);
+        }
+        await db.SaveChangesAsync();
+        var service = new DoctorWorkspaceService(db, new ReportDoctorUser(f.DoctorUser.Id));
+        await Assert.ThrowsAsync<NotFoundException>(() => service.GetOriginalReportAsync(
+            scenario == "wrong-member" ? f.HeadMember.Id : f.Adult.Id, report.Id, CancellationToken.None));
+        (await db.AuditLogs.CountAsync(x => x.EventType == "DOCTOR_ORIGINAL_REPORT_READ")).Should().Be(0);
+        if (scenario is "missing-file" or "unsupported-type" or "empty-file")
+            (await service.GetMemberWorkspaceAsync(f.Adult.Id, CancellationToken.None)).LabReports!
+                .Should().ContainSingle(r => r.Id == report.Id && !r.HasOriginalFile);
+    }
+
+    [Theory]
+    [InlineData("success")]
+    [InlineData("storage-failure")]
+    [InlineData("consent-revoked-during-read")]
+    [InlineData("grant-revoked-during-read")]
+    [InlineData("assignment-ended-during-read")]
+    public async Task OriginalReport_ExternalStore_RechecksAccessBeforeRelease(string scenario)
+    {
+        await using var db = NewDb(); var f = await SeedAsync(db);
+        var triageCase = new TriageCase { MemberId = f.Adult.Id, EpisodeId = Guid.NewGuid() };
+        db.Add(triageCase); db.Add(new CaseAccessGrant { TriageCase = triageCase, DoctorId = f.Doctor.Id,
+            ExpiresAt = DateTimeOffset.UtcNow.AddHours(1), Reason = "Synthetic shared case" });
+        var report = new LabReport { MemberId = f.Adult.Id, OriginalFileName = "SYNTHETIC.pdf", StoredFileName = "gdrive:synthetic.pdf", ContentType = "application/pdf" };
+        db.Add(report); db.Add(new LabReportFile { LabReport = report, Content = [] }); await db.SaveChangesAsync();
+        var store = new ReportStore(async () =>
+        {
+            if (scenario == "storage-failure") throw new ReportStorageException("Synthetic outage");
+            if (scenario == "consent-revoked-during-read")
+                (await db.Consents.SingleAsync(c => c.MemberId == f.Adult.Id && c.Category == ConsentCategory.Conditions)).Status = ConsentStatus.Revoked;
+            if (scenario == "grant-revoked-during-read") (await db.CaseAccessGrants.SingleAsync()).RevokedAt = DateTimeOffset.UtcNow;
+            if (scenario == "assignment-ended-during-read") (await db.FamilyDoctorAssignments.SingleAsync()).EndedAt = DateTimeOffset.UtcNow;
+            await db.SaveChangesAsync(); return new byte[] { 1, 2, 3 };
+        });
+        var service = new DoctorWorkspaceService(db, new ReportDoctorUser(f.DoctorUser.Id), store);
+        if (scenario == "success") (await service.GetOriginalReportAsync(f.Adult.Id, report.Id, CancellationToken.None)).Content.Should().Equal(1, 2, 3);
+        else if (scenario == "storage-failure") await Assert.ThrowsAsync<ProcessingException>(() => service.GetOriginalReportAsync(f.Adult.Id, report.Id, CancellationToken.None));
+        else await Assert.ThrowsAsync<NotFoundException>(() => service.GetOriginalReportAsync(f.Adult.Id, report.Id, CancellationToken.None));
+        store.ReadCount.Should().Be(1);
+        (await db.AuditLogs.CountAsync(a => a.EventType == "DOCTOR_ORIGINAL_REPORT_READ")).Should().Be(scenario == "success" ? 1 : 0);
+    }
+
+    [Theory]
+    [InlineData("unverified")]
+    [InlineData("unassigned")]
+    [InlineData("family-user")]
+    public async Task OriginalReport_UnauthorizedActor_CannotReachStorage(string scenario)
+    {
+        await using var db = NewDb(); var f = await SeedAsync(db);
+        await ConfirmedVisitAsync(db, f, DateTimeOffset.UtcNow.AddHours(2));
+        if (scenario == "unverified") { f.Doctor.VerificationStatus = VerificationStatus.Pending; await db.SaveChangesAsync(); }
+        var store = new ReportStore(() => Task.FromResult(new byte[] { 1 }));
+        ICurrentUser actor = scenario == "family-user" ? new StubCurrentUser(f.DoctorUser.Id) :
+            new ReportDoctorUser(scenario == "unassigned" ? f.OtherDoctorUser.Id : f.DoctorUser.Id);
+        var service = new DoctorWorkspaceService(db, actor, store);
+        if (scenario == "unassigned") await Assert.ThrowsAsync<NotFoundException>(() => service.GetOriginalReportAsync(f.Adult.Id, Guid.NewGuid(), CancellationToken.None));
+        else await Assert.ThrowsAsync<ForbiddenException>(() => service.GetOriginalReportAsync(f.Adult.Id, Guid.NewGuid(), CancellationToken.None));
+        store.ReadCount.Should().Be(0);
+    }
+
+    private sealed class ReportStore(Func<Task<byte[]>> load) : IExternalReportFileStore
+    {
+        public bool IsEnabled => true;
+        public int ReadCount { get; private set; }
+        public bool Owns(string key) => key.StartsWith("gdrive:", StringComparison.Ordinal);
+        public Task<string> SaveAsync(string extension, string type, byte[] bytes, CancellationToken token) => throw new NotSupportedException();
+        public Task<byte[]> ReadAsync(string key, CancellationToken token) { ReadCount++; return load(); }
+    }
+
+    [Fact]
+    public async Task ReportNavigation_ShowsOnlyMemberSpecificClinicalAccess()
+    {
+        await using var db = NewDb(); var f = await SeedAsync(db);
+        await ConfirmedVisitAsync(db, f, DateTimeOffset.UtcNow.AddHours(2));
+        var service = new DoctorWorkspaceService(db, new ReportDoctorUser(f.DoctorUser.Id));
+        var roster = await service.GetFamilyRosterAsync(f.Family.Id, CancellationToken.None);
+        roster.Members.Should().Contain(m => m.Id == f.Adult.Id && m.ClinicalAccess);
+        roster.Members.Should().Contain(m => m.Id == f.HeadMember.Id && !m.ClinicalAccess);
+        (await service.GetProfileAsync(CancellationToken.None)).DisplayName.Should().Be("Dr Synthetic");
+        await Assert.ThrowsAsync<NotFoundException>(() => new DoctorWorkspaceService(db,
+            new ReportDoctorUser(f.OtherDoctorUser.Id)).GetFamilyRosterAsync(f.Family.Id, CancellationToken.None));
+    }
+
+    private sealed class ReportDoctorUser(Guid userId) : ICurrentUser
+    {
+        public bool IsAuthenticated => true;
+        public Guid UserId => userId;
+        public UserType UserType => UserType.Doctor;
     }
 
     private sealed class StubCurrentUser(Guid userId) : ICurrentUser

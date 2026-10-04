@@ -1,5 +1,6 @@
 // Owner: S4 · whole-project waiver (agent/DECISIONS.md 2026-09-28b)
 import 'package:dio/dio.dart';
+import 'dart:typed_data';
 import 'package:family_veda/models/doctor_family_workspace.dart';
 import 'package:family_veda/services/api/api_client.dart';
 
@@ -16,6 +17,8 @@ abstract interface class DoctorFamiliesApi {
   Future<FamilyRoster> getRoster(String familyId);
 
   Future<MemberWorkspace> getMemberWorkspace(String memberId);
+
+  Future<Uint8List> getMemberLabReportFile(String memberId, String reportId);
 
   Future<void> addNote(String memberId, String content);
 
@@ -71,6 +74,15 @@ class DoctorFamiliesApiImpl implements DoctorFamiliesApi {
       '/doctors/me/members/$memberId',
     );
     return MemberWorkspace.fromJson(res.data!);
+  }
+
+  @override
+  Future<Uint8List> getMemberLabReportFile(String memberId, String reportId) async {
+    final response = await _client.dio.get<List<int>>(
+      '/doctors/me/members/$memberId/lab-reports/$reportId/file',
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return Uint8List.fromList(response.data ?? const <int>[]);
   }
 
   @override

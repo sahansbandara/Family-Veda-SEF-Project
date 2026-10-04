@@ -1,4 +1,6 @@
 // Owner: S4 · whole-project waiver (agent/DECISIONS.md 2026-09-28b)
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:family_veda/models/doctor_family_workspace.dart';
 import 'package:family_veda/providers/doctor_families_provider.dart';
@@ -63,6 +65,7 @@ class _FakeApi implements DoctorFamiliesApi {
   final responses = <(String, bool)>[];
   final added = <String>[];
   final amended = <(String, String)>[];
+  String? originalReportRequested;
   int? failStatus;
   int _reads = 0;
 
@@ -120,6 +123,12 @@ class _FakeApi implements DoctorFamiliesApi {
     final index = _reads < workspaces.length ? _reads : workspaces.length - 1;
     _reads++;
     return MemberWorkspace.fromJson(workspaces[index]);
+  }
+
+  @override
+  Future<Uint8List> getMemberLabReportFile(String memberId, String reportId) async {
+    originalReportRequested = '$memberId/$reportId';
+    return Uint8List(0);
   }
 
   @override
@@ -328,6 +337,34 @@ void main() {
     expect(find.byKey(const ValueKey('note-save')), findsNothing);
   });
 
+  testWidgets('changing member context closes an open original-report dialog', (
+    tester,
+  ) async {
+    final report = {
+      'id': 'lab-1',
+      'fileName': 'synthetic-cbc.png',
+      'hasOriginalFile': true,
+      'values': <Object>[],
+    };
+    final api = _FakeApi()
+      ..workspaces = [
+        _workspaceJson(labReports: [report]),
+        _workspaceJson(labReports: const <Object>[]),
+      ];
+    Widget app(String memberId) => ProviderScope(
+      overrides: [doctorFamiliesApiProvider.overrideWithValue(api)],
+      child: MaterialApp(home: DoctorMemberWorkspaceScreen(memberId: memberId)),
+    );
+    await tester.pumpWidget(app('m-1'));
+    await tester.pumpAndSettle();
+    await _tap(tester, find.widgetWithText(Tab, 'Labs'));
+    await _tap(tester, find.text('View original report'));
+    expect(find.text('Original report'), findsOneWidget);
+    await tester.pumpWidget(app('m-2'));
+    await tester.pumpAndSettle();
+    expect(find.text('Original report'), findsNothing);
+  });
+
   testWidgets(
     'consented categories open; others stay restricted; labs are deterministic',
     (tester) async {
@@ -338,6 +375,7 @@ void main() {
               {
                 'id': 'lab-1',
                 'fileName': 'synthetic-cbc.png',
+                'hasOriginalFile': true,
                 'collectedAt': null,
                 'values': [
                   {
@@ -361,6 +399,10 @@ void main() {
       await _tap(tester, find.widgetWithText(Tab, 'Labs'));
       expect(find.text('Below range'), findsOneWidget);
       expect(find.text('Printed range: 12 – 15 g/dL'), findsOneWidget);
+      await _tap(tester, find.text('View original report'));
+      expect(api.originalReportRequested, 'm-1/lab-1');
+      expect(find.text('Original report could not be loaded.'), findsOneWidget);
+      await _tap(tester, find.widgetWithText(TextButton, 'Close'));
       await _tap(tester, find.widgetWithText(Tab, 'Vitals'));
       expect(find.text('Vitals restricted'), findsOneWidget);
     },

@@ -334,7 +334,7 @@ export type MemberWorkspaceDto = {
   memberId: string; displayName: string; role: string; familyId: string; familyName: string
   clinicalAccess: boolean; accessBasis: string; accessExpiresAt?: string | null; consentedCategories: string[]
   records?: Array<{ id: string; recordType: string; title: string; summary?: string | null; occurredOn: string }> | null
-  labReports?: Array<{ id: string; fileName: string; collectedAt?: string | null; values: WorkspaceLabValueDto[] }> | null
+  labReports?: Array<{ id: string; fileName: string; collectedAt?: string | null; hasOriginalFile?: boolean; values: WorkspaceLabValueDto[] }> | null
   vitals?: Array<{ vitalType: string; value: number; unit: string; measuredAt: string }> | null
   hereditaryFlags?: Array<{ conditionCode: string; finding: string; confirmed: boolean }> | null
   visits: Array<{ appointmentId: string; startsAt: string; reason: string; status: AppointmentDto['status'] }>

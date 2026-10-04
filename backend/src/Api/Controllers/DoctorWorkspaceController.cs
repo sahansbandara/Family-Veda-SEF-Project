@@ -58,6 +58,17 @@ public sealed class DoctorWorkspaceController(IDoctorWorkspaceService workspace)
     public async Task<ActionResult<MemberWorkspaceDto>> GetMemberWorkspace(Guid memberId, CancellationToken cancellationToken) =>
         Ok(await workspace.GetMemberWorkspaceAsync(memberId, cancellationToken));
 
+    [HttpGet("doctors/me/members/{memberId:guid}/lab-reports/{reportId:guid}/file")]
+    [Authorize(Policy = "Doctor")]
+    public async Task<IActionResult> GetOriginalReport(Guid memberId, Guid reportId, CancellationToken cancellationToken)
+    {
+        var file = await workspace.GetOriginalReportAsync(memberId, reportId, cancellationToken);
+        Response.Headers.CacheControl = "private, no-store";
+        Response.Headers["X-Content-Type-Options"] = "nosniff";
+        Response.Headers.ContentSecurityPolicy = "sandbox; default-src 'none'";
+        return File(file.Content, file.ContentType);
+    }
+
     [HttpPost("doctors/me/members/{memberId:guid}/notes")]
     [Authorize(Policy = "Doctor")]
     public async Task<ActionResult<ClinicalNoteDto>> AddNote(Guid memberId, CreateClinicalNoteRequest request, CancellationToken cancellationToken) =>

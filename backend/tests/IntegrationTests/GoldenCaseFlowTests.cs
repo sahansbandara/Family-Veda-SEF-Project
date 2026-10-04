@@ -4,6 +4,9 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text;
+using FamilyVeda.Domain.Identity;
+using FamilyVeda.Domain.Records;
 using FamilyVeda.Application.Agents;
 using FamilyVeda.Application.Triage;
 using FamilyVeda.Domain.Clinical;
@@ -126,6 +129,50 @@ public sealed class GoldenCaseFlowTests : IAsyncLifetime
         }
 
         (await headClient.GetAsync($"/api/v1/triage-cases/{caseId}/approved-guidance")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task DoctorOriginalReport_UsesScopedAuthorizationAndSafeHeaders()
+    {
+        var familyClient = _factory!.CreateClient(); var doctorClient = _factory.CreateClient();
+        var (_, familyId, memberId) = await RegisterFamilyAsync(familyClient, "report-owner");
+        await RegisterVerifiedAssignedDoctorAsync(doctorClient, familyId, "report-doctor");
+        var caseId = await CreateAndSubmitCaseAsync(familyClient, memberId, "synthetic report review");
+        await RunOrchestratorAsync(caseId);
+        var bytes = Encoding.ASCII.GetBytes("%PDF-1.4\n% SYNTHETIC TEST ONLY\n%%EOF");
+        Guid reportId;
+        await using (var scope = _factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var report = new LabReport { MemberId = memberId, OriginalFileName = "SYNTHETIC.pdf", StoredFileName = "fixture.pdf", ContentType = "application/pdf", SizeBytes = bytes.Length };
+            db.Add(report); db.Add(new LabReportFile { LabReport = report, Content = bytes });
+            var consent = await db.Consents.SingleAsync(c => c.MemberId == memberId && c.Category == ConsentCategory.Conditions);
+            consent.Status = ConsentStatus.Granted; consent.GrantedByGuardian = false;
+            await db.SaveChangesAsync(); reportId = report.Id;
+        }
+        var path = $"/api/v1/doctors/me/members/{memberId}/lab-reports/{reportId}/file";
+        (await familyClient.GetAsync(path)).StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        var workspace = await doctorClient.GetFromJsonAsync<JsonElement>($"/api/v1/doctors/me/members/{memberId}");
+        workspace.GetProperty("labReports")[0].GetProperty("hasOriginalFile").GetBoolean().Should().BeTrue();
+        var response = await doctorClient.GetAsync(path);
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        (await response.Content.ReadAsByteArrayAsync()).Should().Equal(bytes);
+        response.Content.Headers.ContentType!.MediaType.Should().Be("application/pdf");
+        response.Headers.CacheControl!.NoStore.Should().BeTrue();
+        response.Headers.CacheControl.Private.Should().BeTrue();
+        response.Headers.GetValues("X-Content-Type-Options").Should().Contain("nosniff");
+        response.Headers.GetValues("Content-Security-Policy").Should().Contain("sandbox; default-src 'none'");
+        (await doctorClient.GetAsync($"/api/v1/doctors/me/members/{memberId}/lab-reports/{Guid.NewGuid()}/file"))
+            .StatusCode.Should().Be(HttpStatusCode.NotFound);
+        await using (var scope = _factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            (await db.AuditLogs.SingleAsync(a => a.EventType == "DOCTOR_ORIGINAL_REPORT_READ")).ResourceId.Should().Be(reportId);
+            (await db.Consents.SingleAsync(c => c.MemberId == memberId && c.Category == ConsentCategory.Conditions)).Status = ConsentStatus.Revoked;
+            await db.SaveChangesAsync();
+        }
+        (await doctorClient.GetAsync(path)).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await familyClient.GetAsync($"/api/v1/triage-cases/{caseId}/approved-guidance")).StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
     private async Task<(Guid UserId, Guid FamilyId, Guid MemberId)> RegisterFamilyAsync(HttpClient client, string prefix)
