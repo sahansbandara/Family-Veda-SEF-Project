@@ -26,8 +26,13 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
                 UPDATE triage_cases AS target SET case_number = -ordered.position
                 FROM ordered WHERE target.id = ordered.id;
                 UPDATE triage_cases SET case_number = -case_number WHERE case_number < 0;
-                SELECT setval(pg_get_serial_sequence('triage_cases', 'case_number'),
-                    COALESCE((SELECT MAX(case_number) FROM triage_cases), 0) + 1, false);
+                DO $case_number_sequence$
+                BEGIN
+                    -- PERFORM, not SELECT: the production script runs each migration inside a PL/pgSQL block.
+                    PERFORM setval(pg_get_serial_sequence('triage_cases', 'case_number'),
+                        COALESCE((SELECT MAX(case_number) FROM triage_cases), 0) + 1, false);
+                END
+                $case_number_sequence$;
                 """);
 
             migrationBuilder.CreateIndex(
