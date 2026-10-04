@@ -323,3 +323,9 @@ S4	mobile/lib/screens/doctor/doctor_profile_screen.dart
 S4	mobile/lib/widgets/doctor/practice_parts.dart
 S4	mobile/lib/widgets/doctor/practice_sections.dart
 S4	mobile/test/screens/doctor_profile_screen_test.dart
+S4	web/src/pages/doctor/PracticeProfileForm.tsx
+S4	web/src/pages/doctor/practiceSelectors.tsx
+S4	web/src/pages/doctor/practiceOptions.ts
+S4	mobile/lib/widgets/doctor/practice_profile_form.dart
+S4	mobile/lib/widgets/doctor/practice_selectors.dart
+S4	mobile/lib/models/practice_options.dart
