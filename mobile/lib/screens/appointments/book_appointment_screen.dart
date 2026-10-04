@@ -69,7 +69,15 @@ String _memberLabel(Member member, bool isHead) {
 }
 
 class BookAppointmentScreen extends ConsumerStatefulWidget {
-  const BookAppointmentScreen({super.key});
+  const BookAppointmentScreen({
+    super.key,
+    this.initialSlot,
+    this.initialMinutes = 30,
+  });
+
+  /// A slot picked on My Doctor; the server still validates it on booking.
+  final DateTime? initialSlot;
+  final int initialMinutes;
 
   @override
   ConsumerState<BookAppointmentScreen> createState() =>
@@ -79,8 +87,8 @@ class BookAppointmentScreen extends ConsumerStatefulWidget {
 class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
   final _reasonController = TextEditingController();
   String? _selectedMemberId;
-  DateTime? _selectedSlot;
-  int _durationMinutes = 30;
+  late DateTime? _selectedSlot = widget.initialSlot?.toUtc();
+  late int _durationMinutes = widget.initialMinutes;
   ReportAttachment? _attachment;
   bool _submitting = false;
 
@@ -604,6 +612,7 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
                               .watch(familyDashboardProvider)
                               .valueOrNull!
                               .familyId!,
+                          initialSlot: widget.initialSlot,
                           onSelected: (slot, minutes) => setState(() {
                             _selectedSlot = slot;
                             _durationMinutes = minutes;

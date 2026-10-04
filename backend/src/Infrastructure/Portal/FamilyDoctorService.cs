@@ -77,6 +77,70 @@ public sealed class FamilyDoctorService(AppDbContext dbContext, ICurrentUser cur
         return await MapRequestAsync(doctorRequest, cancellationToken);
     }
 
+    public async Task<DoctorRequestDto?> GetPendingAsync(Guid familyId, CancellationToken cancellationToken)
+    {
+        await RequireMemberAsync(familyId, cancellationToken);
+        var request = await dbContext.FamilyDoctorRequests.AsNoTracking()
+            .Where(x => x.FamilyId == familyId && x.Status == PortalRequestStatus.Pending)
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+        return request is null ? null : await MapRequestAsync(request, cancellationToken);
+    }
+
+    public Task<DoctorRequestDto> CancelAsync(Guid familyId, Guid id, CancellationToken cancellationToken)
+    {
+        if (!dbContext.Database.IsRelational())
+        {
+            return CancelCoreAsync(familyId, id, cancellationToken);
+        }
+        return dbContext.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        {
+            dbContext.ChangeTracker.Clear();
+            return await CancelCoreAsync(familyId, id, cancellationToken);
+        });
+    }
+
+    private async Task<DoctorRequestDto> CancelCoreAsync(Guid familyId, Guid id, CancellationToken cancellationToken)
+    {
+        await RequireHeadAsync(familyId, cancellationToken);
+        var request = await dbContext.FamilyDoctorRequests.SingleOrDefaultAsync(x => x.Id == id && x.FamilyId == familyId, cancellationToken)
+            ?? throw new NotFoundException();
+        if (request.Status != PortalRequestStatus.Pending)
+        {
+            throw new ConflictException("This request has already been resolved.");
+        }
+
+        // Same claim as accept/decline: a doctor response racing this cancel gets a conflict, never both.
+        await using var transaction = dbContext.Database.IsRelational()
+            ? await dbContext.Database.BeginTransactionAsync(cancellationToken)
+            : null;
+        var respondedAt = DateTimeOffset.UtcNow;
+        if (transaction is not null)
+        {
+            var claimed = await dbContext.FamilyDoctorRequests
+                .Where(x => x.Id == request.Id && x.Status == PortalRequestStatus.Pending)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.Status, PortalRequestStatus.Cancelled)
+                    .SetProperty(x => x.RespondedAt, respondedAt), cancellationToken);
+            if (claimed != 1)
+            {
+                throw new ConflictException("This request has already been resolved.");
+            }
+        }
+
+        request.Status = PortalRequestStatus.Cancelled;
+        request.RespondedAt = respondedAt;
+        AddAudit("FAMILY_DOCTOR_REQUEST_CANCELLED", request.Id);
+        var doctorUserId = await dbContext.Doctors.Where(x => x.Id == request.DoctorId).Select(x => x.UserId).SingleAsync(cancellationToken);
+        AddNotification(doctorUserId, "FAMILY_DOCTOR_REQUEST_CANCELLED", "Family request withdrawn", "A family withdrew their family doctor request.", "/doctor/requests");
+        await dbContext.SaveChangesAsync(cancellationToken);
+        if (transaction is not null)
+        {
+            await transaction.CommitAsync(cancellationToken);
+        }
+        return await MapRequestAsync(request, cancellationToken);
+    }
+
     public async Task<IReadOnlyList<DoctorRequestDto>> GetMyRequestsAsync(CancellationToken cancellationToken)
     {
         var doctor = await RequireDoctorAsync(cancellationToken);

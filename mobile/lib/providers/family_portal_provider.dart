@@ -3,6 +3,7 @@
 // [S4] Three-portal family features — dashboard, appointments, join, my doctor, invitations.
 import 'package:family_veda/models/appointment.dart';
 import 'package:family_veda/models/doctor_summary.dart';
+import 'package:family_veda/models/family_doctor_request.dart';
 import 'package:family_veda/models/family_dashboard.dart';
 import 'package:family_veda/models/family_invitation.dart';
 import 'package:family_veda/models/incoming_invitation.dart';
@@ -44,6 +45,13 @@ final familySentInvitationsProvider = FutureProvider.autoDispose
 final familyDoctorProvider = FutureProvider.autoDispose
     .family<DoctorSummary?, String>(
       (ref, familyId) => ref.watch(familyPortalApiProvider).getFamilyDoctor(familyId),
+    );
+
+final familyDoctorPendingRequestProvider = FutureProvider.autoDispose
+    .family<FamilyDoctorRequest?, String>(
+      (ref, familyId) => ref
+          .watch(familyPortalApiProvider)
+          .getPendingDoctorRequest(familyId),
     );
 
 final doctorDirectorySearchProvider = StateProvider.autoDispose<String>((ref) => '');

@@ -9,8 +9,12 @@ class FamilyDoctorAvailability extends ConsumerStatefulWidget {
     super.key,
     required this.familyId,
     this.onSelected,
+    this.initialSlot,
   });
   final String familyId;
+
+  /// A time already chosen elsewhere; it is dropped if the server no longer offers it.
+  final DateTime? initialSlot;
   final void Function(DateTime? slot, int minutes)? onSelected;
   @override
   ConsumerState<FamilyDoctorAvailability> createState() =>
@@ -24,8 +28,10 @@ class _FamilyDoctorAvailabilityState
   @override
   void initState() {
     super.initState();
-    final today = sriLankaTime(DateTime.now());
-    _date = DateTime.utc(today.year, today.month, today.day);
+    final initial = widget.initialSlot?.toUtc();
+    final day = sriLankaTime(initial ?? DateTime.now());
+    _date = DateTime.utc(day.year, day.month, day.day);
+    _selected = initial;
   }
 
   Future<void> _chooseDate() async {
