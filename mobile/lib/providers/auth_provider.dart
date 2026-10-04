@@ -98,7 +98,13 @@ class AuthController extends StateNotifier<AuthState> {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
       );
-      state = AuthState.authenticated(userId: tokens.userId);
+      // The role must come back with the session, or a doctor is shown the family menus.
+      state = AuthState.authenticated(
+        userId: tokens.userId,
+        displayName: tokens.displayName,
+        userType: tokens.userType,
+        familyRole: tokens.familyRole,
+      );
     } on Object {
       await _clearTokensBestEffort();
       state = const AuthState.unauthenticated();

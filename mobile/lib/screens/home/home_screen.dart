@@ -908,7 +908,30 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ),
               )
-            else ...[
+            else if (isDoctor) ...[
+              // Doctors get their own workspace; patient actions would call family-only endpoints.
+              _SectionLabel('Clinical workspace'),
+              _ActionRow(
+                icon: Icons.monitor_heart_outlined,
+                title: 'Triage cases',
+                onTap: () => context.go('/triage-cases'),
+              ),
+              _ActionRow(
+                icon: Icons.people_outline_rounded,
+                title: 'My families',
+                onTap: () => context.go('/families'),
+              ),
+              _ActionRow(
+                icon: Icons.calendar_month_outlined,
+                title: 'Calendar',
+                onTap: () => context.go('/calendar'),
+              ),
+              _ActionRow(
+                icon: Icons.badge_outlined,
+                title: 'Profile & availability',
+                onTap: () => context.push('/doctor-profile'),
+              ),
+            ] else ...[
               // Primary Task CTA (Web-style gradient card)
               _PrimaryAction(
                 title: 'Describe a symptom',
@@ -964,7 +987,7 @@ class HomeScreen extends ConsumerWidget {
               ),
             ],
 
-            if (!isHead) ...[
+            if (!isHead && !isDoctor) ...[
               const SizedBox(height: 16),
               _SectionLabel('Appointments & Care'),
               _ActionRow(

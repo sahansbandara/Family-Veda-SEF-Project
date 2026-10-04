@@ -73,6 +73,9 @@ class DioAuthApi implements AuthApi {
       userId: data['userId'] as String,
       accessToken: data['accessToken'] as String,
       refreshToken: data['refreshToken'] as String,
+      displayName: data['displayName'] as String?,
+      userType: data['userType']?.toString(),
+      familyRole: data['familyRole']?.toString(),
     );
   }
 
