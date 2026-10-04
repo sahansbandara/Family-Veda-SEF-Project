@@ -50,7 +50,7 @@ export function PublicInformationPage() {
   const page = pageContent[pageKind(useLocation().pathname)]
 
   return (
-    <main className="auth-page-root" style={{ backgroundImage: \`url(\${loginBg})\` }}>
+    <main className="auth-page-root" style={{ backgroundImage: `url(${loginBg})` }}>
       <div className="auth-overlay"></div>
       <div className="auth-main-container public-glass-container">
         <div className="auth-glass-panel public-glass-panel">
