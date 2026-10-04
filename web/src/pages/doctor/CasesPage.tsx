@@ -321,10 +321,10 @@ export function CasesPage() {
                     >
                       <div className="triage-card__top">
                         <div>
-                          <h2>Case {caseReference(item)}</h2>
+                          <h2>{item.memberDisplayName || `Case ${caseReference(item)}`}</h2>
                           <p className="care-caption">
                             {item.memberDisplayName
-                              ? `${item.memberDisplayName}${item.familyName ? ` · ${item.familyName}` : ''} · `
+                              ? `${item.familyName ? `${item.familyName} · ` : ''}Case ${caseReference(item)} · `
                               : ''}
                             Submitted {formatSubmitted(item.createdAt)}
                             {item.claimable ? ' · Shared review pool' : ''}
