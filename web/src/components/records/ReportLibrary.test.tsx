@@ -26,9 +26,9 @@ describe('ReportLibrary controls', () => {
 
   it('sorts actual collected dates without mutating the supplied report list', () => {
     render(<ReportLibrary reports={reports} ownerName="Synthetic Member" canChangeSharing={false} onViewOriginal={vi.fn()} />)
-    expect(screen.getAllByRole('article')[0]).toHaveAccessibleName('Lab report synthetic-shared.pdf')
+    expect(screen.getAllByRole('row')[1]).toHaveAccessibleName('Lab report synthetic-shared.pdf')
     fireEvent.change(screen.getByLabelText('Sort reports'), { target: { value: 'oldest' } })
-    expect(screen.getAllByRole('article')[0]).toHaveAccessibleName('Lab report synthetic-private.png')
+    expect(screen.getAllByRole('row')[1]).toHaveAccessibleName('Lab report synthetic-private.png')
     expect(reports[0].id).toBe('synthetic-private')
   })
 
@@ -41,5 +41,24 @@ describe('ReportLibrary controls', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Grid view' }))
     expect(screen.getByText('synthetic-shared.pdf')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Grid view' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('lets the owner change sharing from the list row and never offers it to others', () => {
+    const onToggleSharing = vi.fn()
+    const { unmount } = render(<ReportLibrary reports={reports} ownerName="Synthetic Member" canChangeSharing onToggleSharing={onToggleSharing} onViewOriginal={vi.fn()} />)
+    fireEvent.change(screen.getByLabelText('Visibility of synthetic-private.png'), { target: { value: 'shared' } })
+    expect(onToggleSharing).toHaveBeenCalledWith(reports[0])
+    unmount()
+    render(<ReportLibrary reports={reports} ownerName="Synthetic Member" canChangeSharing={false} onViewOriginal={vi.fn()} />)
+    expect(screen.queryByLabelText('Visibility of synthetic-private.png')).not.toBeInTheDocument()
+    expect(screen.getByText('Private from Family Head')).toBeInTheDocument()
+  })
+
+  it('reports position against the printed range as a count, without interpretation', () => {
+    const ranged = { ...reports[0], rangeSummary: { belowRange: 1, withinRange: 2, aboveRange: 1, rangeUnavailable: 0 } }
+    render(<ReportLibrary reports={[ranged, reports[1]]} ownerName="Synthetic Member" canChangeSharing={false} onViewOriginal={vi.fn()} />)
+    expect(screen.getByText('2 outside printed range')).toBeInTheDocument()
+    expect(screen.getByText('Could not read', { selector: 'span' })).toBeInTheDocument()
+    expect(screen.queryByText(/normal|abnormal|diagnos/i)).not.toBeInTheDocument()
   })
 })

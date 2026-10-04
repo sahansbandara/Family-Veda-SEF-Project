@@ -1,13 +1,10 @@
 // Owner: S2 · Health Records & Extraction — Fernando K.R.N (IT24101875)
 // Ownership binding — do not edit file if not yours. docs/OWNERSHIP.tsv
-import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { type DragEvent, type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { OriginalReportPreview } from '../../components/records/OriginalReportPreview'
 import { ReportLibrary } from '../../components/records/ReportLibrary'
 import { ReportPreviewDialog } from '../../components/records/ReportPreviewDialog'
-import { RecordedRangeVisual } from '../../components/records/RecordedRangeVisual'
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
-import { StatusBadge } from '../../components/shared/StatusBadge'
 import {
   apiClient,
   type DoctorSummaryDto,
@@ -15,43 +12,23 @@ import {
   type HealthRecordDto,
   type LabReportDetailDto,
   type LabReportDto,
-  type LabValueDto,
   type MemberDto,
   type PagedResult,
   type RosterMemberDto,
   type VitalDto,
-  type VitalTrendDto,
 } from '../../services/apiClient'
-import { RecordSummaryText } from './RecordSummaryText'
-import {
-  RECORD_SEVERITIES,
-  RECORD_STATUSES,
-  formatRecordSummary,
-  parseRecordSummary,
-  todayLocalDate,
-} from './recordSummaryMeta'
+import { ManualRecordsPanel, type QuickRecord } from './ManualRecordsPanel'
+import { RecordIcon, type RecordIconName } from './recordIcons'
+import { formatRecordSummary } from './recordSummaryMeta'
+import { ReportDetail } from './ReportDetail'
+import { type NewVital, VitalsPanel } from './VitalsPanel'
+
+const RECORDS_PAGE_SIZE = 20
 
 type RecordProfile = Pick<MemberDto, 'id' | 'role' | 'displayName'>
 
 type RecordsTab = 'records' | 'vitals' | 'labs'
 type LoadStatus = 'loading' | 'ready' | 'error'
-
-function recordedRangeMarker(value: LabValueDto) {
-  const below = value.rangeStatus
-    ? value.rangeStatus === 'BelowRange'
-    : value.referenceLow != null && value.value < value.referenceLow
-  const above = value.rangeStatus
-    ? value.rangeStatus === 'AboveRange'
-    : value.referenceHigh != null && value.value > value.referenceHigh
-  if (value.rangeStatus === 'RangeUnavailable')
-    return <span className="status-badge">Reference range unavailable</span>
-  if (!below && !above) return null
-  return (
-    <span className="status-badge status-badge--warning" title="Outside recorded reference range">
-      {below ? '▼' : '▲'} Outside recorded range
-    </span>
-  )
-}
 
 function reportStep(report: LabReportDto, selected?: LabReportDetailDto | null) {
   const confirmed =
@@ -76,7 +53,6 @@ export function RecordsPage() {
   const [records, setRecords] = useState<HealthRecordDto[]>([])
   const [reports, setReports] = useState<LabReportDto[]>([])
   const [vitals, setVitals] = useState<VitalDto[]>([])
-  const [trends, setTrends] = useState<VitalTrendDto[]>([])
   const [originalReport, setOriginalReport] = useState<LabReportDto | null>(null)
   const [selectedReport, setSelectedReport] = useState<LabReportDetailDto | null>(null)
   const [editingRecord, setEditingRecord] = useState<HealthRecordDto | null>(null)
@@ -94,6 +70,10 @@ export function RecordsPage() {
   const [sort, setSort] = useState<'date-desc' | 'date-asc'>('date-desc')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
+  const [dragging, setDragging] = useState(false)
+  const fileInput = useRef<HTMLInputElement>(null)
   const activeMemberId = useRef('')
   const activeReportId = useRef('')
   const loadSequence = useRef(0)
@@ -174,7 +154,7 @@ export function RecordsPage() {
     try {
       const params = {
         page,
-        pageSize: 20,
+        pageSize: RECORDS_PAGE_SIZE,
         search: search || undefined,
         type: filter === 'ALL' ? undefined : filter,
         sort: sort === 'date-desc' ? 'newest' : 'oldest',
@@ -183,18 +163,16 @@ export function RecordsPage() {
         apiClient.get<PagedResult<HealthRecordDto>>(`/members/${targetMemberId}/records`, { params }),
         apiClient.get<LabReportDto[]>(`/members/${targetMemberId}/lab-reports`),
       ])
-      const [vitalResponse, trendResponse] = isSharedView
-        ? [{ data: [] as VitalDto[] }, { data: [] as VitalTrendDto[] }]
-        : await Promise.all([
-            apiClient.get<VitalDto[]>(`/members/${targetMemberId}/vitals`),
-            apiClient.get<VitalTrendDto[]>(`/members/${targetMemberId}/vitals/trends`),
-          ])
+      // Vitals are never shared across adults, so a shared view does not request them.
+      const vitalResponse = isSharedView
+        ? { data: [] as VitalDto[] }
+        : await apiClient.get<VitalDto[]>(`/members/${targetMemberId}/vitals`)
       if (loadSequence.current !== request || activeMemberId.current !== targetMemberId) return
       setRecords(recordResponse.data.items)
       setReports(reportResponse.data)
       setVitals(vitalResponse.data)
-      setTrends(trendResponse.data)
       setTotalPages(Math.max(1, recordResponse.data.totalPages))
+      setTotalCount(recordResponse.data.totalCount ?? recordResponse.data.items.length)
       setHasLoaded(true)
       setStatus('ready')
     } catch {
@@ -214,7 +192,8 @@ export function RecordsPage() {
     setRecords([])
     setReports([])
     setVitals([])
-    setTrends([])
+    setTotalCount(0)
+    setPendingFile(null)
     setOriginalReport(null)
     setSelectedReport(null)
     activeReportId.current = ''
@@ -432,35 +411,83 @@ export function RecordsPage() {
     }
   }
 
-  async function addVital(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  async function quickAddRecord(record: QuickRecord): Promise<boolean> {
     const targetMemberId = memberId
-    const formElement = event.currentTarget
-    const form = new FormData(formElement)
     try {
-      await apiClient.post(`/members/${memberId}/vitals`, {
-        vitalType: String(form.get('vitalType') ?? ''),
-        value: Number(form.get('value')),
-        unit: String(form.get('unit') ?? ''),
-        measuredAt: new Date(String(form.get('measuredAt'))).toISOString(),
+      await apiClient.post(`/members/${targetMemberId}/records`, {
+        ...record,
+        summary: formatRecordSummary({ status: '', severity: '', doctor: '', cleanSummary: '' }),
       })
-      if (activeMemberId.current !== targetMemberId) return
-      formElement.reset()
-      setMessage('Vital recorded.')
+      if (activeMemberId.current !== targetMemberId) return false
+      setMessage('Health record added.')
       await loadRecords()
+      return true
     } catch {
       if (activeMemberId.current === targetMemberId)
-        setMessage('Vital could not be saved. Check the fields and retry.')
+        setMessage('Health record could not be saved. Check the fields and retry.')
+      return false
     }
+  }
+
+  async function addVital(entries: NewVital[], measuredAt: string): Promise<boolean> {
+    const targetMemberId = memberId
+    try {
+      // Blood pressure is two readings; they share one timestamp so they stay paired.
+      for (const entry of entries)
+        await apiClient.post(`/members/${targetMemberId}/vitals`, { ...entry, measuredAt })
+      if (activeMemberId.current !== targetMemberId) return false
+      setMessage('Vital recorded.')
+      await loadRecords()
+      return true
+    } catch {
+      if (activeMemberId.current === targetMemberId) {
+        setMessage('Vital could not be saved. Check the value and time, then retry.')
+        await loadRecords()
+      }
+      return false
+    }
+  }
+
+  // A dropped file is handed to the upload form's own input, so the normal validation and submit path is used.
+  useEffect(() => {
+    if (!showUploadForm || !pendingFile || !fileInput.current || typeof DataTransfer === 'undefined') return
+    const transfer = new DataTransfer()
+    transfer.items.add(pendingFile)
+    fileInput.current.files = transfer.files
+    setUploadFileName(pendingFile.name)
+    setPendingFile(null)
+  }, [pendingFile, showUploadForm])
+
+  function dropReport(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault()
+    setDragging(false)
+    const file = event.dataTransfer.files?.[0]
+    if (!file) return
+    setPendingFile(file)
+    setShowUploadForm(true)
+  }
+
+  function chooseReportFile() {
+    setShowUploadForm(true)
+    requestAnimationFrame(() => fileInput.current?.click())
   }
 
   const rangeValueCount = reports.reduce((total, report) => {
     const summary = report.rangeSummary
     return total + (summary ? summary.belowRange + summary.withinRange + summary.aboveRange : 0)
   }, 0)
+  const metrics: Array<{ tone: string; icon: RecordIconName; label: string; value: string | number; caption: string }> = [
+    { tone: 'lab', icon: 'flask', label: 'Lab reports', value: reports.length, caption: 'Authorized reports' },
+    { tone: 'values', icon: 'chart', label: 'Recorded values', value: rangeValueCount, caption: 'With a printed range' },
+    { tone: 'manual', icon: 'file', label: 'Manual records', value: totalCount, caption: 'Current profile' },
+    {
+      tone: 'status', icon: 'shield', label: 'Clinical Status', value: 'Active',
+      caption: isHead ? 'Multi-generational consent active' : 'Individual patient scope active',
+    },
+  ]
 
   return (
-    <div className="page-stack care-workspace">
+    <div className="page-stack care-workspace health-records">
       {originalReport?.memberId === memberId && <ReportPreviewDialog report={originalReport} onClose={() => setOriginalReport(null)} />}
       <header className="care-header">
         <div>
@@ -480,6 +507,7 @@ export function RecordsPage() {
               className="button button--secondary"
               onClick={() => {
                 setTab('records')
+                setEditingRecord(null)
                 setShowRecordForm(true)
               }}
             >
@@ -499,7 +527,7 @@ export function RecordsPage() {
         )}
       </header>
 
-      <section className="care-panel">
+      <section className="care-panel hr-profile">
         <label className="field">
           <span>Active profile</span>
           <select value={memberId} onChange={(event) => selectProfile(event.target.value)}>
@@ -530,29 +558,19 @@ export function RecordsPage() {
           </button>
         </div>
       )}
-      <div className="care-metrics" aria-label="Records summary">
-        <article className="care-metric">
-          <span>Lab reports</span>
-          <strong>{reports.length}</strong>
-          <small>Authorized reports</small>
-        </article>
-        <article className="care-metric">
-          <span>Recorded values</span>
-          <strong>{rangeValueCount}</strong>
-          <small>With a printed range</small>
-        </article>
-        <article className="care-metric">
-          <span>Manual records</span>
-          <strong>{records.length}</strong>
-          <small>Current profile</small>
-        </article>
-        <article className="care-metric">
-          <span>Clinical Status</span>
-          <strong>Active</strong>
-          <small>{isHead ? 'Multi-generational consent active' : 'Individual patient scope active'}</small>
-        </article>
+      <div className="hr-metrics" aria-label="Records summary">
+        {metrics.map((metric) => (
+          <article key={metric.tone} className={`hr-metric hr-metric--${metric.tone}`}>
+            <div>
+              <span>{metric.label}</span>
+              <strong>{metric.value}</strong>
+              <small>{metric.caption}</small>
+            </div>
+            <span className="hr-metric__icon"><RecordIcon name={metric.icon} /></span>
+          </article>
+        ))}
       </div>
-      <div className="care-actions" role="tablist" aria-label="Health record views">
+      <div className="hr-tabs" role="tablist" aria-label="Health record views">
         {(
           [
             ['labs', 'Labs'],
@@ -601,30 +619,42 @@ export function RecordsPage() {
             </div>
           )}
           {activeTab === 'labs' && (
-            <section className="care-report-workspace">
-              <div className="care-panel care-report-list">
-                <div className="care-panel-heading">
+            <section className="hr-stack">
+              <div className="care-panel hr-section care-report-list">
+                <header className="hr-section__head">
+                  <span className="hr-section__icon"><RecordIcon name="flask" /></span>
                   <div>
-                    <p className="care-eyebrow">Reports</p>
                     <h2>Lab reports</h2>
+                    <p className="care-muted">Upload and manage lab reports, check their values, and open the originals.</p>
                   </div>
                   {!isSharedView && (
-                    <button
-                      type="button"
-                      className="button button--secondary"
-                      onClick={() => setShowUploadForm((open) => !open)}
+                    <div
+                      className={`hr-dropzone hr-section__aside${dragging ? ' is-dragging' : ''}`}
+                      onDragOver={(event) => {
+                        event.preventDefault()
+                        setDragging(true)
+                      }}
+                      onDragLeave={() => setDragging(false)}
+                      onDrop={dropReport}
                     >
-                      {showUploadForm ? 'Close upload' : 'Upload report'}
-                    </button>
+                      <RecordIcon name="upload" />
+                      <div>
+                        <b>Upload lab report</b>
+                        <small>Drag and drop a PDF, JPEG or PNG file</small>
+                      </div>
+                      <button type="button" className="button button--primary button--sm" onClick={chooseReportFile}>
+                        Choose file
+                      </button>
+                    </div>
                   )}
-                </div>
-                {showUploadForm && (
+                </header>
+                {showUploadForm && !isSharedView && (
                   <form className="care-form care-upload" onSubmit={(event) => void upload(event)}>
                     <label className="field care-upload__drop">
                       <span className="care-upload__symbol" aria-hidden="true">↑</span>
                       <strong>{uploadFileName || 'Choose a report to upload'}</strong>
                       <span>Report file (PNG, JPEG or PDF)</span>
-                      <input aria-label="Report file (PNG, JPEG or PDF)" name="file" type="file" accept="image/png,image/jpeg,application/pdf" disabled={uploading} onChange={(event) => setUploadFileName(event.target.files?.[0]?.name ?? '')} required />
+                      <input ref={fileInput} aria-label="Report file (PNG, JPEG or PDF)" name="file" type="file" accept="image/png,image/jpeg,application/pdf" disabled={uploading} onChange={(event) => setUploadFileName(event.target.files?.[0]?.name ?? '')} required />
                     </label>
                     <label className="field">
                       <span>Collected at (optional)</span>
@@ -641,7 +671,10 @@ export function RecordsPage() {
                       <button
                         type="button"
                         className="button button--secondary"
-                        onClick={() => setShowUploadForm(false)}
+                        onClick={() => {
+                          setShowUploadForm(false)
+                          setUploadFileName('')
+                        }}
                       >
                         Cancel
                       </button>
@@ -748,8 +781,10 @@ export function RecordsPage() {
             </section>
           )}
           {activeTab === 'records' && (
-            <RecordsPanel
+            <ManualRecordsPanel
               records={records}
+              totalCount={totalCount}
+              pageSize={RECORDS_PAGE_SIZE}
               totalPages={totalPages}
               page={page}
               isSharedView={isSharedView}
@@ -761,10 +796,6 @@ export function RecordsPage() {
               search={search}
               filter={filter}
               sort={sort}
-              onShowForm={() => {
-                setEditingRecord(null)
-                setShowRecordForm(true)
-              }}
               onCloseForm={() => {
                 setEditingRecord(null)
                 setShowRecordForm(false)
@@ -774,6 +805,7 @@ export function RecordsPage() {
                 setShowRecordForm(true)
               }}
               onSave={saveRecord}
+              onQuickAdd={quickAddRecord}
               onDelete={deleteRecord}
               onToggleSharing={toggleRecordSharing}
               onSearch={(value) => {
@@ -788,734 +820,9 @@ export function RecordsPage() {
               onPage={setPage}
             />
           )}
-          {activeTab === 'vitals' && !isSharedView && (
-            <VitalsPanel vitals={vitals} trends={trends} onSubmit={addVital} />
-          )}
+          {activeTab === 'vitals' && !isSharedView && <VitalsPanel vitals={vitals} onAdd={addVital} />}
         </>
       )}
-    </div>
-  )
-}
-
-function ReportDetail({
-  report,
-  hasOriginalFile,
-  onSubmit,
-}: {
-  report: LabReportDetailDto
-  hasOriginalFile: boolean
-  onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>
-}) {
-  const confirmed = report.values.filter((value) => value.wasManuallyConfirmed).length
-  return (
-    <>
-      <div className="care-panel-heading">
-        <div>
-          <p className="care-eyebrow">Report detail</p>
-          <h2>{report.originalFileName}</h2>
-          <p className="care-caption">
-            {report.collectedAt
-              ? new Date(report.collectedAt).toLocaleDateString()
-              : 'Collected date not recorded'}
-          </p>
-        </div>
-        <StatusBadge status={report.ocrStatus} />
-      </div>
-      <OriginalReportPreview reportId={report.id} originalFileName={report.originalFileName} hasOriginalFile={hasOriginalFile} />
-      <ol className="care-steps">
-        <li className="care-step--complete">Uploaded</li>
-        <li className={report.ocrStatus === 'Completed' ? 'care-step--complete' : ''}>Extracted</li>
-        <li
-          className={
-            confirmed === report.values.length && report.values.length > 0 ? 'care-step--complete' : ''
-          }
-        >
-          Values confirmed
-        </li>
-      </ol>
-      <p className="care-note">
-        Extraction reads reported values. Compare each item with the original image before confirming it.
-        Range status uses the printed reference range only.
-      </p>
-      <form className="care-form" onSubmit={(event) => void onSubmit(event)}>
-        {report.values.some((value) => value.wasManuallyConfirmed) && (
-          <section className="care-range-overview" aria-label="Confirmed report values">
-            <div className="care-range-grid">
-              {report.values.map((value) => (
-                <RecordedRangeVisual key={value.id} value={value} />
-              ))}
-            </div>
-            <p className="care-caption">
-              Reference intervals alone do not determine your health. These are recorded values, not a
-              diagnosis.
-            </p>
-          </section>
-        )}
-        {report.values.length === 0 ? (
-          <div className="care-empty">
-            <p>No values are available to check yet.</p>
-          </div>
-        ) : (
-          <div className="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Analyte</th>
-                  <th>Value</th>
-                  <th>Unit</th>
-                  <th>Low</th>
-                  <th>High</th>
-                  <th>State</th>
-                </tr>
-              </thead>
-              <tbody>
-                {report.values.map((value) => (
-                  <tr key={value.id}>
-                    <td>
-                      <input
-                        name={`analyte-${value.id}`}
-                        defaultValue={value.analyte}
-                        required
-                        maxLength={120}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        name={`value-${value.id}`}
-                        type="number"
-                        step="any"
-                        defaultValue={value.value}
-                        required
-                      />
-                      {recordedRangeMarker(value)}
-                    </td>
-                    <td>
-                      <input name={`unit-${value.id}`} defaultValue={value.unit} required maxLength={32} />
-                    </td>
-                    <td>
-                      <input
-                        name={`low-${value.id}`}
-                        type="number"
-                        step="any"
-                        defaultValue={value.referenceLow ?? ''}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        name={`high-${value.id}`}
-                        type="number"
-                        step="any"
-                        defaultValue={value.referenceHigh ?? ''}
-                      />
-                    </td>
-                    <td>
-                      <StatusBadge status={value.wasManuallyConfirmed ? 'CONFIRMED' : 'REVIEW_REQUIRED'} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        <h3>Potential hereditary screening flags</h3>
-        {report.flags.length === 0 ? (
-          <p className="care-muted">No flags were extracted.</p>
-        ) : (
-          report.flags.map((flag) => (
-            <label key={flag.id} className="field">
-              <span>
-                <input name={`flag-${flag.id}`} type="checkbox" defaultChecked={flag.manuallyConfirmed} />{' '}
-                Confirm {flag.conditionCode}: {flag.finding}
-              </span>
-              <span className={`status-badge status-badge--${flag.confidence < 0.6 ? 'warning' : 'muted'}`}>
-                Extraction confidence {Math.round(flag.confidence * 100)}%
-              </span>
-            </label>
-          ))
-        )}
-        {report.values.length > 0 && (
-          <button className="button button--primary" type="submit">
-            Confirm values
-          </button>
-        )}
-      </form>
-    </>
-  )
-}
-
-type RecordsPanelProps = {
-  records: HealthRecordDto[]
-  totalPages: number
-  page: number
-  isSharedView: boolean
-  isOwnProfile: boolean
-  showForm: boolean
-  editingRecord: HealthRecordDto | null
-  assignedDoctor?: DoctorSummaryDto | null
-  availableDoctors?: DoctorSummaryDto[]
-  search: string
-  filter: string
-  sort: 'date-desc' | 'date-asc'
-  onShowForm: () => void
-  onCloseForm: () => void
-  onEdit: (record: HealthRecordDto) => void
-  onSave: (event: FormEvent<HTMLFormElement>) => Promise<void>
-  onDelete: (id: string) => Promise<void>
-  onToggleSharing: (record: HealthRecordDto) => Promise<void>
-  onSearch: (value: string) => void
-  onFilter: (value: string) => void
-  onSort: (value: 'date-desc' | 'date-asc') => void
-  onPage: (page: number) => void
-}
-/** Keeps a value saved by an older form version selectable instead of silently dropping it on edit. */
-function withSavedValue(options: readonly string[], saved: string): string[] {
-  return saved && !options.includes(saved) ? [...options, saved] : [...options]
-}
-
-function RecordsPanel(props: RecordsPanelProps) {
-  const [attachmentName, setAttachmentName] = useState('')
-  const parsedMeta = parseRecordSummary(props.editingRecord?.summary)
-  const otherDoctors = (props.availableDoctors ?? []).filter(
-    (doc) => doc.id !== props.assignedDoctor?.id,
-  )
-  const knownDoctorNames = new Set<string>()
-  if (props.assignedDoctor?.displayName) knownDoctorNames.add(props.assignedDoctor.displayName)
-  for (const doc of otherDoctors) {
-    if (doc.displayName) knownDoctorNames.add(doc.displayName)
-  }
-
-  return (
-    <section className="care-panel">
-      <div className="care-panel-heading">
-        <div>
-          <p className="care-eyebrow">Manual records</p>
-          <h2>Health records</h2>
-        </div>
-        {!props.isSharedView && (
-          <button type="button" className="button button--primary" onClick={props.onShowForm}>
-            Add record
-          </button>
-        )}
-      </div>
-      {props.showForm && !props.isSharedView && (
-        <form
-          className="care-form"
-          key={props.editingRecord?.id ?? 'new-record'}
-          onSubmit={(event) => void props.onSave(event)}
-        >
-          <h3>{props.editingRecord ? `Edit ${props.editingRecord.title}` : 'Add health record'}</h3>
-
-          <div className="care-field-grid">
-            <label className="field">
-              <span className="field-label-required">Type</span>
-              <select name="recordType" defaultValue={props.editingRecord?.recordType ?? 'Condition'}>
-                {['Condition', 'Allergy', 'Medication', 'Surgery', 'Note'].map((type) => (
-                  <option key={type}>{type}</option>
-                ))}
-              </select>
-            </label>
-            <label className="field">
-              <span className="field-label-required">Title</span>
-              <input
-                name="title"
-                defaultValue={props.editingRecord?.title ?? ''}
-                placeholder="Asthma"
-                required
-                minLength={2}
-                maxLength={160}
-              />
-            </label>
-          </div>
-
-          <div className="care-field-grid">
-            <label className="field">
-              <span className="field-label-required">Date</span>
-              <input
-                name="occurredOn"
-                type="date"
-                defaultValue={props.editingRecord?.occurredOn ?? todayLocalDate()}
-                required
-              />
-            </label>
-            <label className="field">
-              <span>Status</span>
-              <select name="status" defaultValue={parsedMeta.status}>
-                <option value="">Not specified</option>
-                {withSavedValue(RECORD_STATUSES, parsedMeta.status).map((status) => (
-                  <option key={status}>{status}</option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          <div className="care-field-grid">
-            <label className="field">
-              <span>Severity</span>
-              <select name="severity" defaultValue={parsedMeta.severity}>
-                <option value="">Not specified</option>
-                {withSavedValue(RECORD_SEVERITIES, parsedMeta.severity).map((sev) => (
-                  <option key={sev}>{sev}</option>
-                ))}
-              </select>
-            </label>
-            <label className="field">
-              <span>Doctor / Healthcare Provider</span>
-              <select
-                name="doctor"
-                aria-label="Doctor / Healthcare Provider"
-                defaultValue={parsedMeta.doctor}
-              >
-                <option value="">None / Not specified</option>
-                {props.assignedDoctor && (
-                  <optgroup label="Assigned Doctor">
-                    <option value={props.assignedDoctor.displayName}>
-                      {props.assignedDoctor.displayName}
-                      {props.assignedDoctor.specialty ? ` (${props.assignedDoctor.specialty})` : ''}
-                    </option>
-                  </optgroup>
-                )}
-                {otherDoctors.length > 0 && (
-                  <optgroup label={props.assignedDoctor ? 'Other Available Doctors' : 'Available Doctors'}>
-                    {otherDoctors.map((doc) => (
-                      <option key={doc.id} value={doc.displayName}>
-                        {doc.displayName}
-                        {doc.specialty ? ` (${doc.specialty})` : ''}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-                {parsedMeta.doctor && !knownDoctorNames.has(parsedMeta.doctor) && (
-                  <optgroup label="Preserved Provider">
-                    <option value={parsedMeta.doctor}>{parsedMeta.doctor}</option>
-                  </optgroup>
-                )}
-              </select>
-            </label>
-          </div>
-
-          <label className="field">
-            <span>Summary</span>
-            <textarea
-              name="summary"
-              defaultValue={parsedMeta.cleanSummary}
-              placeholder="Patient has a history of asthma..."
-              maxLength={2000}
-              rows={3}
-            />
-          </label>
-
-          <label className="field">
-            <span>Attachment</span>
-            <div className="care-attachment-box" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <input
-                type="file"
-                name="attachment"
-                id="record-attachment"
-                accept=".pdf,image/png,image/jpeg"
-                className="sr-only"
-                onChange={(e) => {
-                  const f = e.target.files?.[0]
-                  setAttachmentName(f ? f.name : '')
-                }}
-              />
-              <label
-                htmlFor="record-attachment"
-                className="button button--secondary"
-                style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-              >
-                <span>📎</span>
-                <span>{attachmentName ? 'Change report' : 'Upload medical report'}</span>
-              </label>
-              {attachmentName && (
-                <span className="care-caption" style={{ fontWeight: 500 }}>
-                  {attachmentName}
-                </span>
-              )}
-            </div>
-          </label>
-
-          <div className="care-actions">
-            <button type="submit" className="button button--primary">
-              {props.editingRecord ? 'Update record' : 'Save record'}
-            </button>
-            <button type="button" className="button button--secondary" onClick={props.onCloseForm}>
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
-      <div className="records-toolbar">
-        <label className="field records-search-field">
-          <span>Search records</span>
-          <input
-            type="search"
-            value={props.search}
-            onChange={(event) => props.onSearch(event.target.value)}
-            placeholder="Search by title or summary..."
-          />
-        </label>
-        <label className="field records-filter-field">
-          <span>Record type</span>
-          <select value={props.filter} onChange={(event) => props.onFilter(event.target.value)}>
-            <option value="ALL">All</option>
-            {['Condition', 'Allergy', 'Medication', 'Surgery', 'Note'].map((type) => (
-              <option key={type}>{type}</option>
-            ))}
-          </select>
-        </label>
-        <label className="field records-sort-field">
-          <span>Sort by</span>
-          <select
-            value={props.sort}
-            onChange={(event) => props.onSort(event.target.value as 'date-desc' | 'date-asc')}
-          >
-            <option value="date-desc">Newest first</option>
-            <option value="date-asc">Oldest first</option>
-          </select>
-        </label>
-      </div>
-      {props.records.length === 0 ? (
-        <div className="care-empty">
-          <EmptyState title="No matching records" message="Add a record or change the search and filters." />
-        </div>
-      ) : (
-        <div className="table-scroll">
-          <table className="records-table">
-            <thead>
-              <tr>
-                <th className="th-title">Title</th>
-                <th className="th-type">Type</th>
-                <th className="th-date">Date</th>
-                <th className="th-summary">Summary</th>
-                {!props.isSharedView && <th className="th-actions">Actions</th>}
-                {props.isOwnProfile && <th className="th-sharing">Family Head</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {props.records.map((record) => (
-                <tr key={record.id}>
-                  <td className="record-title-cell">
-                    <strong className="record-title">{record.title}</strong>
-                  </td>
-                  <td className="record-type-cell">
-                    <span className={`status-badge type-badge type-badge--${record.recordType.toLowerCase()}`}>
-                      {record.recordType}
-                    </span>
-                  </td>
-                  <td className="record-date-cell">
-                    <span className="record-date-pill">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="meta-icon">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                      </svg>
-                      {record.occurredOn}
-                    </span>
-                  </td>
-                  <td className="record-summary-cell">
-                    <RecordSummaryText summary={record.summary} emptyLabel="No summary recorded" />
-                  </td>
-                  {!props.isSharedView && (
-                    <td className="record-actions-cell">
-                      <div className="record-actions-group">
-                        <button
-                          type="button"
-                          className="button button--secondary button--sm button--edit"
-                          onClick={() => props.onEdit(record)}
-                        >
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="btn-icon">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                          </svg>
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          className="button button--danger-subtle button--sm button--delete"
-                          onClick={() => void props.onDelete(record.id)}
-                        >
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="btn-icon">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                          </svg>
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  )}
-                  {props.isOwnProfile && (
-                    <td className="record-sharing-cell">
-                      <button
-                        type="button"
-                        className={`button button--sm ${record.sharedWithFamilyHead ? 'button--share-active' : 'button--secondary'} button--share`}
-                        aria-pressed={record.sharedWithFamilyHead === true}
-                        onClick={() => void props.onToggleSharing(record)}
-                      >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="btn-icon">
-                          {record.sharedWithFamilyHead ? (
-                            <>
-                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                              <circle cx="12" cy="12" r="3"></circle>
-                            </>
-                          ) : (
-                            <>
-                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                            </>
-                          )}
-                        </svg>
-                        <span>{record.sharedWithFamilyHead ? 'Shared · make private' : 'Private · share'}</span>
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      {props.totalPages > 1 && (
-        <div className="care-actions">
-          <button
-            type="button"
-            className="button button--secondary"
-            disabled={props.page === 1}
-            onClick={() => props.onPage(props.page - 1)}
-          >
-            Previous
-          </button>
-          <span className="care-caption">
-            Page {props.page} of {props.totalPages}
-          </span>
-          <button
-            type="button"
-            className="button button--secondary"
-            disabled={props.page === props.totalPages}
-            onClick={() => props.onPage(props.page + 1)}
-          >
-            Next
-          </button>
-        </div>
-      )}
-    </section>
-  )
-}
-
-const PRESET_VITALS = [
-  { type: 'Heart Rate', unit: 'bpm', icon: '❤️' },
-  { type: 'Blood Pressure', unit: 'mmHg', icon: '🩺' },
-  { type: 'Blood Glucose', unit: 'mg/dL', icon: '🩸' },
-  { type: 'Body Temperature', unit: '°C', icon: '🌡️' },
-  { type: 'Oxygen (SpO2)', unit: '%', icon: '🫁' },
-  { type: 'Body Weight', unit: 'kg', icon: '⚖️' },
-] as const
-
-function VitalsPanel({
-  vitals,
-  trends,
-  onSubmit,
-}: {
-  vitals: VitalDto[]
-  trends: VitalTrendDto[]
-  onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>
-}) {
-  const [selectedType, setSelectedType] = useState('')
-  const [selectedUnit, setSelectedUnit] = useState('')
-
-  const applyPreset = (preset: (typeof PRESET_VITALS)[number]) => {
-    setSelectedType(preset.type)
-    setSelectedUnit(preset.unit)
-  }
-
-  return (
-    <div className="care-split vitals-split">
-      {/* Left Column: Log Measurement Form */}
-      <section className="care-panel vitals-form-panel">
-        <div className="care-panel-heading">
-          <div>
-            <p className="care-eyebrow">Manual readings</p>
-            <h2>Log New Vital</h2>
-            <p className="care-muted">Record blood pressure, heart rate, blood glucose or other body metrics.</p>
-          </div>
-          <div className="vitals-header-icon" title="Vital Signs">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-            </svg>
-          </div>
-        </div>
-
-        {/* Quick Presets */}
-        <div className="vital-presets">
-          <span className="vital-presets__label">Quick Presets:</span>
-          <div className="vital-presets__list">
-            {PRESET_VITALS.map((preset) => (
-              <button
-                key={preset.type}
-                type="button"
-                className={`vital-preset-chip ${selectedType === preset.type ? 'is-active' : ''}`}
-                onClick={() => applyPreset(preset)}
-              >
-                <span>{preset.icon}</span>
-                <span>{preset.type}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <form className="care-form" onSubmit={(event) => void onSubmit(event)}>
-          <div className="care-field-grid">
-            <label className="field">
-              <span>Type</span>
-              <input
-                name="vitalType"
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                placeholder="e.g. Heart Rate"
-                required
-                maxLength={64}
-              />
-            </label>
-            <label className="field">
-              <span>Unit</span>
-              <input
-                name="unit"
-                value={selectedUnit}
-                onChange={(e) => setSelectedUnit(e.target.value)}
-                placeholder="e.g. bpm, mmHg, mg/dL"
-                required
-                maxLength={32}
-              />
-            </label>
-          </div>
-
-          <div className="care-field-grid">
-            <label className="field">
-              <span>Value</span>
-              <input
-                name="value"
-                type="number"
-                step="any"
-                placeholder="e.g. 72"
-                required
-              />
-            </label>
-            <label className="field">
-              <span>Measured at</span>
-              <input
-                name="measuredAt"
-                type="datetime-local"
-                defaultValue={new Date().toISOString().slice(0, 16)}
-                required
-              />
-            </label>
-          </div>
-
-          <div className="care-actions" style={{ marginTop: '8px' }}>
-            <button className="button button--primary" type="submit">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                <polyline points="7 3 7 8 15 8"></polyline>
-              </svg>
-              Save vital
-            </button>
-          </div>
-        </form>
-      </section>
-
-      {/* Right Column: Vitals History & Trends */}
-      <section className="care-panel vitals-history-panel">
-        <div className="care-panel-heading">
-          <div>
-            <p className="care-eyebrow">Health Timeline</p>
-            <h2>Recorded Vitals</h2>
-          </div>
-          <span className="vitals-count-badge">{vitals.length} recorded</span>
-        </div>
-
-        {vitals.length === 0 ? (
-          <div className="care-empty vitals-empty-placeholder">
-            <div className="vitals-empty-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-              </svg>
-            </div>
-            <EmptyState title="No vitals recorded" message="Add a reading to keep a dated record." />
-          </div>
-        ) : (
-          <>
-            <div className="table-scroll vitals-table-scroll">
-              <table className="vitals-table">
-                <thead>
-                  <tr>
-                    <th>Type</th>
-                    <th>Measurement</th>
-                    <th>Measured Date & Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {vitals.map((vital) => (
-                    <tr key={vital.id}>
-                      <td>
-                        <div className="vital-type-cell">
-                          <span className="vital-dot"></span>
-                          <strong>{vital.vitalType}</strong>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="vital-value-pill">
-                          {vital.value} <small>{vital.unit}</small>
-                        </span>
-                      </td>
-                      <td className="vital-date-cell">
-                        {new Date(vital.measuredAt).toLocaleString(undefined, {
-                          dateStyle: 'medium',
-                          timeStyle: 'short',
-                        })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {trends.length > 0 && (
-              <div className="vitals-trends-section">
-                <h3 className="trends-heading">Trend Progress</h3>
-                <div className="vitals-trends-grid">
-                  {trends.map((trend) => (
-                    <article key={trend.vitalType} className="care-value-card vital-trend-card">
-                      <div className="trend-header">
-                        <h4>{trend.vitalType}</h4>
-                        <span className="trend-points-count">{trend.points.length} readings</span>
-                      </div>
-                      <div className="trend-timeline">
-                        {trend.points.map((point, i) => (
-                          <span key={i} className="trend-step">
-                            <strong>{point.value}</strong>
-                            <small>{point.unit}</small>
-                            {i < trend.points.length - 1 && <span className="trend-arrow">→</span>}
-                          </span>
-                        ))}
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        <p className="care-note vitals-safety-note">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16, flexShrink: 0 }}>
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="16" x2="12" y2="12"></line>
-            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-          </svg>
-          <span>Recorded trends show values only and are not a clinical interpretation.</span>
-        </p>
-      </section>
     </div>
   )
 }

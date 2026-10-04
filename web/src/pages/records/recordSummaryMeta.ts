@@ -56,3 +56,16 @@ export function todayLocalDate(now: Date = new Date()): string {
   const day = String(now.getDate()).padStart(2, '0')
   return `${now.getFullYear()}-${month}-${day}`
 }
+
+export const RECORD_TYPES = ['Condition', 'Allergy', 'Medication', 'Surgery', 'Note'] as const
+
+/** Icon name (see recordIcons) shown beside a record of this type. */
+export function recordTypeIcon(recordType: string): 'pressure' | 'allergy' | 'pill' | 'scalpel' | 'note' {
+  switch (recordType) {
+    case 'Condition': return 'pressure'
+    case 'Allergy': return 'allergy'
+    case 'Medication': return 'pill'
+    case 'Surgery': return 'scalpel'
+    default: return 'note'
+  }
+}
