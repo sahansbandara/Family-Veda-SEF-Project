@@ -136,9 +136,13 @@ export function CasesPage() {
       setNotice({
         tone: 'success',
         text: acknowledging
-          ? `Emergency referral ${caseReference(item)} acknowledged.`
-          : `Case ${caseReference(item)} is now assigned to you. Open it from My Cases.`,
+          ? `Emergency referral ${caseReference(item)} acknowledged. It is now assigned to you and stays under Emergency. Select Open Case to review it.`
+          : `Case ${caseReference(item)} is now assigned to you. It moved to My Cases, where the patient name is shown. Select Open Case to start the review.`,
       })
+      // Take the doctor to where the case now lives, with it selected.
+      if (!acknowledging) openTab('mine')
+      setSelectedId(item.id)
+      setPreviewOpen(true)
     } catch (error) {
       const code = httpStatus(error)
       setNotice({
@@ -195,9 +199,10 @@ export function CasesPage() {
       </header>
 
       {notice ? (
-        <p role="status" className={`care-note care-note--${notice.tone}`}>
-          {notice.text}
-        </p>
+        <div role="status" className={`care-note care-note--${notice.tone} triage-toast`}>
+          <span>{notice.text}</span>
+          <button type="button" className="button button--secondary button--sm" onClick={() => setNotice(null)}>Dismiss</button>
+        </div>
       ) : null}
 
       {status === 'loading' ? (
