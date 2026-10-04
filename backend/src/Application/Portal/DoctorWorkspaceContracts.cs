@@ -43,7 +43,16 @@ public sealed record WorkspaceLabValueDto(string Analyte, decimal Value, string 
 
 public sealed record WorkspaceLabReportDto(Guid Id, string FileName, DateTimeOffset? CollectedAt, IReadOnlyList<WorkspaceLabValueDto> Values, bool HasOriginalFile = false);
 
-public sealed record WorkspaceVitalDto(string VitalType, decimal Value, string Unit, DateTimeOffset MeasuredAt);
+/// <summary>
+/// A recorded reading with its position against a cited reference interval for the member's age and its
+/// direction against earlier readings. Both are deterministic display facts, never a diagnosis.
+/// </summary>
+public sealed record WorkspaceVitalDto(string VitalType, decimal Value, string Unit, DateTimeOffset MeasuredAt,
+    decimal? ReferenceLow = null, decimal? ReferenceHigh = null, LabRangeStatus RangeStatus = LabRangeStatus.RangeUnavailable,
+    VitalTrend Trend = VitalTrend.NotEnoughReadings, string? RangeSource = null);
+
+/// <summary>One row of the reference panel: the published interval that applies at the member's age.</summary>
+public sealed record VitalReferenceDto(string VitalType, string Label, string Unit, decimal Low, decimal High, string AgeBand, string Source);
 
 public sealed record WorkspaceFlagDto(string ConditionCode, string Finding, bool Confirmed);
 
@@ -69,7 +78,10 @@ public sealed record MemberWorkspaceDto(
     IReadOnlyList<WorkspaceVitalDto>? Vitals,
     IReadOnlyList<WorkspaceFlagDto>? HereditaryFlags,
     IReadOnlyList<WorkspaceVisitDto> Visits,
-    IReadOnlyList<ClinicalNoteDto> Notes);
+    IReadOnlyList<ClinicalNoteDto> Notes,
+    int? AgeYears = null,
+    string? SexForClinicalReference = null,
+    IReadOnlyList<VitalReferenceDto>? VitalReferences = null);
 
 public interface IDoctorWorkspaceService
 {

@@ -5,19 +5,18 @@ import { useSearchParams } from 'react-router-dom'
 
 import '../../styles/approval-desk.css'
 
-import { AiBadge } from '../../components/shared/AiBadge'
 import { StatusBadge } from '../../components/shared/StatusBadge'
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
-import { apiClient, type CaseReviewDto, type PagedResult, type TriageCaseDto } from '../../services/apiClient'
+import { apiClient, type CaseReviewDto, type MemberWorkspaceDto, type PagedResult, type TriageCaseDto } from '../../services/apiClient'
 import { ApprovalConfirmDialog, ApprovalDecisionPanel } from './ApprovalDecisionPanel'
 import { ApprovalEvidenceTabs } from './ApprovalEvidenceTabs'
+import { ApprovalPatientSnapshot } from './ApprovalPatientSnapshot'
 import {
   approvedGuidance,
   filterQueue,
   isPriority,
   queueBucket,
   queueDate,
-  queueDateTime,
   reviewableStatuses,
   safeDate,
   caseInitials,
@@ -40,6 +39,7 @@ export function ApprovalsPage() {
   const [cases, setCases] = useState<TriageCaseDto[]>([])
   const [selectedId, setSelectedId] = useState('')
   const [review, setReview] = useState<CaseReviewDto | null>(null)
+  const [workspace, setWorkspace] = useState<MemberWorkspaceDto | null>(null)
   const [advisory, setAdvisory] = useState('')
   const [notes, setNotes] = useState('')
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
@@ -277,50 +277,19 @@ export function ApprovalsPage() {
                 </article>
               ) : review ? (
                 <>
-                  <article className="care-panel approval-case-head">
-                    <div className="approval-case-head__row">
-                      <div className="approval-case-head__person">
-                        <span className="approval-avatar approval-avatar--lg" aria-hidden="true">
-                          {caseInitials(review)}
-                        </span>
-                        <div>
-                          <h2 aria-label={`Review case ${review.id}`}>
-                            {review.memberDisplayName || `Case ${shortRef(review)}`}
-                          </h2>
-                          <p className="care-caption">
-                            {review.familyName ? `${review.familyName} · ` : ''}Identity is shown under your active
-                            case grant.
-                          </p>
-                        </div>
-                      </div>
-                      <span className="approval-case-head__tags">
-                        <AiBadge label="AI draft" />
-                        <StatusBadge status={review.priority} />
-                        <span className="status-badge status-badge--primary">{statusLabel(review.status)}</span>
-                      </span>
-                    </div>
-                    <dl className="approval-meta">
-                      <div>
-                        <dt>Case number</dt>
-                        <dd>{shortRef(review)}</dd>
-                      </div>
-                      <div>
-                        <dt>Submitted</dt>
-                        <dd>{queueDateTime(selectedCase?.createdAt)}</dd>
-                      </div>
-                      <div>
-                        <dt>Safety checks</dt>
-                        <dd>{failedChecks === 0 ? 'All passed' : `${failedChecks} not passed`}</dd>
-                      </div>
-                    </dl>
-                  </article>
+                  <ApprovalPatientSnapshot
+                    review={review}
+                    submittedAt={selectedCase?.createdAt}
+                    failedChecks={failedChecks}
+                    workspace={workspace?.memberId === review.memberId ? workspace : null}
+                  />
                   <div className="care-note">
                     <span>
                       <strong>Decision gate:</strong> AI findings are drafts for clinical review. Nothing is
                       released to the patient until you save an approved decision.
                     </span>
                   </div>
-                  <ApprovalEvidenceTabs review={review} />
+                  <ApprovalEvidenceTabs review={review} onWorkspace={setWorkspace} />
                 </>
               ) : (
                 <article className="care-panel">

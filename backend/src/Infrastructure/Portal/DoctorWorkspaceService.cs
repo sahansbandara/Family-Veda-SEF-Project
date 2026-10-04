@@ -186,6 +186,8 @@ public sealed class DoctorWorkspaceService(AppDbContext dbContext, ICurrentUser 
         IReadOnlyList<WorkspaceLabReportDto>? labs = null;
         IReadOnlyList<WorkspaceVitalDto>? vitals = null;
         IReadOnlyList<WorkspaceFlagDto>? flags = null;
+        IReadOnlyList<VitalReferenceDto>? vitalReferences = null;
+        var ageYears = VitalReferenceRanges.AgeInYears(member.DateOfBirth, DateOnly.FromDateTime(DateTime.UtcNow));
         if (conditions)
         {
             records = await dbContext.HealthRecords.AsNoTracking().Where(x => x.MemberId == memberId).OrderByDescending(x => x.OccurredOn)
@@ -206,8 +208,11 @@ public sealed class DoctorWorkspaceService(AppDbContext dbContext, ICurrentUser 
         }
         if (vitalsAllowed)
         {
-            vitals = await dbContext.Vitals.AsNoTracking().Where(x => x.MemberId == memberId).OrderByDescending(x => x.MeasuredAt).Take(50)
-                .Select(x => new WorkspaceVitalDto(x.VitalType, x.Value, x.Unit, x.MeasuredAt)).ToListAsync(cancellationToken);
+            var readings = await dbContext.Vitals.AsNoTracking().Where(x => x.MemberId == memberId).OrderByDescending(x => x.MeasuredAt).Take(50)
+                .ToListAsync(cancellationToken);
+            vitals = AssessVitals(readings, ageYears);
+            vitalReferences = VitalReferenceRanges.ForAge(ageYears)
+                .Select(x => new VitalReferenceDto(x.VitalType, x.Label, x.Units[0], x.Low, x.High, x.AgeBand, x.Source)).ToList();
         }
         if (flagsAllowed)
         {
@@ -218,7 +223,23 @@ public sealed class DoctorWorkspaceService(AppDbContext dbContext, ICurrentUser 
         Audit("DOCTOR_MEMBER_WORKSPACE_READ", "Member", memberId, memberId, metadata: new { Basis = basis, Categories = consented.Select(c => c.ToString()) });
         await dbContext.SaveChangesAsync(cancellationToken);
         return new MemberWorkspaceDto(member.Id, member.DisplayName, member.Role.ToString(), family.Id, family.Name,
-            true, basis, expiresAt, consented.Select(c => c.ToString()).ToList(), records, labs, vitals, flags, visits, notes);
+            true, basis, expiresAt, consented.Select(c => c.ToString()).ToList(), records, labs, vitals, flags, visits, notes,
+            ageYears, member.SexForClinicalReference == ClinicalSex.NotSpecified ? null : member.SexForClinicalReference.ToString(), vitalReferences);
+    }
+
+    /// <summary>Adds the cited reference interval and the direction against earlier readings of the same measurement and unit.</summary>
+    private static IReadOnlyList<WorkspaceVitalDto> AssessVitals(IReadOnlyList<Vital> newestFirst, int? ageYears)
+    {
+        var series = newestFirst.GroupBy(x => (x.VitalType.Trim().ToLowerInvariant(), x.Unit.Trim().ToLowerInvariant()))
+            .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.MeasuredAt).ToList());
+        return newestFirst.Select(reading =>
+        {
+            var same = series[(reading.VitalType.Trim().ToLowerInvariant(), reading.Unit.Trim().ToLowerInvariant())];
+            var earlier = same.Skip(same.IndexOf(reading) + 1).Take(3).Select(x => x.Value).ToList();
+            var range = VitalReferenceRanges.Assess(reading.VitalType, reading.Unit, reading.Value, ageYears);
+            return new WorkspaceVitalDto(reading.VitalType, reading.Value, reading.Unit, reading.MeasuredAt,
+                range.ReferenceLow, range.ReferenceHigh, range.Status, VitalReferenceRanges.Trend(reading.Value, earlier), range.Source);
+        }).ToList();
     }
 
     /// <summary>Original bytes are fetched only after the complete doctor access chain passes.</summary>

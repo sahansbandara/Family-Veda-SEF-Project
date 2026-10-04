@@ -459,6 +459,47 @@ class _VitalsTabState extends State<VitalsTab> {
                 '$count reading${count == 1 ? '' : 's'} · Unit: ${series.unit}',
                 style: TextStyle(color: palette.muted, fontSize: 12),
               ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  AccessPill(
+                    label: vitalRangeLabel(series.latest.range),
+                    color: switch (series.latest.range) {
+                      LabRange.within => palette.success,
+                      LabRange.unavailable => palette.muted,
+                      _ => palette.warning,
+                    },
+                  ),
+                  Text(
+                    'Trend: ${series.latest.trend.label}',
+                    style: TextStyle(
+                      color: palette.text,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                series.latest.referenceLabel == null
+                    ? 'No reference interval for this measurement or age.'
+                    : 'Reference ${series.latest.referenceLabel}'
+                          '${series.latest.rangeSource == null ? '' : ' · ${series.latest.rangeSource}'}',
+                style: TextStyle(color: palette.muted, fontSize: 12),
+              ),
+              if (series.changeLabel != null)
+                Text(
+                  series.changeLabel!,
+                  style: TextStyle(
+                    color: palette.text,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               const SizedBox(height: 10),
               if (count > 1)
                 VitalTrendChart(series: series)
@@ -504,7 +545,7 @@ class _VitalsTabState extends State<VitalsTab> {
         const InfoStrip(
           icon: Icons.info_outline_rounded,
           text:
-              'Values are shown as recorded; nothing is inferred or judged. A systolic value on its own is not a complete blood-pressure reading.',
+              'Range and trend labels come from cited reference tables, not AI, and are not a diagnosis. A systolic value on its own is not a complete blood-pressure reading.',
         ),
       ],
     );

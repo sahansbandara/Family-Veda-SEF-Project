@@ -376,15 +376,24 @@ export type DoctorRosterMemberDto = { id: string; displayName: string; role: str
 export type FamilyRosterForDoctorDto = { familyId: string; familyName: string; members: DoctorRosterMemberDto[] }
 export type ClinicalNoteDto = { id: string; familyId: string; memberId?: string | null; appointmentId?: string | null; noteType: 'VisitNote' | 'FamilyNote' | 'FollowUp'; content: string; version: number; amendsNoteId?: string | null; createdAt: string }
 export type WorkspaceLabValueDto = { analyte: string; value: number; unit: string; referenceLow?: number | null; referenceHigh?: number | null; rangeStatus: 'RangeUnavailable' | 'BelowRange' | 'WithinRange' | 'AboveRange'; confirmed: boolean }
+export type RangeStatus = WorkspaceLabValueDto['rangeStatus']
+export type VitalTrend = 'NotEnoughReadings' | 'Falling' | 'Stable' | 'Rising'
+/** Range and trend are computed by the backend rule table; older API builds omit them. */
+export type WorkspaceVitalDto = {
+  vitalType: string; value: number; unit: string; measuredAt: string
+  referenceLow?: number | null; referenceHigh?: number | null; rangeStatus?: RangeStatus; trend?: VitalTrend; rangeSource?: string | null
+}
+export type VitalReferenceDto = { vitalType: string; label: string; unit: string; low: number; high: number; ageBand: string; source: string }
 export type MemberWorkspaceDto = {
   memberId: string; displayName: string; role: string; familyId: string; familyName: string
   clinicalAccess: boolean; accessBasis: string; accessExpiresAt?: string | null; consentedCategories: string[]
   records?: Array<{ id: string; recordType: string; title: string; summary?: string | null; occurredOn: string }> | null
   labReports?: Array<{ id: string; fileName: string; collectedAt?: string | null; hasOriginalFile?: boolean; values: WorkspaceLabValueDto[] }> | null
-  vitals?: Array<{ vitalType: string; value: number; unit: string; measuredAt: string }> | null
+  vitals?: WorkspaceVitalDto[] | null
   hereditaryFlags?: Array<{ conditionCode: string; finding: string; confirmed: boolean }> | null
   visits: Array<{ appointmentId: string; startsAt: string; reason: string; status: AppointmentDto['status'] }>
   notes: ClinicalNoteDto[]
+  ageYears?: number | null; sexForClinicalReference?: string | null; vitalReferences?: VitalReferenceDto[] | null
 }
 
 export const doctorWorkspaceApi = {

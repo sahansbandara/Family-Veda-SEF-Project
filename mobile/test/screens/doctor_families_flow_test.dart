@@ -421,6 +421,11 @@ void main() {
                 'value': 72,
                 'unit': 'bpm',
                 'measuredAt': '2026-10-01T08:00:00Z',
+                'referenceLow': 60,
+                'referenceHigh': 100,
+                'rangeStatus': 'WithinRange',
+                'trend': 'Stable',
+                'rangeSource': 'Synthetic source',
               },
               {
                 'vitalType': 'heart_rate',
@@ -443,9 +448,18 @@ void main() {
       expect(find.textContaining('heart_rate'), findsNothing);
       expect(find.text('Heart rate trend'), findsOneWidget);
       expect(find.byType(CustomPaint), findsWidgets);
+      expect(find.text('Within reference range'), findsOneWidget);
+      expect(find.text('Trend: Stable'), findsOneWidget);
+      expect(
+        find.text('Reference 60 – 100 bpm · Synthetic source'),
+        findsOneWidget,
+      );
+      expect(find.text('−2 bpm across 2 readings'), findsOneWidget);
 
       await _tap(tester, find.text('Systolic blood pressure · 116 mmHg'));
       expect(find.textContaining('One reading recorded'), findsOneWidget);
+      // A reading the backend did not place against a range is never given one.
+      expect(find.text('No reference range'), findsOneWidget);
       expect(find.textContaining('116/'), findsNothing);
     },
   );

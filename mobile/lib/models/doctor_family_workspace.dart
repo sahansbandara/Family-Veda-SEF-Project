@@ -237,12 +237,43 @@ class LabReport {
   final List<LabValue> values;
 }
 
+/// Direction of a reading against earlier readings, computed by the backend rule table.
+enum VitalTrend {
+  rising('Rising'),
+  falling('Falling'),
+  stable('Stable'),
+  notEnough('First reading');
+
+  const VitalTrend(this.label);
+  final String label;
+
+  static VitalTrend fromApi(Object? value) => switch (value) {
+    'Rising' => VitalTrend.rising,
+    'Falling' => VitalTrend.falling,
+    'Stable' => VitalTrend.stable,
+    _ => VitalTrend.notEnough,
+  };
+}
+
+/// Wording for a vital against the cited reference interval for the member's age. Never a diagnosis.
+String vitalRangeLabel(LabRange range) => switch (range) {
+  LabRange.within => 'Within reference range',
+  LabRange.above => 'Above reference range',
+  LabRange.below => 'Below reference range',
+  LabRange.unavailable => 'No reference range',
+};
+
 class VitalReading {
   const VitalReading({
     required this.vitalType,
     required this.value,
     required this.unit,
     required this.measuredAt,
+    this.range = LabRange.unavailable,
+    this.trend = VitalTrend.notEnough,
+    this.referenceLow,
+    this.referenceHigh,
+    this.rangeSource,
   });
 
   factory VitalReading.fromJson(Map<String, dynamic> json) => VitalReading(
@@ -251,14 +282,29 @@ class VitalReading {
     unit: json['unit'] as String? ?? '',
     measuredAt:
         _date(json['measuredAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+    range: LabRange.fromApi(json['rangeStatus']),
+    trend: VitalTrend.fromApi(json['trend']),
+    referenceLow: json['referenceLow'] as num?,
+    referenceHigh: json['referenceHigh'] as num?,
+    rangeSource: json['rangeSource'] as String?,
   );
 
   final String vitalType;
   final num value;
   final String unit;
   final DateTime measuredAt;
+  final LabRange range;
+  final VitalTrend trend;
+  final num? referenceLow;
+  final num? referenceHigh;
+  final String? rangeSource;
 
   String get valueLabel => '${_number(value)} $unit';
+
+  /// The cited interval, or null when the backend has none for this measurement, unit or age.
+  String? get referenceLabel => referenceLow == null || referenceHigh == null
+      ? null
+      : '${_number(referenceLow!)} – ${_number(referenceHigh!)} $unit';
 }
 
 const _vitalLabels = {
@@ -298,6 +344,14 @@ class VitalSeries {
   final List<VitalReading> readings = [];
 
   VitalReading get latest => readings.first;
+
+  /// Arithmetic difference between the oldest and newest loaded reading — a recorded fact, not a judgement.
+  String? get changeLabel {
+    if (readings.length < 2) return null;
+    final delta = ((latest.value - readings.last.value) * 100).round() / 100;
+    if (delta == 0) return 'No change across ${readings.length} readings';
+    return '${delta > 0 ? '+' : '−'}${_number(delta.abs())} $unit across ${readings.length} readings';
+  }
 }
 
 /// Groups readings that share a type and a unit. Different units are never mixed in one series.
