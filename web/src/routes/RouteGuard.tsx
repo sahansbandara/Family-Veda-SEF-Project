@@ -20,7 +20,11 @@ export function RouteGuard({
   allowUnverifiedFamilyHead = false,
 }: RouteGuardProps) {
   const location = useLocation()
-  const { isAuthenticated, user } = useAppSelector((state) => state.auth)
+  const { isAuthenticated, user, restoring } = useAppSelector((state) => state.auth)
+
+  if (restoring && !isAuthenticated) {
+    return <p role="status" className="route-restoring">Restoring your session…</p>
+  }
 
   if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />
