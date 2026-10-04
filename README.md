@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="brand/dist/lockup.png" alt="Family Veda — healthier families, brighter tomorrows" width="380">
+  <img src="docs/assets/family-veda-banner.webp" alt="Family Veda — your family doctor, with your family's whole story" width="100%">
 </p>
 
 # Family Veda
@@ -600,6 +600,17 @@ Test plan and the 8 priority cases: [`docs/TESTING.md`](docs/TESTING.md).
 | [`docs/VIVA_PREP.md`](docs/VIVA_PREP.md) | Viva questions, phrasing, memory hooks |
 | [`docs/FUTURE_WORK.md`](docs/FUTURE_WORK.md) | Deliberate deferrals with reserved extension points |
 | [`docs/adr/`](docs/adr/) | ADR-001 … ADR-009 |
+
+### Dashboard guides
+
+One guide per portal: flow diagram, then every tab and its sub-sections.
+
+| Portal | Guide |
+|---|---|
+| Clinic Admin | [`docs/dashboards/admin.md`](docs/dashboards/admin.md) |
+| Doctor | [`docs/dashboards/doctor.md`](docs/dashboards/doctor.md) |
+| Family Head | [`docs/dashboards/family-head.md`](docs/dashboards/family-head.md) |
+| Adult Member | [`docs/dashboards/adult-member.md`](docs/dashboards/adult-member.md) |
 
 ## AI use disclosure
 
