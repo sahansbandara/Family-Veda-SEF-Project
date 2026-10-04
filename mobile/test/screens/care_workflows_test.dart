@@ -35,42 +35,36 @@ void main() {
           child: MaterialApp(home: SubmitComplaintScreen()),
         ),
       );
-      expect(find.text('Step 1 of 3'), findsOneWidget);
-      await tester.ensureVisible(
-        find.byKey(const Key('submit_complaint_button')),
+      expect(
+        find.textContaining('What symptoms are you experiencing?'),
+        findsOneWidget,
       );
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('submit_complaint_button')),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.tap(find.text('Continue'));
-      await tester.pump();
-      expect(find.text('Please describe the main complaint'), findsOneWidget);
+      await tester.drag(find.byType(ListView), const Offset(0, -500));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('submit_complaint_button')));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Choose a symptom'), findsOneWidget);
       await tester.enterText(
         find.byKey(const Key('chief_complaint_field')),
         'Synthetic cough',
       );
+      await tester.tap(find.byKey(const Key('submit_complaint_button')));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('More about these symptoms'), findsOneWidget);
       await tester.enterText(find.byKey(const Key('duration_field')), '2');
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('submit_complaint_button')),
-        200,
-        scrollable: find.byType(Scrollable).first,
+      await tester.drag(find.byType(ListView), const Offset(0, -500));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('submit_complaint_button')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('Check your request before submitting'),
+        findsOneWidget,
       );
-      await tester.tap(find.text('Continue'));
-      await tester.pump();
-      expect(find.text('Step 2 of 3'), findsOneWidget);
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('submit_complaint_button')),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.tap(find.text('Continue'));
-      await tester.pump();
-      expect(find.text('Step 3 of 3'), findsOneWidget);
       expect(find.text('Synthetic cough'), findsOneWidget);
-      expect(find.text('Submit securely'), findsOneWidget);
-      expect(find.textContaining('doctor approves'), findsOneWidget);
+      expect(find.textContaining('Submit for doctor review'), findsOneWidget);
     },
   );
   testWidgets(
@@ -98,7 +92,10 @@ void main() {
         find.byKey(const Key('chief_complaint_field')),
       );
       expect(field.controller?.text, isEmpty);
-      expect(find.text('Step 1 of 3'), findsOneWidget);
+      expect(
+        find.textContaining('What symptoms are you experiencing?'),
+        findsOneWidget,
+      );
     },
   );
 }

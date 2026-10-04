@@ -14,6 +14,7 @@ import {
   type TriageCaseDto,
 } from '../../services/apiClient'
 import { FamilyCaseProgress } from './FamilyCaseProgress'
+import '../../styles/triage-redesign.css'
 
 type TriageStatusDto = { id: string; status: string; priority: string; failureCode?: string | null }
 type CaseView =
@@ -33,7 +34,6 @@ const stoppedStatuses = [
   'RequestInformation',
   'RequestedInformation',
 ]
-const symptomOptions = ['Headache', 'Feeling tired', 'Cough', 'Sore throat']
 
 function isApproved(status: string) {
   return approvedStatuses.includes(status)
@@ -54,12 +54,54 @@ function caseStatusLabel(status: string) {
   if (status === 'Escalated' || status === 'FailedSafe') return 'In-person care needed'
   return 'Being reviewed'
 }
-function caseStatusTone(status: string) {
-  if (isApproved(status)) return 'success'
-  if (status === 'Escalated' || status === 'FailedSafe') return 'danger'
-  if (isStopped(status)) return 'warning'
-  return 'primary'
+
+function needsInformation(status: string) {
+  return status === 'LowConfidence' || status === 'RequestInformation' || status === 'RequestedInformation'
 }
+function needsInPersonCare(status: string, priority: string) {
+  return status === 'Escalated' || status === 'FailedSafe' || priority === 'Emergency'
+}
+function caseStatusTone(status: string, priority: string) {
+  if (isApproved(status)) return 'green'
+  if (needsInPersonCare(status, priority)) return 'red'
+  if (needsInformation(status)) return 'amber'
+  if (status === 'Rejected') return 'grey'
+  return ''
+}
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  return ((parts[0]?.[0] ?? 'F') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase()
+}
+function caseReference(item: TriageCaseDto) {
+  return item.caseNumber != null ? String(item.caseNumber).padStart(4, '0') : item.id.slice(0, 8)
+}
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+const heartIcon = 'M20.8 4.7a5.5 5.5 0 0 0-7.8 0L12 5.8l-1.1-1.1a5.5 5.5 0 1 0-7.8 7.8L12 21l8.8-8.5a5.5 5.5 0 0 0 0-7.8Z'
+const activityIcon = 'M2 12h5l3-7 4 14 3-7h5'
+const symptomOptions = [
+  { name: 'Headache', icon: heartIcon },
+  { name: 'Fever', icon: activityIcon },
+  { name: 'Cough', icon: activityIcon },
+  { name: 'Sore throat', icon: heartIcon },
+  { name: 'Stomach ache', icon: activityIcon },
+  { name: 'Feeling tired', icon: 'M12 6v6l4 2 M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18' },
+  { name: 'Body pain', icon: activityIcon },
+  { name: 'Nausea', icon: heartIcon },
+  { name: 'Breathing difficulty', icon: activityIcon },
+  { name: 'Chest pain', icon: heartIcon },
+  { name: 'Dizziness', icon: activityIcon },
+  { name: 'Other symptom', icon: 'M12 11v5M12 7.5h.01 M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18' },
+]
+const severityLabels: Record<number, string> = { 3: 'Mild', 6: 'Moderate', 9: 'Severe' }
+type RequestFilter = 'all' | 'review' | 'ready'
+const requestFilters: { id: RequestFilter; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'review', label: 'In review' },
+  { id: 'ready', label: 'Guidance ready' },
+]
 
 export function TriagePage() {
   const [searchParams] = useSearchParams()
@@ -72,6 +114,8 @@ export function TriagePage() {
   const loadedCaseRef = useRef('')
   const [caseView, setCaseView] = useState<CaseView | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [filter, setFilter] = useState<RequestFilter>('all')
+  const [descriptionLength, setDescriptionLength] = useState(0)
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([])
   const [severity, setSeverity] = useState(3)
   const [submitting, setSubmitting] = useState(false)
@@ -189,6 +233,7 @@ export function TriagePage() {
       setSelectedSymptoms([])
       formElement.reset()
       setSeverity(3)
+      setDescriptionLength(0)
       setStep(1)
       setMessage('Your request was submitted for review. Guidance appears only after doctor approval.')
       selectCase(triageCase.id)
@@ -202,232 +247,295 @@ export function TriagePage() {
   }
 
   const selectedCase = cases.find((item) => item.id === selectedId)
-  const hasSameDayMemberRequest = (item: TriageCaseDto) =>
-    cases.filter(
-      (other) =>
-        other.memberId === item.memberId && other.createdAt.slice(0, 10) === item.createdAt.slice(0, 10),
-    ).length > 1
-  const failedSafe =
-    caseView?.state === 'ready' &&
-    (caseView.status.status === 'FailedSafe' ||
-      caseView.status.status === 'Escalated' ||
-      caseView.status.priority === 'Emergency')
+  const memberName = (memberId?: string) =>
+    members.find((member) => member.id === memberId)?.displayName ?? 'Family member'
+  const visibleCases = cases.filter((item) =>
+    filter === 'ready'
+      ? isApproved(item.status)
+      : filter === 'review'
+        ? !isApproved(item.status) && item.status !== 'Rejected' && !needsInPersonCare(item.status, item.priority)
+        : true,
+  )
+  const submitted = message.includes('submitted')
   return (
-    <div className="page-stack care-workspace">
-      <header className="care-header">
-        <div>
-          <p className="care-eyebrow">Symptoms & doctor review</p>
-          <h1>Tell us how you’re feeling.</h1>
-          <p>Share your symptoms, follow your request, and read guidance only after a doctor approves it.</p>
+    <div className="triage-redesign">
+      <div className="shell">
+        <div className="head">
+          <div>
+            <span className="eyebrow">SYMPTOMS &amp; DOCTOR REVIEW</span>
+            <h1>Tell us how you're feeling.</h1>
+            <p>Share your symptoms, follow your request, and read guidance only after a doctor approves it.</p>
+          </div>
+          <div className="safe-mini">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3 8 8 11 5-3 8-6 8-11V5z"/><path d="m9 12 2 2 4-4"/></svg>
+            <div>
+              <strong>Doctor review before guidance</strong>
+              <small>Information prepared here is a request for clinical review, not an automatic diagnosis.</small>
+            </div>
+          </div>
         </div>
-        <span className="status-badge status-badge--primary">Doctor review before guidance</span>
-      </header>
-      {pageStatus === 'loading' ? (
-        <LoadingState label="Loading symptoms and requests" />
-      ) : pageStatus === 'error' ? (
-        <ErrorState message="Symptoms and requests could not be loaded." onRetry={() => void load()} />
-      ) : (
-        <>
-          <div className="care-split care-split--symptoms">
-            <section className="panel care-panel">
-              <div className="care-panel-heading">
-                <h2>What has been bothering you?</h2>
-                <span className="care-caption">New request</span>
+
+        {pageStatus === 'loading' ? (
+          <LoadingState label="Loading symptoms and requests" />
+        ) : pageStatus === 'error' ? (
+          <ErrorState message="Symptoms and requests could not be loaded." onRetry={() => void load()} />
+        ) : (
+          <div className="columns">
+            <section className="panel wizard" aria-label="New symptom request">
+              <h2>New symptom request</h2>
+              <p className="sub">Three clear steps, with your draft kept while you move between them.</p>
+
+              <div className="stepper" role="group" aria-label="Request steps">
+                {['Symptoms', 'Details', 'Review'].map((label, index) => {
+                  const number = index + 1
+                  return (
+                    <button
+                      key={label}
+                      type="button"
+                      className={`step ${step === number ? 'active' : step > number ? 'done' : ''}`}
+                      aria-current={step === number ? 'step' : undefined}
+                      disabled={submitting || step <= number}
+                      onClick={() => { setStep(number); setMessage('') }}
+                    >
+                      <span className="num" aria-hidden="true">{step > number ? '✓' : number}</span>
+                      <span>{label}</span>
+                    </button>
+                  )
+                })}
               </div>
-              <ol className="care-steps" aria-label="Symptom request steps">{['Symptoms', 'Details', 'Review'].map((label, index) => <li key={label} aria-current={step === index + 1 ? 'step' : undefined} className={step >= index + 1 ? 'is-complete' : ''}><span>{index + 1}</span>{label}</li>)}</ol>
-              <p className="care-caption" role="status">Step {step} of 3</p>
-          <form className="care-form" noValidate onSubmit={(event) => void submit(event)}>
-            <div hidden={step !== 1} className="care-form-step">
-                <p className="care-note">
-                  This service helps a doctor review symptoms. It does not diagnose and is not an emergency
-                  service.
-                </p>
-                <label>
-                  For family member
-                  <select name="memberId" required>
-                    {members.map((member) => (
-                      <option key={member.id} value={member.id}>
-                        {member.displayName}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <div>
-                  <span className="field-label">Choose any symptoms that apply</span>
-                  <p className="care-caption">You can add more detail below.</p>
-                  <div className="care-chips" aria-label="Common symptoms">
-                    {symptomOptions.map((symptom) => (
-                      <button
-                        key={symptom}
-                        className="care-chip"
-                        type="button"
-                        aria-pressed={selectedSymptoms.includes(symptom)}
-                        onClick={() => toggleSymptom(symptom)}
-                      >
-                        {symptom}
-                      </button>
-                    ))}
+
+              <div className="notice">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5h.01"/></svg>
+                <div>This service helps a doctor review symptoms. It does not diagnose or replace emergency care. <strong>No guidance is released without an authorized doctor's approval.</strong></div>
+              </div>
+
+              {message && <div className={submitted ? 'success' : 'error'} role={submitted ? 'status' : 'alert'}>{message}</div>}
+
+              <form noValidate onSubmit={(event) => void submit(event)}>
+                <div className="step-content" hidden={step !== 1}>
+                  <div className="field">
+                    <label htmlFor="memberId">Who is this request for?</label>
+                    <select id="memberId" name="memberId" required>
+                      {members.map((member) => (
+                        <option key={member.id} value={member.id}>
+                          {member.displayName}{member.isSelf ? ' (Self)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="hint">Only members you are authorized to submit for appear here. Adult members submit their own private requests.</p>
                   </div>
-                </div>
-                <label>
-                  Describe symptoms in your own words
-                  <input
-                    name="symptoms"
-                    maxLength={500}
-                    placeholder="Add another symptom, or separate symptoms with commas"
-                  />
-                </label>
-              </div>
-              <div hidden={step !== 2} className="care-form-step">
-                <label>
-                  Additional details (optional)
-                  <textarea name="notes" maxLength={1000} placeholder="What changed, and when?" />
-                </label>
-                <div className="care-field-grid">
-                  <label>
-                    How many days?
-                    <input name="durationDays" type="number" min={0} max={365} defaultValue={1} required />
-                  </label>
-                  <div>
-                    <span className="field-label">How much does it affect your day?</span>
-                    <div className="care-chips" aria-label="Severity">
-                      {[
-                        [3, 'A little'],
-                        [6, 'Somewhat'],
-                        [9, 'A lot'],
-                      ].map(([value, label]) => (
+
+                  <div className="field">
+                    <span className="lbl" id="symptom-chips-label">What symptoms are you experiencing? <span className="optional">Select any that apply.</span></span>
+                    <div className="chips" role="group" aria-labelledby="symptom-chips-label">
+                      {symptomOptions.map((symptom) => (
                         <button
-                          key={String(value)}
-                          className="care-chip"
+                          key={symptom.name}
                           type="button"
-                          aria-pressed={severity === value}
-                          onClick={() => setSeverity(value as number)}
+                          aria-pressed={selectedSymptoms.includes(symptom.name)}
+                          className={`chip ${selectedSymptoms.includes(symptom.name) ? 'selected' : ''}`}
+                          onClick={() => toggleSymptom(symptom.name)}
                         >
-                          {label}
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><path d={symptom.icon}/></svg>
+                          <span>{symptom.name}</span>
+                          <span className="check" aria-hidden="true">✓</span>
                         </button>
                       ))}
                     </div>
                   </div>
+
+                  <div className="field">
+                    <label htmlFor="symptoms">Describe the symptoms in your own words <span className="optional">(optional)</span></label>
+                    <textarea
+                      id="symptoms"
+                      name="symptoms"
+                      maxLength={500}
+                      placeholder="Tell the doctor what you have noticed, when it started, and anything else relevant."
+                      onChange={(event) => setDescriptionLength(event.target.value.length)}
+                    />
+                    <p className="hint counter">{descriptionLength}/500</p>
+                  </div>
                 </div>
-              </div>
-              {step === 3 && <section className="care-request-review" aria-label="Review symptom request">
-                <h3>Review your request</h3>
-                <dl>
-                  <div><dt>Family member</dt><dd>{review?.member}</dd></div>
-                  <div><dt>Symptoms</dt><dd>{review?.symptoms}</dd></div>
-                  <div><dt>Duration</dt><dd>{review?.days} days</dd></div>
-                  <div><dt>Effect on your day</dt><dd>{severity === 3 ? 'A little' : severity === 6 ? 'Somewhat' : 'A lot'}</dd></div>
-                  {review?.detail && <div><dt>Additional details</dt><dd>{review.detail}</dd></div>}
-                </dl>
-                <p className="care-note">A doctor reviews this request before any guidance is shared with you.</p>
-              </section>}
-                <div className="care-actions">
-                  <span className="care-caption">No guidance is shared until doctor approval.</span>
-                  {step > 1 && <button className="button button--secondary" type="button" disabled={submitting} onClick={() => { setStep(step - 1); setMessage('') }}>Back</button>}
-                  <button className="button button--primary" type="submit" disabled={submitting}>
-                    {submitting ? 'Submitting…' : step === 3 ? 'Submit for doctor review' : 'Continue'}
-                  </button>
+
+                <div className="step-content" hidden={step !== 2}>
+                  <div className="section-heading">More about these symptoms</div>
+                  <div className="twocol">
+                    <div className="field">
+                      <label htmlFor="durationDays">How many days have you had them?</label>
+                      <input id="durationDays" name="durationDays" type="number" min={0} max={365} defaultValue={1} required />
+                    </div>
+                    <div className="field">
+                      <label htmlFor="severity">How severe do they feel?</label>
+                      <select id="severity" value={severity} onChange={(event) => setSeverity(Number(event.target.value))}>
+                        {Object.entries(severityLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="field">
+                    <label htmlFor="notes">Anything else the doctor should know? <span className="optional">(optional)</span></label>
+                    <textarea id="notes" name="notes" maxLength={1000} placeholder="Add relevant context in your own words. Do not enter someone else's private health details." />
+                  </div>
+                  <div className="notice notice--flush">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3 8 8 11 5-3 8-6 8-11V5z"/><path d="m9 12 2 2 4-4"/></svg>
+                    <div>Emergency decisions are not made by this form. If you need urgent help, use emergency services instead of waiting for this request.</div>
+                  </div>
+                </div>
+
+                {step === 3 && (
+                  <section className="step-content" aria-label="Review symptom request">
+                    <div className="section-heading">Check your request before submitting</div>
+                    <div className="review-box">
+                      <strong>Family member</strong>
+                      <p>{review.member}</p>
+                    </div>
+                    <div className="review-box">
+                      <strong>Symptoms and description</strong>
+                      <div>{review.symptoms.split(', ').filter(Boolean).map((symptom) => <span key={symptom} className="tag">{symptom}</span>)}</div>
+                    </div>
+                    <div className="review-box">
+                      <strong>Further details</strong>
+                      <p>Duration: {review.days} days · Severity: {severityLabels[severity]}</p>
+                      {review.detail && <p>Additional context: {review.detail}</p>}
+                    </div>
+                    <div className="notice notice--flush">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                      <div>A doctor reviews this request before any guidance is shared with you.</div>
+                    </div>
+                  </section>
+                )}
+
+                <div className="form-foot">
+                  <span className="footnote">
+                    {step === 1 ? 'Step 1 of 3 · Select at least one symptom.' : step === 2 ? 'Step 2 of 3 · Add duration and details.' : 'Step 3 of 3 · Confirm the summary.'}
+                  </span>
+                  <div className="form-actions">
+                    {step > 1 && <button type="button" className="btn" disabled={submitting} onClick={() => { setStep(step - 1); setMessage('') }}>Back</button>}
+                    <button type="submit" className="btn primary" disabled={submitting}>
+                      {submitting ? 'Submitting…' : step === 3 ? 'Submit for doctor review' : <>Continue <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></>}
+                    </button>
+                  </div>
                 </div>
               </form>
-              {message && <p role="status">{message}</p>}
             </section>
-            <aside>
-              <section className="panel care-panel">
-                <div className="care-panel-heading">
-                  <h2>Your requests</h2>
-                  <span className="care-caption">
-                    {cases.length} request{cases.length === 1 ? '' : 's'}
-                  </span>
+
+            <div className="reqcol">
+              <section className="panel panel-pad">
+                <div className="req-head">
+                  <div>
+                    <h2>Your requests</h2>
+                    <p className="sub">Track case progress and open approved guidance.</p>
+                  </div>
+                  <span className="count">{cases.length} request{cases.length === 1 ? '' : 's'}</span>
                 </div>
+
                 {cases.length === 0 ? (
-                  <div className="care-empty">
-                    <EmptyState
-                      title="No symptom requests yet"
-                      message="Submit symptoms when you need a doctor to review them."
-                    />
-                  </div>
+                  <EmptyState title="No symptom requests yet" message="Submit symptoms when you need a doctor to review them." />
                 ) : (
-                  <div className="care-request-list">
-                    {cases.map((item) => (
-                      <button
-                        className={`care-selection-card${item.id === selectedId ? ' is-selected' : ''}`}
-                        key={item.id}
-                        type="button"
-                        aria-pressed={item.id === selectedId}
-                        onClick={() => selectCase(item.id)}
-                      >
-                        <span className={`status-badge status-badge--${caseStatusTone(item.status)}`}>
-                          {caseStatusLabel(item.status)}
-                        </span>
-                        <strong>{members.find((member) => member.id === item.memberId)?.displayName ?? 'Family member'} · Symptom request</strong>
-                        <span className="care-caption">
-                          Submitted {new Date(item.createdAt).toLocaleDateString()}
-                        </span>
-                        {hasSameDayMemberRequest(item) && (
-                          <span className="care-caption">Reference {item.id.slice(0, 8)}</span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
+                  <>
+                    <div className="filters" role="group" aria-label="Request filters">
+                      {requestFilters.map((item) => (
+                        <button key={item.id} type="button" className={`filter ${filter === item.id ? 'on' : ''}`} aria-pressed={filter === item.id} onClick={() => setFilter(item.id)}>
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="request-list">
+                      {visibleCases.length === 0 && <p className="sub">No requests match this filter.</p>}
+                      {visibleCases.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          className={`request ${item.id === selectedId ? 'on' : ''}`}
+                          aria-pressed={item.id === selectedId}
+                          onClick={() => selectCase(item.id)}
+                        >
+                          <span className="bubble" aria-hidden="true">{initials(memberName(item.memberId))}</span>
+                          <span className="request-main">
+                            <strong>{memberName(item.memberId)}</strong>
+                            <small>Case {caseReference(item)} · {formatDate(item.createdAt)}</small>
+                            <span className={`status reqstatus ${caseStatusTone(item.status, item.priority)}`}>
+                              {needsInPersonCare(item.status, item.priority) ? 'In-person care needed' : caseStatusLabel(item.status)}
+                            </span>
+                          </span>
+                          <svg className="mini-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+                        </button>
+                      ))}
+                    </div>
+                  </>
                 )}
               </section>
-              <section className="care-note" role="note">
-                <strong>Need urgent help?</strong> If you think this is an emergency, do not wait for a
-                response. Call <a href="tel:1990">1990</a> or go to the nearest emergency unit.
-              </section>
-            </aside>
+
+              <aside className="urgent">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3H4a2 2 0 0 0-2 2 17 17 0 0 0 17 17 2 2 0 0 0 2-2v-3l-5-2-2 2a14 14 0 0 1-7-7l2-2-2-5z"/></svg>
+                <div>
+                  <h3>Need urgent help?</h3>
+                  <p>Do not wait for an AI or doctor response. Contact emergency services or visit the nearest emergency unit.</p>
+                </div>
+                <a className="btn danger" href="tel:1990" aria-label="Call Sri Lanka ambulance emergency number 1990">Call 1990 ↗</a>
+              </aside>
+            </div>
           </div>
-          {selectedId && (
-            <section className="panel care-panel care-progress" aria-live="polite">
-              <div className="care-panel-heading">
-                <div>
-                  <h2>Request progress</h2>
-                  <p className="care-caption">
-                    {selectedCase ? `Submitted ${new Date(selectedCase.createdAt).toLocaleString()}` : ''}
-                  </p>
-                </div>
+        )}
+
+        {pageStatus === 'ready' && selectedId && (
+          <section className="panel progress-panel" aria-live="polite">
+            <div className="req-head">
+              <div>
+                <h2>Request progress</h2>
+                <p className="sub">Selected request · See where it is in the review process.</p>
               </div>
-              {!caseView || caseView.state === 'loading' ? (
-                <LoadingState label="Loading request progress" />
-              ) : caseView.state === 'error' ? (
-                <div>
-                  <p>Request progress could not be loaded.</p>
-                  <button
-                    className="button"
-                    type="button"
-                    onClick={() => setRefreshKey((current) => current + 1)}
-                  >
-                    Retry progress
-                  </button>
+              {selectedCase && <span className="count">Case {caseReference(selectedCase)}</span>}
+            </div>
+
+            {!caseView || caseView.state === 'loading' ? (
+              <LoadingState label="Loading request progress" />
+            ) : caseView.state === 'error' ? (
+              <div className="current-call">
+                <p>Request progress could not be loaded.</p>
+                <button className="btn tiny" type="button" onClick={() => setRefreshKey((current) => current + 1)}>
+                  Retry progress
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="personline">
+                  <span className="bubble" aria-hidden="true">{initials(memberName(selectedCase?.memberId))}</span>
+                  <div>
+                    <strong>{memberName(selectedCase?.memberId)}</strong>
+                    {selectedCase && <small>Submitted {formatDate(selectedCase.createdAt)}</small>}
+                  </div>
+                  <span className={`status ${caseStatusTone(caseView.status.status, caseView.status.priority)}`}>
+                    {needsInPersonCare(caseView.status.status, caseView.status.priority) ? 'In-person care needed' : caseStatusLabel(caseView.status.status)}
+                  </span>
                 </div>
-              ) : (
-                <>
-                  <FamilyCaseProgress caseStatus={caseView.status.status} />
-                  {failedSafe && (
-                    <div className="referral-card" role="alert">
-                      <h3>Please seek in-person care</h3>
-                      <p>
-                        This request needs an in-person clinician. No automated guidance will be shown. For an
-                        emergency, call 1990 or go to the nearest emergency unit.
-                      </p>
-                    </div>
-                  )}
-                  {caseView.guidance && !failedSafe && (
-                    <div className="care-guidance">
-                      <h3>Doctor-approved guidance</h3>
-                      <p>{caseView.guidance.finalAdvisory}</p>
-                      <p className="care-caption">
-                        Approved {new Date(caseView.guidance.approvedAt).toLocaleString()} ·{' '}
-                        {caseView.guidance.disclaimer}
-                      </p>
-                    </div>
-                  )}
-                </>
-              )}
-            </section>
-          )}
-        </>
-      )}
+
+                {needsInPersonCare(caseView.status.status, caseView.status.priority) ? (
+                  <div className="current-call current-call--danger" role="alert">
+                    <strong>Please seek in-person care</strong>
+                    <p>This request needs an in-person clinician. No automated guidance will be shown. For an emergency, call <a href="tel:1990">1990</a>.</p>
+                  </div>
+                ) : (
+                  <>
+                    <FamilyCaseProgress caseStatus={caseView.status.status} />
+                    {caseView.guidance ? (
+                      <div className="current-call current-call--ok">
+                        <strong>Doctor-approved guidance</strong>
+                        <p>{caseView.guidance.finalAdvisory}</p>
+                        <small>Approved {new Date(caseView.guidance.approvedAt).toLocaleString()} · {caseView.guidance.disclaimer}</small>
+                      </div>
+                    ) : !isStopped(caseView.status.status) && (
+                      <div className="current-call">
+                        <strong>{caseStatusLabel(caseView.status.status)}:</strong> A clinician will review the submitted information. Guidance appears here only after a doctor approves it.
+                      </div>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+          </section>
+        )}
+      </div>
     </div>
   )
 }

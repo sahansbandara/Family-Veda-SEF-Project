@@ -144,7 +144,7 @@ describe('TriagePage', () => {
     )
     page()
     expect(await screen.findByText('Approved text.')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: /Waiting for doctor review.*Symptom request/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Synthetic Member.*Waiting for doctor review/ }))
     expect(screen.getByText('Approved text.')).toBeInTheDocument()
     expect(screen.queryByText('Loading request progress')).not.toBeInTheDocument()
   })
@@ -228,7 +228,7 @@ describe('TriagePage', () => {
     })
     page()
     await waitFor(() => expect(resolveFirst).toBeDefined())
-    fireEvent.click(screen.getAllByRole('button', { name: /Symptom request/ })[1])
+    fireEvent.click(screen.getAllByRole('button', { name: /Synthetic Member.*Case/ })[1])
     expect(await screen.findByText('Current case guidance.')).toBeInTheDocument()
     resolveFirst?.({ data: { id: 'case-1', status: 'Approved', priority: 'Routine' } })
     await waitFor(() => expect(screen.queryByText('Current case guidance.')).toBeInTheDocument())
@@ -256,11 +256,31 @@ describe('TriagePage', () => {
     expect(screen.getByText(/Your request was submitted for review/)).toBeInTheDocument()
   })
 
-  it('adds a short case reference when same-day requests could otherwise be identical', async () => {
+  it('labels each request with its own case reference so same-day requests stay distinguishable', async () => {
     const listedCases = [cases[0], { ...cases[0], id: 'case-2' }]
     routeGet({ id: 'case-1', status: 'PendingDoctorReview', priority: 'Routine' }, undefined, listedCases)
     page()
-    expect(await screen.findByText('Reference case-1')).toBeInTheDocument()
-    expect(screen.getByText('Reference case-2')).toBeInTheDocument()
+    expect(await screen.findByText(/^Case case-1 ·/)).toBeInTheDocument()
+    expect(screen.getByText(/^Case case-2 ·/)).toBeInTheDocument()
+  })
+})
+
+describe('TriagePage request filters', () => {
+  beforeEach(() => {
+    mocks.get.mockReset()
+    mocks.post.mockReset()
+  })
+
+  it('filters the request list by review state without changing the selected case', async () => {
+    const listedCases = [cases[0], { ...cases[0], id: 'case-2', status: 'Approved', caseNumber: 9 }]
+    routeGet({ id: 'case-1', status: 'PendingDoctorReview', priority: 'Routine' }, undefined, listedCases)
+    page()
+    expect(await screen.findByText(/^Case 0009 ·/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'In review' }))
+    expect(screen.queryByText(/^Case 0009 ·/)).not.toBeInTheDocument()
+    expect(screen.getByText(/^Case case-1 ·/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Guidance ready' }))
+    expect(screen.getByText(/^Case 0009 ·/)).toBeInTheDocument()
+    expect(screen.queryByText(/^Case case-1 ·/)).not.toBeInTheDocument()
   })
 })
