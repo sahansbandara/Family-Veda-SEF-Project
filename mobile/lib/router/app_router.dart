@@ -134,13 +134,17 @@ String? routeRedirect({
   required String? activeMemberId,
   required String location,
 }) {
+  // Static information remains available while a session is restored.
+  const publicInformation = {'/about', '/privacy-policy', '/terms'};
+  if (publicInformation.contains(location)) return null;
+
   if (auth.status == AuthStatus.loading) {
     return location == '/splash' ? null : '/splash';
   }
 
   final authenticated = auth.status == AuthStatus.authenticated;
   if (!authenticated) {
-    if (location == '/login' || location == '/register' || location == '/about' || location == '/privacy-policy' || location == '/terms') return null;
+    if (location == '/login' || location == '/register') return null;
     return '/login';
   }
   if (location == '/login' || location == '/splash' || location == '/register') return '/home';

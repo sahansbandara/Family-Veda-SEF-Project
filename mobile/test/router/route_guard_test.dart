@@ -76,4 +76,26 @@ void main() {
       );
     }
   });
+
+  test('public information remains available during session restoration', () {
+    for (final location in ['/about', '/privacy-policy', '/terms']) {
+      expect(
+        routeRedirect(
+          auth: const AuthState.loading(),
+          activeMemberId: null,
+          location: location,
+        ),
+        isNull,
+        reason: location,
+      );
+    }
+    expect(
+      routeRedirect(
+        auth: const AuthState.loading(),
+        activeMemberId: null,
+        location: '/records',
+      ),
+      '/splash',
+    );
+  });
 }
