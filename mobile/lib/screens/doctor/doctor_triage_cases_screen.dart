@@ -55,18 +55,24 @@ class _DoctorTriageCasesScreenState
     if (_claimingId != null) return;
     setState(() => _claimingId = item.id);
     String message;
+    var claimed = false;
     try {
       await ref.read(doctorCasesApiProvider).claimCase(item.id);
+      claimed = true;
       message = item.isEmergencyReferral
-          ? 'Emergency referral ${item.reference} acknowledged.'
-          : 'Case ${item.reference} is now assigned to you. Open it from My Cases.';
+          ? 'Emergency referral ${item.reference} acknowledged. It is now assigned to you and stays under Emergency.'
+          : 'Case ${item.reference} is now assigned to you. It moved to My Cases, where the patient name is shown.';
     } catch (error) {
       message = claimErrorMessage(error);
     }
     // Always re-read, so the queue shows server truth rather than an assumed transition.
     await _refresh();
     if (!mounted) return;
-    setState(() => _claimingId = null);
+    setState(() {
+      _claimingId = null;
+      // Take the doctor to where the case now lives.
+      if (claimed && !item.isEmergencyReferral) _tab = QueueTab.mine;
+    });
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
