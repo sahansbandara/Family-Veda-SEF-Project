@@ -336,6 +336,10 @@ export const threePortalApi = {
   getFamilyDoctor: (familyId: string) => apiClient.get<DoctorSummaryDto | null>(`/families/${familyId}/doctor`),
   requestFamilyDoctor: (familyId: string, body: { doctorId: string; message?: string }) =>
     apiClient.post<DoctorRequestDto>(`/families/${familyId}/doctor-requests`, body),
+  getPendingFamilyDoctorRequest: (familyId: string) =>
+    apiClient.get<DoctorRequestDto | null>(`/families/${familyId}/doctor-requests/pending`),
+  cancelFamilyDoctorRequest: (familyId: string, id: string) =>
+    apiClient.post<DoctorRequestDto>(`/families/${familyId}/doctor-requests/${id}/cancel`),
   getMyFamilyDoctorRequests: () => apiClient.get<DoctorRequestDto[]>('/doctors/me/family-requests'),
   acceptFamilyDoctorRequest: (id: string) => apiClient.post(`/doctors/me/family-requests/${id}/accept`),
   declineFamilyDoctorRequest: (id: string) => apiClient.post(`/doctors/me/family-requests/${id}/decline`),

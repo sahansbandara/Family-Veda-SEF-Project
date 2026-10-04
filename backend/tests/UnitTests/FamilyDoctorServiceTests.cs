@@ -124,6 +124,62 @@ public sealed class FamilyDoctorServiceTests
         periods.Count(x => x.EndedAt != null).Should().Be(1);
     }
 
+    [Fact]
+    public async Task Cancel_ByHead_WithdrawsPendingRequest_AuditsAndKeepsCurrentDoctor()
+    {
+        await using var db = NewDb();
+        var head = new UserAccount { Email = "head-cancel@example.invalid", PasswordHash = "x", DisplayName = "Head", UserType = UserType.FamilyUser };
+        var family = new Family { Name = "F", CreatedByUser = head, FamilyCode = "FV-FFF222" };
+        var currentUserAccount = new UserAccount { Email = "doc-kept@example.invalid", PasswordHash = "x", DisplayName = "Kept Doc", UserType = UserType.Doctor };
+        var currentDoctor = new Doctor { User = currentUserAccount, RegistrationNumberHash = "h-kept", RegistrationNumberLastFour = "1111", VerificationStatus = VerificationStatus.Verified };
+        var doctorUser = new UserAccount { Email = "doc-cancel@example.invalid", PasswordHash = "x", DisplayName = "Doc", UserType = UserType.Doctor };
+        var doctor = new Doctor { User = doctorUser, RegistrationNumberHash = "h-cancel", RegistrationNumberLastFour = "2222", VerificationStatus = VerificationStatus.Verified };
+        db.AddRange(head, family, currentUserAccount, currentDoctor, doctorUser, doctor, new FamilyDoctorAssignment { Family = family, Doctor = currentDoctor, IsPrimary = true });
+        await db.SaveChangesAsync();
+        var service = new FamilyDoctorService(db, new StubCurrentUser(head.Id, UserType.FamilyUser));
+        var request = await service.RequestAsync(family.Id, new CreateDoctorRequest(doctor.Id, null), CancellationToken.None);
+
+        (await service.GetPendingAsync(family.Id, CancellationToken.None))!.Id.Should().Be(request.Id);
+        var cancelled = await service.CancelAsync(family.Id, request.Id, CancellationToken.None);
+
+        cancelled.Status.Should().Be(PortalRequestStatus.Cancelled);
+        (await service.GetPendingAsync(family.Id, CancellationToken.None)).Should().BeNull();
+        (await service.GetCurrentAsync(family.Id, CancellationToken.None))!.Id.Should().Be(currentDoctor.Id);
+        (await db.AuditLogs.CountAsync(x => x.EventType == "FAMILY_DOCTOR_REQUEST_CANCELLED" && x.ResourceId == request.Id)).Should().Be(1);
+        var again = () => service.CancelAsync(family.Id, request.Id, CancellationToken.None);
+        await again.Should().ThrowAsync<ConflictException>();
+    }
+
+    [Fact]
+    public async Task Cancel_ByNonHeadOrOtherFamily_Returns404_AndPendingIsHiddenFromOutsiders()
+    {
+        await using var db = NewDb();
+        var head = new UserAccount { Email = "head-guard@example.invalid", PasswordHash = "x", DisplayName = "Head", UserType = UserType.FamilyUser };
+        var family = new Family { Name = "F", CreatedByUser = head, FamilyCode = "FV-GGG222" };
+        var adultUser = new UserAccount { Email = "adult-guard@example.invalid", PasswordHash = "x", DisplayName = "Adult", UserType = UserType.FamilyUser };
+        var adultMember = new Member { Family = family, User = adultUser, DisplayName = "Adult", DateOfBirth = new DateOnly(1990, 1, 1), Role = FamilyRole.AdultMember };
+        var outsider = new UserAccount { Email = "outsider@example.invalid", PasswordHash = "x", DisplayName = "Outsider", UserType = UserType.FamilyUser };
+        var otherFamily = new Family { Name = "G", CreatedByUser = outsider, FamilyCode = "FV-HHH222" };
+        var doctorUser = new UserAccount { Email = "doc-guard@example.invalid", PasswordHash = "x", DisplayName = "Doc", UserType = UserType.Doctor };
+        var doctor = new Doctor { User = doctorUser, RegistrationNumberHash = "h-guard", RegistrationNumberLastFour = "3333", VerificationStatus = VerificationStatus.Verified };
+        db.AddRange(head, family, adultUser, adultMember, outsider, otherFamily, doctorUser, doctor);
+        await db.SaveChangesAsync();
+        var request = await new FamilyDoctorService(db, new StubCurrentUser(head.Id, UserType.FamilyUser))
+            .RequestAsync(family.Id, new CreateDoctorRequest(doctor.Id, null), CancellationToken.None);
+
+        var adultService = new FamilyDoctorService(db, new StubCurrentUser(adultUser.Id, UserType.FamilyUser));
+        var outsiderService = new FamilyDoctorService(db, new StubCurrentUser(outsider.Id, UserType.FamilyUser));
+        var byAdult = () => adultService.CancelAsync(family.Id, request.Id, CancellationToken.None);
+        var byOutsiderViaOwnFamily = () => outsiderService.CancelAsync(otherFamily.Id, request.Id, CancellationToken.None);
+        var outsiderRead = () => outsiderService.GetPendingAsync(family.Id, CancellationToken.None);
+
+        await byAdult.Should().ThrowAsync<NotFoundException>();
+        await byOutsiderViaOwnFamily.Should().ThrowAsync<NotFoundException>();
+        await outsiderRead.Should().ThrowAsync<NotFoundException>();
+        (await adultService.GetPendingAsync(family.Id, CancellationToken.None))!.Id.Should().Be(request.Id);
+        (await db.FamilyDoctorRequests.SingleAsync()).Status.Should().Be(PortalRequestStatus.Pending);
+    }
+
     private sealed class StubCurrentUser(Guid userId, UserType userType) : ICurrentUser
     {
         public bool IsAuthenticated => true;

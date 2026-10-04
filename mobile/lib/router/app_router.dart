@@ -124,7 +124,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/appointments/book',
-        builder: (_, _) => const BookAppointmentScreen(),
+        builder: (_, state) {
+          final extra = state.extra;
+          return extra is ({DateTime slot, int minutes})
+              ? BookAppointmentScreen(
+                  initialSlot: extra.slot,
+                  initialMinutes: extra.minutes,
+                )
+              : const BookAppointmentScreen();
+        },
       ),
       GoRoute(path: '/join-family', builder: (_, _) => const JoinFamilyScreen()),
       GoRoute(

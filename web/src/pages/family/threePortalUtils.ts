@@ -53,3 +53,12 @@ export function extractErrorMessage(error: unknown, fallback: string): string {
   if (data?.message) return data.message
   return fallback
 }
+
+export function doctorInitials(name: string) {
+  // Titles and numeric suffixes carry no initial.
+  return name.split(' ').filter((part) => /^\p{L}/u.test(part) && !/^dr\.?$/i.test(part)).slice(-2).map((part) => part[0]).join('').toUpperCase()
+}
+
+export function doctorPlace(doctor: { city?: string | null; district?: string | null }) {
+  return [doctor.city, doctor.district].filter(Boolean).join(', ')
+}

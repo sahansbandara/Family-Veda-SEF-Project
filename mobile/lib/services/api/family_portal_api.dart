@@ -4,6 +4,7 @@
 // New API surface only — deliberately kept out of patient_api.dart (S3-owned).
 import 'package:family_veda/models/appointment.dart';
 import 'package:family_veda/models/doctor_summary.dart';
+import 'package:family_veda/models/family_doctor_request.dart';
 import 'package:family_veda/models/family_dashboard.dart';
 import 'package:family_veda/models/family_invitation.dart';
 import 'package:family_veda/models/incoming_invitation.dart';
@@ -60,6 +61,11 @@ abstract interface class FamilyPortalApi {
     required String familyId,
     required String doctorId,
     String? message,
+  });
+  Future<FamilyDoctorRequest?> getPendingDoctorRequest(String familyId);
+  Future<void> cancelDoctorRequest({
+    required String familyId,
+    required String requestId,
   });
 
   Future<void> markNotificationRead(String id);
@@ -283,6 +289,25 @@ class DioFamilyPortalApi implements FamilyPortalApi {
         if (message != null && message.trim().isNotEmpty)
           'message': message.trim(),
       },
+    );
+  }
+
+  @override
+  Future<FamilyDoctorRequest?> getPendingDoctorRequest(String familyId) async {
+    final response = await _client.dio.get<Map<String, dynamic>>(
+      '/families/$familyId/doctor-requests/pending',
+    );
+    final data = response.data;
+    return data == null ? null : FamilyDoctorRequest.fromJson(data);
+  }
+
+  @override
+  Future<void> cancelDoctorRequest({
+    required String familyId,
+    required String requestId,
+  }) async {
+    await _client.dio.post<void>(
+      '/families/$familyId/doctor-requests/$requestId/cancel',
     );
   }
 

@@ -31,6 +31,19 @@ public sealed class FamilyDoctorController(IFamilyDoctorService familyDoctorServ
         return Created($"/api/v1/families/{familyId}/doctor-requests/{result.Id}", result);
     }
 
+    [HttpGet("families/{familyId:guid}/doctor-requests/pending")]
+    [Authorize(Policy = "FamilyUser")]
+    public async Task<ActionResult<DoctorRequestDto>> GetPending(Guid familyId, CancellationToken cancellationToken)
+    {
+        var request = await familyDoctorService.GetPendingAsync(familyId, cancellationToken);
+        return request is null ? NoContent() : Ok(request);
+    }
+
+    [HttpPost("families/{familyId:guid}/doctor-requests/{id:guid}/cancel")]
+    [Authorize(Policy = "FamilyUser")]
+    public async Task<ActionResult<DoctorRequestDto>> Cancel(Guid familyId, Guid id, CancellationToken cancellationToken) =>
+        Ok(await familyDoctorService.CancelAsync(familyId, id, cancellationToken));
+
     [HttpGet("doctors/me/family-requests")]
     [Authorize(Policy = "Doctor")]
     public async Task<ActionResult<IReadOnlyList<DoctorRequestDto>>> GetMyRequests(CancellationToken cancellationToken) =>

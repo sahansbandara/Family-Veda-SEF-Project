@@ -67,6 +67,8 @@ public interface IFamilyDoctorService
     Task<IReadOnlyList<DoctorSummaryDto>> GetDirectoryAsync(string? search, string? district, CancellationToken cancellationToken);
     Task<DoctorSummaryDto?> GetCurrentAsync(Guid familyId, CancellationToken cancellationToken);
     Task<DoctorRequestDto> RequestAsync(Guid familyId, CreateDoctorRequest request, CancellationToken cancellationToken);
+    Task<DoctorRequestDto?> GetPendingAsync(Guid familyId, CancellationToken cancellationToken);
+    Task<DoctorRequestDto> CancelAsync(Guid familyId, Guid id, CancellationToken cancellationToken);
     Task<IReadOnlyList<DoctorRequestDto>> GetMyRequestsAsync(CancellationToken cancellationToken);
     Task<DoctorRequestDto> AcceptAsync(Guid id, CancellationToken cancellationToken);
     Task<DoctorRequestDto> DeclineAsync(Guid id, CancellationToken cancellationToken);

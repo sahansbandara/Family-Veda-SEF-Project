@@ -3,8 +3,8 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({ get: vi.fn(), getFamilyDoctor: vi.fn(), getFamilyDoctorSlots: vi.fn() }))
-vi.mock('../../store/hooks', () => ({ useAppSelector: (selector: (state: object) => unknown) => selector({ auth: { user: { role: 'ADULT_MEMBER' } } }) }))
+const mocks = vi.hoisted(() => ({ role: 'ADULT_MEMBER', get: vi.fn(), getFamilyDoctor: vi.fn(), getFamilyDoctorSlots: vi.fn(), getPendingFamilyDoctorRequest: vi.fn(), getDoctorDirectory: vi.fn(), requestFamilyDoctor: vi.fn(), cancelFamilyDoctorRequest: vi.fn() }))
+vi.mock('../../store/hooks', () => ({ useAppSelector: (selector: (state: object) => unknown) => selector({ auth: { user: { role: mocks.role } } }) }))
 vi.mock('../../services/apiClient', () => ({ apiClient: { get: mocks.get }, threePortalApi: mocks, doctorWorkspaceApi: { getFamilyDoctorSlots: mocks.getFamilyDoctorSlots } }))
 import { MyDoctorPage } from './MyDoctorPage'
 
@@ -13,6 +13,8 @@ function page() { return render(<MemoryRouter><MyDoctorPage /></MemoryRouter>) }
 describe('MyDoctor availability', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mocks.role = 'ADULT_MEMBER'
+    mocks.getPendingFamilyDoctorRequest.mockResolvedValue({ data: '' })
     mocks.get.mockResolvedValue({ data: { id: 'synthetic-family' } })
     mocks.getFamilyDoctor.mockResolvedValue({ data: { id: 'synthetic-doctor', displayName: 'Synthetic Doctor', specialty: 'Family Medicine' } })
   })
@@ -65,5 +67,70 @@ describe('MyDoctor availability', () => {
     await act(async () => finishOld({ data: { date: '2026-10-05', availabilityConfigured: true, slotMinutes: 30, slots: ['2026-10-05T03:30:00Z'] } }))
     expect(screen.queryByText(/9:00\s*(AM|am)/)).not.toBeInTheDocument()
     expect(screen.getByText(/11:00\s*(AM|am)/)).toBeInTheDocument()
+  })
+})
+
+const directoryDoctor = { id: 'synthetic-new', displayName: 'Dr. Synthetic Wijesinghe', specialty: 'Family Medicine', clinic: 'Synthetic Coastal Clinic', city: 'Negombo', district: 'Gampaha', languages: 'Sinhala, English' }
+const otherDoctor = { id: 'synthetic-other', displayName: 'Dr. Synthetic Silva', specialty: 'General Practice', clinic: 'Synthetic Central Care', city: 'Kandy', district: 'Kandy', languages: 'Sinhala, English' }
+const pendingRequest = { id: 'synthetic-request', familyId: 'synthetic-family', familyName: 'Synthetic Family', memberCount: 3, doctor: directoryDoctor, status: 'Pending', createdAt: '2026-10-05T03:30:00Z' }
+
+describe('MyDoctor relationship states', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mocks.role = 'FAMILY_HEAD'
+    mocks.get.mockResolvedValue({ data: { id: 'synthetic-family' } })
+    mocks.getFamilyDoctor.mockResolvedValue({ data: '' })
+    mocks.getPendingFamilyDoctorRequest.mockResolvedValue({ data: '' })
+    mocks.getDoctorDirectory.mockResolvedValue({ data: [directoryDoctor, otherDoctor] })
+    mocks.getFamilyDoctorSlots.mockResolvedValue({ data: { date: '2026-10-06', availabilityConfigured: true, slotMinutes: 30, slots: ['2026-10-06T03:30:00Z'] } })
+  })
+
+  it('lets a family head with no doctor filter the directory and send a confirmed request', async () => {
+    mocks.requestFamilyDoctor.mockResolvedValue({ data: pendingRequest })
+    page()
+    expect(await screen.findByRole('heading', { name: 'Find a doctor your family can rely on.' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Dr. Synthetic Silva' })).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('District'), { target: { value: 'Gampaha' } })
+    expect(screen.queryByRole('heading', { name: 'Dr. Synthetic Silva' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Request Dr. Synthetic Wijesinghe' }))
+    expect(mocks.requestFamilyDoctor).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Send request' }))
+    await waitFor(() => expect(mocks.requestFamilyDoctor).toHaveBeenCalledWith('synthetic-family', { doctorId: 'synthetic-new' }))
+    expect(await screen.findByRole('heading', { name: 'Your request is on its way.' })).toBeInTheDocument()
+  })
+
+  it('shows the pending request and cancels it only after confirmation', async () => {
+    mocks.getPendingFamilyDoctorRequest.mockResolvedValue({ data: pendingRequest })
+    mocks.cancelFamilyDoctorRequest.mockResolvedValue({ data: { ...pendingRequest, status: 'Cancelled' } })
+    page()
+    expect(await screen.findByRole('heading', { name: 'Dr. Synthetic Wijesinghe' })).toBeInTheDocument()
+    expect(mocks.getDoctorDirectory).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel request' }))
+    expect(mocks.cancelFamilyDoctorRequest).not.toHaveBeenCalled()
+    const dialog = screen.getByRole('dialog')
+    fireEvent.click(Array.from(dialog.querySelectorAll('button')).find((button) => button.textContent === 'Cancel request')!)
+    await waitFor(() => expect(mocks.cancelFamilyDoctorRequest).toHaveBeenCalledWith('synthetic-family', 'synthetic-request'))
+    expect(await screen.findByRole('heading', { name: 'Find a doctor your family can rely on.' })).toBeInTheDocument()
+  })
+
+  it('keeps the directory collapsed for an assigned family and carries the chosen slot to booking', async () => {
+    mocks.getFamilyDoctor.mockResolvedValue({ data: { id: 'synthetic-doctor', displayName: 'Synthetic Doctor', specialty: 'Family Medicine' } })
+    page()
+    const slot = await screen.findByRole('button', { name: /9:00\s*(AM|am)/ })
+    expect(mocks.getDoctorDirectory).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Request appointment' })).toBeDisabled()
+    fireEvent.click(slot)
+    expect(screen.getByRole('link', { name: 'Request appointment' }).getAttribute('href')).toContain('slot=2026-10-06T03%3A30%3A00Z')
+    fireEvent.click(screen.getByRole('button', { name: /Explore directory/ }))
+    expect(await screen.findByRole('button', { name: 'Request change to Dr. Synthetic Wijesinghe' })).toBeInTheDocument()
+  })
+
+  it('does not offer request, change or cancel controls to an adult member', async () => {
+    mocks.role = 'ADULT_MEMBER'
+    mocks.getPendingFamilyDoctorRequest.mockResolvedValue({ data: pendingRequest })
+    page()
+    expect(await screen.findByRole('heading', { name: 'Your request is on its way.' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Cancel request' })).not.toBeInTheDocument()
+    expect(mocks.getDoctorDirectory).not.toHaveBeenCalled()
   })
 })
