@@ -58,16 +58,20 @@ export function AgentOutputCard({ title, raw, empty, icon, tag, caption, trace, 
       ) : entries.length === 0 ? (
         <p className="care-caption">{empty}</p>
       ) : (
-        <dl className="approval-facts">
+        <div className="approval-sections">
           {entries.map((entry) => (
-            <div key={entry.label}>
-              <dt>{entry.label}</dt>
-              {entry.values.map((value, index) => (
-                <dd key={`${entry.label}-${index}`}>{value}</dd>
-              ))}
-            </div>
+            <section className="approval-section" key={entry.label} aria-label={entry.label}>
+              <h4>{entry.label} {entry.values.length > 1 && <span className="approval-count">{entry.values.length}</span>}</h4>
+              {entry.values.length === 1 ? <p>{entry.values[0]}</p> : (
+                <ul>
+                  {entry.values.map((value, index) => (
+                    <li key={`${entry.label}-${index}`}>{value}</li>
+                  ))}
+                </ul>
+              )}
+            </section>
           ))}
-        </dl>
+        </div>
       )}
       {caption && <p className="care-caption">{caption}</p>}
     </article>

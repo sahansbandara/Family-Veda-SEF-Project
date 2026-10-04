@@ -670,3 +670,27 @@ button.approval-vital strong small { font-size: 0.75rem; font-weight: 500; }
   button.approval-vital { transition: none; }
   button.approval-vital:hover { transform: none; }
 }
+
+/* AI analysis: one agent per row, each finding group in its own box. */
+.approval-grid--stack { grid-template-columns: 1fr; }
+.approval-sections { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+.approval-section { display: grid; align-content: start; gap: 8px; padding: 12px 14px; border: 1px solid var(--care-line); border-radius: 10px; background: var(--surface-subtle); min-width: 0; overflow-wrap: anywhere; }
+.approval-section h4 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 0.78rem; font-weight: 700; color: var(--primary); }
+.approval-section p, .approval-section li { margin: 0; font-size: 0.86rem; line-height: 1.5; }
+.approval-section ul { display: grid; gap: 6px; margin: 0; padding-left: 18px; }
+.approval-section .approval-count { font-size: 0.68rem; }
+
+/* Vital icons, range colours and patient details. */
+.approval-vital__icon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0; color: var(--primary); background: color-mix(in srgb, var(--primary) 16%, transparent); }
+.approval-vital__icon svg { width: 18px; height: 18px; }
+.approval-vital__icon--heart { color: var(--danger); background: color-mix(in srgb, var(--danger) 16%, transparent); }
+.approval-vital__icon--temperature { color: var(--warning); background: color-mix(in srgb, var(--warning) 16%, transparent); }
+.approval-vital__icon--weight { color: var(--agent); background: color-mix(in srgb, var(--agent) 16%, transparent); }
+.approval-chip { gap: 4px; }
+.approval-chip--high { color: var(--danger); background: color-mix(in srgb, var(--danger) 14%, transparent); }
+.approval-trend--stable { color: var(--success); }
+.approval-trend--rising, .approval-trend--falling { color: var(--warning); }
+.approval-snapshot__details { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.approval-snapshot__details > div { display: flex; align-items: baseline; gap: 6px; padding: 3px 10px; border: 1px solid var(--care-line); border-radius: 999px; background: var(--surface-subtle); }
+.approval-snapshot__details dt { font-size: 0.68rem; color: var(--care-muted); }
+.approval-snapshot__details dd { margin: 0; font-size: 0.8rem; font-weight: 650; }

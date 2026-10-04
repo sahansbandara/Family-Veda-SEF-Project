@@ -470,7 +470,8 @@ class _VitalsTabState extends State<VitalsTab> {
                     color: switch (series.latest.range) {
                       LabRange.within => palette.success,
                       LabRange.unavailable => palette.muted,
-                      _ => palette.warning,
+                      LabRange.above => palette.danger,
+                      LabRange.below => palette.warning,
                     },
                   ),
                   Text(

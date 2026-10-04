@@ -4,6 +4,7 @@
 import { AiBadge } from '../../components/shared/AiBadge'
 import { StatusBadge } from '../../components/shared/StatusBadge'
 import type { CaseReviewDto, MemberWorkspaceDto } from '../../services/apiClient'
+import { roleLabel } from './familyWorkspace'
 import { caseInitials, queueDateTime, shortRef, statusLabel } from './approvalReview'
 
 type Props = { review: CaseReviewDto; submittedAt?: string; failedChecks: number; workspace: MemberWorkspaceDto | null }
@@ -12,12 +13,14 @@ export function ApprovalPatientSnapshot({ review, submittedAt, failedChecks, wor
   const episode = review.submittedEpisode?.memberId === review.memberId ? review.submittedEpisode : null
   const symptoms = episode?.symptoms.map((symptom) => statusLabel(symptom).replaceAll('_', ' ')).join(', ')
   const days = episode && Number.isInteger(episode.durationDays) && episode.durationDays >= 0 ? episode.durationDays : null
-  const identity = [
-    workspace?.ageYears != null ? `${workspace.ageYears} years` : null,
-    workspace?.sexForClinicalReference ?? null,
-    review.familyName ?? null,
-    `Case ${shortRef(review)}`,
-  ].filter(Boolean)
+  const pending = workspace ? 'Not recorded' : '…'
+  const details: Array<[string, string]> = [
+    ['Age', workspace?.ageYears != null ? `${workspace.ageYears} years` : pending],
+    ['Sex', workspace?.sexForClinicalReference ?? pending],
+    ['Family', review.familyName ?? 'Not shown'],
+    ['Role', workspace ? roleLabel(workspace.role) : '…'],
+    ['Case', shortRef(review)],
+  ]
   const expires = workspace?.accessExpiresAt ? `Access until ${queueDateTime(workspace.accessExpiresAt)}` : null
 
   return (
@@ -27,7 +30,11 @@ export function ApprovalPatientSnapshot({ review, submittedAt, failedChecks, wor
           <span className="approval-avatar approval-avatar--lg" aria-hidden="true">{caseInitials(review)}</span>
           <div>
             <h2 aria-label={`Review case ${review.id}`}>{review.memberDisplayName || `Case ${shortRef(review)}`}</h2>
-            <p className="approval-snapshot__identity">{identity.join(' · ')}</p>
+            <dl className="approval-snapshot__details" aria-label="Patient details">
+              {details.map(([label, value]) => (
+                <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
+              ))}
+            </dl>
             <p className="care-caption">Submitted {queueDateTime(submittedAt)} · Identity is shown under your active case grant.</p>
           </div>
         </div>

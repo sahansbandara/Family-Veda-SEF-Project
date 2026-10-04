@@ -25,6 +25,23 @@ export const statusText: Record<RangeStatus, string> = {
 export const statusTone: Record<RangeStatus, 'ok' | 'warn' | 'muted'> = {
   WithinRange: 'ok', AboveRange: 'warn', BelowRange: 'warn', RangeUnavailable: 'muted',
 }
+/** Approval-desk chip colour: green inside the interval, amber below it, red above it. */
+export const chipTone: Record<RangeStatus, 'ok' | 'warn' | 'high' | 'muted'> = {
+  WithinRange: 'ok', BelowRange: 'warn', AboveRange: 'high', RangeUnavailable: 'muted',
+}
+export const chipMark: Record<RangeStatus, string> = { WithinRange: '✓', BelowRange: '↓', AboveRange: '↑', RangeUnavailable: '–' }
+
+export type VitalIcon = 'heart' | 'pressure' | 'weight' | 'temperature' | 'oxygen' | 'breath' | 'generic'
+export function vitalIcon(key: string): VitalIcon {
+  const type = key.split('|')[0]
+  if (type === 'heart_rate') return 'heart'
+  if (type.startsWith('blood_pressure')) return 'pressure'
+  if (type === 'weight' || type === 'bmi' || type === 'height') return 'weight'
+  if (type === 'temperature') return 'temperature'
+  if (type === 'oxygen_saturation') return 'oxygen'
+  if (type === 'respiratory_rate') return 'breath'
+  return 'generic'
+}
 export const trendText: Record<VitalTrend, string> = {
   Rising: 'Rising', Falling: 'Falling', Stable: 'Stable', NotEnoughReadings: 'First reading',
 }
