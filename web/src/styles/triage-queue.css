@@ -406,3 +406,11 @@
     transition: none;
   }
 }
+
+/* Claim and acknowledge feedback stays in view wherever the doctor has scrolled. */
+.triage-toast { position: fixed; left: 50%; bottom: 20px; z-index: 60; transform: translateX(-50%); width: min(720px, calc(100vw - 32px)); justify-content: space-between; flex-wrap: nowrap; border: 1px solid var(--care-line); box-shadow: 0 14px 40px rgb(0 0 0 / 35%); }
+.triage-toast span { min-width: 0; overflow-wrap: anywhere; }
+.triage-toast .button { flex-shrink: 0; }
+@media (max-width: 600px) {
+  .triage-toast { flex-wrap: wrap; bottom: 12px; }
+}
