@@ -76,6 +76,20 @@ class DoctorQueueCase {
     return id.length <= 8 ? id : id.substring(0, 8);
   }
 
+  /// The patient's name when the grant releases it, otherwise the case number.
+  String get title {
+    final name = memberDisplayName;
+    return name == null || name.isEmpty ? 'Case $reference' : name;
+  }
+
+  /// "Family · Case 0001" under a released name; null for an anonymous pool case.
+  String? get caseLine {
+    final name = memberDisplayName;
+    if (name == null || name.isEmpty) return null;
+    final family = familyName;
+    return '${family == null || family.isEmpty ? '' : '$family · '}Case $reference';
+  }
+
   /// "Patient · Family" for granted cases, null when no identity was released.
   String? get identityLabel {
     final name = memberDisplayName;

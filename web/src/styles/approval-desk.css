@@ -694,3 +694,14 @@ button.approval-vital strong small { font-size: 0.75rem; font-weight: 500; }
 .approval-snapshot__details > div { display: flex; align-items: baseline; gap: 6px; padding: 3px 10px; border: 1px solid var(--care-line); border-radius: 999px; background: var(--surface-subtle); }
 .approval-snapshot__details dt { font-size: 0.68rem; color: var(--care-muted); }
 .approval-snapshot__details dd { margin: 0; font-size: 0.8rem; font-weight: 650; }
+
+/* AI analysis sub-sections: one per row, with a heading band that sets each apart. */
+.approval-sections { grid-template-columns: 1fr; gap: 12px; }
+.approval-section { gap: 0; padding: 0; overflow: hidden; border-left: 3px solid var(--primary); }
+.approval-section h4 { padding: 9px 14px; font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; background: color-mix(in srgb, var(--primary) 12%, transparent); border-bottom: 1px solid var(--care-line); }
+.approval-section > p, .approval-section > ul { padding: 12px 14px; }
+.approval-section > ul { padding-left: 32px; }
+.approval-section--attention { border-left-color: var(--warning); }
+.approval-section--attention h4 { color: var(--warning); background: color-mix(in srgb, var(--warning) 14%, transparent); }
+.approval-section--muted { border-left-color: var(--care-muted); }
+.approval-section--muted h4 { color: var(--care-muted); background: color-mix(in srgb, var(--care-muted) 12%, transparent); }
