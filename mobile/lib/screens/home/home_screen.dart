@@ -13,6 +13,7 @@ import 'package:family_veda/providers/notifications_provider.dart';
 import 'package:family_veda/providers/records_provider.dart';
 import 'package:family_veda/theme/app_theme.dart';
 import 'package:family_veda/theme/glass.dart';
+import 'package:family_veda/widgets/shared/brand_mark.dart';
 import 'package:family_veda/widgets/family/incoming_invitations_section.dart';
 import 'package:family_veda/widgets/family/head_dashboard_section.dart';
 import 'package:flutter/material.dart';
@@ -376,33 +377,7 @@ class HomeScreen extends ConsumerWidget {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    isDark ? AppColors.primaryDark : AppColors.primary,
-                    isDark ? AppColors.primaryLumDark : AppColors.primaryLum,
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(9),
-                boxShadow: [
-                  BoxShadow(
-                    color: (isDark ? AppColors.primaryDark : AppColors.primary)
-                        .withValues(alpha: 0.25),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.spa_rounded,
-                color: Colors.white,
-                size: 19,
-              ),
-            ),
+            const BrandMark(size: 34),
             const SizedBox(width: 9),
             const Text(
               'Family Veda',
