@@ -1560,124 +1560,7 @@
   border: 1px solid color-mix(in srgb, var(--muted) 24%, transparent);
 }
 
-/* --- Records Search & Filter Toolbar --- */
-.records-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 14px;
-  margin-bottom: 20px;
-  padding: 14px 18px;
-  background: var(--care-surface);
-  border: 1px solid var(--care-line);
-  border-radius: 12px;
-}
-.records-toolbar .field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 0;
-}
-.records-toolbar .field > span {
-  font-size: 0.76rem;
-  font-weight: 650;
-  color: var(--care-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.records-toolbar input,
-.records-toolbar select {
-  min-height: 40px;
-  height: 40px;
-  padding: 6px 12px;
-  font-size: 0.85rem;
-  border-radius: 8px;
-  border: 1px solid var(--care-line);
-  background: var(--surface);
-}
-.records-search-field {
-  flex: 1 1 260px;
-}
-.records-filter-field,
-.records-sort-field {
-  flex: 0 1 180px;
-}
-
-/* --- Records Table Clean Alignment --- */
-.records-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.records-table th {
-  padding: 12px 14px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--care-muted);
-  background: var(--care-soft);
-  border-bottom: 1.5px solid var(--care-line);
-  vertical-align: middle;
-}
-.records-table td {
-  padding: 14px;
-  vertical-align: top;
-  border-bottom: 1px solid var(--care-line);
-}
-.records-table tbody tr:hover {
-  background: color-mix(in srgb, var(--primary) 3%, var(--care-surface));
-}
-.th-title {
-  width: 18%;
-  min-width: 130px;
-}
-.th-type {
-  width: 12%;
-  min-width: 100px;
-}
-.th-date {
-  width: 12%;
-  min-width: 110px;
-  white-space: nowrap;
-}
-.th-summary {
-  width: 36%;
-  min-width: 240px;
-}
-.th-actions {
-  width: 11%;
-  min-width: 140px;
-  white-space: nowrap;
-  text-align: right;
-}
-.th-sharing {
-  width: 11%;
-  min-width: 140px;
-  white-space: nowrap;
-  text-align: right;
-}
-.record-title-cell {
-  vertical-align: top;
-}
-.record-title {
-  font-size: 0.92rem;
-  font-weight: 650;
-  color: var(--text-heading);
-  display: block;
-  margin-top: 3px;
-  line-height: 1.35;
-}
-.record-type-cell {
-  vertical-align: top;
-  white-space: nowrap;
-}
-.record-type-cell .type-badge {
-  margin-top: 2px;
-}
-.record-date-cell {
-  vertical-align: top;
-  white-space: nowrap;
-}
+/* --- Records Table Actions & Date --- */
 .record-date-pill {
   display: inline-flex;
   align-items: center;
@@ -1685,7 +1568,6 @@
   font-size: 0.8rem;
   color: var(--care-muted);
   font-variant-numeric: tabular-nums;
-  margin-top: 3px;
 }
 .record-date-pill .meta-icon {
   width: 13px;
@@ -1693,40 +1575,10 @@
   stroke-width: 2;
   opacity: 0.75;
 }
-.record-summary-cell {
-  vertical-align: top;
-}
 .record-actions-cell {
-  vertical-align: top;
-  text-align: right;
-  white-space: nowrap;
-}
-.record-actions-group {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 6px;
-  flex-wrap: nowrap;
-  margin-top: 1px;
-}
-.record-sharing-cell {
-  vertical-align: top;
-  text-align: right;
-  white-space: nowrap;
-}
-.record-actions-cell .button,
-.record-sharing-cell .button {
-  min-height: 32px !important;
-  height: 32px !important;
-  padding: 4px 10px !important;
-  font-size: 0.76rem !important;
-  border-radius: 7px !important;
-  font-weight: 600 !important;
-  white-space: nowrap !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 5px !important;
-  box-shadow: none !important;
 }
 .button--edit {
   display: inline-flex;
@@ -1746,9 +1598,6 @@
   border-color: #dc2626;
   color: #b91c1c;
 }
-.button--share {
-  margin-top: 1px;
-}
 .button--share-active {
   display: inline-flex;
   align-items: center;
@@ -1763,5 +1612,4 @@
   stroke-width: 2.2;
   flex-shrink: 0;
 }
-
 

@@ -1123,17 +1123,16 @@ function RecordsPanel(props: RecordsPanelProps) {
           </div>
         </form>
       )}
-      <div className="records-toolbar">
-        <label className="field records-search-field">
+      <div className="care-actions">
+        <label className="field">
           <span>Search records</span>
           <input
             type="search"
             value={props.search}
             onChange={(event) => props.onSearch(event.target.value)}
-            placeholder="Search by title or summary..."
           />
         </label>
-        <label className="field records-filter-field">
+        <label className="field">
           <span>Record type</span>
           <select value={props.filter} onChange={(event) => props.onFilter(event.target.value)}>
             <option value="ALL">All</option>
@@ -1142,7 +1141,7 @@ function RecordsPanel(props: RecordsPanelProps) {
             ))}
           </select>
         </label>
-        <label className="field records-sort-field">
+        <label className="field">
           <span>Sort by</span>
           <select
             value={props.sort}
@@ -1159,29 +1158,30 @@ function RecordsPanel(props: RecordsPanelProps) {
         </div>
       ) : (
         <div className="table-scroll">
-          <table className="records-table">
+          <table>
             <thead>
               <tr>
-                <th className="th-title">Title</th>
-                <th className="th-type">Type</th>
-                <th className="th-date">Date</th>
-                <th className="th-summary">Summary</th>
-                {!props.isSharedView && <th className="th-actions">Actions</th>}
-                {props.isOwnProfile && <th className="th-sharing">Family Head</th>}
+                <th>Title</th>
+                <th>Type</th>
+                <th style={{ whiteSpace: 'nowrap' }}>Date</th>
+                <th>Summary</th>
+                {!props.isSharedView && <th>Actions</th>}
+                {props.isOwnProfile && <th>Family Head</th>}
               </tr>
             </thead>
             <tbody>
               {props.records.map((record) => (
                 <tr key={record.id}>
-                  <td className="record-title-cell">
+                  <td>
                     <strong className="record-title">{record.title}</strong>
                   </td>
-                  <td className="record-type-cell">
+                  <td>
                     <span className={`status-badge type-badge type-badge--${record.recordType.toLowerCase()}`}>
+                      <span className="pill-dot"></span>
                       {record.recordType}
                     </span>
                   </td>
-                  <td className="record-date-cell">
+                  <td style={{ whiteSpace: 'nowrap' }} className="record-date-cell">
                     <span className="record-date-pill">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="meta-icon">
                         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -1192,42 +1192,40 @@ function RecordsPanel(props: RecordsPanelProps) {
                       {record.occurredOn}
                     </span>
                   </td>
-                  <td className="record-summary-cell">
+                  <td>
                     <RecordSummaryText summary={record.summary} emptyLabel="No summary recorded" />
                   </td>
                   {!props.isSharedView && (
-                    <td className="record-actions-cell">
-                      <div className="record-actions-group">
-                        <button
-                          type="button"
-                          className="button button--secondary button--sm button--edit"
-                          onClick={() => props.onEdit(record)}
-                        >
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="btn-icon">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                          </svg>
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          className="button button--danger-subtle button--sm button--delete"
-                          onClick={() => void props.onDelete(record.id)}
-                        >
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="btn-icon">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                          </svg>
-                          Delete
-                        </button>
-                      </div>
+                    <td className="care-actions record-actions-cell">
+                      <button
+                        type="button"
+                        className="button button--secondary button--sm button--edit"
+                        onClick={() => props.onEdit(record)}
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="btn-icon">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="button button--danger-subtle button--sm button--delete"
+                        onClick={() => void props.onDelete(record.id)}
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="btn-icon">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        Delete
+                      </button>
                     </td>
                   )}
                   {props.isOwnProfile && (
-                    <td className="record-sharing-cell">
+                    <td>
                       <button
                         type="button"
-                        className={`button button--sm ${record.sharedWithFamilyHead ? 'button--share-active' : 'button--secondary'} button--share`}
+                        className={`button button--sm ${record.sharedWithFamilyHead ? 'button--share-active' : 'button--secondary'}`}
                         aria-pressed={record.sharedWithFamilyHead === true}
                         onClick={() => void props.onToggleSharing(record)}
                       >
@@ -1244,7 +1242,7 @@ function RecordsPanel(props: RecordsPanelProps) {
                             </>
                           )}
                         </svg>
-                        <span>{record.sharedWithFamilyHead ? 'Shared · make private' : 'Private · share'}</span>
+                        {record.sharedWithFamilyHead ? 'Shared · make private' : 'Private · share'}
                       </button>
                     </td>
                   )}
