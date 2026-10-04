@@ -8,6 +8,7 @@
 using System.Text.Json;
 using FamilyVeda.Application.Common;
 using FamilyVeda.Application.Portal;
+using FamilyVeda.Application.Records;
 using FamilyVeda.Domain.Clinical;
 using FamilyVeda.Domain.Common;
 using FamilyVeda.Domain.Identity;
@@ -18,7 +19,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FamilyVeda.Infrastructure.Portal;
 
-public sealed class DoctorWorkspaceService(AppDbContext dbContext, ICurrentUser currentUser) : IDoctorWorkspaceService
+public sealed class DoctorWorkspaceService(AppDbContext dbContext, ICurrentUser currentUser, IExternalReportFileStore? externalStore = null) : IDoctorWorkspaceService
 {
     // ---------- Practice profile ----------
 
@@ -191,10 +192,17 @@ public sealed class DoctorWorkspaceService(AppDbContext dbContext, ICurrentUser 
                 .Select(x => new WorkspaceRecordDto(x.Id, x.RecordType, x.Title, x.Summary, x.OccurredOn)).ToListAsync(cancellationToken);
             var reports = await dbContext.LabReports.AsNoTracking().Include(x => x.Values).Where(x => x.MemberId == memberId)
                 .OrderByDescending(x => x.CollectedAt ?? x.CreatedAt).ToListAsync(cancellationToken);
+            var reportIds = reports.Select(r => r.Id).ToList();
+            var originalFiles = await dbContext.LabReportFiles.AsNoTracking().Where(f => reportIds.Contains(f.LabReportId))
+                .Select(f => new { f.LabReportId, Length = f.Content.Length, f.LabReport!.ContentType, f.LabReport.StoredFileName }).ToListAsync(cancellationToken);
+            var originals = originalFiles.Where(f =>
+                (f.ContentType is "application/pdf" or "image/png" or "image/jpeg") &&
+                (f.Length > 0 || (externalStore?.Owns(f.StoredFileName) ?? false)))
+                .Select(f => f.LabReportId).ToHashSet();
             // Only values the member confirmed are clinical data; unconfirmed OCR output stays out (RULE 4).
             labs = reports.Select(r => new WorkspaceLabReportDto(r.Id, r.OriginalFileName, r.CollectedAt,
                 r.Values.Where(v => v.WasManuallyConfirmed).Select(v => new WorkspaceLabValueDto(v.Analyte, v.Value, v.Unit, v.ReferenceLow, v.ReferenceHigh,
-                    LabRangeClassifier.Classify(v.Value, v.ReferenceLow, v.ReferenceHigh), v.WasManuallyConfirmed)).ToList())).ToList();
+                    LabRangeClassifier.Classify(v.Value, v.ReferenceLow, v.ReferenceHigh), v.WasManuallyConfirmed)).ToList(), originals.Contains(r.Id))).ToList();
         }
         if (vitalsAllowed)
         {
@@ -211,6 +219,50 @@ public sealed class DoctorWorkspaceService(AppDbContext dbContext, ICurrentUser 
         await dbContext.SaveChangesAsync(cancellationToken);
         return new MemberWorkspaceDto(member.Id, member.DisplayName, member.Role.ToString(), family.Id, family.Name,
             true, basis, expiresAt, consented.Select(c => c.ToString()).ToList(), records, labs, vitals, flags, visits, notes);
+    }
+
+    /// <summary>Original bytes are fetched only after the complete doctor access chain passes.</summary>
+    public async Task<LabReportFileDto> GetOriginalReportAsync(Guid memberId, Guid reportId, CancellationToken cancellationToken)
+    {
+        await RequireOriginalReportAccessAsync(memberId, cancellationToken);
+        var file = await dbContext.LabReportFiles.AsNoTracking()
+            .Where(f => f.LabReportId == reportId && f.LabReport!.MemberId == memberId &&
+                (f.LabReport.ContentType == "application/pdf" || f.LabReport.ContentType == "image/png" || f.LabReport.ContentType == "image/jpeg"))
+            .Select(f => new { f.Content, f.LabReport!.ContentType, f.LabReport.StoredFileName })
+            .SingleOrDefaultAsync(cancellationToken) ?? throw new NotFoundException();
+        var content = file.Content;
+        if (content.Length == 0 && externalStore is not null && externalStore.Owns(file.StoredFileName))
+        {
+            try { content = await externalStore.ReadAsync(file.StoredFileName, cancellationToken); }
+            catch (ReportStorageException) { throw new ProcessingException("The original report is temporarily unavailable. Please retry."); }
+        }
+        if (content.Length == 0) throw new NotFoundException();
+        // External reads can take time. Revocation/expiry during a read must prevent release.
+        var consentId = await RequireOriginalReportAccessAsync(memberId, cancellationToken);
+        dbContext.AuditLogs.Add(new AuditLog
+        {
+            ActorUserId = currentUser.UserId, SubjectMemberId = memberId, ConsentRefId = consentId,
+            EventType = "DOCTOR_ORIGINAL_REPORT_READ", ResourceType = "LabReport", ResourceId = reportId,
+            Outcome = "SUCCESS", MetadataJson = "{}"
+        });
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return new LabReportFileDto(content, file.ContentType);
+    }
+
+    private async Task<Guid> RequireOriginalReportAccessAsync(Guid memberId, CancellationToken cancellationToken)
+    {
+        if (currentUser.UserType != UserType.Doctor) throw new ForbiddenException();
+        var doctor = await RequireVerifiedDoctorAsync(cancellationToken);
+        var member = await dbContext.Members.AsNoTracking().SingleOrDefaultAsync(m => m.Id == memberId, cancellationToken)
+            ?? throw new NotFoundException();
+        await RequireAssignmentAsync(doctor.Id, member.FamilyId, cancellationToken);
+        if ((await FindActiveGrantAsync(doctor.Id, memberId, DateTimeOffset.UtcNow, cancellationToken)).Basis is null)
+            throw new NotFoundException();
+        var adult = member.DateOfBirth.AddYears(18) <= DateOnly.FromDateTime(DateTime.UtcNow);
+        var consentId = await dbContext.Consents.AsNoTracking()
+            .Where(c => c.MemberId == memberId && c.Category == ConsentCategory.Conditions && c.Status == ConsentStatus.Granted && !(adult && c.GrantedByGuardian))
+            .Select(c => (Guid?)c.Id).FirstOrDefaultAsync(cancellationToken);
+        return consentId ?? throw new NotFoundException();
     }
 
     // ---------- Clinical notes (append-only) ----------

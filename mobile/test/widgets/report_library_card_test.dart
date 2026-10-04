@@ -5,6 +5,7 @@ import 'package:family_veda/models/lab_report.dart';
 import 'package:family_veda/widgets/records/original_report_preview.dart';
 import 'package:family_veda/widgets/records/report_library_card.dart';
 import 'package:flutter/material.dart';
+import 'package:pdfrx/pdfrx.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const _report = LabReport(
@@ -47,20 +48,20 @@ void main() {
   testWidgets('preview dialog shows the image, and a plain message when loading fails', (tester) async {
     final png = base64Decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
     await tester.pumpWidget(MaterialApp(home: OriginalReportPreviewDialog(fileName: 'synthetic-cbc.png', load: () async => Uint8List.fromList(png))));
-    expect(find.text('Loading original image…'), findsOneWidget);
+    expect(find.text('Loading original report…'), findsOneWidget);
     await tester.pumpAndSettle();
     expect(find.bySemanticsLabel('Original report image: synthetic-cbc.png'), findsOneWidget);
 
     await tester.pumpWidget(MaterialApp(home: OriginalReportPreviewDialog(key: UniqueKey(), fileName: 'synthetic-cbc.png', load: () async => throw Exception('denied'))));
     await tester.pumpAndSettle();
-    expect(find.text('Original image could not be loaded.'), findsOneWidget);
+    expect(find.text('Original report could not be loaded.'), findsOneWidget);
   });
 
-  testWidgets('original preview shows a document notice for a PDF original', (tester) async {
+  testWidgets('original preview renders a PDF original from protected bytes', (tester) async {
     final pdf = Uint8List.fromList(utf8.encode('%PDF-1.4 synthetic'));
     await tester.pumpWidget(MaterialApp(home: OriginalReportPreviewDialog(fileName: 'synthetic.pdf', load: () async => pdf)));
     await tester.pumpAndSettle();
-    expect(find.textContaining('synthetic.pdf is stored as a PDF document'), findsOneWidget);
+    expect(find.byType(PdfViewer), findsOneWidget);
     expect(find.byType(Image), findsNothing);
   });
 }

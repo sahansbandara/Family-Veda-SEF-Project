@@ -275,9 +275,10 @@ String _summary(String? summary) {
 }
 
 class LabsTab extends StatelessWidget {
-  const LabsTab({super.key, required this.reports});
+  const LabsTab({super.key, required this.reports, required this.onViewOriginal});
 
   final List<LabReport>? reports;
+  final Future<void> Function(String reportId, String fileName) onViewOriginal;
 
   @override
   Widget build(BuildContext context) {
@@ -330,6 +331,15 @@ class LabsTab extends StatelessWidget {
                   childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
                   expandedCrossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (report.hasOriginalFile)
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          onPressed: () => onViewOriginal(report.id, report.fileName),
+                          icon: const Icon(Icons.visibility_outlined),
+                          label: const Text('View original report'),
+                        ),
+                      ),
                     if (report.values.isEmpty)
                       Text(
                         'No values confirmed by the member yet.',

@@ -1,9 +1,10 @@
 // Owner: S4 · whole-project waiver (agent/DECISIONS.md 2026-09-28b)
 // Member workspace tabs for member-owned clinical categories: Records, Labs, Vitals.
 // null = not authorised (restricted, no count) · [] = authorised and empty · list = what the API returned.
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import type { MemberWorkspaceDto } from '../../services/apiClient'
+import { OriginalReportDialog } from '../../components/records/OriginalReportDialog'
 import { formatDateTime } from '../family/threePortalUtils'
 import { RecordSummaryText } from '../records/RecordSummaryText'
 import { Empty, Icon, type IconName, Pill, Restricted, Strip } from './familyParts'
@@ -51,7 +52,9 @@ export function RecordsTab({ records }: { records: MemberWorkspaceDto['records']
   )
 }
 
-export function LabsTab({ labReports }: { labReports: MemberWorkspaceDto['labReports'] }) {
+export function LabsTab({ memberId, labReports }: { memberId: string; labReports: MemberWorkspaceDto['labReports'] }) {
+  const [originalReport, setOriginalReport] = useState<NonNullable<MemberWorkspaceDto['labReports']>[number] | null>(null)
+  useEffect(() => { setOriginalReport(null) }, [memberId])
   if (!labReports) return <Restricted what="Lab reports" />
   return (
     <>
@@ -87,10 +90,12 @@ export function LabsTab({ labReports }: { labReports: MemberWorkspaceDto['labRep
                   </tbody>
                 </table>
               )}
+              {report.hasOriginalFile === true && <button type="button" className="button button--secondary button--sm" onClick={() => setOriginalReport(report)}>View original report</button>}
             </article>
           ))}
         </div>
       )}
+      {originalReport && <OriginalReportDialog reportId={originalReport.id} originalFileName={originalReport.fileName} fileUrl={`/doctors/me/members/${memberId}/lab-reports/${originalReport.id}/file`} onClose={() => setOriginalReport(null)} />}
       <Strip>Range status is calculated from the printed reference interval. It is not a diagnosis; clinical interpretation remains with you.</Strip>
     </>
   )

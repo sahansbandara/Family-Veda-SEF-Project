@@ -1,5 +1,6 @@
 // Owner: S4 · Familial Risk & Clinical Approval
 import { useEffect, useState } from 'react'
+import { OriginalReportDialog } from '../../components/records/OriginalReportDialog'
 import { apiClient, type MemberWorkspaceDto } from '../../services/apiClient'
 import { queueDateTime } from './approvalReview'
 
@@ -7,9 +8,10 @@ type EvidenceState = { status: 'loading' | 'error' | 'ready'; data?: MemberWorks
 
 import { IconActivity, IconClipboardList } from './ApprovalIcons'
 
-export function ApprovalSupportingEvidence({ memberId }: { memberId: string }) {
+export function ApprovalSupportingEvidence({ memberId, caseId }: { memberId: string; caseId?: string }) {
   const [state, setState] = useState<EvidenceState>({ status: 'loading' })
   const [reload, setReload] = useState(0)
+  const [originalReport, setOriginalReport] = useState<NonNullable<MemberWorkspaceDto['labReports']>[number] | null>(null)
   useEffect(() => {
     let active = true
     setState({ status: 'loading' })
@@ -18,6 +20,8 @@ export function ApprovalSupportingEvidence({ memberId }: { memberId: string }) {
       .catch(() => { if (active) setState({ status: 'error' }) })
     return () => { active = false }
   }, [memberId, reload])
+
+  useEffect(() => { setOriginalReport(null) }, [caseId, memberId])
 
   function unavailable(category: 'vitals' | 'labReports') {
     if (state.status === 'loading') return <p className="care-caption">Loading authorized records…</p>
@@ -60,7 +64,9 @@ export function ApprovalSupportingEvidence({ memberId }: { memberId: string }) {
         <summary>{report.fileName}</summary>
         <p className="care-caption">{report.collectedAt ? `Collected ${queueDateTime(report.collectedAt)}` : 'Collection date not recorded'}</p>
         {report.values.length ? <ul>{report.values.map((value, index) => <li key={index}>{value.analyte}: {value.value} {value.unit} · Member-confirmed value</li>)}</ul> : <p>No member-confirmed values are available in this report.</p>}
+        {report.hasOriginalFile === true && <button type="button" className="button button--secondary button--sm" onClick={() => setOriginalReport(report)}>View original report</button>}
       </details>) : <p className="care-caption">No supporting reports are available in the authorized records.</p>)}
+      {originalReport && <OriginalReportDialog reportId={originalReport.id} originalFileName={originalReport.fileName} fileUrl={`/doctors/me/members/${memberId}/lab-reports/${originalReport.id}/file`} onClose={() => setOriginalReport(null)} />}
     </article>
   </>
 }
