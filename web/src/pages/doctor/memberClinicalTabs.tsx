@@ -7,6 +7,7 @@ import type { MemberWorkspaceDto } from '../../services/apiClient'
 import { OriginalReportDialog } from '../../components/records/OriginalReportDialog'
 import { formatDateTime } from '../family/threePortalUtils'
 import { RecordSummaryText } from '../records/RecordSummaryText'
+import { changeSummary, statusText, statusTone, trendText } from './approvalVitals'
 import { Empty, Icon, type IconName, Pill, Restricted, Strip } from './familyParts'
 import { groupVitals, rangeLabel, rangeTone, referenceRange, shortDate, type VitalSeries } from './familyWorkspace'
 
@@ -170,6 +171,14 @@ export function VitalsTab({ vitals }: { vitals: MemberWorkspaceDto['vitals'] }) 
               <h3>{series.label}{series.readings.length > 1 ? ' trend' : ''}</h3>
               <span className="dfam-note">{series.readings.length} reading{series.readings.length === 1 ? '' : 's'} · Unit: {series.unit}</span>
             </div>
+            <p className="dfam-note">
+              <Pill tone={statusTone[series.readings[0]!.rangeStatus ?? 'RangeUnavailable']} dot>{statusText[series.readings[0]!.rangeStatus ?? 'RangeUnavailable']}</Pill>{' '}
+              Trend: {trendText[series.readings[0]!.trend ?? 'NotEnoughReadings']} ·{' '}
+              {series.readings[0]!.referenceLow != null && series.readings[0]!.referenceHigh != null
+                ? `Reference ${series.readings[0]!.referenceLow} – ${series.readings[0]!.referenceHigh} ${series.unit}${series.readings[0]!.rangeSource ? ` · ${series.readings[0]!.rangeSource}` : ''}`
+                : 'No reference interval for this measurement or age.'}
+            </p>
+            {series.readings.length > 1 && <p className="dfam-note">{changeSummary(series)}</p>}
             {series.readings.length > 1 ? <TrendChart series={series} /> : <p className="dfam-note">One reading recorded. A trend needs at least two readings of the same measurement and unit.</p>}
             <ul className="dfam-readings" aria-label={`${series.label} readings`}>
               {(showAll ? series.readings : series.readings.slice(0, READINGS_SHOWN)).map((reading, index) => (
@@ -182,7 +191,7 @@ export function VitalsTab({ vitals }: { vitals: MemberWorkspaceDto['vitals'] }) 
               </button>
             )}
           </div>
-          <Strip icon="info">Values are shown as recorded; nothing is inferred or judged. A systolic value on its own is not a complete blood-pressure reading.</Strip>
+          <Strip icon="info">Range and trend labels come from cited reference tables, not AI, and are not a diagnosis. A systolic value on its own is not a complete blood-pressure reading.</Strip>
         </>
       )}
     </>

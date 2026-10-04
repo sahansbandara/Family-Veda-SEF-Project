@@ -3,7 +3,7 @@
 // Doctor-only evidence view for one case: recorded clinical evidence first, every AI output in one tab.
 import { useState } from 'react'
 
-import type { CaseReviewDto } from '../../services/apiClient'
+import type { CaseReviewDto, MemberWorkspaceDto } from '../../services/apiClient'
 import { AgentOutputCard } from './AgentOutputCard'
 import { IconBrain, IconDna, IconStethoscope } from './ApprovalIcons'
 import { findTrace, reviewReasons, statusLabel } from './approvalReview'
@@ -17,7 +17,7 @@ const tabs: Array<{ id: TabId; label: string }> = [
   { id: 'ai', label: 'AI analysis' },
 ]
 
-export function ApprovalEvidenceTabs({ review }: { review: CaseReviewDto }) {
+export function ApprovalEvidenceTabs({ review, onWorkspace }: { review: CaseReviewDto; onWorkspace?: (workspace: MemberWorkspaceDto | null) => void }) {
   const [tab, setTab] = useState<TabId>('overview')
   const safetyTrace = findTrace(review.traces, 'safety')
 
@@ -51,7 +51,7 @@ export function ApprovalEvidenceTabs({ review }: { review: CaseReviewDto }) {
                 ))}
               </ul>
             </article>
-            <ApprovalSupportingEvidence key={review.id} memberId={review.memberId} caseId={review.id} />
+            <ApprovalSupportingEvidence key={review.id} memberId={review.memberId} caseId={review.id} onWorkspace={onWorkspace} />
           </div>
         )}
 
