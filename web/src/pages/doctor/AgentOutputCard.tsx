@@ -21,6 +21,14 @@ type AgentOutputCardProps = {
   draft?: boolean
 }
 
+/** Visual weight only, chosen from the section label: what needs attention, what is missing, what is on record. */
+function sectionTone(label: string) {
+  const text = label.toLowerCase()
+  if (text.includes('findings') || text.includes('screening')) return 'attention'
+  if (text.includes('missing')) return 'muted'
+  return 'record'
+}
+
 export function AgentOutputCard({ title, raw, empty, icon, tag, caption, trace, plain, wide, draft }: AgentOutputCardProps) {
   const [view, setView] = useState<View>('plain')
   const headingId = useId()
@@ -60,7 +68,7 @@ export function AgentOutputCard({ title, raw, empty, icon, tag, caption, trace, 
       ) : (
         <div className="approval-sections">
           {entries.map((entry) => (
-            <section className="approval-section" key={entry.label} aria-label={entry.label}>
+            <section className={`approval-section approval-section--${sectionTone(entry.label)}`} key={entry.label} aria-label={entry.label}>
               <h4>{entry.label} {entry.values.length > 1 && <span className="approval-count">{entry.values.length}</span>}</h4>
               {entry.values.length === 1 ? <p>{entry.values[0]}</p> : (
                 <ul>

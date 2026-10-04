@@ -127,7 +127,7 @@ class QueueCaseCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Case ${item.reference}',
+                item.title,
                 style: TextStyle(
                   color: palette.heading,
                   fontSize: 16,
@@ -136,7 +136,7 @@ class QueueCaseCard extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                '${item.identityLabel == null ? '' : '${item.identityLabel}\n'}'
+                '${item.caseLine == null ? '' : '${item.caseLine}\n'}'
                 'Submitted ${formatSubmitted(item.createdAt)}'
                 '${item.claimable ? ' · Shared review pool' : ''}',
                 style: TextStyle(color: palette.muted, fontSize: 13),
@@ -215,7 +215,7 @@ class QueueCaseSheet extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Case ${item.reference}',
+                    item.title,
                     style: TextStyle(
                       color: palette.heading,
                       fontSize: 20,
@@ -223,7 +223,7 @@ class QueueCaseSheet extends ConsumerWidget {
                     ),
                   ),
                   Text(
-                    '${item.identityLabel == null ? '' : '${item.identityLabel}\n'}'
+                    '${item.caseLine == null ? '' : '${item.caseLine}\n'}'
                     'Submitted ${formatSubmitted(item.createdAt)}',
                     style: body,
                   ),
