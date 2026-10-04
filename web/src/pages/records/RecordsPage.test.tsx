@@ -97,6 +97,27 @@ describe('RecordsPage', () => {
     mocks.post.mockReset()
     mocks.put.mockReset()
   })
+  it('uses names-only roster adult options while loading only shared adult reports without vitals or write controls', async () => {
+    mocks.get.mockImplementation((url: string) => {
+      if (url === '/families/me') return Promise.resolve({ data: { id: 'synthetic-family-01', name: 'Synthetic Family', members: [member, minor] } })
+      if (url === '/members/me') return Promise.resolve({ data: member })
+      if (url === '/families/synthetic-family-01/roster') return Promise.resolve({ data: [member, minor, { id: adult.id, displayName: adult.displayName, role: adult.role }] })
+      if (url.endsWith('/records')) return Promise.resolve({ data: { items: [], page: 1, pageSize: 20, totalCount: 0, totalPages: 1 } })
+      if (url === `/members/${adult.id}/lab-reports`) return Promise.resolve({ data: [{ id: 'synthetic-roster-shared', memberId: adult.id, originalFileName: 'synthetic-roster-shared.pdf', ocrStatus: 'Completed', sharedWithFamilyHead: true, hasOriginalFile: false }] })
+      if (url.endsWith('/lab-reports') || url.endsWith('/vitals') || url.endsWith('/vitals/trends')) return Promise.resolve({ data: [] })
+      return Promise.reject(new Error(`Unexpected ${url}`))
+    })
+    render(<MemoryRouter><RecordsPage /></MemoryRouter>)
+    await screen.findByText('No lab reports')
+    fireEvent.change(screen.getByLabelText('Active profile'), { target: { value: adult.id } })
+    expect(await screen.findByText('synthetic-roster-shared.pdf')).toBeInTheDocument()
+    expect(mocks.get).toHaveBeenCalledWith('/families/synthetic-family-01/roster')
+    expect(mocks.get).toHaveBeenCalledWith(`/members/${adult.id}/lab-reports`)
+    expect(mocks.get.mock.calls.some(([url]) => String(url).startsWith(`/members/${adult.id}/vitals`))).toBe(false)
+    expect(mocks.get).not.toHaveBeenCalledWith('/lab-reports/synthetic-roster-shared')
+    expect(screen.queryByRole('button', { name: /Upload report|Add record|Share with Family Head|Check values/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('tab', { name: 'Vitals' })).not.toBeInTheDocument()
+  })
 
   it('defaults to Labs and opens the PNG/JPEG/PDF upload form from the query link', async () => {
     stubLists()

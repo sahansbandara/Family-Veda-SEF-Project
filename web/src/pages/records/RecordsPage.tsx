@@ -3,7 +3,8 @@
 import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { OriginalReportPreview } from '../../components/records/OriginalReportPreview'
-import { ReportLibraryCard } from '../../components/records/ReportLibraryCard'
+import { ReportLibrary } from '../../components/records/ReportLibrary'
+import { ReportPreviewDialog } from '../../components/records/ReportPreviewDialog'
 import { RecordedRangeVisual } from '../../components/records/RecordedRangeVisual'
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
 import { StatusBadge } from '../../components/shared/StatusBadge'
@@ -17,6 +18,7 @@ import {
   type LabValueDto,
   type MemberDto,
   type PagedResult,
+  type RosterMemberDto,
   type VitalDto,
   type VitalTrendDto,
 } from '../../services/apiClient'
@@ -28,6 +30,8 @@ import {
   parseRecordSummary,
   todayLocalDate,
 } from './recordSummaryMeta'
+
+type RecordProfile = Pick<MemberDto, 'id' | 'role' | 'displayName'>
 
 type RecordsTab = 'records' | 'vitals' | 'labs'
 type LoadStatus = 'loading' | 'ready' | 'error'
@@ -65,7 +69,7 @@ export function RecordsPage() {
   const initialTab: RecordsTab =
     requestedTab === 'records' || requestedTab === 'vitals' || requestedTab === 'labs' ? requestedTab : 'labs'
   const [tab, setTab] = useState<RecordsTab>(initialTab)
-  const [members, setMembers] = useState<MemberDto[]>([])
+  const [members, setMembers] = useState<RecordProfile[]>([])
   const [memberId, setMemberId] = useState('')
   const [myMemberId, setMyMemberId] = useState('')
   const [isHead, setIsHead] = useState(false)
@@ -78,6 +82,8 @@ export function RecordsPage() {
   const [editingRecord, setEditingRecord] = useState<HealthRecordDto | null>(null)
   const [showRecordForm, setShowRecordForm] = useState(false)
   const [showUploadForm, setShowUploadForm] = useState(uploadRequested)
+  const [uploading, setUploading] = useState(false)
+  const [uploadFileName, setUploadFileName] = useState('')
   const [assignedDoctor, setAssignedDoctor] = useState<DoctorSummaryDto | null>(null)
   const [availableDoctors, setAvailableDoctors] = useState<DoctorSummaryDto[]>([])
   const [status, setStatus] = useState<LoadStatus>('loading')
@@ -104,9 +110,20 @@ export function RecordsPage() {
       if (bootstrapSequence.current !== request) return
       const head = mine.data.role === 'Head'
       activeMemberId.current = mine.data.id
-      setMembers(
-        family.data.members.filter((item) => item.id === mine.data.id || item.role === 'MinorMember' || head),
-      )
+      // The clinical family DTO deliberately excludes other adults. Use the names-only roster
+      // to offer their explicitly shared records without requesting DOB or private health data.
+      let profiles: RecordProfile[] = family.data.members.filter((item) => item.id === mine.data.id || (head && item.role === 'MinorMember'))
+      if (head) {
+        try {
+          const { data: roster } = await apiClient.get<RosterMemberDto[]>(`/families/${family.data.id}/roster`)
+          profiles = roster.map((item) => ({ id: item.id, displayName: item.displayName, role: item.role }))
+        } catch {
+          // Existing authorised profiles remain usable when roster lookup is unavailable.
+          profiles = family.data.members
+        }
+      }
+      if (bootstrapSequence.current !== request) return
+      setMembers(profiles)
       setMemberId(mine.data.id)
       setMyMemberId(mine.data.id)
       setIsHead(head)
@@ -204,6 +221,7 @@ export function RecordsPage() {
     setEditingRecord(null)
     setShowRecordForm(false)
     setShowUploadForm(false)
+    setUploadFileName('')
     setPage(1)
     setMessage('')
   }
@@ -289,6 +307,9 @@ export function RecordsPage() {
     const targetMemberId = memberId
     const formElement = event.currentTarget
     const form = new FormData(formElement)
+    if (uploading) return
+    const shareAfterUpload = isOwnProfile && form.get('visibility') === 'shared'
+    form.delete('visibility')
     const file = form.get('file')
     if (
       !(file instanceof File) ||
@@ -299,20 +320,29 @@ export function RecordsPage() {
       setMessage('Choose a PNG, JPEG or PDF report up to 10 MB.')
       return
     }
+    setUploading(true)
     try {
       const { data } = await apiClient.post<LabReportDto>(`/members/${memberId}/lab-reports`, form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
-      await apiClient.post(`/lab-reports/${data.id}/extract`).catch(() => undefined)
+      let sharingFailed = false
+      if (shareAfterUpload) {
+        try { await apiClient.patch(`/lab-reports/${data.id}/sharing`, { sharedWithFamilyHead: true }) }
+        catch { sharingFailed = true }
+      }
+      let extractionStarted = true
+      try { await apiClient.post(`/lab-reports/${data.id}/extract`) }
+      catch { extractionStarted = false }
       if (activeMemberId.current !== targetMemberId) return
       formElement.reset()
       setShowUploadForm(false)
-      setMessage('Report uploaded. Extraction is in progress; check the values when they are ready.')
+      setUploadFileName('')
+      setMessage(`Report uploaded.${sharingFailed ? ' Could not confirm sharing. Check the visibility shown in the library before retrying.' : shareAfterUpload ? ' Shared with Family Head.' : ' Kept private.'} ${extractionStarted ? 'Extraction is in progress; check the values when they are ready.' : 'Reading report values could not be started. Open View status to retry.'}`)
       await loadRecords()
     } catch {
       if (activeMemberId.current === targetMemberId)
         setMessage('Report upload failed. Verify the PNG, JPEG or PDF file and 10 MB limit.')
-    }
+    } finally { setUploading(false) }
   }
 
   async function toggleRecordSharing(record: HealthRecordDto) {
@@ -431,6 +461,7 @@ export function RecordsPage() {
 
   return (
     <div className="page-stack care-workspace">
+      {originalReport?.memberId === memberId && <ReportPreviewDialog report={originalReport} onClose={() => setOriginalReport(null)} />}
       <header className="care-header">
         <div>
           <p className="care-eyebrow">{isHead ? 'Family health records' : 'Your health records'}</p>
@@ -570,7 +601,7 @@ export function RecordsPage() {
             </div>
           )}
           {activeTab === 'labs' && (
-            <section className="care-split">
+            <section className="care-report-workspace">
               <div className="care-panel care-report-list">
                 <div className="care-panel-heading">
                   <div>
@@ -588,18 +619,24 @@ export function RecordsPage() {
                   )}
                 </div>
                 {showUploadForm && (
-                  <form className="care-form" onSubmit={(event) => void upload(event)}>
-                    <label className="field">
+                  <form className="care-form care-upload" onSubmit={(event) => void upload(event)}>
+                    <label className="field care-upload__drop">
+                      <span className="care-upload__symbol" aria-hidden="true">↑</span>
+                      <strong>{uploadFileName || 'Choose a report to upload'}</strong>
                       <span>Report file (PNG, JPEG or PDF)</span>
-                      <input name="file" type="file" accept="image/png,image/jpeg,application/pdf" required />
+                      <input aria-label="Report file (PNG, JPEG or PDF)" name="file" type="file" accept="image/png,image/jpeg,application/pdf" disabled={uploading} onChange={(event) => setUploadFileName(event.target.files?.[0]?.name ?? '')} required />
                     </label>
                     <label className="field">
                       <span>Collected at (optional)</span>
                       <input name="collectedAt" type="datetime-local" />
                     </label>
+                    {isOwnProfile && <fieldset className="care-sharing-choice"><legend>Who can see this report?</legend>
+                      <label><input type="radio" name="visibility" value="private" defaultChecked disabled={uploading} /><span><b>Private</b><small>Hidden from Family Head. Your doctor needs consent and a valid access grant.</small></span></label>
+                      <label><input type="radio" name="visibility" value="shared" disabled={uploading} /><span><b>Shared with Family Head</b><small>Visible to your family head. Never public on the internet.</small></span></label>
+                    </fieldset>}
                     <div className="care-actions">
-                      <button type="submit" className="button button--primary">
-                        Upload report
+                      <button type="submit" className="button button--primary" disabled={uploading}>
+                        {uploading ? 'Uploading…' : 'Upload report'}
                       </button>
                       <button
                         type="button"
@@ -624,31 +661,15 @@ export function RecordsPage() {
                     />
                   </div>
                 ) : (
-                  <div className="report-grid">
-                    {reports.map((report) => (
-                      <ReportLibraryCard
-                        key={report.id}
-                        report={report}
-                        ownerName={
-                          members.find((member) => member.id === report.memberId)?.displayName ?? 'Member'
-                        }
-                        canChangeSharing={isOwnProfile}
-                        onToggleSharing={(item) => void toggleReportSharing(item)}
-                        onViewOriginal={(item) => setOriginalReport(item)}
-                        onReview={isSharedView ? undefined : (item) => void openReport(item.id)}
-                        reviewLabel={reportStep(report, selectedReport)}
-                      />
-                    ))}
-                  </div>
+                  <ReportLibrary key={memberId} reports={reports}
+                    ownerName={selectedMember?.displayName ?? 'Member'} canChangeSharing={isOwnProfile}
+                    onToggleSharing={(item) => void toggleReportSharing(item)}
+                    onViewOriginal={(item) => setOriginalReport(item)}
+                    onReview={isSharedView ? undefined : (item) => void openReport(item.id)}
+                    reviewLabel={(report) => reportStep(report, selectedReport)} />
                 )}
               </div>
-              <section className="care-panel care-detail" aria-live="polite">
-                {originalReport?.memberId === memberId && (
-                  <div className="care-panel">
-                    <OriginalReportPreview key={originalReport.id} reportId={originalReport.id} originalFileName={originalReport.originalFileName} hasOriginalFile={originalReport.hasOriginalFile === true} />
-                    <button type="button" className="button button--secondary" onClick={() => setOriginalReport(null)}>Close original image</button>
-                  </div>
-                )}
+              <section className="care-panel care-detail" aria-live="polite" hidden={!selectedReport}>
                 {selectedReport?.memberId !== memberId ? (
                   <div className="care-selection-card care-selection-card--placeholder">
                     <div className="care-placeholder-hero">

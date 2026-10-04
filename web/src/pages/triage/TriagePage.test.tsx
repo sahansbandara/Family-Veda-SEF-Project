@@ -241,9 +241,11 @@ describe('TriagePage', () => {
     ])
     mocks.post
       .mockResolvedValueOnce({ data: { id: 'episode-2' } })
-      .mockResolvedValueOnce({ data: { id: 'case-2' } })
+      .mockResolvedValueOnce({ data: { ...cases[0], id: 'case-2', status: 'Submitted' } })
     page()
     fireEvent.click(await screen.findByRole('button', { name: 'Headache' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
     fireEvent.click(screen.getByRole('button', { name: 'Submit for doctor review' }))
     await waitFor(() => expect(mocks.post).toHaveBeenCalledTimes(2))
     expect(mocks.post).toHaveBeenNthCalledWith(

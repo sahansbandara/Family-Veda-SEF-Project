@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({ get: vi.fn() }))
 vi.mock('../../services/apiClient', () => ({ apiClient: mocks }))
+vi.mock('./PdfReportCanvas', () => ({ PdfReportCanvas: ({ url, label }: { url: string; label: string }) => <canvas aria-label={label} data-source={url} /> }))
 
 import { OriginalReportPreview } from './OriginalReportPreview'
 
@@ -31,7 +32,7 @@ describe('OriginalReportPreview', () => {
     vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:synthetic-pdf'), revokeObjectURL: vi.fn() })
     render(<OriginalReportPreview reportId="report-pdf" originalFileName="synthetic.pdf" hasOriginalFile />)
 
-    expect(await screen.findByLabelText('Original report document: synthetic.pdf')).toHaveAttribute('data', 'blob:synthetic-pdf')
+    expect(await screen.findByLabelText('Original report document: synthetic.pdf')).toHaveAttribute('data-source', 'blob:synthetic-pdf')
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Open PDF' })).toHaveAttribute('href', 'blob:synthetic-pdf')
     expect(screen.getByRole('link', { name: 'Open PDF' })).toHaveAttribute('rel', 'noopener noreferrer')

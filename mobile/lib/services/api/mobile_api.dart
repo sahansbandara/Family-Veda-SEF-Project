@@ -10,14 +10,36 @@ import 'package:dio/dio.dart';
 
 abstract interface class MobileApi {
   Future<List<HealthRecord>> getRecords(String memberId);
-  Future<void> addRecord({required String memberId, required String recordType, required String title, String? summary, required DateTime occurredOn});
-  Future<void> addVital({required String memberId, required String vitalType, required double value, required String unit, required DateTime measuredAt});
-  Future<void> uploadLabReport({required String memberId, required String path});
+  Future<void> addRecord({
+    required String memberId,
+    required String recordType,
+    required String title,
+    String? summary,
+    required DateTime occurredOn,
+  });
+  Future<void> addVital({
+    required String memberId,
+    required String vitalType,
+    required double value,
+    required String unit,
+    required DateTime measuredAt,
+  });
+  Future<void> uploadLabReport({
+    required String memberId,
+    required String path,
+    bool sharedWithFamilyHead = false,
+  });
   Future<List<LabReport>> getLabReports(String memberId);
   Future<Uint8List> getLabReportFile(String reportId);
   Future<String?> getMyMemberId();
-  Future<void> setRecordSharing({required String recordId, required bool shared});
-  Future<void> setLabReportSharing({required String reportId, required bool shared});
+  Future<void> setRecordSharing({
+    required String recordId,
+    required bool shared,
+  });
+  Future<void> setLabReportSharing({
+    required String reportId,
+    required bool shared,
+  });
 }
 
 class DioMobileApi implements MobileApi {
@@ -37,35 +59,92 @@ class DioMobileApi implements MobileApi {
   }
 
   @override
-  Future<void> addRecord({required String memberId, required String recordType, required String title, String? summary, required DateTime occurredOn}) async {
-    await _client.dio.post<void>('/members/$memberId/records', data: {'recordType': recordType, 'title': title.trim(), if (summary != null && summary.trim().isNotEmpty) 'summary': summary.trim(), 'occurredOn': occurredOn.toIso8601String().split('T').first});
+  Future<void> addRecord({
+    required String memberId,
+    required String recordType,
+    required String title,
+    String? summary,
+    required DateTime occurredOn,
+  }) async {
+    await _client.dio.post<void>(
+      '/members/$memberId/records',
+      data: {
+        'recordType': recordType,
+        'title': title.trim(),
+        if (summary != null && summary.trim().isNotEmpty)
+          'summary': summary.trim(),
+        'occurredOn': occurredOn.toIso8601String().split('T').first,
+      },
+    );
   }
 
   @override
-  Future<void> addVital({required String memberId, required String vitalType, required double value, required String unit, required DateTime measuredAt}) async {
-    await _client.dio.post<void>('/members/$memberId/vitals', data: {'vitalType': vitalType.trim(), 'value': value, 'unit': unit.trim(), 'measuredAt': measuredAt.toUtc().toIso8601String()});
+  Future<void> addVital({
+    required String memberId,
+    required String vitalType,
+    required double value,
+    required String unit,
+    required DateTime measuredAt,
+  }) async {
+    await _client.dio.post<void>(
+      '/members/$memberId/vitals',
+      data: {
+        'vitalType': vitalType.trim(),
+        'value': value,
+        'unit': unit.trim(),
+        'measuredAt': measuredAt.toUtc().toIso8601String(),
+      },
+    );
   }
 
   @override
-  Future<void> uploadLabReport({required String memberId, required String path}) async {
+  Future<void> uploadLabReport({
+    required String memberId,
+    required String path,
+    bool sharedWithFamilyHead = false,
+  }) async {
     final fileName = path.split('/').last;
     final form = FormData.fromMap({
-      'file': await MultipartFile.fromFile(path, filename: fileName, contentType: MultipartFile.lookupMediaType(path)),
+      'file': await MultipartFile.fromFile(
+        path,
+        filename: fileName,
+        contentType: MultipartFile.lookupMediaType(path),
+      ),
     });
     final response = await _client.dio.post<Map<String, dynamic>>(
       '/members/$memberId/lab-reports',
       data: form,
     );
     final reportId = response.data?['id'] as String?;
-    if (reportId != null) {
+    if (reportId == null) {
+      throw const FormatException('Missing saved report identifier');
+    }
+    if (sharedWithFamilyHead) {
+      try {
+        await setLabReportSharing(reportId: reportId, shared: true);
+      } on Object {
+        throw const SavedReportUploadException(
+          'Report saved privately. Sharing was not changed. Update it from Health records.',
+        );
+      }
+    }
+    try {
       await _client.dio.post<void>('/lab-reports/$reportId/extract');
+    } on Object {
+      throw const SavedReportUploadException(
+        'Report saved. Extraction could not finish; manual review is required. Do not upload it again.',
+      );
     }
   }
 
   @override
   Future<List<LabReport>> getLabReports(String memberId) async {
-    final response = await _client.dio.get<dynamic>('/members/$memberId/lab-reports');
-    return _listFrom(response.data).map(LabReport.fromJson).toList(growable: false);
+    final response = await _client.dio.get<dynamic>(
+      '/members/$memberId/lab-reports',
+    );
+    return _listFrom(
+      response.data,
+    ).map(LabReport.fromJson).toList(growable: false);
   }
 
   @override
@@ -84,13 +163,25 @@ class DioMobileApi implements MobileApi {
   }
 
   @override
-  Future<void> setRecordSharing({required String recordId, required bool shared}) async {
-    await _client.dio.patch<void>('/records/$recordId/sharing', data: {'sharedWithFamilyHead': shared});
+  Future<void> setRecordSharing({
+    required String recordId,
+    required bool shared,
+  }) async {
+    await _client.dio.patch<void>(
+      '/records/$recordId/sharing',
+      data: {'sharedWithFamilyHead': shared},
+    );
   }
 
   @override
-  Future<void> setLabReportSharing({required String reportId, required bool shared}) async {
-    await _client.dio.patch<void>('/lab-reports/$reportId/sharing', data: {'sharedWithFamilyHead': shared});
+  Future<void> setLabReportSharing({
+    required String reportId,
+    required bool shared,
+  }) async {
+    await _client.dio.patch<void>(
+      '/lab-reports/$reportId/sharing',
+      data: {'sharedWithFamilyHead': shared},
+    );
   }
 }
 
@@ -100,4 +191,9 @@ List<Map<String, dynamic>> _listFrom(dynamic value) {
       : value;
   if (raw is! List) throw const FormatException('Expected a list response');
   return raw.cast<Map<String, dynamic>>();
+}
+
+class SavedReportUploadException implements Exception {
+  const SavedReportUploadException(this.message);
+  final String message;
 }

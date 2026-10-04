@@ -3,11 +3,11 @@
 import '@testing-library/jest-dom/vitest'
 
 import { configureStore } from '@reduxjs/toolkit'
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({
   get: vi.fn(),
@@ -40,7 +40,7 @@ const family = {
   ],
 }
 
-function renderAsAdult() {
+function renderAsAdult(entry = '/appointments') {
   mocks.get.mockImplementation((url: string) =>
     Promise.resolve(
       url === '/families/family-1/doctor'
@@ -59,7 +59,7 @@ function renderAsAdult() {
 
   return render(
     <Provider store={store}>
-      <MemoryRouter>
+      <MemoryRouter initialEntries={[entry]}>
         <AppointmentsPage />
       </MemoryRouter>
     </Provider>,
@@ -67,6 +67,40 @@ function renderAsAdult() {
 }
 
 describe('AppointmentsPage booking form', () => {
+  beforeEach(() => {
+    mocks.getFamilyDoctorSlots.mockReset()
+    mocks.getFamilyDoctorSlots.mockResolvedValue({ data: { date: '2027-01-01', availabilityConfigured: false, slotMinutes: 30, slots: [] } })
+  })
+  it('preselects an authorized deep-link slot and ignores stale slots after changing dates', async () => {
+    let finishOld!: (result: { data: object }) => void
+    const oldSlot = '2027-01-01T03:30:00Z'
+    const newSlot = '2027-01-02T05:30:00Z'
+    mocks.getFamilyDoctorSlots.mockImplementationOnce(() => new Promise((resolve) => { finishOld = resolve }))
+      .mockResolvedValue({ data: { date: '2027-01-02', availabilityConfigured: true, slotMinutes: 20, slots: [newSlot] } })
+    mocks.bookAppointment.mockClear()
+    mocks.bookAppointment.mockResolvedValue({ data: {} })
+    renderAsAdult(`/appointments?date=2027-01-01&slot=${encodeURIComponent(oldSlot)}`)
+    await screen.findByLabelText('Date')
+    await waitFor(() => expect(finishOld).toBeTypeOf('function'))
+    fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2027-01-02' } })
+    expect(await screen.findByLabelText('Free time')).toHaveValue('')
+    await act(async () => finishOld({ data: { date: '2027-01-01', availabilityConfigured: true, slotMinutes: 30, slots: [oldSlot] } }))
+    expect(screen.getByLabelText('Date')).toHaveValue('2027-01-02')
+    expect(screen.queryByRole('option', { name: '9:00 AM' })).not.toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Free time'), { target: { value: newSlot } })
+    fireEvent.change(screen.getByLabelText('Member'), { target: { value: 'self-1' } })
+    fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Synthetic date change' } })
+    fireEvent.submit(screen.getByRole('button', { name: 'Book appointment' }).closest('form')!)
+    await waitFor(() => expect(mocks.bookAppointment).toHaveBeenCalledWith(expect.objectContaining({ startsAt: newSlot, durationMinutes: 20 })))
+  })
+
+  it('preselects the deep-link time only when returned by the current date availability', async () => {
+    const slot = '2027-01-01T03:30:00Z'
+    mocks.getFamilyDoctorSlots.mockResolvedValue({ data: { date: '2027-01-01', availabilityConfigured: true, slotMinutes: 30, slots: [slot] } })
+    renderAsAdult(`/appointments?date=2027-01-01&slot=${encodeURIComponent(slot)}`)
+    expect(await screen.findByLabelText('Free time')).toHaveValue(slot)
+    expect(screen.getByLabelText('Date')).toHaveValue('2027-01-01')
+  })
   it('limits an adult member to booking for self only', async () => {
     renderAsAdult()
 

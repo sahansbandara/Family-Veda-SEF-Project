@@ -7,19 +7,28 @@ import 'package:family_veda/providers/family_portal_provider.dart';
 import 'package:family_veda/theme/app_theme.dart';
 import 'package:family_veda/widgets/shared/async_state_views.dart';
 import 'package:flutter/material.dart';
+import 'package:family_veda/widgets/family/family_doctor_availability.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final doctorDistrictFilterProvider = StateProvider.autoDispose<String>((ref) => '');
+final doctorDistrictFilterProvider = StateProvider.autoDispose<String>(
+  (ref) => '',
+);
 
 class MyDoctorScreen extends ConsumerWidget {
   const MyDoctorScreen({super.key});
 
-  Future<void> _request(BuildContext context, WidgetRef ref, String familyId, String doctorId, String doctorName) async {
+  Future<void> _request(
+    BuildContext context,
+    WidgetRef ref,
+    String familyId,
+    String doctorId,
+    String doctorName,
+  ) async {
     try {
-      await ref.read(familyPortalApiProvider).requestFamilyDoctor(
-        familyId: familyId,
-        doctorId: doctorId,
-      );
+      await ref
+          .read(familyPortalApiProvider)
+          .requestFamilyDoctor(familyId: familyId, doctorId: doctorId);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -32,7 +41,9 @@ class MyDoctorScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Could not send the request. There may already be one pending.'),
+            content: Text(
+              'Could not send the request. There may already be one pending.',
+            ),
             backgroundColor: AppColors.danger,
           ),
         );
@@ -45,26 +56,30 @@ class MyDoctorScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
-        child: ref.watch(familyDashboardProvider).when(
-          loading: () => const LoadingStateView(label: 'Loading family doctor'),
-          error: (_, _) => ErrorRetryView(
-            onRetry: () => ref.invalidate(familyDashboardProvider),
-          ),
-          data: (dashboard) {
-            final familyId = dashboard.familyId;
-            if (familyId == null) {
-              return const EmptyStateView(
-                title: 'No family found',
-                message: 'Join or create a family first.',
-              );
-            }
-            return _MyDoctorBody(
-              familyId: familyId,
-              isHead: dashboard.isHead,
-              onRequest: _request,
-            );
-          },
-        ),
+        child: ref
+            .watch(familyDashboardProvider)
+            .when(
+              loading: () =>
+                  const LoadingStateView(label: 'Loading family doctor'),
+              error: (_, _) => ErrorRetryView(
+                onRetry: () => ref.invalidate(familyDashboardProvider),
+              ),
+              data: (dashboard) {
+                final familyId = dashboard.familyId;
+                if (familyId == null) {
+                  return const EmptyStateView(
+                    title: 'No family found',
+                    message: 'Join or create a family first.',
+                  );
+                }
+                return _MyDoctorBody(
+                  key: ValueKey(familyId),
+                  familyId: familyId,
+                  isHead: dashboard.isHead,
+                  onRequest: _request,
+                );
+              },
+            ),
       ),
     );
   }
@@ -72,6 +87,7 @@ class MyDoctorScreen extends ConsumerWidget {
 
 class _MyDoctorBody extends ConsumerStatefulWidget {
   const _MyDoctorBody({
+    super.key,
     required this.familyId,
     required this.isHead,
     required this.onRequest,
@@ -79,7 +95,8 @@ class _MyDoctorBody extends ConsumerStatefulWidget {
 
   final String familyId;
   final bool isHead;
-  final Future<void> Function(BuildContext, WidgetRef, String, String, String) onRequest;
+  final Future<void> Function(BuildContext, WidgetRef, String, String, String)
+  onRequest;
 
   @override
   ConsumerState<_MyDoctorBody> createState() => _MyDoctorBodyState();
@@ -97,8 +114,12 @@ class _MyDoctorBodyState extends ConsumerState<_MyDoctorBody> {
   }
 
   void _onSearch() {
-    ref.read(doctorDirectorySearchProvider.notifier).state = _searchController.text.trim();
-    ref.read(doctorDistrictFilterProvider.notifier).state = _districtController.text.trim();
+    ref.read(doctorDirectorySearchProvider.notifier).state = _searchController
+        .text
+        .trim();
+    ref.read(doctorDistrictFilterProvider.notifier).state = _districtController
+        .text
+        .trim();
   }
 
   @override
@@ -198,24 +219,32 @@ class _MyDoctorBodyState extends ConsumerState<_MyDoctorBody> {
                 ),
               ),
               const SizedBox(height: 12),
-              ref.watch(familyDoctorProvider(widget.familyId)).when(
+              ref
+                  .watch(familyDoctorProvider(widget.familyId))
+                  .when(
                     loading: () => const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8),
                       child: LinearProgressIndicator(),
                     ),
                     error: (_, _) => Text(
                       'Could not load assigned doctor.',
-                      style: TextStyle(color: isDark ? AppColors.mutedDark : AppColors.muted),
+                      style: TextStyle(
+                        color: isDark ? AppColors.mutedDark : AppColors.muted,
+                      ),
                     ),
                     data: (doctor) {
                       if (doctor == null) {
                         return Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                            color: isDark
+                                ? const Color(0xFF0F172A)
+                                : const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                              color: isDark
+                                  ? const Color(0xFF334155)
+                                  : const Color(0xFFE2E8F0),
                             ),
                           ),
                           child: Column(
@@ -226,7 +255,9 @@ class _MyDoctorBodyState extends ConsumerState<_MyDoctorBody> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 14,
-                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0F172A),
                                 ),
                               ),
                               const SizedBox(height: 3),
@@ -236,7 +267,9 @@ class _MyDoctorBodyState extends ConsumerState<_MyDoctorBody> {
                                     : 'The family head has not assigned a doctor yet.',
                                 style: TextStyle(
                                   fontSize: 12.5,
-                                  color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
+                                  color: isDark
+                                      ? AppColors.mutedDark
+                                      : const Color(0xFF64748B),
                                 ),
                               ),
                             ],
@@ -247,10 +280,14 @@ class _MyDoctorBodyState extends ConsumerState<_MyDoctorBody> {
                       return Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                          color: isDark
+                              ? const Color(0xFF0F172A)
+                              : const Color(0xFFF8FAFC),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                            color: isDark
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFE2E8F0),
                           ),
                         ),
                         child: Row(
@@ -292,7 +329,9 @@ class _MyDoctorBodyState extends ConsumerState<_MyDoctorBody> {
                                         ),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFE0F2FE),
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: const Text(
                                           'VERIFIED',
@@ -308,12 +347,18 @@ class _MyDoctorBodyState extends ConsumerState<_MyDoctorBody> {
                                   ),
                                   const SizedBox(height: 3),
                                   Text(
-                                    [doctor.specialty, doctor.clinic, doctor.district]
-                                        .whereType<String>()
-                                        .join(' · '),
+                                    [
+                                      doctor.specialty,
+                                      doctor.clinic,
+                                      doctor.city,
+                                      doctor.district,
+                                      doctor.languages,
+                                    ].whereType<String>().join(' · '),
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
+                                      color: isDark
+                                          ? AppColors.mutedDark
+                                          : const Color(0xFF64748B),
                                     ),
                                   ),
                                 ],
@@ -329,6 +374,21 @@ class _MyDoctorBodyState extends ConsumerState<_MyDoctorBody> {
         ),
         const SizedBox(height: 16),
 
+        if (ref.watch(familyDoctorProvider(widget.familyId)).valueOrNull !=
+            null) ...[
+          FamilyDoctorAvailability(
+            key: ValueKey(
+              ref.watch(familyDoctorProvider(widget.familyId)).valueOrNull!.id,
+            ),
+            familyId: widget.familyId,
+          ),
+          FilledButton.icon(
+            onPressed: () => context.push('/appointments/book'),
+            icon: const Icon(Icons.calendar_month_outlined),
+            label: const Text('Book appointment'),
+          ),
+          const SizedBox(height: 16),
+        ],
         // 3. Find a Doctor Panel (Family Head only)
         if (widget.isHead) ...[
           Container(
@@ -337,7 +397,9 @@ class _MyDoctorBodyState extends ConsumerState<_MyDoctorBody> {
               color: isDark ? const Color(0xFF1E293B) : Colors.white,
               borderRadius: BorderRadius.circular(18),
               border: Border.all(
-                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0),
               ),
               boxShadow: [
                 BoxShadow(
@@ -391,12 +453,17 @@ class _MyDoctorBodyState extends ConsumerState<_MyDoctorBody> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: const Text('Search', style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: const Text(
+                    'Search',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
                 ),
                 const SizedBox(height: 16),
 
                 // Search results
-                ref.watch(doctorDirectoryProvider).when(
+                ref
+                    .watch(doctorDirectoryProvider)
+                    .when(
                       loading: () => const Padding(
                         padding: EdgeInsets.symmetric(vertical: 16),
                         child: Center(child: CircularProgressIndicator()),
@@ -405,10 +472,18 @@ class _MyDoctorBodyState extends ConsumerState<_MyDoctorBody> {
                         onRetry: () => ref.invalidate(doctorDirectoryProvider),
                       ),
                       data: (doctors) {
-                        final districtFilter = ref.watch(doctorDistrictFilterProvider).toLowerCase();
+                        final districtFilter = ref
+                            .watch(doctorDistrictFilterProvider)
+                            .toLowerCase();
                         final filteredDoctors = districtFilter.isEmpty
                             ? doctors
-                            : doctors.where((d) => (d.district ?? '').toLowerCase().contains(districtFilter)).toList();
+                            : doctors
+                                  .where(
+                                    (d) => (d.district ?? '')
+                                        .toLowerCase()
+                                        .contains(districtFilter),
+                                  )
+                                  .toList();
 
                         if (filteredDoctors.isEmpty) {
                           return Container(
@@ -419,23 +494,29 @@ class _MyDoctorBodyState extends ConsumerState<_MyDoctorBody> {
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 13,
-                                color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
+                                color: isDark
+                                    ? AppColors.mutedDark
+                                    : const Color(0xFF64748B),
                               ),
                             ),
                           );
                         }
 
                         return Column(
-                          children: filteredDoctors.map((doctor) => _DoctorDirectoryRow(
-                            doctor: doctor,
-                            onRequest: () => widget.onRequest(
-                              context,
-                              ref,
-                              widget.familyId,
-                              doctor.id,
-                              doctor.displayName,
-                            ),
-                          )).toList(),
+                          children: filteredDoctors
+                              .map(
+                                (doctor) => _DoctorDirectoryRow(
+                                  doctor: doctor,
+                                  onRequest: () => widget.onRequest(
+                                    context,
+                                    ref,
+                                    widget.familyId,
+                                    doctor.id,
+                                    doctor.displayName,
+                                  ),
+                                ),
+                              )
+                              .toList(),
                         );
                       },
                     ),
@@ -449,10 +530,7 @@ class _MyDoctorBodyState extends ConsumerState<_MyDoctorBody> {
 }
 
 class _DoctorDirectoryRow extends StatelessWidget {
-  const _DoctorDirectoryRow({
-    required this.doctor,
-    required this.onRequest,
-  });
+  const _DoctorDirectoryRow({required this.doctor, required this.onRequest});
 
   final DoctorSummary doctor;
   final VoidCallback onRequest;
@@ -490,7 +568,10 @@ class _DoctorDirectoryRow extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFE0F2FE),
                         borderRadius: BorderRadius.circular(4),
@@ -508,13 +589,68 @@ class _DoctorDirectoryRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  [doctor.specialty, doctor.clinic, [doctor.city, doctor.district].whereType<String>().join(', ')].whereType<String>().join(' · '),
+                  [
+                    doctor.specialty,
+                    doctor.clinic,
+                    [
+                      doctor.city,
+                      doctor.district,
+                    ].whereType<String>().join(', '),
+                  ].whereType<String>().join(' · '),
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
+                    color: isDark
+                        ? AppColors.mutedDark
+                        : const Color(0xFF64748B),
                   ),
                 ),
               ],
+            ),
+          ),
+          IconButton(
+            tooltip: 'Doctor details',
+            icon: const Icon(Icons.info_outline),
+            onPressed: () => showModalBottomSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              builder: (context) => SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        doctor.displayName,
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 16),
+                      for (final detail in [
+                        ('Specialty', doctor.specialty),
+                        ('Clinic', doctor.clinic),
+                        ('City', doctor.city),
+                        ('District', doctor.district),
+                        ('Languages', doctor.languages),
+                      ])
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Text(
+                            '${detail.$1}: ${detail.$2?.trim().isNotEmpty == true ? detail.$2 : 'Not provided'}',
+                          ),
+                        ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Verified directory profile. Clinical access still requires consent and an active grant.',
+                      ),
+                      const SizedBox(height: 16),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Close'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -529,7 +665,10 @@ class _DoctorDirectoryRow extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('Request', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+            child: const Text(
+              'Request',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),

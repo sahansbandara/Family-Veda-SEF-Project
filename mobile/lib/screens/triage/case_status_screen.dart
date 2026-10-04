@@ -53,9 +53,6 @@ class CaseStatusScreen extends ConsumerWidget {
                       title: 'Automated review unavailable',
                       message:
                           'No automated guidance is available. Please arrange an in-person clinical review. If symptoms become severe or urgent, use emergency services.',
-                      footnote: item.failureCode == null
-                          ? null
-                          : 'Reference: ${item.failureCode}',
                     ),
                   ],
                 );
@@ -165,14 +162,12 @@ class _NoticeCard extends StatelessWidget {
     required this.color,
     required this.title,
     required this.message,
-    this.footnote,
   });
 
   final IconData icon;
   final Color color;
   final String title;
   final String message;
-  final String? footnote;
 
   @override
   Widget build(BuildContext context) {
@@ -200,10 +195,6 @@ class _NoticeCard extends StatelessWidget {
                   Text(title, style: theme.textTheme.titleSmall),
                   const SizedBox(height: 4),
                   Text(message, style: theme.textTheme.bodyMedium),
-                  if (footnote != null) ...[
-                    const SizedBox(height: 8),
-                    Text(footnote!, style: theme.textTheme.bodySmall),
-                  ],
                 ],
               ),
             ),

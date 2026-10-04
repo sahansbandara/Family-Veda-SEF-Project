@@ -64,7 +64,7 @@ void main() {
 
     expect(find.text('Automated review unavailable'), findsOneWidget);
     expect(find.textContaining('arrange an in-person clinical review'), findsOneWidget);
-    expect(find.textContaining('AGENT_UNAVAILABLE'), findsOneWidget);
+    expect(find.textContaining('AGENT_UNAVAILABLE'), findsNothing);
     expect(find.textContaining('Guidance remains hidden'), findsNothing);
   });
 

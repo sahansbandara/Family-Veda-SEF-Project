@@ -76,6 +76,8 @@ export function TriagePage() {
   const [severity, setSeverity] = useState(3)
   const [submitting, setSubmitting] = useState(false)
   const [message, setMessage] = useState('')
+  const [step, setStep] = useState(1)
+  const [review, setReview] = useState({ member: '', symptoms: '', days: '1', detail: '' })
 
   const loadCases = useCallback(async (id: string) => {
     const { data } = await apiClient.get<PagedResult<TriageCaseDto>>(`/families/${id}/triage-cases`, {
@@ -149,6 +151,7 @@ export function TriagePage() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const formElement = event.currentTarget
+    if (submitting) return
     const form = new FormData(formElement)
     const typedSymptoms = String(form.get('symptoms') ?? '')
       .split(',')
@@ -157,6 +160,16 @@ export function TriagePage() {
     const symptoms = [...selectedSymptoms, ...typedSymptoms]
     if (symptoms.length === 0) {
       setMessage('Choose a symptom or describe it in your own words.')
+      setStep(1)
+      return
+    }
+    if (step === 1) { setMessage(''); setStep(2); return }
+    const durationInput = formElement.elements.namedItem('durationDays') as HTMLInputElement
+    if (!durationInput.checkValidity()) { durationInput.reportValidity(); return }
+    if (step === 2) {
+      setReview({ member: members.find((member) => member.id === String(form.get('memberId')))?.displayName ?? 'You', symptoms: symptoms.join(', '), days: String(form.get('durationDays')), detail: String(form.get('notes') ?? '') })
+      setMessage('')
+      setStep(3)
       return
     }
     setSubmitting(true)
@@ -172,15 +185,17 @@ export function TriagePage() {
         },
       )
       const { data: triageCase } = await apiClient.post<TriageCaseDto>(`/episodes/${episode.id}/triage`)
-      const items = await loadCases(familyId)
-      setCases(items)
+      setCases((items) => [triageCase, ...items.filter((item) => item.id !== triageCase.id)])
       setSelectedSymptoms([])
       formElement.reset()
       setSeverity(3)
+      setStep(1)
       setMessage('Your request was submitted for review. Guidance appears only after doctor approval.')
       selectCase(triageCase.id)
+      try { setCases(await loadCases(familyId)) }
+      catch { setMessage('Your request was submitted for review. The request list could not be refreshed; reopen this page to check it. Guidance appears only after doctor approval.') }
     } catch {
-      setMessage('Submission failed. Check the member and symptoms, then retry.')
+      setMessage('Could not confirm submission. Check your requests before retrying to avoid sending the same request twice.')
     } finally {
       setSubmitting(false)
     }
@@ -219,7 +234,10 @@ export function TriagePage() {
                 <h2>What has been bothering you?</h2>
                 <span className="care-caption">New request</span>
               </div>
-              <form className="care-form" onSubmit={(event) => void submit(event)}>
+              <ol className="care-steps" aria-label="Symptom request steps">{['Symptoms', 'Details', 'Review'].map((label, index) => <li key={label} aria-current={step === index + 1 ? 'step' : undefined} className={step >= index + 1 ? 'is-complete' : ''}><span>{index + 1}</span>{label}</li>)}</ol>
+              <p className="care-caption" role="status">Step {step} of 3</p>
+          <form className="care-form" noValidate onSubmit={(event) => void submit(event)}>
+            <div hidden={step !== 1} className="care-form-step">
                 <p className="care-note">
                   This service helps a doctor review symptoms. It does not diagnose and is not an emergency
                   service.
@@ -259,6 +277,8 @@ export function TriagePage() {
                     placeholder="Add another symptom, or separate symptoms with commas"
                   />
                 </label>
+              </div>
+              <div hidden={step !== 2} className="care-form-step">
                 <label>
                   Additional details (optional)
                   <textarea name="notes" maxLength={1000} placeholder="What changed, and when?" />
@@ -289,10 +309,23 @@ export function TriagePage() {
                     </div>
                   </div>
                 </div>
+              </div>
+              {step === 3 && <section className="care-request-review" aria-label="Review symptom request">
+                <h3>Review your request</h3>
+                <dl>
+                  <div><dt>Family member</dt><dd>{review?.member}</dd></div>
+                  <div><dt>Symptoms</dt><dd>{review?.symptoms}</dd></div>
+                  <div><dt>Duration</dt><dd>{review?.days} days</dd></div>
+                  <div><dt>Effect on your day</dt><dd>{severity === 3 ? 'A little' : severity === 6 ? 'Somewhat' : 'A lot'}</dd></div>
+                  {review?.detail && <div><dt>Additional details</dt><dd>{review.detail}</dd></div>}
+                </dl>
+                <p className="care-note">A doctor reviews this request before any guidance is shared with you.</p>
+              </section>}
                 <div className="care-actions">
                   <span className="care-caption">No guidance is shared until doctor approval.</span>
+                  {step > 1 && <button className="button button--secondary" type="button" disabled={submitting} onClick={() => { setStep(step - 1); setMessage('') }}>Back</button>}
                   <button className="button button--primary" type="submit" disabled={submitting}>
-                    {submitting ? 'Submitting…' : 'Submit for doctor review'}
+                    {submitting ? 'Submitting…' : step === 3 ? 'Submit for doctor review' : 'Continue'}
                   </button>
                 </div>
               </form>
@@ -326,7 +359,7 @@ export function TriagePage() {
                         <span className={`status-badge status-badge--${caseStatusTone(item.status)}`}>
                           {caseStatusLabel(item.status)}
                         </span>
-                        <strong>Symptom request</strong>
+                        <strong>{members.find((member) => member.id === item.memberId)?.displayName ?? 'Family member'} · Symptom request</strong>
                         <span className="care-caption">
                           Submitted {new Date(item.createdAt).toLocaleDateString()}
                         </span>

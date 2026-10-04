@@ -20,6 +20,7 @@ const _report = LabReport(
 void main() {
   testWidgets('card shows facts without interpretation and hides toggle for non-owner', (tester) async {
     await tester.pumpWidget(const MaterialApp(home: Scaffold(body: ReportLibraryCard(report: _report, ownerName: 'Family member', canChangeSharing: false))));
+    expect(find.text('Family member · Collected date not recorded'), findsOneWidget);
     expect(find.text('Private from Family Head'), findsOneWidget);
     expect(find.text('Stored'), findsOneWidget);
     expect(find.text('1 below · 2 within · 0 above · 1 no range'), findsOneWidget);
