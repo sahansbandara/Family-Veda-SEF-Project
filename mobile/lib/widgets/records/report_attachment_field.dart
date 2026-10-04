@@ -28,14 +28,15 @@ class ReportAttachmentField extends StatelessWidget {
 
   Future<void> _pick() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final file = await FilePicker.pickFile(
         type: FileType.custom,
         allowedExtensions: allowedExtensions,
       );
-      final file = result?.files.single;
       final path = file?.path;
       if (file == null || path == null) return;
-      if (file.size > maxBytes) {
+      // A null length means the size could not be read, so the cap cannot be verified.
+      final size = await file.length();
+      if (size == null || size > maxBytes) {
         onError('Choose a PNG, JPEG or PDF report up to 10 MB.');
         return;
       }
