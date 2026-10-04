@@ -251,10 +251,19 @@ select.auth-form-input option {
 }
 
 .auth-legal-links {
+  position: absolute;
+  bottom: 40px;
   display: flex;
   gap: 14px;
-  margin: 18px 0 0;
+  margin: 0;
   font-size: .85rem;
+  z-index: 10;
+}
+.auth-text-left .auth-legal-links {
+  right: clamp(32px, 5vw, 64px);
+}
+.auth-text-right .auth-legal-links {
+  left: clamp(32px, 5vw, 64px);
 }
 
 .auth-legal-links a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
@@ -520,6 +529,7 @@ input[type="password"].auth-form-input::placeholder {
   display: none;
 }
 .auth-legal-links--mobile {
+    position: static;
   display: none;
 }
 @media (max-width: 768px) {
@@ -537,6 +547,7 @@ input[type="password"].auth-form-input::placeholder {
     padding: 12px;
   }
   .auth-legal-links--mobile {
+    position: static;
     display: flex;
     justify-content: center;
     margin-top: 4px;
