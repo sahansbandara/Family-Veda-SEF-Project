@@ -1,0 +1,20 @@
+# Dependency audits
+# date: 2026-10-05 17:47 +0530  commit: 613bf7e  branch: develop
+# command: npm audit --omit=dev --audit-level=high ; dotnet list package --vulnerable --include-transitive
+
+npm info using npm@11.19.1
+npm info using node@v26.9.0
+npm http fetch POST 200 https://registry.npmjs.org/-/npm/v1/security/advisories/bulk 555ms
+found 0 vulnerabilities
+npm info ok
+  All projects are up-to-date for restore.
+
+The following sources were used:
+   https://api.nuget.org/v3/index.json
+
+The given project `FamilyVeda.Api` has no vulnerable packages given the current sources.
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+The following sources were used:
+   https://api.nuget.org/v3/index.json
+The given project `FamilyVeda.Api` has no vulnerable packages given the current sources.
