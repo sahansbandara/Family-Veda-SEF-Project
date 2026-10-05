@@ -48,6 +48,17 @@ List<Member> bookableMembers({
   return result;
 }
 
+String _initials(String name) {
+  final parts = name
+      .replaceFirst(RegExp(r'^dr\.?\s+', caseSensitive: false), '')
+      .split(RegExp(r'\s+'))
+      .where((p) => p.isNotEmpty)
+      .take(2)
+      .map((p) => p[0].toUpperCase())
+      .join();
+  return parts.isEmpty ? '?' : parts;
+}
+
 String _memberLabel(Member member, bool isHead) {
   if (member.relationshipLabel.toLowerCase() == 'head' || isHead) {
     return '${member.displayName} (Family Head)';
@@ -374,10 +385,14 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
                                 color: primaryColor.withValues(alpha: 0.12),
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(
-                                Icons.person,
-                                color: primaryColor,
-                                size: 24,
+                              alignment: Alignment.center,
+                              child: Text(
+                                _initials(familyDoctor.displayName),
+                                style: TextStyle(
+                                  color: primaryColor,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 15,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -652,7 +667,34 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
                             setState(() => _attachment = value),
                         onError: _showMessage,
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.primarySubtleDark
+                              : AppColors.primarySubtle,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              size: 16,
+                              color: primaryColor,
+                            ),
+                            const SizedBox(width: 8),
+                            const Expanded(
+                              child: Text(
+                                'A request is not confirmed until your doctor accepts it. You will be notified.',
+                                style: TextStyle(fontSize: 12, height: 1.35),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
 
                       // Submit Button
                       SizedBox(
@@ -663,7 +705,7 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
                               ? null
                               : () => _submit(familyDoctor != null),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF1D61E0),
+                            backgroundColor: isDark ? AppColors.primaryDark : AppColors.primary,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
