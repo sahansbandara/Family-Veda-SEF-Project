@@ -65,7 +65,11 @@ void main() {
     expect(find.text('Family Settings'), findsOneWidget);
 
     // Members Tab Content
-    expect(find.text('ROSTER (2)'), findsOneWidget);
+    expect(find.text('TOTAL MEMBERS'), findsOneWidget);
+    expect(find.text('Family head'), findsOneWidget);
+    expect(find.text('1 head'), findsOneWidget);
+    expect(find.text('Adult members'), findsOneWidget);
+    expect(find.text('Minor profiles'), findsNothing);
     expect(find.text('John Doe'), findsOneWidget);
     expect(find.text('Jane Doe'), findsOneWidget);
 
