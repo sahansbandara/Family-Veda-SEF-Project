@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace FamilyVeda.Api.Controllers;
 
 [Route("api/v1")]
-public sealed class ClinicalController(IClinicalService clinicalService) : ApiControllerBase
+public sealed class ClinicalController(IClinicalService clinicalService, IEmergencyFollowUpService emergencyFollowUp) : ApiControllerBase
 {
     [HttpPost("doctors/register")]
     [Authorize(Policy = "Doctor")]
@@ -140,6 +140,16 @@ public sealed class ClinicalController(IClinicalService clinicalService) : ApiCo
     [Authorize(Policy = "Doctor")]
     public async Task<ActionResult<ApprovalDto>> Escalate(Guid caseId, ApprovalContentRequest request, CancellationToken cancellationToken) =>
         Ok(await clinicalService.DecideCaseAsync(caseId, new ApprovalRequest(ApprovalAction.Escalate, request.DoctorNotes, null), cancellationToken));
+
+    [HttpPost("triage-cases/{caseId:guid}/close-referral")]
+    [Authorize(Policy = "Doctor")]
+    public async Task<ActionResult<ApprovalDto>> CloseReferral(Guid caseId, CancellationToken cancellationToken) =>
+        Ok(await emergencyFollowUp.CloseReferralAsync(caseId, cancellationToken));
+
+    [HttpPost("triage-cases/{caseId:guid}/share-contact")]
+    [Authorize(Policy = "Doctor")]
+    public async Task<ActionResult<ContactSharedDto>> ShareContact(Guid caseId, CancellationToken cancellationToken) =>
+        Ok(await emergencyFollowUp.ShareContactAsync(caseId, cancellationToken));
 
     [HttpGet("audit")]
     [Authorize(Roles = "Admin,FamilyUser")]

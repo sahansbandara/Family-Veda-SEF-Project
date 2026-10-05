@@ -138,7 +138,7 @@ public sealed class TriageService(
         var query = dbContext.TriageCases.AsNoTracking().Where(x => x.MemberId == memberId);
         var total = await query.CountAsync(cancellationToken);
         var items = await query.OrderByDescending(x => x.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize)
-            .Select(x => new TriageCaseDto(x.Id, x.EpisodeId, x.MemberId, x.Status, x.Priority, x.CreatedAt, x.CaseNumber, null, null)).ToListAsync(cancellationToken);
+            .Select(x => new TriageCaseDto(x.Id, x.EpisodeId, x.MemberId, x.Status, x.Priority, x.CreatedAt, x.CaseNumber, null, null, false)).ToListAsync(cancellationToken);
         return new PagedResult<TriageCaseDto>(items, page, pageSize, total);
     }
 
@@ -149,7 +149,7 @@ public sealed class TriageService(
         var query = dbContext.TriageCases.AsNoTracking().Where(x => visibleMemberIds.Contains(x.MemberId));
         var total = await query.CountAsync(cancellationToken);
         var items = await query.OrderByDescending(x => x.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize)
-            .Select(x => new TriageCaseDto(x.Id, x.EpisodeId, x.MemberId, x.Status, x.Priority, x.CreatedAt, x.CaseNumber, null, null)).ToListAsync(cancellationToken);
+            .Select(x => new TriageCaseDto(x.Id, x.EpisodeId, x.MemberId, x.Status, x.Priority, x.CreatedAt, x.CaseNumber, null, null, false)).ToListAsync(cancellationToken);
         return new PagedResult<TriageCaseDto>(items, page, pageSize, total);
     }
 

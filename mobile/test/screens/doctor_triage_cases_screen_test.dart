@@ -46,6 +46,46 @@ class _FakeCasesApi implements DoctorCasesApi {
     ];
   }
 
+  final followUps = <String>[];
+  Object? followUpFailure;
+
+  Future<void> _followUp(String call) async {
+    final failure = followUpFailure;
+    if (failure != null) {
+      followUpFailure = null;
+      throw failure;
+    }
+    followUps.add(call);
+  }
+
+  @override
+  Future<void> bookFollowUp(
+    String caseId, {
+    required DateTime startsAt,
+    required int durationMinutes,
+    String? reason,
+  }) => _followUp('book $caseId $durationMinutes');
+
+  @override
+  Future<void> shareContact(String caseId) => _followUp('share $caseId');
+
+  @override
+  Future<void> closeReferral(String caseId) async {
+    await _followUp('close $caseId');
+    assigned = [
+      for (final c in assigned)
+        c.id == caseId
+            ? _case(
+                c.id,
+                c.status,
+                priority: c.priority,
+                mine: true,
+                referralClosed: true,
+              )
+            : c,
+    ];
+  }
+
   @override
   Future<SubmittedComplaint?> getSubmittedComplaint(String caseId) async =>
       const SubmittedComplaint(
@@ -61,7 +101,9 @@ DoctorQueueCase _case(
   String priority = 'Routine',
   bool mine = false,
   SubmittedComplaint? complaint,
+  bool referralClosed = false,
 }) => DoctorQueueCase(
+  referralClosed: referralClosed,
   id: id,
   priority: priority,
   status: status,
@@ -83,9 +125,12 @@ Future<_FakeCasesApi> _pump(
   WidgetTester tester, {
   Size size = const Size(390, 844),
   SubmittedComplaint? poolComplaint,
+  bool acknowledgedEmergency = false,
 }) async {
   final api = _FakeCasesApi(
     [
+      if (acknowledgedEmergency)
+        _case('ackd0001-x', 'Escalated', priority: 'Emergency', mine: true),
       _case('mine0001-x', 'Claimed', mine: true),
       _case('done0001-x', 'ApprovedRevised', mine: true),
     ],
@@ -256,6 +301,183 @@ void main() {
     expect(find.text('2 days'), findsOneWidget);
     expect(find.byKey(const ValueKey('queue-sheet-action')), findsNothing);
     expect(find.textContaining('Approval Desk'), findsOneWidget);
+  });
+
+  test('a closed referral leaves Emergency for Completed', () {
+    final closed = _case(
+      'e',
+      'Escalated',
+      priority: 'Emergency',
+      mine: true,
+      referralClosed: true,
+    );
+    expect(closed.tab, QueueTab.completed);
+    expect(closed.statusLabel, 'Referral closed');
+    expect(closed.hasFollowUp, isFalse);
+    expect(closed.isEmergencyReferral, isFalse);
+
+    final acknowledged = _case(
+      'f',
+      'Escalated',
+      priority: 'Emergency',
+      mine: true,
+    );
+    expect(acknowledged.tab, QueueTab.emergency);
+    expect(acknowledged.hasFollowUp, isTrue);
+    expect(_case('g', 'Escalated').hasFollowUp, isFalse);
+  });
+
+  test('follow-up errors never echo server internals', () {
+    DioException failure(int status, Object? data) {
+      final options = RequestOptions(path: '/x');
+      return DioException(
+        requestOptions: options,
+        response: Response(
+          requestOptions: options,
+          statusCode: status,
+          data: data,
+        ),
+      );
+    }
+
+    expect(
+      followUpErrorMessage(
+        failure(400, {
+          'errors': {
+            'phoneNumber': ['Add a phone number first.'],
+          },
+        }),
+        'fallback',
+      ),
+      'Add a phone number first.',
+    );
+    expect(
+      followUpErrorMessage(failure(409, {'detail': 'Already shared.'}), 'f'),
+      'Already shared.',
+    );
+    expect(
+      followUpErrorMessage(failure(404, null), 'f'),
+      contains('no longer available'),
+    );
+    expect(
+      followUpErrorMessage(failure(500, {'detail': 'stack'}), 'fallback'),
+      'fallback',
+    );
+  });
+
+  testWidgets('an acknowledged referral can be closed after confirmation', (
+    tester,
+  ) async {
+    final api = await _pump(tester, acknowledgedEmergency: true);
+    await _tapVisible(
+      tester,
+      find.byKey(const ValueKey('queue-tab-emergency')),
+    );
+    await _tapVisible(
+      tester,
+      find.byKey(const ValueKey('queue-case-ackd0001-x')),
+    );
+    await _tapVisible(tester, find.byKey(const ValueKey('follow-up-close')));
+
+    expect(api.followUps, isEmpty);
+    expect(
+      find.textContaining('The patient still sees the referral'),
+      findsOneWidget,
+    );
+    await _tapVisible(tester, find.byKey(const ValueKey('follow-up-confirm')));
+
+    expect(api.followUps, ['close ackd0001-x']);
+    expect(find.textContaining('Referral ackd0001 closed'), findsOneWidget);
+    await _tapVisible(
+      tester,
+      find.byKey(const ValueKey('queue-tab-completed')),
+    );
+    expect(find.text('Referral closed'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('sharing contact reports a missing profile phone safely', (
+    tester,
+  ) async {
+    final api = await _pump(tester, acknowledgedEmergency: true);
+    final options = RequestOptions(path: '/x');
+    api.followUpFailure = DioException(
+      requestOptions: options,
+      response: Response(
+        requestOptions: options,
+        statusCode: 400,
+        data: {
+          'errors': {
+            'phoneNumber': ['Add a phone number to your profile first.'],
+          },
+        },
+      ),
+    );
+    await _tapVisible(
+      tester,
+      find.byKey(const ValueKey('queue-tab-emergency')),
+    );
+    await _tapVisible(
+      tester,
+      find.byKey(const ValueKey('queue-case-ackd0001-x')),
+    );
+    await _tapVisible(tester, find.byKey(const ValueKey('follow-up-share')));
+    await _tapVisible(tester, find.byKey(const ValueKey('follow-up-confirm')));
+
+    expect(
+      find.text('Add a phone number to your profile first.'),
+      findsOneWidget,
+    );
+    expect(api.followUps, isEmpty);
+    await _tapVisible(tester, find.byKey(const ValueKey('follow-up-confirm')));
+    expect(api.followUps, ['share ackd0001-x']);
+    expect(
+      find.textContaining('Your contact number was sent to the patient'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a follow-up appointment needs a time before it is booked', (
+    tester,
+  ) async {
+    final api = await _pump(
+      tester,
+      acknowledgedEmergency: true,
+      size: const Size(800, 1280),
+    );
+    await _tapVisible(
+      tester,
+      find.byKey(const ValueKey('queue-tab-emergency')),
+    );
+    await _tapVisible(
+      tester,
+      find.byKey(const ValueKey('queue-case-ackd0001-x')),
+    );
+    await _tapVisible(tester, find.byKey(const ValueKey('follow-up-book')));
+    await _tapVisible(tester, find.byKey(const ValueKey('follow-up-confirm')));
+
+    expect(
+      find.text('Choose a date and time for the appointment.'),
+      findsOneWidget,
+    );
+    expect(api.followUps, isEmpty);
+
+    await _tapVisible(
+      tester,
+      find.byKey(const ValueKey('follow-up-pick-time')),
+    );
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    await _tapVisible(tester, find.byKey(const ValueKey('follow-up-confirm')));
+
+    expect(api.followUps, ['book ackd0001-x 30']);
+    expect(
+      find.textContaining('Follow-up appointment booked for case ackd0001'),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('emergency referrals show explicit text and acknowledgement', (

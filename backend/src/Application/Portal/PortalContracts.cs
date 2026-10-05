@@ -22,6 +22,7 @@ public sealed record AppointmentDto(Guid Id, Guid MemberId, string MemberDisplay
 public sealed record CreateAppointmentRequest(Guid MemberId, DateTimeOffset StartsAt, int? DurationMinutes, string Reason);
 
 public sealed record AppointmentActionRequest(string? Note);
+public sealed record FollowUpAppointmentRequest(DateTimeOffset StartsAt, int? DurationMinutes, string? Reason);
 
 public sealed record PortalNotificationDto(Guid Id, string Type, string Title, string Body, string? LinkPath, DateTimeOffset? ReadAt, DateTimeOffset CreatedAt);
 
@@ -85,6 +86,7 @@ public interface IAppointmentService
     Task<AppointmentDto> NoShowAsync(Guid id, AppointmentActionRequest request, CancellationToken cancellationToken);
     Task<AppointmentDto> DoctorCancelAsync(Guid id, AppointmentActionRequest request, CancellationToken cancellationToken);
     Task<AppointmentDto> RescheduleAsync(Guid id, RescheduleAppointmentRequest request, CancellationToken cancellationToken);
+    Task<AppointmentDto> BookFollowUpAsync(Guid caseId, FollowUpAppointmentRequest request, CancellationToken cancellationToken);
 }
 
 public interface IPortalNotificationService

@@ -3,6 +3,7 @@
 import 'package:family_veda/models/doctor_queue_case.dart';
 import 'package:family_veda/providers/doctor_cases_provider.dart';
 import 'package:family_veda/widgets/doctor/calendar_parts.dart';
+import 'package:family_veda/widgets/doctor/emergency_follow_up.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -176,8 +177,10 @@ class QueueCaseCard extends StatelessWidget {
 }
 
 /// Opens the case detail sheet. Completes with true when the doctor chose the queue action.
-Future<bool?> showQueueCaseSheet(BuildContext context, DoctorQueueCase item) {
-  return showModalBottomSheet<bool>(
+/// Resolves to `true` when the doctor chose to claim or acknowledge, or to a sentence describing
+/// a follow-up action that was saved from inside the sheet.
+Future<Object?> showQueueCaseSheet(BuildContext context, DoctorQueueCase item) {
+  return showModalBottomSheet<Object>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
@@ -211,7 +214,12 @@ class QueueCaseSheet extends ConsumerWidget {
         children: [
           Flexible(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                0,
+                20,
+                16 + MediaQuery.viewInsetsOf(context).bottom,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -281,6 +289,13 @@ class QueueCaseSheet extends ConsumerWidget {
                   const SizedBox(height: 8),
                   for (final (label, state) in item.workflowSteps)
                     _Step(label: label, state: state, palette: palette),
+                  if (item.hasFollowUp) ...[
+                    // Inside the scroll area: the booking form is taller than a fixed footer allows.
+                    const SizedBox(height: 18),
+                    Text('Follow-up', style: heading),
+                    const SizedBox(height: 8),
+                    EmergencyFollowUpPanel(item: item),
+                  ],
                 ],
               ),
             ),

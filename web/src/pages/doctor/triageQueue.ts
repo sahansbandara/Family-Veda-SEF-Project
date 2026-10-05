@@ -7,7 +7,7 @@ import type { AvailableCaseDto, PoolComplaintDto, TriageCaseDto } from '../../se
 export type QueueTab = 'available' | 'mine' | 'completed' | 'emergency'
 export type QueueSort = 'oldest' | 'newest' | 'priority'
 export type QueueTone = 'muted' | 'primary' | 'warning' | 'success' | 'danger'
-export type QueueActionKind = 'claim' | 'acknowledge' | 'approval' | 'evidence' | 'none'
+export type QueueActionKind = 'claim' | 'acknowledge' | 'approval' | 'evidence' | 'follow-up' | 'none'
 
 export type QueueCase = {
   id: string
@@ -23,6 +23,8 @@ export type QueueCase = {
   mine: boolean
   /** The backend lists the case in the claimable pool and it is not already granted to this doctor. */
   claimable: boolean
+  /** A doctor closed this emergency referral. The patient still sees the referral. */
+  referralClosed?: boolean
   /** The complaint released for a pooled case so the doctor can decide whether to claim it. */
   complaint?: PoolComplaintDto | null
 }
@@ -55,6 +57,7 @@ export function mergeQueue(assigned: TriageCaseDto[], pool: AvailableCaseDto[]):
       createdAt: item.createdAt,
       mine: true,
       claimable: false,
+      referralClosed: item.referralClosed ?? false,
     })),
     ...pool
       .filter((item) => !mineIds.has(item.id))
@@ -71,10 +74,12 @@ export function mergeQueue(assigned: TriageCaseDto[], pool: AvailableCaseDto[]):
   ]
 }
 
-export const isEmergencyReferral = (item: QueueCase) => item.status === 'Escalated'
+/** An escalated case that still needs a doctor; a closed referral is finished queue work. */
+export const isEmergencyReferral = (item: QueueCase) => item.status === 'Escalated' && !item.referralClosed
 export const isAwaitingReview = (item: QueueCase) => item.mine && AWAITING_REVIEW.has(item.status)
 
 export function tabOf(item: QueueCase): QueueTab | null {
+  if (item.referralClosed) return item.mine ? 'completed' : null
   if (isEmergencyReferral(item)) return 'emergency'
   if (item.claimable) return 'available'
   if (item.mine && COMPLETED.has(item.status)) return 'completed'
@@ -94,6 +99,7 @@ export function queueCounts(cases: QueueCase[]) {
 
 /** Doctor-facing copy for a backend status. Presentation only; the stored status is unchanged. */
 export function statusLabel(item: QueueCase): string {
+  if (item.referralClosed) return 'Referral closed'
   if (item.claimable && item.status !== 'Escalated') return 'Available'
   switch (item.status) {
     case 'Claimed':
@@ -118,6 +124,7 @@ export function statusLabel(item: QueueCase): string {
 }
 
 export function statusTone(item: QueueCase): QueueTone {
+  if (item.referralClosed) return 'muted'
   if (item.status === 'Escalated') return 'danger'
   if (item.claimable) return 'primary'
   if (item.status === 'LowConfidence' || item.status === 'FailedSafe') return 'warning'
@@ -140,6 +147,9 @@ export function actionFor(item: QueueCase): QueueAction {
       : { kind: 'claim', label: 'Claim Case' }
   }
   if (!item.mine) return { kind: 'none', label: '', message: 'This case is not available to you.' }
+  if (item.referralClosed) {
+    return { kind: 'none', label: '', message: 'You closed this referral. The patient was directed to in-person care.' }
+  }
   switch (item.status) {
     case 'Claimed':
     case 'PendingDoctorReview':
@@ -147,7 +157,7 @@ export function actionFor(item: QueueCase): QueueAction {
     case 'LowConfidence':
       return { kind: 'evidence', label: 'Review Available Evidence' }
     case 'Escalated':
-      return { kind: 'none', label: '', message: 'You acknowledged this referral. The patient was directed to in-person care.' }
+      return { kind: 'follow-up', label: '', message: 'You acknowledged this referral. The patient was directed to in-person care.' }
     case 'FailedSafe':
       return { kind: 'none', label: '', message: 'Processing stopped safely. No AI output was produced for review.' }
     case 'Approved':
@@ -168,6 +178,7 @@ export function workflowSteps(item: QueueCase): WorkflowStep[] {
       { label: 'Request received', state: 'done' },
       { label: item.priority === 'Emergency' ? 'Emergency referral issued' : 'Escalated for urgent care', state: 'stopped' },
       { label: item.mine ? 'Acknowledged by you' : 'Awaiting doctor acknowledgement', state: item.mine ? 'done' : 'current' },
+      ...(item.referralClosed ? [{ label: 'Referral closed by you', state: 'done' as const }] : []),
     ]
   }
   if (item.status === 'FailedSafe') {
@@ -242,4 +253,16 @@ export function formatSubmitted(value: string): string {
   const date = new Date(value)
   if (Number.isNaN(date.valueOf())) return 'Submission time unavailable'
   return date.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+}
+
+type ApiError = { response?: { status?: number; data?: { detail?: string; errors?: Record<string, string[]> } } }
+
+/** A safe sentence for a failed action; never echoes server internals. */
+export function followUpError(error: unknown, fallback: string): string {
+  const response = (error as ApiError)?.response
+  const validation = Object.values(response?.data?.errors ?? {}).flat()[0]
+  if (response?.status === 400 && validation) return validation
+  if (response?.status === 409 && response.data?.detail) return response.data.detail
+  if (response?.status === 403 || response?.status === 404) return 'This referral is no longer available to you. Refresh the queue.'
+  return fallback
 }

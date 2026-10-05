@@ -30,6 +30,7 @@ class DoctorQueueCase {
     this.memberDisplayName,
     this.familyName,
     this.complaint,
+    this.referralClosed = false,
   });
 
   /// A case from /doctors/me/cases: the doctor holds an active grant.
@@ -43,6 +44,7 @@ class DoctorQueueCase {
     caseNumber: (json['caseNumber'] as num?)?.toInt(),
     memberDisplayName: json['memberDisplayName'] as String?,
     familyName: json['familyName'] as String?,
+    referralClosed: json['referralClosed'] as bool? ?? false,
   );
 
   /// A case from /doctors/case-pool: limited metadata, claimable.
@@ -76,6 +78,9 @@ class DoctorQueueCase {
   /// The complaint the pool released so the doctor can decide whether to claim. Never an identity.
   final SubmittedComplaint? complaint;
 
+  /// A doctor closed this emergency referral. The patient still sees the referral.
+  final bool referralClosed;
+
   /// The case number as 0001; falls back to the id prefix when the API omits it.
   String get reference {
     final number = caseNumber;
@@ -105,10 +110,15 @@ class DoctorQueueCase {
     return family == null || family.isEmpty ? name : '$name · $family';
   }
 
-  bool get isEmergencyReferral => status == 'Escalated';
+  /// An escalated case that still needs a doctor; a closed referral is finished queue work.
+  bool get isEmergencyReferral => status == 'Escalated' && !referralClosed;
+
+  /// An emergency referral this doctor acknowledged and may still follow up on.
+  bool get hasFollowUp => mine && isEmergencyReferral;
   bool get isAwaitingReview => mine && _awaitingReview.contains(status);
 
   QueueTab? get tab {
+    if (referralClosed) return mine ? QueueTab.completed : null;
     if (isEmergencyReferral) return QueueTab.emergency;
     if (claimable) return QueueTab.available;
     if (mine && _completed.contains(status)) return QueueTab.completed;
@@ -118,6 +128,7 @@ class DoctorQueueCase {
 
   /// Doctor-facing copy. Presentation only; the stored status is unchanged.
   String get statusLabel {
+    if (referralClosed) return 'Referral closed';
     if (claimable && status != 'Escalated') return 'Available';
     return switch (status) {
       'Claimed' => 'Assigned to me · In review',
@@ -136,6 +147,7 @@ class DoctorQueueCase {
   }
 
   QueueTone get statusTone {
+    if (referralClosed) return QueueTone.muted;
     if (status == 'Escalated') return QueueTone.danger;
     if (claimable) return QueueTone.primary;
     return switch (status) {
@@ -169,6 +181,9 @@ class DoctorQueueCase {
   /// What happens next for a case with no queue action.
   String get nextStepMessage {
     if (!mine) return 'This case is not available to you.';
+    if (referralClosed) {
+      return 'You closed this referral. The patient was directed to in-person care.';
+    }
     return switch (status) {
       'Claimed' || 'PendingDoctorReview' || 'LowConfidence' =>
         'Assigned to you. The clinical decision is made on the Approval Desk in the doctor web portal.',
@@ -195,6 +210,7 @@ class DoctorQueueCase {
         mine
             ? ('Acknowledged by you', QueueStepState.done)
             : ('Awaiting doctor acknowledgement', QueueStepState.current),
+        if (referralClosed) ('Referral closed by you', QueueStepState.done),
       ];
     }
     if (status == 'FailedSafe') {

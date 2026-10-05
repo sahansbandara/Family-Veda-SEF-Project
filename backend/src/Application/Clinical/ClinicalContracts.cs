@@ -38,6 +38,15 @@ public sealed record AvailableCaseDto(Guid Id, TriagePriority Priority, DateTime
 public sealed record FamilyHeadDto(Guid Id, Guid UserId, Guid FamilyId, string FamilyName, string DisplayName, string Email, int MemberCount, VerificationStatus VerificationStatus, bool IsActive, DateTimeOffset CreatedAt, string? Nic = null, string? Address = null, string? FamilyCode = null);
 public sealed record VerifyFamilyHeadRequest(VerificationStatus Status, string? Reason);
 
+public sealed record ContactSharedDto(Guid TriageCaseId, DateTimeOffset SharedAt);
+
+/// <summary>Follow-up a doctor may take on an emergency referral they acknowledged.</summary>
+public interface IEmergencyFollowUpService
+{
+    Task<ApprovalDto> CloseReferralAsync(Guid caseId, CancellationToken cancellationToken);
+    Task<ContactSharedDto> ShareContactAsync(Guid caseId, CancellationToken cancellationToken);
+}
+
 public interface IClinicalService
 {
     Task<DoctorDto> RegisterDoctorAsync(RegisterDoctorRequest request, CancellationToken cancellationToken);
