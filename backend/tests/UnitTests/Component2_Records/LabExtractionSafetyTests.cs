@@ -11,6 +11,7 @@ using FamilyVeda.Infrastructure.Agents;
 using FamilyVeda.Infrastructure.Records;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace FamilyVeda.UnitTests;
 
@@ -161,7 +162,7 @@ public sealed class LabExtractionSafetyTests
     [InlineData("9999", 600)]
     public void OcrTimeout_ReadsAndClampsConfiguration(string? configured, int expectedSeconds)
     {
-        var configuration = new Microsoft.Extensions.Configuration.ConfigurationBuilder()
+        var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?> { ["Ocr:TimeoutSeconds"] = configured }).Build();
         var service = new LabExtractionService(null!, new StubCurrentUser(Guid.NewGuid()), [], configuration);
 
