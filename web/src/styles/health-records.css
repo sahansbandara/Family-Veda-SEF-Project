@@ -988,3 +988,30 @@ label.hr-search:not(.hr-field):focus-within,
     transition: none;
   }
 }
+
+/* Recently deleted reports (trash) */
+.health-records .hr-action--danger,
+.hr-action--danger { color: var(--danger); }
+.hr-trash { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--care-line, var(--border)); }
+.hr-trash__toggle { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 6px 10px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font: inherit; font-size: .86rem; font-weight: 650; cursor: pointer; }
+.hr-trash__toggle:hover { background: var(--care-soft, var(--surface-subtle)); color: var(--text); }
+.hr-trash__toggle:focus-visible { outline: 2px solid var(--primary-lum); outline-offset: 2px; }
+.hr-trash__toggle svg { width: 16px; height: 16px; }
+.hr-trash__chevron { transition: transform .16s; }
+.hr-trash__chevron.is-open { transform: rotate(90deg); }
+.hr-trash__note { margin: 8px 0 12px; }
+.hr-trash__list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.hr-trash__item { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 14px; border: 1px dashed var(--care-line, var(--border)); border-radius: 12px; background: var(--care-soft, var(--surface-subtle)); }
+.hr-trash__item .hr-file__name { min-width: 0; overflow-wrap: anywhere; }
+.hr-trash__item .hr-file__name small { display: block; }
+.hr-trash__held { color: var(--warning); }
+.hr-confirm__text { margin: 0 0 18px; color: var(--muted); line-height: 1.6; overflow-wrap: anywhere; }
+.hr-confirm__text b { color: var(--text); }
+.hr-confirm__actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+@media (max-width: 640px) {
+  .hr-trash__item { flex-direction: column; align-items: stretch; }
+  .hr-trash__item .hr-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .hr-confirm__actions { flex-direction: column-reverse; }
+  .hr-confirm__actions .button { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .hr-trash__chevron { transition: none; } }

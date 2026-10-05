@@ -14,6 +14,9 @@ public sealed record VitalTrendDto(string VitalType, IReadOnlyList<VitalPointDto
 public sealed record VitalPointDto(DateTimeOffset MeasuredAt, decimal Value, string Unit);
 public sealed record LabReportDto(Guid Id, Guid MemberId, string OriginalFileName, OcrStatus OcrStatus, DateTimeOffset? CollectedAt,
     bool SharedWithFamilyHead = false, bool HasOriginalFile = false, LabRangeSummaryDto? RangeSummary = null);
+/// <summary>A report in "Recently deleted". Permanent deletion is refused while confirmed values may have informed a triage case.</summary>
+public sealed record DeletedLabReportDto(Guid Id, Guid MemberId, string OriginalFileName, string ContentType, OcrStatus OcrStatus,
+    DateTimeOffset? CollectedAt, DateTimeOffset DeletedAt, bool CanDeletePermanently);
 /// <summary>Original image bytes and their safe display content type. Storage paths are never exposed.</summary>
 public sealed record LabReportFileDto(byte[] Content, string ContentType);
 /// <summary>Counts only — range position against the printed reference, never an interpretation (RULE 1).</summary>
@@ -47,6 +50,10 @@ public interface IRecordService
     Task<LabReportDetailDto> ConfirmLabReportAsync(Guid reportId, ConfirmLabReportRequest request, CancellationToken cancellationToken);
     Task<IReadOnlyList<HereditaryFlagDto>> GetHereditaryFlagsAsync(Guid memberId, CancellationToken cancellationToken);
     Task<HealthRecordDto> SetRecordSharingAsync(Guid recordId, bool sharedWithFamilyHead, CancellationToken cancellationToken);
+    Task DeleteLabReportAsync(Guid reportId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<DeletedLabReportDto>> GetDeletedLabReportsAsync(Guid memberId, CancellationToken cancellationToken);
+    Task<LabReportDto> RestoreLabReportAsync(Guid reportId, CancellationToken cancellationToken);
+    Task PermanentlyDeleteLabReportAsync(Guid reportId, CancellationToken cancellationToken);
     Task<LabReportDto> SetLabReportSharingAsync(Guid reportId, bool sharedWithFamilyHead, CancellationToken cancellationToken);
 }
 

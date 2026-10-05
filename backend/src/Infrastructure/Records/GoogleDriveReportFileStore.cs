@@ -97,6 +97,15 @@ public sealed partial class GoogleDriveReportFileStore(
         return buffer.ToArray();
     }
 
+    public async Task DeleteAsync(string storageKey, CancellationToken cancellationToken)
+    {
+        if (!HasCredentials) throw new ReportStorageException("Google Drive storage is not configured.");
+        var key = StorageKey().Match(storageKey);
+        if (!key.Success) throw new ReportStorageException("Unrecognised storage key.");
+        using var response = await SendAsync(
+            () => new HttpRequestMessage(HttpMethod.Delete, $"{FilesEndpoint}/{key.Groups["id"].Value}"), "delete", cancellationToken);
+    }
+
     private async Task<string> ResolveFolderIdAsync(CancellationToken cancellationToken)
     {
         if (!string.IsNullOrWhiteSpace(options.FolderId)) return options.FolderId;

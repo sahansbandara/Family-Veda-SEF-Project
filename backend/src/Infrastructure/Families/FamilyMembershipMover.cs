@@ -129,7 +129,7 @@ public sealed class FamilyMembershipMover(AppDbContext dbContext)
     private async Task ResetFamilySharingAsync(Guid memberId, CancellationToken cancellationToken)
     {
         var now = DateTimeOffset.UtcNow;
-        var reports = await dbContext.LabReports.Where(x => x.MemberId == memberId && x.SharedWithFamilyHead).ToListAsync(cancellationToken);
+        var reports = await dbContext.LabReports.IgnoreQueryFilters().Where(x => x.MemberId == memberId && x.SharedWithFamilyHead).ToListAsync(cancellationToken);
         foreach (var report in reports) { report.SharedWithFamilyHead = false; report.UpdatedAt = now; }
         var records = await dbContext.HealthRecords.Where(x => x.MemberId == memberId && x.SharedWithFamilyHead).ToListAsync(cancellationToken);
         foreach (var record in records) { record.SharedWithFamilyHead = false; record.UpdatedAt = now; }

@@ -12,6 +12,7 @@ type Props = {
   onViewOriginal: (report: LabReportDto) => void
   onReview?: (report: LabReportDto) => void
   reviewLabel?: (report: LabReportDto) => string
+  onDelete?: (report: LabReportDto) => void
 }
 
 const PAGE_SIZE = 8
@@ -35,7 +36,7 @@ function ReportStatus({ report }: { report: LabReportDto }) {
     : <span className="hr-badge"><i className="hr-dot" /> Reading report</span>
 }
 
-export function ReportLibrary({ reports, ownerName, canChangeSharing, onToggleSharing, onViewOriginal, onReview, reviewLabel }: Props) {
+export function ReportLibrary({ reports, ownerName, canChangeSharing, onToggleSharing, onViewOriginal, onReview, reviewLabel, onDelete }: Props) {
   const [view, setView] = useState<'list' | 'grid'>('list')
   const [search, setSearch] = useState('')
   const [fileType, setFileType] = useState('all')
@@ -107,6 +108,7 @@ export function ReportLibrary({ reports, ownerName, canChangeSharing, onToggleSh
                 <div className="hr-actions">
                   {report.hasOriginalFile && <button type="button" className="button button--secondary button--sm hr-action hr-action--primary" aria-label="View original report" onClick={() => onViewOriginal(report)}><RecordIcon name="file" /> Open report</button>}
                   {onReview && <button type="button" className="button button--secondary button--sm hr-action" onClick={() => onReview(report)}><RecordIcon name="chart" /> {reviewLabel?.(report) ?? 'Check values'}</button>}
+                  {onDelete && <button type="button" className="button button--secondary button--sm hr-action hr-action--danger" aria-label={`Delete ${report.originalFileName}`} onClick={() => onDelete(report)}><RecordIcon name="trash" /> Delete</button>}
                 </div>
               </td>
             </tr>
@@ -118,7 +120,7 @@ export function ReportLibrary({ reports, ownerName, canChangeSharing, onToggleSh
     {visible.length > 0 && view === 'grid' && <div className="report-library__files report-library__files--grid">
       {visible.map((report) => <div key={report.id} className="report-library__item">
         <button className="report-library__preview" type="button" disabled={!report.hasOriginalFile} aria-label={`Preview ${report.originalFileName}`} onClick={() => onViewOriginal(report)}><ReportThumbnail reportId={report.id} originalFileName={report.originalFileName} hasOriginalFile={report.hasOriginalFile === true} /></button>
-        <ReportLibraryCard report={report} ownerName={ownerName} canChangeSharing={canChangeSharing} onToggleSharing={onToggleSharing} onViewOriginal={onViewOriginal} onReview={onReview} reviewLabel={reviewLabel?.(report)} />
+        <ReportLibraryCard report={report} ownerName={ownerName} canChangeSharing={canChangeSharing} onToggleSharing={onToggleSharing} onViewOriginal={onViewOriginal} onReview={onReview} reviewLabel={reviewLabel?.(report)} onDelete={onDelete} />
       </div>)}
     </div>}
 

@@ -142,6 +142,7 @@ export type ResetPasswordResponse = { success: boolean; message: string; resetTo
 
 export type LabRangeSummaryDto = { belowRange: number; withinRange: number; aboveRange: number; rangeUnavailable: number }
 export type LabReportDto = { id: string; memberId: string; originalFileName: string; ocrStatus: string; collectedAt?: string; sharedWithFamilyHead?: boolean; hasOriginalFile?: boolean; rangeSummary?: LabRangeSummaryDto | null }
+export type DeletedLabReportDto = { id: string; memberId: string; originalFileName: string; contentType: string; ocrStatus: string; collectedAt?: string | null; deletedAt: string; canDeletePermanently: boolean }
 export type LabValueDto = { id: string; analyte: string; value: number; unit: string; referenceLow?: number | null; referenceHigh?: number | null; wasManuallyConfirmed: boolean; rangeStatus?: 'RangeUnavailable' | 'BelowRange' | 'WithinRange' | 'AboveRange' }
 export type HereditaryFlagDto = { id: string; memberId: string; conditionCode: string; finding: string; confidence: number; manuallyConfirmed: boolean }
 export type LabReportDetailDto = LabReportDto & { values: LabValueDto[]; flags: HereditaryFlagDto[] }

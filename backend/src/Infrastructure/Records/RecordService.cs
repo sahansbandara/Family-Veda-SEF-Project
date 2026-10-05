@@ -14,7 +14,7 @@ using FamilyVeda.Infrastructure.Families;
 
 namespace FamilyVeda.Infrastructure.Records;
 
-public sealed class RecordService(AppDbContext dbContext, ICurrentUser currentUser, IOptions<StorageOptions> storageOptions,
+public sealed partial class RecordService(AppDbContext dbContext, ICurrentUser currentUser, IOptions<StorageOptions> storageOptions,
     IExternalReportFileStore? externalStore = null, ILogger<RecordService>? logger = null) : IRecordService
 {
     public async Task<PagedResult<HealthRecordDto>> GetRecordsAsync(

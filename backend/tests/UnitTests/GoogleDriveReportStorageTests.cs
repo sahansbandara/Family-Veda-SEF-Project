@@ -183,6 +183,7 @@ public sealed class GoogleDriveReportStorageTests
         public int Reads { get; set; }
         public bool IsEnabled => true;
         public bool Owns(string storageKey) => storageKey.StartsWith("gdrive:", StringComparison.Ordinal);
+        public Task DeleteAsync(string storageKey, CancellationToken cancellationToken) { files.Remove(storageKey); return Task.CompletedTask; }
 
         public Task<string> SaveAsync(string extension, string contentType, byte[] content, CancellationToken cancellationToken)
         {
