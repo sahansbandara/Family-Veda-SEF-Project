@@ -85,7 +85,7 @@ Family Veda closes that gap. A family maintains one shared account with individu
                              └──────────────────────────────┘
 ```
 
-Full diagram and reasoning: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+Full diagram and reasoning: [Final Report, Chapter 3](docs/university/FINAL_REPORT.md) (3.1 System Architecture).
 
 ## The agentic workflow
 
@@ -103,7 +103,7 @@ Flutter complaint → Coordinator → Context Agent → Analysis Agent
 | Familial Risk | Family — **flags only** | ✘ hard denied at dispatch | ✔ signal wording | S4 |
 | Safety / Validation | Case output | ✘ | ✘ **deterministic** | S4 |
 
-Design detail: [`docs/AGENTS_DESIGN.md`](docs/AGENTS_DESIGN.md).
+Design detail: [`docs/AI_FLOW.md`](docs/AI_FLOW.md) and [Final Report, Section 3.5](docs/university/FINAL_REPORT.md).
 
 ## Safety position
 
@@ -114,7 +114,7 @@ Design detail: [`docs/AGENTS_DESIGN.md`](docs/AGENTS_DESIGN.md).
 - In an emergency the system deliberately shows a referral and **zero AI output**.
 - **Synthetic data only.** No real patient data is used anywhere in this project.
 
-Full boundaries: [`docs/CLINICAL_SAFETY.md`](docs/CLINICAL_SAFETY.md).
+Full boundaries: [Final Report, Section 2.4](docs/university/FINAL_REPORT.md) (Clinical Safety Requirements).
 
 ## Repository layout
 
@@ -123,15 +123,13 @@ Family-Veda/
 ├── backend/     ONE ASP.NET Core solution (Api · Application · Domain · Infrastructure + tests)
 ├── web/         ONE React 18 application (Vite)
 ├── mobile/      ONE Flutter 3.x application
-├── docs/        blueprint · adr/ · diagrams/ · api/ · ai-disclosure/ · individual-reports/
-├── agent/       BRIEF · TODO · MEMORY · DECISIONS
-├── rules/       coding and safety rules by scope
-├── skills/      project-scoped agent skills
-├── workflows/   build · test · commit · deploy · audit · handoff · human-approval
-└── .github/     workflows/ci.yml · pull_request_template.md
+├── docs/        specs · adr/ · dashboards/ · evidence/ · individual-reports/ · university/ (final report) · release/ · mockups/ · plans/
+├── agent/       TODO · MEMORY · DECISIONS
+├── scripts/     database and demo helper scripts
+└── .github/     workflows/ (ci · codeql · migrate-db) · pull_request_template.md · CODEOWNERS
 ```
 
-One application, four authors — **not** a folder per student. Reasoning: blueprint §14.1.1.
+One application, four authors — **not** a folder per student. Reasoning: [Final Report, Section 3.3](docs/university/FINAL_REPORT.md) (Business Components and Ownership) and `agent/DECISIONS.md`.
 
 ## Tech stack
 
@@ -309,11 +307,11 @@ Everything below assumes **macOS** (Homebrew). Linux/Windows: install same tools
 Clone:
 
 ```bash
-git clone https://github.com/sahansbandara/Family-Veda.git
+git clone https://github.com/sahansbandara/Family-Veda-SEF-Project.git
 ```
 
 ```bash
-cd Family-Veda
+cd Family-Veda-SEF-Project
 ```
 
 ### 1. Database (PostgreSQL)
@@ -570,7 +568,7 @@ cd web && npm test
 cd mobile && flutter test
 ```
 
-Test plan and the 8 priority cases: [`docs/TESTING.md`](docs/TESTING.md).
+Test plan and execution: [`docs/university/A2_TEST_PLAN_AND_EXECUTION.md`](docs/university/A2_TEST_PLAN_AND_EXECUTION.md) and [Final Report, Section 4.4](docs/university/FINAL_REPORT.md). Demo accounts and seed data: [`docs/TESTING.md`](docs/TESTING.md).
 
 ## Team
 
@@ -585,21 +583,19 @@ Test plan and the 8 priority cases: [`docs/TESTING.md`](docs/TESTING.md).
 
 | Document | Contents |
 |---|---|
-| [`docs/Family_Veda_Project_Blueprint.md`](docs/Family_Veda_Project_Blueprint.md) | Full blueprint — the source of truth |
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | System architecture and integration rules |
-| [`docs/DATABASE.md`](docs/DATABASE.md) | Schema, 20 tables, state machines, seed policy |
-| [`docs/API_CONTRACT.md`](docs/API_CONTRACT.md) | Endpoints, conventions, status codes |
-| [`docs/AGENTS_DESIGN.md`](docs/AGENTS_DESIGN.md) | Agents, tool permission matrix, traces |
-| [`docs/CLINICAL_SAFETY.md`](docs/CLINICAL_SAFETY.md) | Advice boundaries, emergency path, genetics framing |
-| [`docs/PERMISSIONS.md`](docs/PERMISSIONS.md) | Roles, access principles, permission matrix |
-| [`docs/AUDIT_LOGGING.md`](docs/AUDIT_LOGGING.md) | What is audited and how |
-| [`docs/TESTING.md`](docs/TESTING.md) | Test plan and priority cases |
-| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Hosting and the evaluator access package |
-| [`docs/TIMELINE.md`](docs/TIMELINE.md) | Nine-week plan, gates, contingencies |
-| [`docs/RISK_REGISTER.md`](docs/RISK_REGISTER.md) | Risks and mitigations |
+| [`docs/university/FINAL_REPORT.md`](docs/university/FINAL_REPORT.md) | Consolidated final report: architecture (ch. 3), database (3.10), API (3.11), agents (3.5), clinical safety (2.4), testing (4.4), timeline (App. C), risk register (App. D), future work (4.9) |
+| [`docs/Three_Portal_Implementation_Blueprint.md`](docs/Three_Portal_Implementation_Blueprint.md) | Three-portal implementation blueprint |
+| [`docs/Three_Portal_Feature_Spec.md`](docs/Three_Portal_Feature_Spec.md) | Three-portal feature specification |
+| [`docs/Doctor_Side_Spec.md`](docs/Doctor_Side_Spec.md) | Doctor-side specification |
+| [`docs/AI_FLOW.md`](docs/AI_FLOW.md) | Agent workflow, doctor approval and dashboards |
+| [`docs/university/A2_TEST_PLAN_AND_EXECUTION.md`](docs/university/A2_TEST_PLAN_AND_EXECUTION.md) | Test plan and execution record |
+| [`docs/TESTING.md`](docs/TESTING.md) | Demo accounts and seed data (not a test plan) |
+| [`docs/DEMO_DATA.md`](docs/DEMO_DATA.md) | Synthetic demo data |
+| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Hosting and deployment |
+| [`docs/ENV_VARS.md`](docs/ENV_VARS.md) | Environment variable reference |
 | [`docs/VIVA_PREP.md`](docs/VIVA_PREP.md) | Viva questions, phrasing, memory hooks |
-| [`docs/FUTURE_WORK.md`](docs/FUTURE_WORK.md) | Deliberate deferrals with reserved extension points |
-| [`docs/adr/`](docs/adr/) | ADR-001 … ADR-009 |
+| [`docs/individual-reports/EVIDENCE.md`](docs/individual-reports/EVIDENCE.md) | Per-member file ownership evidence |
+| [`docs/adr/`](docs/adr/) | ADR-006 (local LLM), ADR-013 (hosted Gemini LLM), ADR-014 (Google Drive report storage) |
 
 ### Dashboard guides
 
@@ -616,7 +612,7 @@ One guide per portal: flow diagram, then every tab and its sub-sections.
 
 Development uses AI assistance at Level 4 (permitted, disclosed, verified). The final demonstration and viva are Level 1 — no external AI assistants; only the submitted application's own agentic subsystem runs.
 
-Each member maintains `docs/ai-disclosure/S<n>.md`. Individual reflections are **never AI-generated**.
+Individual AI-usage declarations are in Appendix E of the [final report](docs/university/FINAL_REPORT.md) (to be completed by each member). Individual reflections are **never AI-generated**.
 
 ## Licence and data policy
 

@@ -1,6 +1,8 @@
 # Per-member full-stack evidence table
 
-**Generated** 2026-09-22 from [`docs/OWNERSHIP.tsv`](../OWNERSHIP.tsv) at `05b0605`. Regenerate after any ownership change — do not hand-edit.
+**Generated** 2026-10-05 from [`docs/OWNERSHIP.tsv`](../OWNERSHIP.tsv) at `78e96fc`. Regenerate after any ownership change — do not hand-edit.
+
+Under the whole-project delivery decision of 2026-09-28 (agent/DECISIONS.md) components were edited across ownership boundaries; this table shows planned ownership scope, and authorship is shown only by each member's own commits.
 
 Closes the `agent/TODO.md` H7 item *"Per-member full-stack evidence table"*.
 
@@ -61,7 +63,7 @@ Schema changes follow the **migration lock** protocol in `CLAUDE.md`: announce, 
 **Agent(s):** —  (owns the enforcement layer every agent depends on)  
 **Branch:** `feature/s1-consent-management`  
 **Commits as:** `@IT23544154`  
-**Report:** [`S1.md`](./S1.md) · **AI disclosure:** [`../ai-disclosure/S1.md`](../ai-disclosure/S1.md)
+**Report:** [Final Report, Appendix B (individual sections)](../university/FINAL_REPORT.md) · **AI disclosure:** [Final Report, Appendix E](../university/FINAL_REPORT.md)
 
 ### Backend — API
 
@@ -179,7 +181,7 @@ Schema changes follow the **migration lock** protocol in `CLAUDE.md`: announce, 
 **Agent(s):** Extraction Agent  
 **Branch:** `feature/s2-lab-ocr-extraction`  
 **Commits as:** `@it24101875`  
-**Report:** [`S2.md`](./S2.md) · **AI disclosure:** [`../ai-disclosure/S2.md`](../ai-disclosure/S2.md)
+**Report:** [Final Report, Appendix B (individual sections)](../university/FINAL_REPORT.md) · **AI disclosure:** [Final Report, Appendix E](../university/FINAL_REPORT.md)
 
 ### Backend — API
 
@@ -236,7 +238,7 @@ Schema changes follow the **migration lock** protocol in `CLAUDE.md`: announce, 
 **Agent(s):** Coordinator · Context · Analysis Agents  
 **Branch:** `feature/s3-agent-orchestration`  
 **Commits as:** `@Jani6969`  
-**Report:** [`S3.md`](./S3.md) · **AI disclosure:** [`../ai-disclosure/S3.md`](../ai-disclosure/S3.md)
+**Report:** [Final Report, Appendix B (individual sections)](../university/FINAL_REPORT.md) · **AI disclosure:** [Final Report, Appendix E](../university/FINAL_REPORT.md)
 
 ### Backend — API
 
@@ -259,7 +261,6 @@ Schema changes follow the **migration lock** protocol in `CLAUDE.md`: announce, 
 - `backend/src/Infrastructure/Agents/ChatCompletionsLlmClient.cs`
 - `backend/src/Infrastructure/Agents/ContextAgent.cs`
 - `backend/src/Infrastructure/Agents/GeminiClient.cs`
-- `backend/src/Infrastructure/Agents/OllamaClient.cs`
 - `backend/src/Infrastructure/Persistence/Configurations/TriageConfigurations.cs`
 - `backend/src/Infrastructure/Triage/CaseSlaProcessor.cs`
 - `backend/src/Infrastructure/Triage/FcmPushNotificationClient.cs`
@@ -273,7 +274,6 @@ Schema changes follow the **migration lock** protocol in `CLAUDE.md`: announce, 
 - `backend/tests/UnitTests/CaseSlaProcessorTests.cs`
 - `backend/tests/UnitTests/ChatCompletionsLlmClientTests.cs`
 - `backend/tests/UnitTests/NotificationServiceTests.cs`
-- `backend/tests/UnitTests/OllamaClientTests.cs`
 - `backend/tests/UnitTests/TriageOrchestratorEmergencyTests.cs`
 - `backend/tests/UnitTests/TriageOrchestratorSchemaTests.cs`
 - `backend/tests/UnitTests/TriageWorkerRecoveryTests.cs`
@@ -330,7 +330,7 @@ Schema changes follow the **migration lock** protocol in `CLAUDE.md`: announce, 
 **Agent(s):** Familial Risk · Safety/Validation Agents  
 **Branch:** `feature/s4-approval-gate`  
 **Commits as:** `@sahansbandara`  
-**Report:** [`S4.md`](./S4.md) · **AI disclosure:** [`../ai-disclosure/S4.md`](../ai-disclosure/S4.md)
+**Report:** [Final Report, Appendix B (individual sections)](../university/FINAL_REPORT.md) · **AI disclosure:** [Final Report, Appendix E](../university/FINAL_REPORT.md)
 
 ### Backend — API
 

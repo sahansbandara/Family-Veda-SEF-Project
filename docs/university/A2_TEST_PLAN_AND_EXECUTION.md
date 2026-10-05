@@ -1,5 +1,7 @@
 # Assignment 2 Test Plan and Execution Record
 
+> **Superseded on 2026-10-05.** This is the execution record of 28 September 2026 and its counts are historical. The current test plan, test cases, defect report and execution summary are in [`A2_TESTING_REPORT.md`](A2_TESTING_REPORT.md).
+
 **System:** Family Veda
 **Assessment:** SE3090 Assignment 2 — Software Testing and Quality Evaluation
 **Evidence rule:** This document records only executions reported for this worktree. Source-code presence is not treated as execution evidence. No timings, student results, performance results, security results or defect outcomes are inferred.

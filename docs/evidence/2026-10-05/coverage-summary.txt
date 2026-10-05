@@ -13,8 +13,7 @@ Backend integration tests line 69.1% (28906/41842)  branch 15.9%
   FamilyVeda.Infrastructure 71.1%
   FamilyVeda.Api            59.0%
 Flutter tests             line 76.4% (8036/10514)
-Web (Vitest v8)           not captured: coverage-instrumented runs timed out on a heavily loaded
-                          development machine, so no trustworthy figure is reported
+Web (Vitest v8)           line 69.6% (3277/4705)  statements 67.5%  branches 62.4%  functions 64.1%
 
 Note: the backend line totals include generated EF Core migration code in
 FamilyVeda.Infrastructure. The unit and integration figures are separate runs

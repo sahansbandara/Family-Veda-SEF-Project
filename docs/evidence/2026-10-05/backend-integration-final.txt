@@ -1,0 +1,5 @@
+# PostgreSQL integration tests (Testcontainers, PostgreSQL 16) — final run
+# date: 2026-10-05 19:22 +0530  base commit: 78e96fc + request hardening  branch: develop
+# command: dotnet test backend/tests/IntegrationTests/FamilyVeda.IntegrationTests.csproj
+
+Passed!  - Failed:     0, Passed:    29, Skipped:     0, Total:    29, Duration: 3 m 25 s - FamilyVeda.IntegrationTests.dll (net8.0)
