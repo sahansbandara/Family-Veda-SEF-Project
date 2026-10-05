@@ -448,18 +448,19 @@ void main() {
       expect(find.textContaining('heart_rate'), findsNothing);
       expect(find.text('Heart rate trend'), findsOneWidget);
       expect(find.byType(CustomPaint), findsWidgets);
-      expect(find.text('Within reference range'), findsOneWidget);
-      expect(find.text('Trend: Stable'), findsOneWidget);
+      // Once on the overview card, once in the selected-series detail.
+      expect(find.text('Within reference range'), findsNWidgets(2));
+      expect(find.text('Trend: Stable'), findsNWidgets(2));
       expect(
         find.text('Reference 60 – 100 bpm · Synthetic source'),
         findsOneWidget,
       );
       expect(find.text('−2 bpm across 2 readings'), findsOneWidget);
 
-      await _tap(tester, find.text('Systolic blood pressure · 116 mmHg'));
+      await _tap(tester, find.text('Systolic blood pressure').first);
       expect(find.textContaining('One reading recorded'), findsOneWidget);
       // A reading the backend did not place against a range is never given one.
-      expect(find.text('No reference range'), findsOneWidget);
+      expect(find.text('No reference range'), findsWidgets);
       expect(find.textContaining('116/'), findsNothing);
     },
   );
