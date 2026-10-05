@@ -9,6 +9,7 @@ import 'package:family_veda/providers/records_provider.dart';
 import 'package:family_veda/screens/records/records_screen.dart';
 import 'package:family_veda/services/api/mobile_api.dart';
 import 'package:family_veda/widgets/records/original_report_preview.dart';
+import 'package:family_veda/widgets/records/report_review_workspace.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -16,6 +17,29 @@ import 'package:flutter_test/flutter_test.dart';
 class _FileApi implements MobileApi {
   final pending = Completer<Uint8List>();
   int loads = 0;
+  int reviews = 0;
+  @override
+  Future<Map<String, dynamic>> getLabReportDetail(String reportId) async => {
+    'values': [
+      {
+        'id': 'synthetic-value',
+        'analyte': 'Synthetic glucose',
+        'value': 92,
+        'unit': 'mg/dL',
+        'wasManuallyConfirmed': false,
+      },
+    ],
+    'flags': [],
+  };
+  @override
+  Future<Map<String, dynamic>> reviewLabReport(
+    String reportId,
+    Map<String, dynamic> review,
+  ) async {
+    reviews++;
+    return {'values': [], 'flags': []};
+  }
+
   @override
   Future<Uint8List> getLabReportFile(String reportId) {
     loads++;
@@ -42,6 +66,44 @@ const reports = [
   ),
 ];
 void main() {
+  testWidgets(
+    'library refresh after saving keeps the review open until explicit close',
+    (tester) async {
+      tester.view.physicalSize = const Size(1024, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final api = _FileApi();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            activeMemberProvider.overrideWith((ref) => 'member-1'),
+            myMemberIdProvider.overrideWith((ref) async => 'member-1'),
+            memberRecordsProvider.overrideWith((ref) async => []),
+            memberLabReportsProvider.overrideWith((ref) async => reports),
+            mobileApiProvider.overrideWithValue(api),
+          ],
+          child: const MaterialApp(home: RecordsScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Lab reports'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Check values').first);
+      await tester.pump();
+      api.pending.complete(Uint8List(0));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Confirm values'));
+      await tester.pumpAndSettle();
+      expect(api.reviews, 1);
+      expect(find.byType(ReportReviewWorkspace), findsOneWidget);
+      expect(find.text('Values confirmed'), findsOneWidget);
+      await tester.tap(find.byTooltip('Close review'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ReportReviewWorkspace), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
   testWidgets(
     '375px library supports grid and loads originals only on request',
     (tester) async {
@@ -107,6 +169,8 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Lab reports'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('View original report'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('View original report'));
     await tester.pump();

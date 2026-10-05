@@ -2,6 +2,7 @@
 // Extracted-value review for one lab report. Range status uses the printed reference range only (RULE 1, RULE 4).
 import type { FormEvent } from 'react'
 import { OriginalReportPreview } from '../../components/records/OriginalReportPreview'
+import { ReportProgress } from '../../components/records/ReportProgress'
 import { RecordedRangeVisual } from '../../components/records/RecordedRangeVisual'
 import { StatusBadge } from '../../components/shared/StatusBadge'
 import type { LabReportDetailDto, LabValueDto } from '../../services/apiClient'
@@ -27,10 +28,14 @@ export function ReportDetail({
   report,
   hasOriginalFile,
   onSubmit,
+  showOriginal = true,
+  saving = false,
 }: {
   report: LabReportDetailDto
   hasOriginalFile: boolean
-  onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>
+  onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void | boolean>
+  showOriginal?: boolean
+  saving?: boolean
 }) {
   const confirmed = report.values.filter((value) => value.wasManuallyConfirmed).length
   return (
@@ -47,23 +52,14 @@ export function ReportDetail({
         </div>
         <StatusBadge status={report.ocrStatus} />
       </div>
-      <OriginalReportPreview reportId={report.id} originalFileName={report.originalFileName} hasOriginalFile={hasOriginalFile} />
-      <ol className="care-steps">
-        <li className="care-step--complete">Uploaded</li>
-        <li className={report.ocrStatus === 'Completed' ? 'care-step--complete' : ''}>Extracted</li>
-        <li
-          className={
-            confirmed === report.values.length && report.values.length > 0 ? 'care-step--complete' : ''
-          }
-        >
-          Values confirmed
-        </li>
-      </ol>
+      {showOriginal && <OriginalReportPreview reportId={report.id} originalFileName={report.originalFileName} hasOriginalFile={hasOriginalFile} />}
+      <ReportProgress status={report.ocrStatus} confirmed={confirmed === report.values.length && confirmed > 0} />
       <p className="care-note">
         Extraction reads reported values. Compare each item with the original image before confirming it.
         Range status uses the printed reference range only.
       </p>
-      <form className="care-form" onSubmit={(event) => void onSubmit(event)}>
+      <form className="care-form report-review-form" onSubmit={(event) => void onSubmit(event)}>
+        <fieldset disabled={saving}>
         {report.values.some((value) => value.wasManuallyConfirmed) && (
           <section className="care-range-overview" aria-label="Confirmed report values">
             <div className="care-range-grid">
@@ -79,7 +75,7 @@ export function ReportDetail({
         )}
         {report.values.length === 0 ? (
           <div className="care-empty">
-            <p>No values are available to check yet.</p>
+            <p>{report.ocrStatus === 'Failed' ? 'This report could not be read. No extracted values are available to confirm.' : 'No values are available to check yet.'}</p>
           </div>
         ) : (
           <div className="table-scroll">
@@ -97,16 +93,18 @@ export function ReportDetail({
               <tbody>
                 {report.values.map((value) => (
                   <tr key={value.id}>
-                    <td>
+                    <td data-label="Test name">
                       <input
+                        aria-label={`Test name ${value.analyte}`}
                         name={`analyte-${value.id}`}
                         defaultValue={value.analyte}
                         required
                         maxLength={120}
                       />
                     </td>
-                    <td>
+                    <td data-label="Value">
                       <input
+                        aria-label={`Value ${value.analyte}`}
                         name={`value-${value.id}`}
                         type="number"
                         step="any"
@@ -115,26 +113,28 @@ export function ReportDetail({
                       />
                       {recordedRangeMarker(value)}
                     </td>
-                    <td>
-                      <input name={`unit-${value.id}`} defaultValue={value.unit} required maxLength={32} />
+                    <td data-label="Unit">
+                      <input aria-label={`Unit ${value.analyte}`} name={`unit-${value.id}`} defaultValue={value.unit} required maxLength={32} />
                     </td>
-                    <td>
+                    <td data-label="Reference low">
                       <input
+                        aria-label={`Reference low ${value.analyte}`}
                         name={`low-${value.id}`}
                         type="number"
                         step="any"
                         defaultValue={value.referenceLow ?? ''}
                       />
                     </td>
-                    <td>
+                    <td data-label="Reference high">
                       <input
+                        aria-label={`Reference high ${value.analyte}`}
                         name={`high-${value.id}`}
                         type="number"
                         step="any"
                         defaultValue={value.referenceHigh ?? ''}
                       />
                     </td>
-                    <td>
+                    <td data-label="State">
                       <StatusBadge status={value.wasManuallyConfirmed ? 'CONFIRMED' : 'REVIEW_REQUIRED'} />
                     </td>
                   </tr>
@@ -160,10 +160,11 @@ export function ReportDetail({
           ))
         )}
         {report.values.length > 0 && (
-          <button className="button button--primary" type="submit">
-            Confirm values
-          </button>
+          <div className="report-review-form__footer"><span>{confirmed} of {report.values.length} values confirmed</span><button className="button button--primary" type="submit" disabled={saving}>
+            {saving ? 'Saving values…' : 'Confirm values'}
+          </button></div>
         )}
+        </fieldset>
       </form>
     </>
   )

@@ -7,6 +7,7 @@
 @import './styles/auth-shell.css';
 @import './styles/care-workspace.css';
 @import './styles/health-records.css';
+@import './styles/records-studio.css';
 @import './styles/triage-redesign.css';
 
 /* Base and reset. Tokens are defined in styles/tokens.css. */

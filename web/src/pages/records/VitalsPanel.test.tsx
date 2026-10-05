@@ -13,22 +13,20 @@ const vitals: VitalDto[] = [
 ]
 
 describe('VitalsPanel', () => {
-  it('shows the latest reading per vital and the full history without interpretation', () => {
+  it('shows the latest reading per vital without interpretation', () => {
     render(<VitalsPanel vitals={vitals} onAdd={vi.fn()} />)
     expect(screen.getByRole('button', { name: /Heart Rate: 76 bpm/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Blood Pressure: 128\/82 mmHg/ })).toBeInTheDocument()
-    // header row + two heart-rate readings + one paired blood-pressure reading
-    expect(screen.getAllByRole('row')).toHaveLength(4)
     expect(screen.queryByText(/normal|abnormal|diagnos|high|low/i)).not.toBeInTheDocument()
   })
 
-  it('filters the history by vital type', async () => {
+  it('draws no reference range on the vital charts', async () => {
     const user = userEvent.setup()
-    render(<VitalsPanel vitals={vitals} onAdd={vi.fn()} />)
-    await user.selectOptions(screen.getByLabelText('Vital type'), 'pressure')
-    const rows = screen.getAllByRole('row')
-    expect(rows).toHaveLength(2)
-    expect(within(rows[1]).getByText('128/82')).toBeInTheDocument()
+    const { container } = render(<VitalsPanel vitals={vitals} onAdd={vi.fn()} />)
+    // Charts are aria-hidden, so check their raw text rather than accessible queries.
+    expect(container.textContent).not.toMatch(/normal/i)
+    await user.click(screen.getByRole('button', { name: /Heart Rate: 76 bpm/ }))
+    expect(document.body.textContent).not.toMatch(/normal:/i)
   })
 
   it('records blood pressure as a systolic and a diastolic reading with one timestamp', async () => {

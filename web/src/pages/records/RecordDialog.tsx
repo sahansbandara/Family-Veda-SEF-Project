@@ -11,7 +11,15 @@ export function RecordDialog({ eyebrow, title, onClose, children }: Props) {
     restoreFocus.current = document.activeElement as HTMLElement
     if (dialog.current?.showModal) dialog.current.showModal()
     else dialog.current?.setAttribute('open', '')
-    return () => { restoreFocus.current?.focus() }
+    const originalBodyOverflow = document.body.style.overflow
+    const originalHtmlOverflow = document.documentElement.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+    return () => { 
+      document.body.style.overflow = originalBodyOverflow
+      document.documentElement.style.overflow = originalHtmlOverflow
+      restoreFocus.current?.focus() 
+    }
   }, [])
   return (
     <dialog

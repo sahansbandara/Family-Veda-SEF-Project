@@ -60,6 +60,21 @@ class _FakeMobileApi implements MobileApi {
   Future<List<Vital>> getVitals(String memberId) async => const [];
 
   @override
+  Future<Map<String, dynamic>> getLabReportDetail(String reportId) async => {
+    'values': [],
+    'flags': [],
+  };
+
+  @override
+  Future<Map<String, dynamic>> reviewLabReport(
+    String reportId,
+    Map<String, dynamic> review,
+  ) async => {'values': [], 'flags': []};
+
+  @override
+  Future<void> extractLabReport(String reportId) async {}
+
+  @override
   Future<Uint8List> getLabReportFile(String reportId) async => Uint8List(0);
 
   @override

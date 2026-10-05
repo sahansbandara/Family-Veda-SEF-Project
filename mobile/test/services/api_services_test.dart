@@ -222,6 +222,49 @@ void main() {
 
   tearDown(() => tokenStore.expirations.close());
 
+  test(
+    'report review uses authenticated detail and review routes with exact payload',
+    () async {
+      const id = 'synthetic-report';
+      adapter.respond(
+        '/api/v1/lab-reports/$id',
+        status: 200,
+        body: {'id': id, 'values': [], 'flags': []},
+      );
+      adapter.respond(
+        '/api/v1/lab-reports/$id/review',
+        status: 200,
+        body: {'id': id, 'values': [], 'flags': []},
+      );
+      adapter.respond('/api/v1/lab-reports/$id/extract', status: 200, body: {});
+      final api = DioMobileApi(client);
+      await api.getLabReportDetail(id);
+      expect(adapter.lastRequest!.method, 'GET');
+      expect(
+        adapter.lastRequest!.headers['Authorization'],
+        'Bearer access-token',
+      );
+      final payload = {
+        'values': [
+          {
+            'id': 'synthetic-value',
+            'analyte': 'Synthetic glucose',
+            'value': 92,
+            'unit': 'mg/dL',
+            'referenceLow': 70,
+            'referenceHigh': 99,
+          },
+        ],
+        'confirmedFlagIds': <String>[],
+      };
+      await api.reviewLabReport(id, payload);
+      expect(adapter.lastRequest!.method, 'PUT');
+      expect(adapter.lastRequest!.data, payload);
+      await api.extractLabReport(id);
+      expect(adapter.lastRequest!.method, 'POST');
+    },
+  );
+
   test('auth API parses login and refresh tokens', () async {
     final api = DioAuthApi(client);
     final login = await api.login(
