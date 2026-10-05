@@ -7,25 +7,59 @@ class TriageCase {
     required this.status,
     required this.submittedAt,
     this.failureCode,
+    this.canEdit = false,
+    this.canWithdraw = false,
+    this.doctorReceivedAt,
+    this.doctorReviewStartedAt,
+    this.submittedEpisode,
+    this.latestDecisionAction,
+    this.latestDecisionReason,
   });
 
   factory TriageCase.fromJson(Map<String, dynamic> json) => TriageCase(
     id: json['id'] as String,
     status: _statusName(json['status'] as String),
-    submittedAt: DateTime.parse((json['submittedAt'] ?? json['createdAt']) as String),
+    submittedAt: DateTime.parse(
+      (json['submittedAt'] ?? json['createdAt']) as String,
+    ),
     failureCode: json['failureCode'] as String?,
+    canEdit: json['canEdit'] == true,
+    canWithdraw: json['canWithdraw'] == true,
+    doctorReceivedAt: DateTime.tryParse(
+      json['doctorReceivedAt'] as String? ?? '',
+    ),
+    doctorReviewStartedAt: DateTime.tryParse(
+      json['doctorReviewStartedAt'] as String? ?? '',
+    ),
+    submittedEpisode: json['submittedEpisode'] as Map<String, dynamic>?,
+    latestDecisionAction: json['latestDecisionAction'] as String?,
+    latestDecisionReason: json['latestDecisionReason'] as String?,
   );
 
   final String id;
   final String status;
   final DateTime submittedAt;
   final String? failureCode;
+  final bool canEdit;
+  final bool canWithdraw;
+  final DateTime? doctorReceivedAt;
+  final DateTime? doctorReviewStartedAt;
+  final Map<String, dynamic>? submittedEpisode;
+  final String? latestDecisionAction;
+  final String? latestDecisionReason;
 
   TriageCase withStatusDetail(Map<String, dynamic> json) => TriageCase(
     id: id,
     status: _statusName(json['status'] as String? ?? status),
     submittedAt: submittedAt,
     failureCode: json['failureCode'] as String?,
+    canEdit: canEdit,
+    canWithdraw: canWithdraw,
+    doctorReceivedAt: doctorReceivedAt,
+    doctorReviewStartedAt: doctorReviewStartedAt,
+    submittedEpisode: submittedEpisode,
+    latestDecisionAction: latestDecisionAction,
+    latestDecisionReason: latestDecisionReason,
   );
 
   bool get hasApprovedGuidance => const {

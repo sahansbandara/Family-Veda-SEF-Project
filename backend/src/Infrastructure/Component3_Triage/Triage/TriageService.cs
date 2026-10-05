@@ -59,19 +59,85 @@ public sealed class TriageService(
         {
             EpisodeId = episodeId,
             MemberId = episode.MemberId,
-            Status = TriageStatus.Planning,
+            Status = TriageStatus.Submitted,
             SubmittedAt = DateTimeOffset.UtcNow
         };
         dbContext.TriageCases.Add(triageCase);
+        await AddReceiptAsync(triageCase, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         await workQueue.QueueAsync(triageCase.Id, cancellationToken);
-        return MapCase(triageCase);
+        return await MapCaseAsync(triageCase, cancellationToken);
+    }
+
+    public Task<TriageCaseDto> ReplaceSubmissionAsync(Guid caseId, CreateEpisodeRequest request, CancellationToken cancellationToken) =>
+        dbContext.Database.CreateExecutionStrategy().ExecuteAsync(() => ReplaceSubmissionAsyncCore(caseId, request, cancellationToken));
+
+    private async Task<TriageCaseDto> ReplaceSubmissionAsyncCore(Guid caseId, CreateEpisodeRequest request, CancellationToken cancellationToken)
+    {
+        TriageCase replacement;
+        await using (var gate = await CaseLifecycleLock.AcquireAsync(dbContext, caseId, cancellationToken))
+        {
+            var original = await RequireChangeAsync(caseId, cancellationToken);
+            var episode = new Episode { MemberId = original.MemberId, SymptomsJson = JsonSerializer.Serialize(request.Symptoms), DurationDays = request.DurationDays, Severity = request.Severity, Notes = request.Notes?.Trim() };
+            replacement = new TriageCase { Episode = episode, EpisodeId = episode.Id, MemberId = original.MemberId, Status = TriageStatus.Submitted, SubmittedAt = DateTimeOffset.UtcNow };
+            dbContext.Episodes.Add(episode);
+            dbContext.TriageCases.Add(replacement);
+            await AbandonAsync(original, TriageStatus.Superseded, cancellationToken);
+            dbContext.AuditLogs.Add(new AuditLog { ActorUserId = currentUser.UserId, SubjectMemberId = original.MemberId, EventType = "CASE_SUBMISSION_REPLACED", ResourceType = "TriageCase", ResourceId = caseId, Outcome = "SUCCESS", MetadataJson = JsonSerializer.Serialize(new { replacementCaseId = replacement.Id }) });
+            await AddReceiptAsync(replacement, cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await gate.CompleteAsync(cancellationToken);
+        }
+        await workQueue.QueueAsync(replacement.Id, cancellationToken);
+        return await MapCaseAsync(replacement, cancellationToken);
+    }
+
+    public Task<TriageCaseDto> WithdrawAsync(Guid caseId, CancellationToken cancellationToken) =>
+        dbContext.Database.CreateExecutionStrategy().ExecuteAsync(() => WithdrawAsyncCore(caseId, cancellationToken));
+
+    private async Task<TriageCaseDto> WithdrawAsyncCore(Guid caseId, CancellationToken cancellationToken)
+    {
+        await using var gate = await CaseLifecycleLock.AcquireAsync(dbContext, caseId, cancellationToken);
+        var item = await RequireChangeAsync(caseId, cancellationToken);
+        await AbandonAsync(item, TriageStatus.Withdrawn, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await gate.CompleteAsync(cancellationToken);
+        return await MapCaseAsync(item, cancellationToken);
+    }
+
+    private async Task<TriageCase> RequireChangeAsync(Guid caseId, CancellationToken ct)
+    {
+        var item = await dbContext.TriageCases.SingleOrDefaultAsync(x => x.Id == caseId, ct) ?? throw new NotFoundException();
+        // Re-read even if this scoped context previously loaded the case.
+        await dbContext.Entry(item).ReloadAsync(ct);
+        await RequirePatientAccessAsync(item.MemberId, ct);
+        if (!CaseLifecycle.CanChange(item.Status) || await CaseLifecycle.ReviewHasStartedAsync(dbContext, caseId, ct))
+            throw new ConflictException("This submission can no longer be changed because review has started or the case is closed.");
+        return item;
+    }
+
+    private async Task AbandonAsync(TriageCase item, TriageStatus status, CancellationToken ct)
+    {
+        item.Status = status;
+        item.CompletedAt = DateTimeOffset.UtcNow;
+        var grants = await dbContext.CaseAccessGrants.Where(x => x.TriageCaseId == item.Id && x.RevokedAt == null).ToListAsync(ct);
+        foreach (var grant in grants) grant.RevokedAt = item.CompletedAt;
+        dbContext.AuditLogs.Add(new AuditLog { ActorUserId = currentUser.UserId, SubjectMemberId = item.MemberId, EventType = status == TriageStatus.Withdrawn ? "CASE_WITHDRAWN" : "CASE_SUPERSEDED", ResourceType = "TriageCase", ResourceId = item.Id, Outcome = "SUCCESS" });
+    }
+
+    private async Task AddReceiptAsync(TriageCase item, CancellationToken ct)
+    {
+        dbContext.AuditLogs.Add(new AuditLog { ActorUserId = currentUser.UserId, SubjectMemberId = item.MemberId, EventType = CaseLifecycle.Submitted, ResourceType = "TriageCase", ResourceId = item.Id, Outcome = "SUCCESS" });
+        var familyId = await dbContext.Members.Where(x => x.Id == item.MemberId).Select(x => x.FamilyId).SingleAsync(ct);
+        var doctorUserId = await dbContext.FamilyDoctorAssignments.AsNoTracking().Where(x => x.FamilyId == familyId && x.IsPrimary && x.EndedAt == null && x.Doctor!.VerificationStatus == VerificationStatus.Verified).Select(x => (Guid?)x.Doctor!.UserId).FirstOrDefaultAsync(ct);
+        if (doctorUserId is not null)
+            dbContext.AuditLogs.Add(new AuditLog { ActorUserId = doctorUserId, SubjectMemberId = item.MemberId, EventType = CaseLifecycle.Received, ResourceType = "TriageCase", ResourceId = item.Id, Outcome = "SUCCESS" });
     }
 
     public async Task<TriageCaseDto> GetCaseAsync(Guid caseId, CancellationToken cancellationToken)
     {
         var triageCase = await RequireCaseAccessAsync(caseId, tracesOnly: false, cancellationToken);
-        return MapCase(triageCase);
+        return await MapCaseAsync(triageCase, cancellationToken, includeClinical: currentUser.UserType == UserType.FamilyUser);
     }
 
     public async Task<TriageStatusDto> GetStatusAsync(Guid caseId, CancellationToken cancellationToken)
@@ -87,12 +153,20 @@ public sealed class TriageService(
         return traces.Select(MapTrace).ToList();
     }
 
-    public async Task<CaseReviewDto> GetCaseReviewAsync(Guid caseId, CancellationToken cancellationToken)
+    public Task<CaseReviewDto> GetCaseReviewAsync(Guid caseId, CancellationToken cancellationToken) =>
+        dbContext.Database.CreateExecutionStrategy().ExecuteAsync(() => GetCaseReviewAsyncCore(caseId, cancellationToken));
+
+    private async Task<CaseReviewDto> GetCaseReviewAsyncCore(Guid caseId, CancellationToken cancellationToken)
     {
+        await using var gate = await CaseLifecycleLock.AcquireAsync(dbContext, caseId, cancellationToken);
         await RequireCaseAccessAsync(caseId, tracesOnly: true, cancellationToken);
         if (currentUser.UserType != UserType.Doctor) throw new NotFoundException();
         var item = await dbContext.TriageCases.AsNoTracking().Include(x => x.Traces).Include(x => x.Episode).Include(x => x.Member!).ThenInclude(x => x.Family)
             .SingleAsync(x => x.Id == caseId, cancellationToken);
+        if (CaseLifecycle.IsAbandoned(item.Status)) throw new NotFoundException();
+        await CaseLifecycle.MarkReviewAsync(dbContext, caseId, item.MemberId, currentUser.UserId, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await gate.CompleteAsync(cancellationToken);
         return new CaseReviewDto(item.Id, item.MemberId, item.Status, item.Priority, item.ContextOutputJson,
             item.AnalysisOutputJson, item.FamilialRiskOutputJson, item.DraftAdvisoryJson,
             item.Traces.OrderBy(x => x.StepNumber).Select(MapTrace).ToList(),
@@ -137,8 +211,9 @@ public sealed class TriageService(
         (page, pageSize) = NormalizePage(page, pageSize);
         var query = dbContext.TriageCases.AsNoTracking().Where(x => x.MemberId == memberId);
         var total = await query.CountAsync(cancellationToken);
-        var items = await query.OrderByDescending(x => x.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize)
-            .Select(x => new TriageCaseDto(x.Id, x.EpisodeId, x.MemberId, x.Status, x.Priority, x.CreatedAt, x.CaseNumber, null, null, false)).ToListAsync(cancellationToken);
+        var entities = await query.Include(x => x.Episode).OrderByDescending(x => x.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
+        var items = new List<TriageCaseDto>();
+        foreach (var entity in entities) items.Add(await MapCaseAsync(entity, cancellationToken, includeClinical: false));
         return new PagedResult<TriageCaseDto>(items, page, pageSize, total);
     }
 
@@ -148,8 +223,9 @@ public sealed class TriageService(
         (page, pageSize) = NormalizePage(page, pageSize);
         var query = dbContext.TriageCases.AsNoTracking().Where(x => visibleMemberIds.Contains(x.MemberId));
         var total = await query.CountAsync(cancellationToken);
-        var items = await query.OrderByDescending(x => x.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize)
-            .Select(x => new TriageCaseDto(x.Id, x.EpisodeId, x.MemberId, x.Status, x.Priority, x.CreatedAt, x.CaseNumber, null, null, false)).ToListAsync(cancellationToken);
+        var entities = await query.Include(x => x.Episode).OrderByDescending(x => x.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
+        var items = new List<TriageCaseDto>();
+        foreach (var entity in entities) items.Add(await MapCaseAsync(entity, cancellationToken, includeClinical: false));
         return new PagedResult<TriageCaseDto>(items, page, pageSize, total);
     }
 
@@ -179,7 +255,7 @@ public sealed class TriageService(
 
     private async Task<TriageCase> RequireCaseAccessAsync(Guid caseId, bool tracesOnly, CancellationToken cancellationToken)
     {
-        var triageCase = await dbContext.TriageCases.AsNoTracking().SingleOrDefaultAsync(x => x.Id == caseId, cancellationToken) ?? throw new NotFoundException();
+        var triageCase = await dbContext.TriageCases.AsNoTracking().Include(x => x.Episode).SingleOrDefaultAsync(x => x.Id == caseId, cancellationToken) ?? throw new NotFoundException();
         if (currentUser.UserType == UserType.FamilyUser)
         {
             await RequirePatientAccessAsync(triageCase.MemberId, cancellationToken);
@@ -266,7 +342,16 @@ public sealed class TriageService(
         episode.Severity,
         episode.Notes,
         episode.CreatedAt);
-    private static TriageCaseDto MapCase(TriageCase x) => new(x.Id, x.EpisodeId, x.MemberId, x.Status, x.Priority, x.CreatedAt);
+    private async Task<TriageCaseDto> MapCaseAsync(TriageCase x, CancellationToken ct, bool includeClinical = true)
+    {
+        var markers = await dbContext.AuditLogs.AsNoTracking().Where(a => a.ResourceId == x.Id && (a.EventType == CaseLifecycle.Received || a.EventType == CaseLifecycle.ReviewStarted)).ToListAsync(ct);
+        var received = markers.Where(a => a.EventType == CaseLifecycle.Received).Select(a => (DateTimeOffset?)a.CreatedAt).Min();
+        var started = markers.Where(a => a.EventType == CaseLifecycle.ReviewStarted).Select(a => (DateTimeOffset?)a.CreatedAt).Min();
+        var canChange = currentUser.UserType == UserType.FamilyUser && CaseLifecycle.CanChange(x.Status) && !await CaseLifecycle.ReviewHasStartedAsync(dbContext, x.Id, ct);
+        var episode = x.Episode ?? await dbContext.Episodes.AsNoTracking().SingleOrDefaultAsync(e => e.Id == x.EpisodeId && e.MemberId == x.MemberId, ct);
+        var decision = await dbContext.Approvals.AsNoTracking().Where(a => a.TriageCaseId == x.Id && dbContext.AuditLogs.Any(log => log.EventType == "CASE_DECISION" && log.ResourceId == x.Id && log.ActorUserId == a.Doctor!.UserId)).OrderByDescending(a => a.DecidedAt).FirstOrDefaultAsync(ct);
+        return new(x.Id, x.EpisodeId, x.MemberId, x.Status, x.Priority, x.CreatedAt, x.CaseNumber, SubmittedAt: x.SubmittedAt, DoctorReceivedAt: received, DoctorReviewStartedAt: started, CanEdit: canChange, CanWithdraw: canChange, SubmittedEpisode: !includeClinical || currentUser.UserType != UserType.FamilyUser || episode is null ? null : MapEpisode(episode), LatestDecisionAction: decision?.Action, LatestDecisionReason: includeClinical && decision?.DoctorNotes is { } notes && new FamilyVeda.Domain.Safety.SafetyValidationService().Validate(new FamilyVeda.Domain.Safety.SafetyInput(false, notes, true, 1m, 0m)).CanContinue ? notes : null, FailureCode: x.FailureCode);
+    }
     private static AgentTraceDto MapTrace(AgentTrace x) => new(
         x.StepNumber,
         x.Agent,

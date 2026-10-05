@@ -649,7 +649,7 @@ class _LabReportsTabState extends ConsumerState<_LabReportsTab> {
                 children: [
                   for (final report in items)
                     SizedBox(
-                      width: _grid && constraints.maxWidth >= 340
+                      width: _grid && constraints.maxWidth >= 680
                           ? (constraints.maxWidth - 12) / 2
                           : constraints.maxWidth,
                       child: ReportLibraryCard(

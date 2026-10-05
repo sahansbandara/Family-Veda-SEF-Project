@@ -170,7 +170,7 @@ class _JsonAdapter implements HttpClientAdapter {
           'approvedAtLabel': 'Today',
         },
       ),
-      '/api/v1/triage-cases/case-1/status' => (
+      '/api/v1/triage-cases/case-1' => (
         200,
         {
           'id': 'case-1',

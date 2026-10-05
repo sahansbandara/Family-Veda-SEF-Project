@@ -105,6 +105,11 @@ public sealed class ClinicalController(IClinicalService clinicalService, IEmerge
         Ok(await clinicalService.ChangeFamilyHeadVerificationAsync(userId, new VerifyDoctorRequest(VerificationStatus.Suspended, request.Reason), cancellationToken));
 
 
+    [HttpGet("doctors/processing-cases")]
+    [Authorize(Policy = "Doctor")]
+    public async Task<ActionResult<PagedResult<ProcessingCaseDto>>> ProcessingCases(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default) =>
+        Ok(await clinicalService.GetProcessingCasesAsync(page, pageSize, cancellationToken));
+
     [HttpPost("triage-cases/{caseId:guid}/claim")]
     [Authorize(Policy = "Doctor")]
     [Authorize(Policy = "Doctor")]

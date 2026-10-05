@@ -14,6 +14,7 @@ describe('Triage three-step journey', () => {
     mocks.get.mockImplementation((url: string) => {
       if (url === '/families/me') return Promise.resolve({ data: { id: 'synthetic-family', members: [{ id: 'synthetic-member', displayName: 'Synthetic Member', role: 'Head' }] } })
       if (url.endsWith('/triage-cases')) return Promise.resolve({ data: { items: [] } })
+      if (url === '/triage-cases/synthetic-case') return Promise.resolve({ data: { id: 'synthetic-case', memberId: 'synthetic-member', status: 'Submitted', priority: 'Routine', createdAt: '2026-10-04T00:00:00Z' } })
       if (url.endsWith('/status')) return Promise.resolve({ data: { id: 'synthetic-case', status: 'Submitted', priority: 'Routine' } })
       return Promise.reject(new Error(`Unexpected ${url}`))
     })
@@ -50,6 +51,7 @@ describe('Triage three-step journey', () => {
     expect(mocks.post).toHaveBeenNthCalledWith(1, '/members/synthetic-member/episodes', expect.objectContaining({ symptoms: ['Headache'], durationDays: 4, severity: 6 }))
     expect(mocks.post).toHaveBeenNthCalledWith(2, '/episodes/synthetic-episode/triage')
     await screen.findByText(/Your request was submitted for review/)
+    fireEvent.click(await screen.findByRole('button', { name: 'Close' }))
     expect(screen.getByRole('button', { name: 'Headache' })).toHaveAttribute('aria-pressed', 'false')
     expect(screen.getByLabelText(/Describe the symptoms in your own words/)).toHaveValue('')
     expect(screen.getByRole('button', { name: 'Continue' })).toBeInTheDocument()
@@ -86,6 +88,7 @@ describe('Triage three-step journey', () => {
     mocks.get.mockImplementation((url: string) => {
       if (url === '/families/me') return Promise.resolve({ data: { id: 'synthetic-family', members: [{ id: 'synthetic-member', displayName: 'Synthetic Member', role: 'Head' }] } })
       if (url.endsWith('/triage-cases')) return ++caseLoads === 1 ? Promise.resolve({ data: { items: [] } }) : Promise.reject(new Error('Synthetic refresh failure'))
+      if (url === '/triage-cases/synthetic-case') return Promise.resolve({ data: { id: 'synthetic-case', memberId: 'synthetic-member', status: 'Submitted', priority: 'Routine', createdAt: '2026-10-04T00:00:00Z' } })
       if (url.endsWith('/status')) return Promise.resolve({ data: { id: 'synthetic-case', status: 'Submitted', priority: 'Routine' } })
       return Promise.reject(new Error(`Unexpected ${url}`))
     })
@@ -96,6 +99,7 @@ describe('Triage three-step journey', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
     fireEvent.click(screen.getByRole('button', { name: 'Submit for doctor review' }))
     expect(await screen.findByText(/The request list could not be refreshed/)).toHaveTextContent('Your request was submitted for review.')
+    fireEvent.click(await screen.findByRole('button', { name: 'Close' }))
     expect(screen.queryByText(/Could not confirm submission/)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Headache' })).toHaveAttribute('aria-pressed', 'false')
     expect(screen.getByRole('button', { name: 'Continue' })).toBeInTheDocument()

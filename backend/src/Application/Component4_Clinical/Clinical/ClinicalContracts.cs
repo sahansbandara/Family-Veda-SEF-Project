@@ -28,11 +28,11 @@ public sealed record ApprovalContentRequest(string? DoctorNotes, string? FinalAd
 public sealed record ApprovalDto(Guid Id, Guid TriageCaseId, Guid DoctorId, ApprovalAction Action, DateTimeOffset DecidedAt);
 public sealed record AuditDto(Guid Id, string EventType, string ResourceType, Guid? ResourceId, string Outcome, DateTimeOffset CreatedAt);
 /// <summary>
-/// What a verified doctor may read about a pooled case before holding a grant, so they can decide
-/// whether to claim it. Carries the submitted complaint and an age band — never a name, a family or
-/// a member id (agent/DECISIONS.md 2026-10-05).
+/// Legacy complaint shape retained for client compatibility. Pool responses withhold this clinical
+/// preview; the submitted complaint is available only through authorized full case review.
 /// </summary>
 public sealed record PoolComplaintDto(IReadOnlyList<string> Symptoms, int DurationDays, int Severity, string? Notes, string AgeBand);
+public sealed record ProcessingCaseDto(Guid Id, int CaseNumber, TriageStatus Status, DateTimeOffset SubmittedAt);
 public sealed record AvailableCaseDto(Guid Id, TriagePriority Priority, DateTimeOffset CreatedAt, TriageStatus Status, int CaseNumber = 0, PoolComplaintDto? Complaint = null);
 
 public sealed record FamilyHeadDto(Guid Id, Guid UserId, Guid FamilyId, string FamilyName, string DisplayName, string Email, int MemberCount, VerificationStatus VerificationStatus, bool IsActive, DateTimeOffset CreatedAt, string? Nic = null, string? Address = null, string? FamilyCode = null);
@@ -57,6 +57,7 @@ public interface IClinicalService
     Task<PagedResult<FamilyHeadDto>> GetFamilyHeadsAsync(int page, int pageSize, CancellationToken cancellationToken);
     Task<FamilyHeadDto> ChangeFamilyHeadVerificationAsync(Guid userId, VerifyDoctorRequest request, CancellationToken cancellationToken);
     Task<PagedResult<FamilyVeda.Application.Triage.TriageCaseDto>> GetMyCasesAsync(int page, int pageSize, CancellationToken cancellationToken);
+    Task<PagedResult<ProcessingCaseDto>> GetProcessingCasesAsync(int page, int pageSize, CancellationToken cancellationToken);
     Task<PagedResult<AvailableCaseDto>> GetAvailableCasesAsync(int page, int pageSize, CancellationToken cancellationToken);
     Task<ApprovalDto> ClaimCaseAsync(Guid caseId, CancellationToken cancellationToken);
     Task<ApprovalDto> DecideCaseAsync(Guid caseId, ApprovalRequest request, CancellationToken cancellationToken);

@@ -6,10 +6,23 @@ import 'package:family_veda/providers/cases_provider.dart';
 import 'package:family_veda/theme/app_theme.dart';
 import 'package:family_veda/widgets/shared/async_state_views.dart';
 import 'package:family_veda/widgets/shared/status_stepper.dart';
+import 'package:family_veda/widgets/shared/request_submission_actions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+
+Future<void> showCaseProgressSheet(BuildContext context, String caseId) =>
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (_) => FractionallySizedBox(
+        heightFactor: 0.9,
+        child: CaseStatusScreen(caseId: caseId),
+      ),
+    );
 
 class CaseStatusScreen extends ConsumerWidget {
   const CaseStatusScreen({super.key, required this.caseId});
@@ -54,7 +67,20 @@ class CaseStatusScreen extends ConsumerWidget {
                       message:
                           'No automated guidance is available. Please arrange an in-person clinical review. If symptoms become severe or urgent, use emergency services.',
                     ),
+                    RequestSubmissionActions(item: item),
                   ],
+                );
+              }
+              if ({'WITHDRAWN', 'SUPERSEDED'}.contains(item.status)) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      item.status == 'WITHDRAWN'
+                          ? 'This request was withdrawn.'
+                          : 'This request was replaced by your edited submission.',
+                    ),
+                  ),
                 );
               }
               final delayed = item.failureCode == 'DOCTOR_RESPONSE_DELAY';
@@ -62,6 +88,16 @@ class CaseStatusScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 children: [
                   _ProgressCard(item: item),
+                  RequestSubmissionActions(item: item),
+                  if (item.latestDecisionAction != null)
+                    _NoticeCard(
+                      icon: Icons.message_outlined,
+                      color: Theme.of(context).colorScheme.primary,
+                      title: 'Doctor response',
+                      message:
+                          item.latestDecisionReason ??
+                          'Your doctor has responded to this request.',
+                    ),
                   const SizedBox(height: 12),
                   if (delayed)
                     _NoticeCard(
@@ -77,7 +113,7 @@ class CaseStatusScreen extends ConsumerWidget {
                       icon: const Icon(Icons.verified_outlined),
                       label: const Text('View approved guidance'),
                     )
-                  else
+                  else if (item.latestDecisionAction == null)
                     _NoticeCard(
                       icon: Icons.lock_outline,
                       color: Theme.of(context).colorScheme.primary,
@@ -103,7 +139,13 @@ class _ProgressCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final step = StatusStepper.indexOf(item.status) + 1;
+    final step = item.hasApprovedGuidance || item.latestDecisionAction != null
+        ? 4
+        : item.doctorReviewStartedAt != null
+        ? 3
+        : StatusStepper.indexOf(item.status) >= 1
+        ? 2
+        : 1;
     final total = StatusStepper.stepCount;
     return Card(
       child: Padding(
@@ -148,7 +190,48 @@ class _ProgressCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            StatusStepper(status: item.status),
+            for (final (label, value) in [
+              (
+                'Request received',
+                DateFormat.yMMMd().add_jm().format(item.submittedAt.toLocal()),
+              ),
+              (
+                'Doctor received request',
+                item.doctorReceivedAt == null
+                    ? 'Awaiting receipt'
+                    : DateFormat.yMMMd().add_jm().format(
+                        item.doctorReceivedAt!.toLocal(),
+                      ),
+              ),
+              (
+                'AI processing',
+                (StatusStepper.indexOf(item.status) >= 2 ||
+                        item.status == 'LOW_CONFIDENCE' ||
+                        item.doctorReviewStartedAt != null ||
+                        item.latestDecisionAction != null)
+                    ? 'Complete'
+                    : step >= 2
+                    ? 'In progress'
+                    : 'Waiting',
+              ),
+              (
+                'Doctor review',
+                item.doctorReviewStartedAt == null
+                    ? 'Not started'
+                    : 'Started ${DateFormat.yMMMd().add_jm().format(item.doctorReviewStartedAt!.toLocal())}',
+              ),
+              (
+                'Doctor response',
+                item.latestDecisionAction != null || item.hasApprovedGuidance
+                    ? 'Received'
+                    : 'Waiting',
+              ),
+            ])
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(label),
+                subtitle: Text(value),
+              ),
           ],
         ),
       ),

@@ -138,7 +138,7 @@ describe('AppRoutes', () => {
     expect(await screen.findByRole('heading', { name: /family head verification/i })).toBeInTheDocument()
   })
 
-  it('shows the Family Head the blueprint menu in order, with Emergency Help', async () => {
+  it('shows the Family Head menu without a floating Emergency Help control', async () => {
     renderRoute('/dashboard', 'FAMILY_HEAD')
 
     const nav = await screen.findByRole('navigation', { name: /primary navigation/i })
@@ -146,7 +146,7 @@ describe('AppRoutes', () => {
     expect(labels).toEqual([
       'Dashboard', 'My Family', 'Health Records', 'Symptoms & Triage', 'My Doctor', 'Appointments', 'Privacy & Access',
     ])
-    expect(screen.getByRole('button', { name: 'Emergency Help' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Emergency Help' })).not.toBeInTheDocument()
   })
 
   it('shows the Adult Member the blueprint menu without family administration', async () => {

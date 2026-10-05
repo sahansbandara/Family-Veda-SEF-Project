@@ -73,6 +73,7 @@ void main() {
     expect(find.text('1 minor'), findsOneWidget);
     expect(find.text('Adult · private by default'), findsOneWidget);
     expect(find.text('Lab report shared'), findsOneWidget);
+    expect(find.text('Emergency Help'), findsNothing);
     expect(
       find.text(
         'No family doctor yet. Search the directory and send a request.',

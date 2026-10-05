@@ -98,6 +98,45 @@ public sealed class GoldenCaseFlowTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task PatientWithdrawal_RacesFullDoctorReview_ExactlyOneCanWin()
+    {
+        var patient = _factory!.CreateClient();
+        var doctor = _factory.CreateClient();
+        var (_, familyId, memberId) = await RegisterFamilyAsync(patient, "lifecycle-race-head");
+        await RegisterVerifiedAssignedDoctorAsync(doctor, familyId, "lifecycle-race-doctor");
+        var caseId = await CreateAndSubmitCaseAsync(patient, memberId, "synthetic race signal");
+        var submitted = await patient.GetFromJsonAsync<JsonElement>($"/api/v1/triage-cases/{caseId}");
+        submitted.GetProperty("status").GetString().Should().Be("Submitted");
+        submitted.GetProperty("doctorReceivedAt").ValueKind.Should().Be(JsonValueKind.String);
+        var queue = await doctor.GetFromJsonAsync<JsonElement>("/api/v1/doctors/processing-cases");
+        queue.GetProperty("items").GetArrayLength().Should().Be(1);
+        queue.GetProperty("items")[0].TryGetProperty("priority", out _).Should().BeFalse();
+        await RunOrchestratorAsync(caseId);
+
+        var withdrawTask = patient.PostAsync($"/api/v1/triage-cases/{caseId}/withdraw", null);
+        var reviewTask = doctor.GetAsync($"/api/v1/triage-cases/{caseId}/review");
+        await Task.WhenAll(withdrawTask, reviewTask);
+        var withdraw = await withdrawTask;
+        var review = await reviewTask;
+        if (withdraw.StatusCode == HttpStatusCode.OK)
+        {
+            review.StatusCode.Should().Be(HttpStatusCode.NotFound);
+            await using var scope = _factory.Services.CreateAsyncScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            (await db.TriageCases.SingleAsync(x => x.Id == caseId)).Status.Should().Be(TriageStatus.Withdrawn);
+            (await db.CaseAccessGrants.Where(x => x.TriageCaseId == caseId).ToListAsync()).Should().OnlyContain(g => g.RevokedAt != null);
+        }
+        else
+        {
+            withdraw.StatusCode.Should().Be(HttpStatusCode.Conflict);
+            review.StatusCode.Should().Be(HttpStatusCode.OK);
+            var state = await patient.GetFromJsonAsync<JsonElement>($"/api/v1/triage-cases/{caseId}");
+            state.GetProperty("canEdit").GetBoolean().Should().BeFalse();
+            state.GetProperty("doctorReviewStartedAt").ValueKind.Should().Be(JsonValueKind.String);
+        }
+    }
+
+    [Fact]
     public async Task InvalidAgentSchema_FailsSafe_AndKeepsFamilyGuidanceUnavailable()
     {
         var headClient = _factory!.CreateClient();

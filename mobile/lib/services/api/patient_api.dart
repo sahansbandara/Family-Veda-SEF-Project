@@ -50,9 +50,9 @@ class DioPatientApi implements PatientApi {
     if (data is! Map<String, dynamic> || data['members'] is! List) {
       throw const FormatException('Expected family members list');
     }
-    return _listFrom(data['members'])
-        .map(Member.fromJson)
-        .toList(growable: false);
+    return _listFrom(
+      data['members'],
+    ).map(Member.fromJson).toList(growable: false);
   }
 
   @override
@@ -68,8 +68,11 @@ class DioPatientApi implements PatientApi {
 
   @override
   Future<Map<String, dynamic>> getCaseStatus(String caseId) async {
-    final response = await _client.dio.get<Map<String, dynamic>>('/triage-cases/$caseId/status');
-    return response.data ?? (throw const FormatException('Empty case status response'));
+    final response = await _client.dio.get<Map<String, dynamic>>(
+      '/triage-cases/$caseId',
+    );
+    return response.data ??
+        (throw const FormatException('Empty case status response'));
   }
 
   @override
@@ -113,7 +116,9 @@ class DioPatientApi implements PatientApi {
 
   @override
   Future<ApprovedFamilialRisk?> getApprovedFamilialRisk(String memberId) async {
-    final response = await _client.dio.get<Map<String, dynamic>>('/members/$memberId/familial-risk');
+    final response = await _client.dio.get<Map<String, dynamic>>(
+      '/members/$memberId/familial-risk',
+    );
     final data = response.data;
     return data == null ? null : ApprovedFamilialRisk.fromPatientJson(data);
   }

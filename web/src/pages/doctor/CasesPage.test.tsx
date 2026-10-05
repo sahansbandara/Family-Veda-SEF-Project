@@ -38,6 +38,8 @@ const syntheticComplaint: Complaint = {
 }
 const paged = <T,>(items: T[]) => ({ data: { items, page: 1, pageSize: 100, totalCount: items.length, totalPages: 1 } })
 
+let processing: { id: string; caseNumber: number; status: string; submittedAt: string }[] = []
+
 let assigned: ReturnType<typeof granted>[] = []
 let pool: ReturnType<typeof pooled>[] = []
 
@@ -116,10 +118,12 @@ describe('CasesPage', () => {
   beforeEach(() => {
     mocks.get.mockReset()
     mocks.post.mockReset()
+    processing = []
     assigned = [granted('mine0001-x', 'Claimed'), granted('done0001-x', 'ApprovedRevised')]
     pool = [pooled('pool0001-x'), pooled('emer0001-x', 'Escalated', 'Emergency')]
     mocks.get.mockImplementation((url: string) => {
       if (url === '/doctors/me/cases') return Promise.resolve(paged(assigned))
+      if (url === '/doctors/processing-cases') return Promise.resolve(paged(processing))
       if (url === '/doctors/case-pool') return Promise.resolve(paged(pool))
       if (url === '/triage-cases/mine0001-x/review')
         return Promise.resolve({
@@ -133,10 +137,23 @@ describe('CasesPage', () => {
     })
   })
 
+  it('shows a newly received case in Processing without clinical or claim controls', async () => {
+    processing = [{ id: 'processing-case', caseNumber: 321, status: 'Submitted', submittedAt: '2026-10-05T10:00:00Z' }]
+    renderPage()
+    fireEvent.click(await screen.findByRole('tab', { name: /Processing/ }))
+    const list = screen.getByRole('tabpanel')
+    expect(within(list).getByRole('heading', { name: 'Case 0321' })).toBeInTheDocument()
+    expect(within(list).getByText('Received — waiting for processing')).toBeInTheDocument()
+    expect(within(list).queryByRole('button')).not.toBeInTheDocument()
+    expect(within(list).queryByText('Routine')).not.toBeInTheDocument()
+    expect(mocks.get.mock.calls.some(([url]) => /processing-case\/review/.test(url))).toBe(false)
+  })
+
   it('shows real counts and only claimable cases under Available', async () => {
     renderPage()
     expect(await screen.findByRole('heading', { name: 'Triage Case Management' })).toBeInTheDocument()
     const summary = await screen.findByRole('region', { name: 'Queue summary' })
+    fireEvent.click(screen.getByRole('tab', { name: /Available/ }))
     expect(within(summary).getByRole('button', { name: /01\s*Available Cases/ })).toBeInTheDocument()
     expect(within(summary).getByRole('button', { name: /01\s*My Active Cases/ })).toBeInTheDocument()
     expect(within(summary).getByRole('button', { name: /01\s*Emergency Referrals/ })).toBeInTheDocument()

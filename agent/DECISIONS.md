@@ -347,3 +347,13 @@ The user subsequently requested Railway hosting. That is a separate infrastructu
 User approved adding five Gemini keys as a deduplicated, bounded rotating pool. Subsequent instruction keeps Render after bill payment; Railway migration is not approved. Render service is active and health200. Preserve deterministic safety and doctor review even when all providers fail. Synthetic Groq probe with available openai/gpt-oss-20b succeeded; configuration example updated. No automatic migration, commit, push or deployment.
 
 Follow-up: production synthetic Context output failed strict validation. Clarify exact existing DTO schemas in Groq/Cloudflare system prompts instead of relaxing validation, increasing retries, or replacing deterministic safety. This is a focused correction within approved provider recovery/publication scope.
+
+## 2026-10-05 — Report library action layout
+
+User approved edits across S2/S3/S4 ownership: larger report cards and previews, status then privacy, divider, visible Open/review/Delete actions, and a sharing selector below. Rejected retaining the overflow menu because it hides Delete and wastes card space. Removed the global web Emergency Help button and corresponding Flutter dashboard CTA at the user’s request; emergency referral routes and deterministic triage behavior remain intact. No API, database, deployment, or authorization changes.
+
+## 2026-10-05 — Approved triage receipt queue and patient request lifecycle
+
+User approved the concrete plan in chat: immediate metadata-only receipt/processing inbox for the verified assigned primary doctor, genuine persisted progress on both clients, a patient request popup, immutable edit replacement and audited withdrawal before actual clinical review. Keep auto-assignment separate from a clinician opening/claiming the complaint; status/metadata polling must not lock patient edits. Full clinical access and AI output remain behind existing grants and doctor approval. Reject showing every patient case to every doctor or releasing preliminary AI findings to patients. Processing inbox omits complaint, identity and preliminary urgency; pre-grant pool complaint disclosure is removed to avoid claiming edits are allowed after clinical content has been read.
+
+No schema migration, new dependency, lockfile change, commit, push or deployment is authorized in this implementation pass. Preserve existing unrelated report UI and memory edits. Concurrent lifecycle operations and stale workers must not resurrect withdrawn/superseded requests; old episodes, traces and audits remain evidence. No fake progress percentage or artificial AI delay is used for viva.

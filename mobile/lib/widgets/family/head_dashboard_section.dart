@@ -111,8 +111,6 @@ class HeadDashboardSection extends StatelessWidget {
         _ActivitySection(dashboard: dashboard),
         const SizedBox(height: 20),
 
-        // 9. Emergency Help CTA
-        _EmergencyHelpButton(onTap: () => onNavigate('/emergency')),
       ],
     );
   }
@@ -1238,33 +1236,6 @@ class _ActivitySection extends StatelessWidget {
                 ),
               ),
         ],
-      ),
-    );
-  }
-}
-
-/// 9. Emergency Help Button
-class _EmergencyHelpButton extends StatelessWidget {
-  const _EmergencyHelpButton({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton.icon(
-      onPressed: onTap,
-      icon: const Icon(Icons.emergency_outlined, color: Colors.white, size: 20),
-      label: const Text(
-        'Emergency Help',
-        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFFDC2626), // Emergency red
-        minimumSize: const Size(double.infinity, 48),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
-        elevation: 2,
       ),
     );
   }

@@ -70,7 +70,7 @@ public sealed class NotificationServiceTests
             DurationDays = 1,
             Severity = 2
         };
-        var triageCase = new TriageCase { Member = member, Episode = episode, Status = TriageStatus.Planning };
+        var triageCase = new TriageCase { Member = member, Episode = episode, Status = TriageStatus.PendingDoctorReview };
         db.AddRange(head, adult, family, member, episode, triageCase);
         await db.SaveChangesAsync();
 

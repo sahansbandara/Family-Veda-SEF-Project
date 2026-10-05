@@ -2,9 +2,9 @@
 // Presentation rules for the doctor's Triage Cases work queue. Everything here is derived from
 // the two authoritative lists (/doctors/me/cases and /doctors/case-pool); nothing invents a
 // status, a count or an action the backend has not offered.
-import type { AvailableCaseDto, PoolComplaintDto, TriageCaseDto } from '../../services/apiClient'
+import type { AvailableCaseDto, PoolComplaintDto, ProcessingCaseDto, TriageCaseDto } from '../../services/apiClient'
 
-export type QueueTab = 'available' | 'mine' | 'completed' | 'emergency'
+export type QueueTab = 'all' | 'processing' | 'available' | 'mine' | 'completed' | 'emergency'
 export type QueueSort = 'oldest' | 'newest' | 'priority'
 export type QueueTone = 'muted' | 'primary' | 'warning' | 'success' | 'danger'
 export type QueueActionKind = 'claim' | 'acknowledge' | 'approval' | 'evidence' | 'follow-up' | 'none'
@@ -20,6 +20,7 @@ export type QueueCase = {
   status: string
   createdAt: string
   /** The doctor holds an active case grant (listed by /doctors/me/cases). */
+  processingOnly?: boolean
   mine: boolean
   /** The backend lists the case in the claimable pool and it is not already granted to this doctor. */
   claimable: boolean
@@ -37,6 +38,8 @@ const COMPLETED = new Set(['Approved', 'ApprovedRevised', 'Rejected', 'FailedSaf
 const PRIORITY_RANK: Record<string, number> = { Emergency: 2, Priority: 1, Routine: 0 }
 
 export const QUEUE_TABS: { id: QueueTab; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'processing', label: 'Processing' },
   { id: 'available', label: 'Available' },
   { id: 'mine', label: 'My Cases' },
   { id: 'completed', label: 'Completed' },
@@ -44,9 +47,11 @@ export const QUEUE_TABS: { id: QueueTab; label: string }[] = [
 ]
 
 /** A granted case wins over its pool entry, so a case this doctor already holds never offers a second claim. */
-export function mergeQueue(assigned: TriageCaseDto[], pool: AvailableCaseDto[]): QueueCase[] {
+export function mergeQueue(assigned: TriageCaseDto[], pool: AvailableCaseDto[], processing: ProcessingCaseDto[] = []): QueueCase[] {
   const mineIds = new Set(assigned.map((item) => item.id))
+  const knownIds = new Set([...mineIds, ...pool.map((item) => item.id)])
   return [
+    ...processing.filter((item) => !knownIds.has(item.id)).map((item) => ({ id: item.id, caseNumber: item.caseNumber, status: item.status, priority: '', createdAt: item.submittedAt, mine: false, claimable: false, processingOnly: true })),
     ...assigned.map((item) => ({
       id: item.id,
       caseNumber: item.caseNumber,
@@ -79,6 +84,7 @@ export const isEmergencyReferral = (item: QueueCase) => item.status === 'Escalat
 export const isAwaitingReview = (item: QueueCase) => item.mine && AWAITING_REVIEW.has(item.status)
 
 export function tabOf(item: QueueCase): QueueTab | null {
+  if (item.processingOnly) return 'processing'
   if (item.referralClosed) return item.mine ? 'completed' : null
   if (isEmergencyReferral(item)) return 'emergency'
   if (item.claimable) return 'available'
@@ -89,6 +95,8 @@ export function tabOf(item: QueueCase): QueueTab | null {
 
 export function queueCounts(cases: QueueCase[]) {
   return {
+    all: cases.filter((item) => tabOf(item) !== null).length,
+    processing: cases.filter((item) => tabOf(item) === 'processing').length,
     available: cases.filter((item) => tabOf(item) === 'available').length,
     mine: cases.filter((item) => tabOf(item) === 'mine').length,
     awaitingReview: cases.filter((item) => tabOf(item) === 'mine' && isAwaitingReview(item)).length,
@@ -99,6 +107,7 @@ export function queueCounts(cases: QueueCase[]) {
 
 /** Doctor-facing copy for a backend status. Presentation only; the stored status is unchanged. */
 export function statusLabel(item: QueueCase): string {
+  if (item.status === 'Submitted') return 'Received — waiting for processing'
   if (item.referralClosed) return 'Referral closed'
   if (item.claimable && item.status !== 'Escalated') return 'Available'
   switch (item.status) {
@@ -141,6 +150,7 @@ export function priorityTone(priority: string): QueueTone {
 
 /** The one action the backend state supports for this doctor. Never a UI-only transition. */
 export function actionFor(item: QueueCase): QueueAction {
+  if (item.processingOnly) return { kind: 'none', label: '', message: item.status === 'FailedSafe' ? 'Processing stopped safely. No AI guidance was released; in-person clinical review is needed.' : item.status === 'Submitted' ? 'Received. Waiting for processing to start.' : 'AI processing. Clinical review will become available after checks complete.' }
   if (item.claimable) {
     return item.status === 'Escalated'
       ? { kind: 'acknowledge', label: 'Acknowledge Emergency' }
@@ -233,7 +243,7 @@ export function filterAndSort(
   return cases
     .filter(
       (item) =>
-        tabOf(item) === options.tab &&
+        (options.tab === 'all' ? tabOf(item) !== null : tabOf(item) === options.tab) &&
         (options.priority === 'ALL' || item.priority === options.priority) &&
         (options.status === 'ALL' || item.status === options.status) &&
         (term === '' ||

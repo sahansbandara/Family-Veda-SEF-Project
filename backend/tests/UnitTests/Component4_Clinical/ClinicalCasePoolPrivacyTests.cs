@@ -46,7 +46,7 @@ public sealed class ClinicalCasePoolPrivacyTests
     }
 
     [Fact]
-    public async Task GetAvailableCases_BeforeGrant_ReturnsComplaintAndAgeBandButNoIdentity()
+    public async Task GetAvailableCases_BeforeGrant_WithholdsComplaintAndIdentity()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
         await using var db = new AppDbContext(options);
@@ -65,23 +65,18 @@ public sealed class ClinicalCasePoolPrivacyTests
         var result = await service.GetAvailableCasesAsync(1, 20, CancellationToken.None);
 
         var complaint = result.Items.Single().Complaint;
-        complaint.Should().NotBeNull();
-        complaint!.Symptoms.Should().Equal("synthetic_signal_a", "synthetic_signal_b");
-        complaint.DurationDays.Should().Be(3);
-        complaint.Severity.Should().Be(6);
-        complaint.Notes.Should().Be("Synthetic note text.");
-        complaint.AgeBand.Should().Be("40–49");
+        complaint.Should().BeNull();
         var serialized = JsonSerializer.Serialize(result.Items.Single(), new JsonSerializerOptions(JsonSerializerDefaults.Web));
         serialized.Should().NotContain("Synthetic Named Member").And.NotContain("Synthetic Summary Family")
             .And.NotContain(member.Id.ToString()).And.NotContain("dateOfBirth");
     }
 
     [Theory]
-    [InlineData(10, "Under 18")]
-    [InlineData(18, "18–19")]
-    [InlineData(29, "20–29")]
-    [InlineData(80, "80+")]
-    public async Task GetAvailableCases_ReportsAgeAsBandNotExactAge(int ageYears, string expectedBand)
+    [InlineData(10)]
+    [InlineData(18)]
+    [InlineData(29)]
+    [InlineData(80)]
+    public async Task GetAvailableCases_WithholdsComplaintForAllAgeGroups(int ageYears)
     {
         var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
         await using var db = new AppDbContext(options);
@@ -98,9 +93,7 @@ public sealed class ClinicalCasePoolPrivacyTests
 
         var complaint = (await service.GetAvailableCasesAsync(1, 20, CancellationToken.None)).Items.Single().Complaint!;
 
-        complaint.AgeBand.Should().Be(expectedBand);
-        complaint.Symptoms.Should().BeEmpty();
-        complaint.Notes.Should().BeNull();
+        complaint.Should().BeNull();
     }
 
     private sealed class StubCurrentUser(Guid userId) : ICurrentUser

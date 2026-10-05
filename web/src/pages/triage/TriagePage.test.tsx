@@ -5,10 +5,13 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }))
+const mocks = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), put: vi.fn() }))
 vi.mock('../../services/apiClient', () => ({ apiClient: mocks }))
 
 import { TriagePage } from './TriagePage'
+
+HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
+HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); this.dispatchEvent(new Event('close')) }
 
 const family = {
   id: 'fam-1',
@@ -39,13 +42,14 @@ function routeGet(status: object, guidance?: object, listedCases = cases) {
     if (url === '/families/me') return Promise.resolve({ data: family })
     if (url.endsWith('/triage-cases')) return Promise.resolve({ data: { items: listedCases } })
     if (url.endsWith('/status')) return Promise.resolve({ data: status })
+    if (/\/triage-cases\/[^/]+$/.test(url)) return Promise.resolve({ data: listedCases.find((item) => url.endsWith(item.id)) })
     if (url.endsWith('/approved-guidance'))
       return guidance ? Promise.resolve({ data: guidance }) : Promise.reject(new Error('not approved'))
     return Promise.reject(new Error(`unexpected ${url}`))
   })
 }
 
-function page(entry = '/triage') {
+function page(entry = '/triage?view=guidance') {
   return render(
     <MemoryRouter initialEntries={[entry]}>
       <TriagePage />
@@ -57,6 +61,7 @@ describe('TriagePage', () => {
   beforeEach(() => {
     mocks.get.mockReset()
     mocks.post.mockReset()
+    mocks.put.mockReset()
   })
   afterEach(() => {
     vi.useRealTimers()
@@ -65,6 +70,7 @@ describe('TriagePage', () => {
   it('shows a referral instead of AI output when the case failed safe', async () => {
     routeGet({ id: 'case-1', status: 'FailedSafe', priority: 'Routine', failureCode: 'LLM_TIMEOUT' })
     page()
+    fireEvent.click(await screen.findByRole('button', { name: /Synthetic Member.*Case/ }))
     expect(await screen.findByRole('alert')).toHaveTextContent('Please seek in-person care')
     expect(screen.queryByText('Doctor-approved guidance')).not.toBeInTheDocument()
   })
@@ -144,7 +150,7 @@ describe('TriagePage', () => {
     )
     page()
     expect(await screen.findByText('Approved text.')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: /Synthetic Member.*Waiting for doctor review/ }))
+    fireEvent.click(screen.getByRole('button', { name: /Synthetic Member.*Guidance available/ }))
     expect(screen.getByText('Approved text.')).toBeInTheDocument()
     expect(screen.queryByText('Loading request progress')).not.toBeInTheDocument()
   })
@@ -156,6 +162,7 @@ describe('TriagePage', () => {
     mocks.get.mockImplementation((url: string) => {
       if (url === '/families/me') return Promise.resolve({ data: family })
       if (url.endsWith('/triage-cases')) return Promise.resolve({ data: { items: cases } })
+      if (/\/triage-cases\/[^/]+$/.test(url)) return Promise.resolve({ data: cases[0] })
       if (url.endsWith('/status')) {
         statusCalls += 1
         return statusCalls === 1
@@ -171,6 +178,7 @@ describe('TriagePage', () => {
       await Promise.resolve()
       await Promise.resolve()
     })
+    if (!screen.queryByRole('dialog')) fireEvent.click(screen.getByRole('button', { name: /Synthetic Member.*Case/ }))
     expect(screen.getByText('Doctor review')).toBeInTheDocument()
     await act(async () => {
       await vi.advanceTimersByTimeAsync(3000)
@@ -188,6 +196,7 @@ describe('TriagePage', () => {
     mocks.get.mockImplementation((url: string) => {
       if (url === '/families/me') return Promise.resolve({ data: family })
       if (url.endsWith('/triage-cases')) return Promise.resolve({ data: { items: cases } })
+      if (/\/triage-cases\/[^/]+$/.test(url)) return Promise.resolve({ data: cases[0] })
       if (url.endsWith('/status'))
         return ++attempts === 1
           ? Promise.reject(new Error('offline'))
@@ -195,7 +204,10 @@ describe('TriagePage', () => {
       return Promise.reject(new Error(`unexpected ${url}`))
     })
     page()
-    fireEvent.click(await screen.findByRole('button', { name: 'Retry progress' }))
+    await screen.findByRole('button', { name: /Synthetic Member.*Case/ })
+    fireEvent.click(screen.getByRole('button', { name: /Synthetic Member.*Case/ }))
+    await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument())
+    if (screen.queryByRole('button', { name: 'Retry progress' })) fireEvent.click(screen.getByRole('button', { name: 'Retry progress' }))
     await waitFor(() => expect(screen.getByText('Doctor review')).toBeInTheDocument())
   })
 
@@ -208,6 +220,7 @@ describe('TriagePage', () => {
     mocks.get.mockImplementation((url: string) => {
       if (url === '/families/me') return Promise.resolve({ data: family })
       if (url.endsWith('/triage-cases')) return Promise.resolve({ data: { items: listedCases } })
+      if (/\/triage-cases\/[^/]+$/.test(url)) return Promise.resolve({ data: listedCases.find((item) => url.endsWith(item.id)) })
       if (url === '/triage-cases/case-1/status')
         return new Promise((resolve) => {
           resolveFirst = resolve
@@ -226,7 +239,7 @@ describe('TriagePage', () => {
         })
       return Promise.reject(new Error(`unexpected ${url}`))
     })
-    page()
+    page('/triage')
     await waitFor(() => expect(resolveFirst).toBeDefined())
     fireEvent.click(screen.getAllByRole('button', { name: /Synthetic Member.*Case/ })[1])
     expect(await screen.findByText('Current case guidance.')).toBeInTheDocument()
@@ -269,12 +282,13 @@ describe('TriagePage request filters', () => {
   beforeEach(() => {
     mocks.get.mockReset()
     mocks.post.mockReset()
+    mocks.put.mockReset()
   })
 
   it('filters the request list by review state without changing the selected case', async () => {
     const listedCases = [cases[0], { ...cases[0], id: 'case-2', status: 'Approved', caseNumber: 9 }]
     routeGet({ id: 'case-1', status: 'PendingDoctorReview', priority: 'Routine' }, undefined, listedCases)
-    page()
+    page('/triage')
     expect(await screen.findByText(/^Case 0009 ·/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'In review' }))
     expect(screen.queryByText(/^Case 0009 ·/)).not.toBeInTheDocument()

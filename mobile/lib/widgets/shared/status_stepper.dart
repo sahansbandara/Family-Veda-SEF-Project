@@ -22,7 +22,7 @@ class StatusStepper extends StatelessWidget {
     'ANALYSED' ||
     'RISK_ASSESSED' ||
     'VALIDATED' => 1,
-    'PENDING_DOCTOR_REVIEW' || 'CLAIMED' => 2,
+    'PENDING_DOCTOR_REVIEW' || 'CLAIMED' || 'LOW_CONFIDENCE' => 2,
     'APPROVED' || 'APPROVED_REVISED' || 'DELIVERED' || 'CLOSED' => 3,
     _ => 0,
   };

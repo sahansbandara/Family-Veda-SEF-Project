@@ -2,7 +2,6 @@
 // position against the printed range only — never an interpretation (RULE 1, RULE 6).
 import { RecordIcon } from '../../pages/records/recordIcons'
 import type { LabReportDto } from '../../services/apiClient'
-import { ReportActionMenu } from './ReportActionMenu'
 import { ReportStatusBadge } from './ReportStatusBadge'
 
 type Props = {
@@ -34,14 +33,15 @@ export function ReportLibraryCard({ report, ownerName, canChangeSharing, onToggl
         {onReview && (
           <button type="button" className="button button--secondary button--sm" onClick={() => onReview(report)}><RecordIcon name="chart" /> {reviewLabel ?? 'Check values'}</button>
         )}
-        {((canChangeSharing && onToggleSharing) || onDelete) && <ReportActionMenu name={report.originalFileName}>
-          {canChangeSharing && onToggleSharing && <button type="button" className="button button--secondary button--sm" aria-pressed={shared}
-            aria-label={shared ? 'Keep private from Family Head' : 'Share with Family Head'} onClick={() => onToggleSharing(report)}>
-            <RecordIcon name={shared ? 'lock' : 'users'} /> {shared ? 'Make private' : 'Share with Family Head'}
-          </button>}
-          {onDelete && <button type="button" className="button button--secondary button--sm hr-action--danger" aria-label={`Delete ${report.originalFileName}`} onClick={() => onDelete(report)}><RecordIcon name="trash" /> Delete</button>}
-        </ReportActionMenu>}
+        {onDelete && <button type="button" className="button button--secondary button--sm hr-action--danger" aria-label={`Delete ${report.originalFileName}`} onClick={() => onDelete(report)}><RecordIcon name="trash" /> Delete</button>}
       </div>
+      {canChangeSharing && onToggleSharing && <label className="report-tile__sharing">
+        <span className="sr-only">Report sharing</span>
+        <select aria-label="Report sharing" value={shared ? 'shared' : 'private'} onChange={(event) => { if ((event.target.value === 'shared') !== shared) onToggleSharing(report) }}>
+          <option value="private">Private from Family Head</option>
+          <option value="shared">Shared with Family Head</option>
+        </select>
+      </label>}
     </article>
   )
 }

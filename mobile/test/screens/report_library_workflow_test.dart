@@ -104,46 +104,43 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
-  testWidgets(
-    '375px library supports grid and loads originals only on request',
-    (tester) async {
-      tester.view.physicalSize = const Size(375, 900);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      final api = _FileApi();
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            activeMemberProvider.overrideWith((ref) => 'member-1'),
-            myMemberIdProvider.overrideWith((ref) async => 'member-1'),
-            memberRecordsProvider.overrideWith((ref) async => []),
-            memberLabReportsProvider.overrideWith((ref) async => reports),
-            mobileApiProvider.overrideWithValue(api),
-          ],
-          child: const MaterialApp(home: RecordsScreen()),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Lab reports'));
-      await tester.pumpAndSettle();
-      expect(api.loads, 0);
-      await tester.tap(find.byTooltip('Grid view'));
-      await tester.pumpAndSettle();
-      expect(find.text('Synthetic CBC report.png'), findsOneWidget);
-      expect(find.text('Synthetic unavailable.pdf'), findsOneWidget);
-      expect(tester.takeException(), isNull);
-      await tester.ensureVisible(find.text('Preview report'));
-      await tester.tap(find.text('Preview report'));
-      await tester.pump();
-      expect(api.loads, 1);
-      await tester.tap(find.text('Hide preview'));
-      await tester.pump();
-      api.pending.completeError(Exception('unavailable'));
-      await tester.pump();
-      expect(tester.takeException(), isNull);
-    },
-  );
+  testWidgets('375px library loads originals only in grid view', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(375, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final api = _FileApi();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeMemberProvider.overrideWith((ref) => 'member-1'),
+          myMemberIdProvider.overrideWith((ref) async => 'member-1'),
+          memberRecordsProvider.overrideWith((ref) async => []),
+          memberLabReportsProvider.overrideWith((ref) async => reports),
+          mobileApiProvider.overrideWithValue(api),
+        ],
+        child: const MaterialApp(home: RecordsScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Lab reports'));
+    await tester.pumpAndSettle();
+    expect(api.loads, 0);
+    await tester.tap(find.byTooltip('Grid view'));
+    // The thumbnail request stays pending, so its spinner never settles.
+    await tester.pump();
+    expect(find.text('Synthetic CBC report.png'), findsOneWidget);
+    expect(find.text('Synthetic unavailable.pdf'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    // Only the report with a stored original requests its thumbnail.
+    expect(api.loads, 1);
+    api.pending.completeError(Exception('unavailable'));
+    await tester.pumpAndSettle();
+    expect(find.text('Original file unavailable'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
   testWidgets('profile switch closes original dialog and discards late bytes', (
     tester,
   ) async {

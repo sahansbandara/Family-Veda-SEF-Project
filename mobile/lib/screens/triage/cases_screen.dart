@@ -1,3 +1,4 @@
+import 'package:family_veda/screens/triage/case_status_screen.dart';
 import 'package:family_veda/models/triage_case.dart';
 import 'package:family_veda/providers/active_member_provider.dart';
 import 'package:family_veda/providers/cases_provider.dart';
@@ -44,7 +45,7 @@ class _CasesScreenState extends ConsumerState<CasesScreen> {
     _RequestFilter.guidanceReady => item.hasApprovedGuidance,
     _RequestFilter.inReview =>
       !item.hasApprovedGuidance &&
-          item.status != 'REJECTED' &&
+          !{'REJECTED', 'WITHDRAWN', 'SUPERSEDED'}.contains(item.status) &&
           !_needsInPersonCare.contains(item.status),
   };
 
@@ -142,7 +143,7 @@ class _CasesScreenState extends ConsumerState<CasesScreen> {
                         _RequestCard(
                           item: item,
                           memberName: memberName,
-                          onTap: () => context.push('/cases/${item.id}'),
+                          onTap: () => showCaseProgressSheet(context, item.id),
                         ),
                     ],
                     const SizedBox(height: 16),
@@ -302,6 +303,8 @@ String caseStatusLabel(String status) => switch (status) {
   'PENDING_DOCTOR_REVIEW' => 'Waiting for doctor review',
   'CLAIMED' => 'Doctor review in progress',
   'REJECTED' => 'Review closed',
+  'WITHDRAWN' => 'Withdrawn',
+  'SUPERSEDED' => 'Replaced by edited request',
   _ when _needsInformation.contains(status) => 'More information needed',
   _ when _needsInPersonCare.contains(status) => 'In-person care needed',
   _ => 'Being reviewed',
@@ -309,7 +312,7 @@ String caseStatusLabel(String status) => switch (status) {
 
 _Tone _statusTone(String status) => switch (status) {
   'APPROVED' || 'APPROVED_REVISED' || 'DELIVERED' || 'CLOSED' => _Tone.success,
-  'REJECTED' => _Tone.neutral,
+  'REJECTED' || 'WITHDRAWN' || 'SUPERSEDED' => _Tone.neutral,
   _ when _needsInformation.contains(status) => _Tone.warning,
   _ when _needsInPersonCare.contains(status) => _Tone.danger,
   _ => _Tone.info,

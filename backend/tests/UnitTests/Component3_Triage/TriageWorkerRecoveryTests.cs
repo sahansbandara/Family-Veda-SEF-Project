@@ -42,6 +42,6 @@ public sealed class TriageWorkerRecoveryTests
         recovered.Should().HaveCount(101);
         await using var verificationScope = provider.CreateAsyncScope();
         var statuses = await verificationScope.ServiceProvider.GetRequiredService<AppDbContext>().TriageCases.Select(x => x.Status).ToListAsync();
-        statuses.Should().OnlyContain(status => status == TriageStatus.Planning);
+        statuses.Should().OnlyContain(status => status == TriageStatus.Submitted);
     }
 }
