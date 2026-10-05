@@ -66,8 +66,6 @@ void main() {
 
     expect(find.text('Privacy & Access'), findsOneWidget);
     expect(find.text('Member permissions'), findsOneWidget);
-    expect(find.textContaining('1 item shared with you'), findsOneWidget);
-
     final minorSwitch = find.widgetWithText(SwitchListTile, 'Family history (screening flags)');
     await tester.ensureVisible(minorSwitch);
     await tester.tap(minorSwitch);
@@ -75,5 +73,10 @@ void main() {
     expect(api.consentWrites, ['m-minor:HereditaryFlags:Granted']);
     // Head self + one minor = two switches; the adult has none.
     expect(find.byType(SwitchListTile), findsNWidgets(2));
+
+    // The adult card sits below the fold of the lazy list: scroll to it.
+    final adultText = find.textContaining('1 item shared with you');
+    await tester.dragUntilVisible(adultText, find.byType(ListView).first, const Offset(0, -200));
+    expect(adultText, findsOneWidget);
   });
 }

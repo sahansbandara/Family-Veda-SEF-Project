@@ -352,12 +352,8 @@ class _StatGrid extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isDark ? AppColors.surfaceDark : AppColors.surface,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border(
-                      left: BorderSide(color: s.accent, width: 4),
-                      top: BorderSide(color: isDark ? AppColors.borderDark : AppColors.border),
-                      right: BorderSide(color: isDark ? AppColors.borderDark : AppColors.border),
-                      bottom: BorderSide(color: isDark ? AppColors.borderDark : AppColors.border),
-                    ),
+                    border: Border.all(color: isDark ? AppColors.borderDark : AppColors.border),
+                    gradient: LinearGradient(stops: const [0, 0.022, 0.022], colors: [s.accent, s.accent, isDark ? AppColors.surfaceDark : AppColors.surface]),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -473,12 +469,8 @@ class _AppointmentCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? AppColors.surfaceDark : AppColors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border(
-          left: BorderSide(color: _accent, width: 4),
-          top: BorderSide(color: isDark ? AppColors.borderDark : AppColors.border),
-          right: BorderSide(color: isDark ? AppColors.borderDark : AppColors.border),
-          bottom: BorderSide(color: isDark ? AppColors.borderDark : AppColors.border),
-        ),
+        border: Border.all(color: isDark ? AppColors.borderDark : AppColors.border),
+        gradient: LinearGradient(stops: const [0, 0.012, 0.012], colors: [_accent, _accent, isDark ? AppColors.surfaceDark : AppColors.surface]),
       ),
       child: Padding(
         padding: const EdgeInsets.all(12),
