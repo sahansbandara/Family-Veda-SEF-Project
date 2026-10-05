@@ -26,14 +26,21 @@ describe('ReportLibraryCard', () => {
     expect(screen.queryByRole('button', { name: 'Review extraction' })).not.toBeInTheDocument()
   })
 
-  it('shows owner, visibility, file state and range counts without interpretation', () => {
+  it('shows owner, visibility and range position as a count, without interpretation', () => {
     render(<ReportLibraryCard report={report} ownerName="Synthetic Adult" canChangeSharing={false} />)
     expect(screen.getByText(/Synthetic Adult/)).toBeInTheDocument()
     expect(screen.getByText('Private from Family Head')).toBeInTheDocument()
-    expect(screen.getByText('Stored')).toBeInTheDocument()
-    expect(screen.getByText('1 below · 2 within · 0 above · 1 no range')).toBeInTheDocument()
+    expect(screen.getByText('1 outside printed range')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Share with Family Head/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'View original report' })).not.toBeInTheDocument()
     expect(document.body.textContent ?? '').not.toMatch(/diagnos|abnormal|disease/i)
+  })
+
+  it('reports reading progress when no values are confirmed yet', () => {
+    const { rerender } = render(<ReportLibraryCard report={{ ...report, rangeSummary: null, ocrStatus: 'Failed' }} ownerName="Synthetic Adult" canChangeSharing={false} />)
+    expect(screen.getByText('Could not read')).toBeInTheDocument()
+    rerender(<ReportLibraryCard report={{ ...report, rangeSummary: null, ocrStatus: 'Pending' }} ownerName="Synthetic Adult" canChangeSharing={false} />)
+    expect(screen.getByText('Reading report')).toBeInTheDocument()
   })
 
   it('lets the owner toggle sharing', () => {

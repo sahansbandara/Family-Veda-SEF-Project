@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { RecordIcon } from '../../pages/records/recordIcons'
 import type { LabReportDto } from '../../services/apiClient'
 import { ReportLibraryCard } from './ReportLibraryCard'
+import { ReportStatusBadge } from './ReportStatusBadge'
 import { ReportThumbnail } from './ReportThumbnail'
 
 type Props = {
@@ -22,18 +23,6 @@ type Progress = 'ready' | 'reading' | 'failed'
 function progressOf(report: LabReportDto): Progress {
   if (report.ocrStatus === 'Failed') return 'failed'
   return report.ocrStatus === 'Completed' || report.ocrStatus === 'ManualEntry' ? 'ready' : 'reading'
-}
-
-function ReportStatus({ report }: { report: LabReportDto }) {
-  const range = report.rangeSummary
-  const outside = range ? range.belowRange + range.aboveRange : 0
-  if (range && outside > 0) return <span className="hr-badge hr-badge--amber"><i className="hr-dot" /> {outside} outside printed range</span>
-  if (range && range.withinRange > 0) return <span className="hr-badge hr-badge--green"><i className="hr-dot" /> Within printed range</span>
-  const progress = progressOf(report)
-  if (progress === 'failed') return <span className="hr-badge hr-badge--amber"><i className="hr-dot" /> Could not read</span>
-  return progress === 'ready'
-    ? <span className="hr-badge hr-badge--blue"><i className="hr-dot" /> Values ready to check</span>
-    : <span className="hr-badge"><i className="hr-dot" /> Reading report</span>
 }
 
 export function ReportLibrary({ reports, ownerName, canChangeSharing, onToggleSharing, onViewOriginal, onReview, reviewLabel, onDelete }: Props) {
@@ -95,7 +84,7 @@ export function ReportLibrary({ reports, ownerName, canChangeSharing, onToggleSh
               </td>
               <td data-label="File type"><span className={`hr-badge ${isPdf(report) ? 'hr-badge--rose' : 'hr-badge--violet'}`}>{isPdf(report) ? 'PDF' : 'Image'}</span></td>
               <td data-label="Date">{report.collectedAt ? new Date(report.collectedAt).toLocaleDateString(undefined, { dateStyle: 'medium' }) : 'Not recorded'}</td>
-              <td data-label="Status"><ReportStatus report={report} /></td>
+              <td data-label="Status"><ReportStatusBadge report={report} /></td>
               <td data-label="Visibility">
                 {canChangeSharing && onToggleSharing
                   ? <label className="hr-select hr-select--sm"><span className="sr-only">Visibility of {report.originalFileName}</span>

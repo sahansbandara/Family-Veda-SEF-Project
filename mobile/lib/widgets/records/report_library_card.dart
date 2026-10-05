@@ -49,7 +49,7 @@ class _ReportLibraryCardState extends State<ReportLibraryCard> {
     };
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(widget.compact ? 12 : 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -58,9 +58,9 @@ class _ReportLibraryCardState extends State<ReportLibraryCard> {
                   ? Icons.picture_as_pdf_outlined
                   : Icons.image_outlined,
               color: Theme.of(context).colorScheme.primary,
-              size: 32,
+              size: widget.compact ? 22 : 32,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: widget.compact ? 6 : 12),
             Text(
               widget.report.fileName,
               maxLines: widget.compact ? 3 : null,
@@ -110,38 +110,40 @@ class _ReportLibraryCardState extends State<ReportLibraryCard> {
                   fileName: widget.report.fileName,
                 ),
             ],
-            if (widget.report.hasOriginalFile && widget.onViewOriginal != null)
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: widget.onViewOriginal,
-                  child: const Text('View original report'),
-                ),
+            // One wrapping row keeps the card short; each action stays a full-size tap target.
+            Align(
+              alignment: Alignment.centerRight,
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 4,
+                children: [
+                  if (widget.report.hasOriginalFile &&
+                      widget.onViewOriginal != null)
+                    TextButton(
+                      onPressed: widget.onViewOriginal,
+                      child: const Text('View original report'),
+                    ),
+                  if (widget.canChangeSharing && widget.onToggleSharing != null)
+                    TextButton(
+                      onPressed: widget.onToggleSharing,
+                      child: Text(
+                        shared
+                            ? 'Keep private from Family Head'
+                            : 'Share with Family Head',
+                      ),
+                    ),
+                  if (widget.onDelete != null)
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: Theme.of(context).colorScheme.error,
+                      ),
+                      onPressed: widget.onDelete,
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      label: const Text('Delete'),
+                    ),
+                ],
               ),
-            if (widget.canChangeSharing && widget.onToggleSharing != null)
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: widget.onToggleSharing,
-                  child: Text(
-                    shared
-                        ? 'Keep private from Family Head'
-                        : 'Share with Family Head',
-                  ),
-                ),
-              ),
-            if (widget.onDelete != null)
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton.icon(
-                  style: TextButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.error,
-                  ),
-                  onPressed: widget.onDelete,
-                  icon: const Icon(Icons.delete_outline, size: 18),
-                  label: const Text('Delete'),
-                ),
-              ),
+            ),
           ],
         ),
       ),
