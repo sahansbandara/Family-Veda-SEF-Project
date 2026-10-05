@@ -1,5 +1,6 @@
 // Owner: S2 · Health Records & Extraction — Fernando K.R.N (IT24101875)
 // Ownership binding — do not edit file if not yours. docs/OWNERSHIP.tsv
+import { extractionRefusalMessage } from './extractionRefusal'
 import { type DragEvent, type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { DeletedReports } from '../../components/records/DeletedReports'
@@ -320,13 +321,17 @@ export function RecordsPage() {
         catch { sharingFailed = true }
       }
       let extractionStarted = true
+      let extractionRefusal: string | null = null
       try { await apiClient.post(`/lab-reports/${data.id}/extract`) }
-      catch { extractionStarted = false }
+      catch (error) {
+        extractionStarted = false
+        extractionRefusal = extractionRefusalMessage(error)
+      }
       if (activeMemberId.current !== targetMemberId) return
       formElement.reset()
       setShowUploadForm(false)
       setUploadFileName('')
-      setMessage(`Report uploaded.${sharingFailed ? ' Could not confirm sharing. Check the visibility shown in the library before retrying.' : shareAfterUpload ? ' Shared with Family Head.' : ' Kept private.'} ${extractionStarted ? 'Extraction is in progress; check the values when they are ready.' : 'Reading report values could not be started. Open View status to retry.'}`)
+      setMessage(`Report uploaded.${sharingFailed ? ' Could not confirm sharing. Check the visibility shown in the library before retrying.' : shareAfterUpload ? ' Shared with Family Head.' : ' Kept private.'} ${extractionStarted ? 'Extraction is in progress; check the values when they are ready.' : extractionRefusal ?? 'Reading report values could not be started. Open View status to retry.'}`)
       await loadRecords()
     } catch {
       if (activeMemberId.current === targetMemberId)

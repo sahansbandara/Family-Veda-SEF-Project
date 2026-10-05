@@ -136,4 +136,40 @@ public sealed class LabExtractionParserTests
         // Survey answers and questionnaire scores share the table but are not laboratory measurements.
         LabExtractionService.ParseValues("TEST RESULT UNIT REFERENCE RANGE FLAG\nWhat was your best estimate of the total income of all 147460 la Not supplied _—\nHow many people are living or staying at this address [#] 3 {#} Not supplied _—\nTotal score [AUDIT-C] 1 {score} Not supplied _—\nHemoglobin 14.4 g/dL about normal\n").Should().BeEmpty();
     }
+
+    [Fact]
+    public void ParseValues_ExtractsColumnAlignedRows_FromPdfTextLayer()
+    {
+        // Synthetic report in the column-aligned shape `pdftotext -layout` produces for local laboratory formats.
+        const string text = "SYNTHETIC LABORATORY — FULL BLOOD COUNT\nPatient Name      Synthetic Member\nAge               45     Years\nTest                         Result        Units          Reference Range\nHaemoglobin                  10.2   L      g/dL           11.5 - 15.5\nWhite Cell Count             7,850         /cumm          4,000 - 11,000\nPlatelet Count               250000        /cumm          150000 - 450000\nFasting Blood Sugar          1O8    H      mg/dL          70 - 100\nTSH                          2,35          mIU/L          < 4.5\n";
+
+        var values = LabExtractionService.ParseValues(text);
+
+        values.Select(x => (x.Analyte, x.Value, x.Unit, x.Low, x.High)).Should().Equal(
+            ("Haemoglobin", 10.2m, "g/dL", 11.5m, 15.5m),
+            ("White Cell Count", 7850m, "/cumm", 4000m, 11000m),
+            ("Platelet Count", 250000m, "/cumm", 150000m, 450000m),
+            ("Fasting Blood Sugar", 108m, "mg/dL", 70m, 100m),
+            ("TSH", 2.35m, "mIU/L", (decimal?)null, (decimal?)null));
+    }
+
+    [Theory]
+    [InlineData("Age               45     Years")]
+    [InlineData("Page              1      of")]
+    [InlineData("Reported on 03/01/2026   10   AM")]
+    [InlineData("Glucose  5.4  mmol/L  9.0 - 3.0")]
+    public void ParseValues_ColumnAlignedRows_RejectHeadersAndInvertedRanges(string line)
+    {
+        LabExtractionService.ParseValues(line).Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("Hb  1O.5  g/dL", "Hb  10.5  g/dL")]
+    [InlineData("WBC  4,500  /cumm", "WBC  4500  /cumm")]
+    [InlineData("Hb  12,4  g/dL", "Hb  12.4  g/dL")]
+    [InlineData("CO2  24  mmol/L", "CO2  24  mmol/L")]
+    public void CleanOcrDigits_FixesConfusionsOnlyInsideNumbers(string input, string expected)
+    {
+        LabExtractionService.CleanOcrDigits(input).Should().Be(expected);
+    }
 }

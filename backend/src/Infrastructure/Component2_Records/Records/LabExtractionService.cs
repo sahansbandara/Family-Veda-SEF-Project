@@ -79,6 +79,14 @@ public sealed partial class LabExtractionService(AppDbContext dbContext, ICurren
             await dbContext.SaveChangesAsync(CancellationToken.None);
             throw;
         }
+        catch (ProcessingException)
+        {
+            // Our own messages (page limit, text limit, unreadable file) are safe to show the patient as-is.
+            report.OcrStatus = OcrStatus.Failed;
+            report.OcrErrorCode = "OCR_FAILED";
+            await dbContext.SaveChangesAsync(CancellationToken.None);
+            throw;
+        }
         catch (Exception exception) when (exception is not OutOfMemoryException and not StackOverflowException)
         {
             report.OcrStatus = OcrStatus.Failed;
@@ -132,7 +140,43 @@ public sealed partial class LabExtractionService(AppDbContext dbContext, ICurren
             if (RangeTableHeader().IsMatch(normalized)) { rangeHeaderSeen = true; continue; }
             if (rangeHeaderSeen && TryParseRangeTableRow(normalized, out var value)) values.Add(value);
         }
+
+        // Column-aligned layout (PDF text layer, most local lab formats): cells are separated by two or more spaces.
+        // Header wording varies per laboratory, so rows are matched by shape and analytes found above are not repeated.
+        var seen = values.Select(x => x.Analyte).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var line in text.Split('\n'))
+        {
+            if (values.Count >= 200) break;
+            if (TryParseLayoutRow(CleanOcrDigits(line.Trim().TrimStart('|', ' ')), out var value) && seen.Add(value.Analyte)) values.Add(value);
+        }
         return values;
+    }
+
+    private static bool TryParseLayoutRow(string line, out ParsedLabValue value)
+    {
+        value = default!;
+        var row = LayoutRow().Match(line);
+        if (!row.Success || DateInAnalyte().IsMatch(row.Groups["name"].Value) || QuestionnaireRow().IsMatch(row.Groups["name"].Value) ||
+            NonAnalyteLabel().IsMatch(row.Groups["name"].Value) || !TryParseInvariantDecimal(row.Groups["value"].Value, out var current)) return false;
+        decimal? low = null;
+        decimal? high = null;
+        if (row.Groups["low"].Success)
+        {
+            if (!TryParseInvariantDecimal(row.Groups["low"].Value, out var parsedLow) ||
+                !TryParseInvariantDecimal(row.Groups["high"].Value, out var parsedHigh) || parsedLow > parsedHigh) return false;
+            low = parsedLow;
+            high = parsedHigh;
+        }
+        value = new ParsedLabValue(Regex.Replace(row.Groups["name"].Value.Trim(), @"\s+", " "), current, row.Groups["unit"].Value, low, high);
+        return true;
+    }
+
+    // Fixes common OCR digit confusions inside numbers only: "1O.5" -> "10.5", "4,500" -> "4500", "12,4" -> "12.4".
+    public static string CleanOcrDigits(string line)
+    {
+        var cleaned = OcrLetterInNumber().Replace(line, "0");
+        cleaned = ThousandsSeparator().Replace(cleaned, "");
+        return DecimalComma().Replace(cleaned, ".");
     }
 
     private static bool TryParseRangeTableRow(string line, out ParsedLabValue value)
@@ -251,6 +295,17 @@ public sealed partial class LabExtractionService(AppDbContext dbContext, ICurren
     private static partial Regex UnilateralRange();
     [GeneratedRegex(@"^-?\d+(?:\.\d+)?$", RegexOptions.CultureInvariant)]
     private static partial Regex DecimalToken();
+    [GeneratedRegex(@"^(?<name>[A-Za-z][A-Za-z0-9.,()\[\]#/_ -]{1,80}?)\s{2,}(?<value>-?\d+(?:\.\d+)?)(?:\s*(?:[HL*]|High|Low))?\s{2,}(?<unit>(?=[^\s]*[A-Za-z%µ])[A-Za-z0-9%/µ^][A-Za-z0-9%/µ^._*-]{0,19})(?:\s{2,}(?:(?<low>-?\d+(?:\.\d+)?)\s*[-–]\s*(?<high>-?\d+(?:\.\d+)?)|[<>]=?\s*\d+(?:\.\d+)?|Not supplied))?\s*$", RegexOptions.CultureInvariant)]
+    private static partial Regex LayoutRow();
+    // Report headers share the row shape ("Age   45   Years") but are not results.
+    [GeneratedRegex(@"^(?:Age|Page|Ward|Bed|Room|Sample|Specimen|Ref|Reg|Lab|Bill|Invoice|Tel|Phone|Mobile|Date|Time|Collected|Reported|Patient|Name|ID|No)\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex NonAnalyteLabel();
+    [GeneratedRegex(@"(?<=\d)[Oo](?=[\d.])|(?<=\d\.)[Oo]", RegexOptions.CultureInvariant)]
+    private static partial Regex OcrLetterInNumber();
+    [GeneratedRegex(@"(?<=\b\d{1,3}),(?=\d{3}\b)", RegexOptions.CultureInvariant)]
+    private static partial Regex ThousandsSeparator();
+    [GeneratedRegex(@"(?<=\b\d{1,4}),(?=\d{1,2}\b)", RegexOptions.CultureInvariant)]
+    private static partial Regex DecimalComma();
     [GeneratedRegex(@"^HEREDITARY_FLAG\s*:\s*(?<code>[A-Za-z0-9_-]{2,40})\s*\|\s*(?<finding>[^|]{3,200})\s*\|\s*(?<confidence>0(?:\.\d+)?|1(?:\.0+)?)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex FlagLine();
 

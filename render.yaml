@@ -56,7 +56,9 @@ services:
       - key: Ocr__MaxConcurrentProcesses
         value: "2"
       - key: Ocr__MaxOutputCharacters
-        value: "250000"
+        value: "60000"
+      - key: Ocr__MaxPages
+        value: "4"
       - key: Storage__LabReportPath
         value: ./storage/lab-reports # ephemeral on Render free plan — see docs/DEPLOYMENT.md
       - key: Storage__MaxUploadBytes
