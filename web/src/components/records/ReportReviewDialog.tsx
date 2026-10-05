@@ -3,6 +3,7 @@ import { type FormEvent, useEffect, useId, useRef, useState } from 'react'
 import type { LabReportDetailDto } from '../../services/apiClient'
 import { ReportDetail } from '../../pages/records/ReportDetail'
 import { OriginalReportPreview } from './OriginalReportPreview'
+import { readingFailure } from './reportReading'
 
 export type ReportReviewDialogProps = {
   report: LabReportDetailDto | null
@@ -86,15 +87,26 @@ export function ReportReviewDialog({ report, hasOriginalFile, loading, error, ti
         <section id={`${titleId}-original`} className="report-studio__original" aria-label="Source document"><OriginalReportPreview reportId={report.id} originalFileName={report.originalFileName} hasOriginalFile={hasOriginalFile} /></section>
         <section id={`${titleId}-values`} className="report-studio__values" aria-label="Check extracted values" onChangeCapture={() => { setDirty(true); setSaveMessage('') }}>
           {saveMessage && <p className="report-studio__notice" role="status">{saveMessage}</p>}
-          {report.ocrStatus === 'Failed' && report.values.length === 0 && onExtract && <div className="report-studio__notice"><p>Automatic reading failed. You can retry with this original, or upload a clearer copy.</p><button type="button" className="button button--secondary" disabled={extracting} onClick={async () => {
-            setExtracting(true); setSaveMessage('')
-            try {
-              const success = await onExtract()
-              if (mounted.current && !success) setSaveMessage('Reading could not be completed. The original is still available; try a clearer copy.')
-            } catch {
-              if (mounted.current) setSaveMessage('Reading could not be completed. Please retry.')
-            } finally { if (mounted.current) setExtracting(false) }
-          }}>{extracting ? 'Reading report…' : 'Retry reading report'}</button></div>}
+          {(() => {
+            const read = async () => {
+              setExtracting(true); setSaveMessage('')
+              try {
+                const success = await onExtract?.()
+                if (mounted.current && !success) setSaveMessage('Reading could not be completed. The reason is shown below.')
+              } catch {
+                if (mounted.current) setSaveMessage('Reading could not be completed. Please retry.')
+              } finally { if (mounted.current) setExtracting(false) }
+            }
+            const readButton = (label: string) => onExtract && <button type="button" className="button button--primary" disabled={extracting} onClick={() => void read()}>{extracting ? 'Reading report…' : label}</button>
+            if (report.values.length === 0 && report.ocrStatus === 'Failed') {
+              const failure = readingFailure(report.ocrErrorCode)
+              return <div className="report-reading-card report-reading-card--failed" role="alert"><h3>Why it could not be read: {failure.title}</h3><p>{failure.detail}</p><ul>{failure.tips.map((tip) => <li key={tip}>{tip}</li>)}</ul><div className="report-reading-card__actions">{readButton('Read again')}</div></div>
+            }
+            if (report.values.length === 0 && report.ocrStatus === 'Pending') return <div className="report-reading-card"><h3>Not read yet</h3><p>Read this report now to pull out its test values. It usually takes under a minute.</p><div className="report-reading-card__actions">{readButton('Read report now')}</div></div>
+            if (report.ocrStatus === 'Processing') return <div className="report-reading-card" role="status"><h3>Reading the report text…</h3><p>This usually takes under a minute. If it stays here for more than 3 minutes, you can read it again.</p><div className="report-reading-card__actions"><button type="button" className="button button--secondary" onClick={onRetry}>Refresh status</button></div></div>
+            if (report.values.length > 0 && report.values.every((value) => value.wasManuallyConfirmed)) return <div className="report-reading-card"><h3>Next step: doctor review</h3><p>Your confirmed values are saved. To have them looked at, start a check in Symptoms &amp; Triage. An AI assistant prepares a summary for your doctor, and you only see what your doctor approves.</p><div className="report-reading-card__actions"><a className="button button--primary" href="/triage">Go to Symptoms &amp; Triage</a></div></div>
+            return null
+          })()}
           <ReportDetail report={report} hasOriginalFile={hasOriginalFile} showOriginal={false} saving={saving} onSubmit={save} />
         </section>
       </div>}

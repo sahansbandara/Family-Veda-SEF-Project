@@ -87,9 +87,10 @@ void main() {
       expect(find.text('Report'), findsOneWidget);
       expect(find.text('Values'), findsOneWidget);
       expect(find.text('Uploaded'), findsOneWidget);
-      expect(find.text('Reading'), findsOneWidget);
-      expect(find.text('Ready'), findsOneWidget);
-      expect(find.text('Confirmed'), findsOneWidget);
+      expect(find.text('Reading text'), findsOneWidget);
+      expect(find.text('Values found'), findsOneWidget);
+      expect(find.text('You confirmed'), findsOneWidget);
+      expect(find.text('Doctor review'), findsOneWidget);
       await tester.tap(find.byTooltip('Close review'));
       await tester.pumpAndSettle();
       expect(find.text('Continue reviewing'), findsOneWidget);
@@ -144,4 +145,47 @@ void main() {
       expect(find.byType(ReportReviewWorkspace), findsOneWidget);
     },
   );
+  for (final width in [375.0, 768.0]) {
+    testWidgets('failed read at width $width shows the reason and reads again', (
+      tester,
+    ) async {
+      tester.view.physicalSize = Size(width, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      var reads = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ReportReviewWorkspace(
+            report: const LabReport(
+              id: 'synthetic',
+              memberId: 'synthetic-member',
+              fileName: 'Synthetic report.png',
+              ocrStatus: 'Failed',
+              ocrErrorCode: 'NO_VALUES_FOUND',
+            ),
+            loadDetail: () async => {...detail(), 'values': []},
+            loadOriginal: () async => Uint8List(0),
+            save: (_) async => detail(),
+            readAgain: () async => reads++,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      if (width < 800) {
+        await tester.tap(find.text('Values'));
+        await tester.pumpAndSettle();
+      }
+      expect(
+        find.text('Why it could not be read: No test results found'),
+        findsOneWidget,
+      );
+      expect(find.text('Could not read'), findsOneWidget);
+      await tester.ensureVisible(find.text('Read again'));
+      await tester.tap(find.text('Read again'));
+      await tester.pumpAndSettle();
+      expect(reads, 1);
+      expect(tester.takeException(), isNull);
+    });
+  }
 }

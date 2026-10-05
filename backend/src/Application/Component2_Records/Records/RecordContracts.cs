@@ -13,7 +13,7 @@ public sealed record CreateVitalRequest(string VitalType, decimal Value, string 
 public sealed record VitalTrendDto(string VitalType, IReadOnlyList<VitalPointDto> Points);
 public sealed record VitalPointDto(DateTimeOffset MeasuredAt, decimal Value, string Unit);
 public sealed record LabReportDto(Guid Id, Guid MemberId, string OriginalFileName, OcrStatus OcrStatus, DateTimeOffset? CollectedAt,
-    bool SharedWithFamilyHead = false, bool HasOriginalFile = false, LabRangeSummaryDto? RangeSummary = null);
+    bool SharedWithFamilyHead = false, bool HasOriginalFile = false, LabRangeSummaryDto? RangeSummary = null, string? OcrErrorCode = null);
 /// <summary>A report in "Recently deleted". Permanent deletion is refused while confirmed values may have informed a triage case.</summary>
 public sealed record DeletedLabReportDto(Guid Id, Guid MemberId, string OriginalFileName, string ContentType, OcrStatus OcrStatus,
     DateTimeOffset? CollectedAt, DateTimeOffset DeletedAt, bool CanDeletePermanently);
@@ -24,7 +24,7 @@ public sealed record LabRangeSummaryDto(int BelowRange, int WithinRange, int Abo
 /// <summary>Owner-only toggle: keep an adult's item private from the Family Head (default) or share it.</summary>
 public sealed record UpdateSharingRequest(bool SharedWithFamilyHead);
 public sealed record LabValueDto(Guid Id, string Analyte, decimal Value, string Unit, decimal? ReferenceLow, decimal? ReferenceHigh, bool WasManuallyConfirmed, LabRangeStatus RangeStatus);
-public sealed record LabReportDetailDto(Guid Id, Guid MemberId, string OriginalFileName, OcrStatus OcrStatus, DateTimeOffset? CollectedAt, IReadOnlyList<LabValueDto> Values, IReadOnlyList<HereditaryFlagDto> Flags, bool SharedWithFamilyHead = false);
+public sealed record LabReportDetailDto(Guid Id, Guid MemberId, string OriginalFileName, OcrStatus OcrStatus, DateTimeOffset? CollectedAt, IReadOnlyList<LabValueDto> Values, IReadOnlyList<HereditaryFlagDto> Flags, bool SharedWithFamilyHead = false, string? OcrErrorCode = null);
 public sealed record ConfirmLabValueRequest(Guid Id, string Analyte, decimal Value, string Unit, decimal? ReferenceLow, decimal? ReferenceHigh);
 public sealed record ConfirmLabReportRequest(IReadOnlyList<ConfirmLabValueRequest> Values, IReadOnlyList<Guid> ConfirmedFlagIds);
 public sealed record LabExtractionResultDto(Guid ReportId, OcrStatus Status, int ValuesExtracted, int FlagsExtracted, bool RequiresManualReview);
@@ -65,4 +65,22 @@ public interface ILabExtractionService
 public interface IOcrService
 {
     Task<string> ExtractTextAsync(string filePath, CancellationToken cancellationToken);
+}
+
+/// <summary>Why reading a lab report failed. Stored on the report and mapped to patient-facing copy by each client.</summary>
+public static class OcrFailureCodes
+{
+    public const string TooManyPages = "REPORT_TOO_MANY_PAGES";
+    public const string TooMuchText = "REPORT_TOO_MUCH_TEXT";
+    public const string NoValuesFound = "NO_VALUES_FOUND";
+    public const string Unreadable = "OCR_UNREADABLE";
+    public const string TimedOut = "OCR_TIMEOUT";
+    public const string PdfUnsupported = "PDF_UNSUPPORTED";
+    public const string EngineUnavailable = "OCR_ENGINE_UNAVAILABLE";
+    public const string Interrupted = "OCR_INTERRUPTED";
+    public const string Cancelled = "OCR_CANCELLED";
+    public const string Failed = "OCR_FAILED";
+
+    /// <summary>A read still "processing" after this long was cut off (restart, crash) and may be retried.</summary>
+    public static readonly TimeSpan StaleProcessingAfter = TimeSpan.FromMinutes(3);
 }

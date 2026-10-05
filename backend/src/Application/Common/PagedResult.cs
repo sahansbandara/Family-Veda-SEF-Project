@@ -10,7 +10,11 @@ public sealed record PagedResult<T>(IReadOnlyList<T> Items, int Page, int PageSi
 public sealed class ForbiddenException(string message = "Access denied.") : Exception(message);
 public sealed class NotFoundException(string message = "Resource not found.") : Exception(message);
 public sealed class ConflictException(string message) : Exception(message);
-public sealed class ProcessingException(string message) : Exception(message);
+/// <param name="code">Optional machine-readable reason (e.g. lab report reading failures) that clients map to their own copy.</param>
+public sealed class ProcessingException(string message, string? code = null) : Exception(message)
+{
+    public string? Code { get; } = code;
+}
 public sealed class ValidationException(IReadOnlyDictionary<string, string[]> errors) : Exception("Validation failed.")
 {
     public IReadOnlyDictionary<string, string[]> Errors { get; } = errors;

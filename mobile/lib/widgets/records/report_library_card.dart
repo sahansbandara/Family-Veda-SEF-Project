@@ -1,4 +1,5 @@
 // Phase 2 (S4): report-library card. Range position counts only — no interpretation (RULE 1, RULE 6).
+import 'package:family_veda/widgets/records/report_reading.dart';
 import 'package:family_veda/models/lab_report.dart';
 import 'package:flutter/material.dart';
 import 'package:family_veda/widgets/records/original_report_preview.dart';
@@ -46,8 +47,10 @@ class _ReportLibraryCardState extends State<ReportLibraryCard> {
     final shared = widget.report.sharedWithFamilyHead;
     final extraction = switch (widget.report.ocrStatus.toUpperCase()) {
       'COMPLETED' => 'Ready for manual review',
-      'PENDING' || 'PROCESSING' => 'Processing report',
-      'FAILED' || 'FAILED_SAFE' => 'Manual review required',
+      'PENDING' => 'Not read yet',
+      'PROCESSING' => 'Reading report',
+      'FAILED' || 'FAILED_SAFE' =>
+        'Could not read: ${readingFailure(widget.report.ocrErrorCode).title}',
       _ => widget.report.ocrStatus.replaceAll('_', ' '),
     };
     return Card(

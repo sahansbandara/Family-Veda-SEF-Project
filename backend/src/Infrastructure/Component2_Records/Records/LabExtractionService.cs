@@ -49,7 +49,9 @@ public sealed partial class LabExtractionService(AppDbContext dbContext, ICurren
         if (report.Values.Any(x => x.WasManuallyConfirmed) ||
             await dbContext.HereditaryFlags.AnyAsync(x => x.LabReportId == reportId && x.ManuallyConfirmed, cancellationToken))
             throw new ConflictException("A manually reviewed report cannot be extracted again.");
-        if (report.OcrStatus == OcrStatus.Processing) throw new ConflictException("OCR is already processing this report.");
+        // A read cut off by a restart stays "Processing" forever; after the stale window it may be retried.
+        if (report.OcrStatus == OcrStatus.Processing && DateTimeOffset.UtcNow - report.UpdatedAt < OcrFailureCodes.StaleProcessingAfter)
+            throw new ConflictException("OCR is already processing this report.");
         report.OcrStatus = OcrStatus.Processing;
         report.OcrErrorCode = null;
         try
@@ -75,22 +77,22 @@ public sealed partial class LabExtractionService(AppDbContext dbContext, ICurren
         catch (OperationCanceledException)
         {
             report.OcrStatus = OcrStatus.Failed;
-            report.OcrErrorCode = "OCR_CANCELLED";
+            report.OcrErrorCode = OcrFailureCodes.Cancelled;
             await dbContext.SaveChangesAsync(CancellationToken.None);
             throw;
         }
-        catch (ProcessingException)
+        catch (ProcessingException exception)
         {
             // Our own messages (page limit, text limit, unreadable file) are safe to show the patient as-is.
             report.OcrStatus = OcrStatus.Failed;
-            report.OcrErrorCode = "OCR_FAILED";
+            report.OcrErrorCode = exception.Code ?? OcrFailureCodes.Failed;
             await dbContext.SaveChangesAsync(CancellationToken.None);
             throw;
         }
         catch (Exception exception) when (exception is not OutOfMemoryException and not StackOverflowException)
         {
             report.OcrStatus = OcrStatus.Failed;
-            report.OcrErrorCode = "OCR_FAILED";
+            report.OcrErrorCode = OcrFailureCodes.Failed;
             await dbContext.SaveChangesAsync(CancellationToken.None);
             throw new ProcessingException("OCR could not process this report. Use manual entry instead.");
         }

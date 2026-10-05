@@ -58,7 +58,7 @@ describe('ReportLibrary controls', () => {
     const ranged = { ...reports[0], rangeSummary: { belowRange: 1, withinRange: 2, aboveRange: 1, rangeUnavailable: 0 } }
     render(<ReportLibrary reports={[ranged, reports[1]]} ownerName="Synthetic Member" canChangeSharing={false} onViewOriginal={vi.fn()} />)
     expect(screen.getByText('2 outside printed range')).toBeInTheDocument()
-    expect(screen.getByText('Could not read', { selector: 'span' })).toBeInTheDocument()
+    expect(screen.getByText(/^Could not read: Report could not be read/, { selector: 'span' })).toBeInTheDocument()
     expect(screen.queryByText(/normal|abnormal|diagnos/i)).not.toBeInTheDocument()
   })
 })

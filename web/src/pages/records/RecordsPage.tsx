@@ -39,7 +39,9 @@ function reportStep(report: LabReportDto, selected?: LabReportDetailDto | null) 
     selected.values.length > 0 &&
     selected.values.every((value) => value.wasManuallyConfirmed)
   if (confirmed) return 'View confirmed values'
-  return report.ocrStatus === 'Completed' ? 'Check values' : 'View status'
+  if (report.ocrStatus === 'Completed') return 'Check values'
+  if (report.ocrStatus === 'Failed') return 'See why'
+  return report.ocrStatus === 'Pending' ? 'Read now' : 'View status'
 }
 
 export function RecordsPage() {

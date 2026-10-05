@@ -22,7 +22,7 @@ public sealed class ExtractionAgent(IToolDispatcher dispatcher) : IAgent
         var values = LabExtractionService.ParseValues(text)
             .Select(x => new ExtractedLabValue(x.Analyte, x.Value, x.Unit, x.Low, x.High)).ToList();
         if (values.Count == 0)
-            throw new ProcessingException("OCR could not read structured lab values. Use manual entry instead.");
+            throw new ProcessingException("OCR could not read structured lab values. Use manual entry instead.", OcrFailureCodes.NoValuesFound);
         var flags = LabExtractionService.ParseFlags(text)
             .Select(x => new ExtractedHereditaryFlag(x.Code, x.Finding, x.Confidence)).ToList();
         await dispatcher.InvokeAsync(Kind, "write_lab_extraction", context.MemberId, context.CaseId, cancellationToken, new LabExtractionPayload(values, flags));
