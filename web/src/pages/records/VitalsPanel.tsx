@@ -156,9 +156,8 @@ export function VitalsPanel({ vitals, onAdd }: Props) {
           <div className={`hr-dialog-chart hr-tone--${viewedGroup.kind}`}>
             <Sparkline 
               values={trendValues(viewedGroup, 12)} 
-              width={520} 
-              height={140} 
-              normalValue={VITAL_PRESETS.find((p) => p.kind === viewedGroup.kind)?.normalValue}
+              normalMin={VITAL_PRESETS.find((p) => p.kind === viewedGroup.kind)?.normalMin}
+              normalMax={VITAL_PRESETS.find((p) => p.kind === viewedGroup.kind)?.normalMax}
               normalLabel={VITAL_PRESETS.find((p) => p.kind === viewedGroup.kind)?.normalLabel}
               chartType={VITAL_PRESETS.find((p) => p.kind === viewedGroup.kind)?.chartType}
             />
@@ -205,9 +204,8 @@ function LatestVitalCard({ group, onOpen }: { group: VitalGroup; onOpen: () => v
       <span className="hr-vital-card__chart">
         <Sparkline 
           values={trendValues(group, 14)} 
-          width={240} 
-          height={60} 
-          normalValue={VITAL_PRESETS.find((p) => p.kind === group.kind)?.normalValue}
+          normalMin={VITAL_PRESETS.find((p) => p.kind === group.kind)?.normalMin}
+          normalMax={VITAL_PRESETS.find((p) => p.kind === group.kind)?.normalMax}
           normalLabel={VITAL_PRESETS.find((p) => p.kind === group.kind)?.normalLabel}
           chartType={VITAL_PRESETS.find((p) => p.kind === group.kind)?.chartType}
         />
