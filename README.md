@@ -16,7 +16,7 @@ Longitudinal family health context and agentic clinical triage platform.
 |---|---|
 | 📱 **Android APK** | [Download latest release](https://github.com/sahansbandara/Family-Veda-SEF-Project/releases/tag/apk-2026-09-28) · 159 MB · [install guide](DOWNLOAD.md) |
 | 🌐 **Web app** | <https://family-veda-web.vercel.app> |
-| 📘 **API docs** | [Swagger](https://family-veda-api.onrender.com/swagger/index.html) |
+| 📘 **API docs** | [Swagger](https://family-veda-api-production.up.railway.app/swagger/index.html) |
 
 Demo accounts: [Live demo access](#live-demo-access). All data is synthetic.
 
@@ -166,7 +166,7 @@ Backend is written in **C#** and runs on **.NET 8**. Quick glossary:
 | **`launchSettings.json`** | Local run profiles (port, environment) used by `dotnet run`. |
 | **`bin/` `obj/`** | Build output. Generated, git-ignored. Safe to delete. |
 | **xUnit / Moq** | Test framework / mocking library. `dotnet test` runs them. |
-| **Swagger** | Auto-generated, clickable API docs at `/swagger` (Development only). |
+| **Swagger** | Auto-generated API docs at `/swagger`, available locally and on the Railway backend. Protected endpoints require JWT authentication. |
 
 Everyday commands:
 
@@ -475,8 +475,9 @@ Sign in with a seeded synthetic account (see *Live demo access* for emails) usin
 ## Live demo access
 
 - Hosted web: <https://family-veda-web.vercel.app>
-- Hosted API health: <https://family-veda-api.onrender.com/health>
-- Hosted mobile API base URL: `https://family-veda-api.onrender.com/api/v1`
+- Hosted Swagger API documentation: <https://family-veda-api-production.up.railway.app/swagger/index.html>
+- Hosted API health: <https://family-veda-api-production.up.railway.app/health>
+- Hosted mobile API base URL: `https://family-veda-api-production.up.railway.app/api/v1`
 - Local web: <http://localhost:5173>
 - Local API base URL: `http://127.0.0.1:5000/api/v1` (Android emulator: `http://10.0.2.2:5000/api/v1`)
 
