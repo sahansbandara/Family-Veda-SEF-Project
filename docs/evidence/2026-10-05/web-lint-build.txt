@@ -1,0 +1,19 @@
+# Web lint and build
+# date: 2026-10-05 17:44 +0530  commit: 613bf7e  branch: develop
+# command: npm run lint && npm run build (in web/)
+
+
+/Users/sahansandaruwan/Github/SLIIT/Family-Veda/web/src/pages/records/RecordsPage.tsx
+  4:10  error  'Link' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 1 problem (1 error, 0 warnings)
+
+npm info using node@v26.9.0
+
+> family-veda-web@0.1.0 build
+> tsc -b && vite build
+
+src/pages/records/RecordsPage.tsx(4,10): error TS6133: 'Link' is declared but its value is never read.
+
+lint exit code: 1
+build exit code: 2

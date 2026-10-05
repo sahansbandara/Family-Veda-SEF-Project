@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { RecordIcon } from '../../pages/records/recordIcons'
 import type { LabReportDto } from '../../services/apiClient'
+import { ReportActionMenu } from './ReportActionMenu'
 import { ReportLibraryCard } from './ReportLibraryCard'
 import { ReportStatusBadge } from './ReportStatusBadge'
 import { ReportThumbnail } from './ReportThumbnail'
@@ -97,7 +98,7 @@ export function ReportLibrary({ reports, ownerName, canChangeSharing, onToggleSh
                 <div className="hr-actions">
                   {report.hasOriginalFile && <button type="button" className="button button--secondary button--sm hr-action hr-action--primary" aria-label="View original report" onClick={() => onViewOriginal(report)}><RecordIcon name="file" /> Open report</button>}
                   {onReview && <button type="button" className="button button--secondary button--sm hr-action" onClick={() => onReview(report)}><RecordIcon name="chart" /> {reviewLabel?.(report) ?? 'Check values'}</button>}
-                  {onDelete && <button type="button" className="button button--secondary button--sm hr-action hr-action--danger" aria-label={`Delete ${report.originalFileName}`} onClick={() => onDelete(report)}><RecordIcon name="trash" /> Delete</button>}
+                  {onDelete && <ReportActionMenu name={report.originalFileName}><button type="button" className="button button--secondary button--sm hr-action hr-action--danger" aria-label={`Delete ${report.originalFileName}`} onClick={() => onDelete(report)}><RecordIcon name="trash" /> Delete</button></ReportActionMenu>}
                 </div>
               </td>
             </tr>

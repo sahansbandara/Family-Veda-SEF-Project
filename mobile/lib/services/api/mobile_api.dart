@@ -32,6 +32,12 @@ abstract interface class MobileApi {
   });
   Future<List<LabReport>> getLabReports(String memberId);
   Future<List<Vital>> getVitals(String memberId);
+  Future<Map<String, dynamic>> getLabReportDetail(String reportId);
+  Future<Map<String, dynamic>> reviewLabReport(
+    String reportId,
+    Map<String, dynamic> review,
+  );
+  Future<void> extractLabReport(String reportId);
   Future<Uint8List> getLabReportFile(String reportId);
   Future<String?> getMyMemberId();
   Future<void> setRecordSharing({
@@ -155,6 +161,33 @@ class DioMobileApi implements MobileApi {
       '/members/$memberId/vitals',
     );
     return _listFrom(response.data).map(Vital.fromJson).toList(growable: false);
+  }
+
+  @override
+  Future<Map<String, dynamic>> getLabReportDetail(String reportId) async {
+    final response = await _client.dio.get<Map<String, dynamic>>(
+      '/lab-reports/$reportId',
+    );
+    return response.data ??
+        (throw const FormatException('Missing report detail'));
+  }
+
+  @override
+  Future<Map<String, dynamic>> reviewLabReport(
+    String reportId,
+    Map<String, dynamic> review,
+  ) async {
+    final response = await _client.dio.put<Map<String, dynamic>>(
+      '/lab-reports/$reportId/review',
+      data: review,
+    );
+    return response.data ??
+        (throw const FormatException('Missing confirmed report'));
+  }
+
+  @override
+  Future<void> extractLabReport(String reportId) async {
+    await _client.dio.post<void>('/lab-reports/$reportId/extract');
   }
 
   @override

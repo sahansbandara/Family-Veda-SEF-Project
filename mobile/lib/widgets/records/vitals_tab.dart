@@ -7,7 +7,7 @@ import 'package:family_veda/widgets/records/records_visuals.dart';
 import 'package:family_veda/widgets/shared/async_state_views.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:family_veda/screens/records/vital_entry_screen.dart';
 import 'package:intl/intl.dart';
 
 String _when(DateTime measuredAt) =>
@@ -37,7 +37,12 @@ class VitalsTab extends ConsumerWidget {
           data: (vitals) => _VitalsBody(
             groups: groupVitals(vitals),
             onAdd: (preset) async {
-              await context.push('/vitals/new', extra: preset.kind);
+              await showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                useSafeArea: true,
+                builder: (_) => VitalEntryScreen(initialKind: preset.kind),
+              );
               ref.invalidate(memberVitalsProvider);
             },
           ),

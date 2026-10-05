@@ -308,6 +308,13 @@ Web Approvals and member Labs get lazy PDF/image viewing; responsive layouts at3
 
 - Local API was using the database fallback because .env.local omitted the existing Google Drive settings. Aligned only Storage__/GoogleDrive__ keys with the existing private .env configuration and restarted the local API; database/authentication settings preserved. Historical database-backed originals remain accessible; bulk historical migration is excluded.
 
+## 2026-10-05 — Approved premium report viewer and review dialogs
+
+User approved the concrete in-chat design: fullscreen protected-original viewer with supported document actions; side-by-side original/value review on wide screens and Report/Values tabs on phones; unconfirmed/dirty close protection; real-state segmented progress; compact list/grid library on React and Flutter. Reuse existing authenticated file/detail/review APIs and existing renderer dependencies. Keep save failures and draft edits inside the mounted review, and never infer missing laboratory reference ranges. Dismissal does not confirm values. Reject fake extraction percentages, public document links and a styling-only claim that extraction failures are fixed. No backend, schema, dependency/lock, commit/push or deployment change is approved in this pass. Existing unrelated memory/document edits are preserved. Referenced rules/ and blueprint files are absent in this checkout; CLAUDE.md, current university sources, ownership inventory and accepted whole-project waiver guide execution.
+
+## 2026-10-05 — Integrate premium report design
+
+User explicitly authorized committing and merging the approved report design into develop. Preserve the configured S4 author identity and existing ownership waiver. Integrate current develop, run web and Flutter checks, and merge only the report UI/API client changes; no backend/schema/dependency changes or deployment. Native device validation remains pending.
 ## 2026-10-05 — Case pool releases the complaint before a grant; patient told when an emergency is acknowledged
 
 User request, option B chosen over a notes-free summary after the risk was stated.

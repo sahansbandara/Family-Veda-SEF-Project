@@ -262,7 +262,7 @@ describe('RecordsPage', () => {
     await screen.findByText('No lab reports')
     fireEvent.change(screen.getByLabelText('Active profile'), { target: { value: adult.id } })
     expect(await screen.findByText('synthetic-shared.png')).toBeInTheDocument()
-    expect(screen.getByText('Shared reports')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /check values|confirm values/i })).not.toBeInTheDocument()
     expect(mocks.get).not.toHaveBeenCalledWith('/lab-reports/shared-lab-1')
   })
@@ -411,7 +411,7 @@ describe('RecordsPage', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Check values' }))
     fireEvent.change(screen.getByLabelText('Active profile'), { target: { value: minor.id } })
     await screen.findByText('No lab reports')
-    expect(screen.getByText('Check extracted values')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     await act(async () => {
       resolveDetail?.({
         data: {

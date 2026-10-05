@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:family_veda/widgets/records/original_report_preview.dart';
 import 'package:family_veda/widgets/records/report_original_thumbnail.dart';
 import 'package:intl/intl.dart';
+import 'package:family_veda/widgets/records/report_progress.dart';
 
 class ReportLibraryCard extends StatefulWidget {
   const ReportLibraryCard({
@@ -14,6 +15,7 @@ class ReportLibraryCard extends StatefulWidget {
     this.onToggleSharing,
     this.onViewOriginal,
     this.onDelete,
+    this.onCheckValues,
     this.loadOriginal,
     this.compact = false,
   });
@@ -27,6 +29,7 @@ class ReportLibraryCard extends StatefulWidget {
 
   /// Present only when the viewer may move this report to Recently deleted.
   final VoidCallback? onDelete;
+  final VoidCallback? onCheckValues;
 
   final OriginalReportLoader? loadOriginal;
   @override
@@ -48,26 +51,66 @@ class _ReportLibraryCardState extends State<ReportLibraryCard> {
       _ => widget.report.ocrStatus.replaceAll('_', ' '),
     };
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: Theme.of(
+            context,
+          ).colorScheme.outlineVariant.withValues(alpha: .6),
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
       child: Padding(
         padding: EdgeInsets.all(widget.compact ? 12 : 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              widget.report.fileName.toLowerCase().endsWith('.pdf')
-                  ? Icons.picture_as_pdf_outlined
-                  : Icons.image_outlined,
-              color: Theme.of(context).colorScheme.primary,
-              size: widget.compact ? 22 : 32,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer.withValues(alpha: .45),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    widget.report.fileName.toLowerCase().endsWith('.pdf')
+                        ? Icons.picture_as_pdf_outlined
+                        : Icons.image_outlined,
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.report.fileName,
+                        maxLines: widget.compact ? 3 : 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: widget.compact
+                            ? Theme.of(context).textTheme.titleSmall
+                            : Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${widget.ownerName} · $collected',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: widget.compact ? 6 : 12),
-            Text(
-              widget.report.fileName,
-              maxLines: widget.compact ? 3 : null,
-              overflow: widget.compact ? TextOverflow.ellipsis : null,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            Text('${widget.ownerName} · $collected'),
+            if (!widget.compact) ...[
+              const SizedBox(height: 14),
+              ReportProgress(status: widget.report.ocrStatus),
+            ],
             const SizedBox(height: 8),
             if (widget.compact) ...[
               Text(
@@ -123,7 +166,14 @@ class _ReportLibraryCardState extends State<ReportLibraryCard> {
                       onPressed: widget.onViewOriginal,
                       child: const Text('View original report'),
                     ),
-                  if (widget.canChangeSharing && widget.onToggleSharing != null)
+                  if (widget.onCheckValues != null)
+                    FilledButton.tonal(
+                      onPressed: widget.onCheckValues,
+                      child: const Text('Check values'),
+                    ),
+                  if (!widget.compact &&
+                      widget.canChangeSharing &&
+                      widget.onToggleSharing != null)
                     TextButton(
                       onPressed: widget.onToggleSharing,
                       child: Text(
@@ -132,7 +182,38 @@ class _ReportLibraryCardState extends State<ReportLibraryCard> {
                             : 'Share with Family Head',
                       ),
                     ),
-                  if (widget.onDelete != null)
+                  if (widget.compact &&
+                      (widget.onDelete != null ||
+                          (widget.canChangeSharing &&
+                              widget.onToggleSharing != null)))
+                    PopupMenuButton<String>(
+                      tooltip: 'Report actions',
+                      onSelected: (action) {
+                        if (action == 'sharing') {
+                          widget.onToggleSharing?.call();
+                        } else {
+                          widget.onDelete?.call();
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        if (widget.canChangeSharing &&
+                            widget.onToggleSharing != null)
+                          PopupMenuItem(
+                            value: 'sharing',
+                            child: Text(
+                              shared
+                                  ? 'Keep private from Family Head'
+                                  : 'Share with Family Head',
+                            ),
+                          ),
+                        if (widget.onDelete != null)
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Text('Delete'),
+                          ),
+                      ],
+                    ),
+                  if (!widget.compact && widget.onDelete != null)
                     TextButton.icon(
                       style: TextButton.styleFrom(
                         foregroundColor: Theme.of(context).colorScheme.error,
