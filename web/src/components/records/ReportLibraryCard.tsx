@@ -1,5 +1,8 @@
-// Phase 2 (S4): report-library card. Shows range position counts only — never an interpretation (RULE 1, RULE 6).
+// Phase 2 (S4): compact report-library tile for grid view. Status shows reading progress and
+// position against the printed range only — never an interpretation (RULE 1, RULE 6).
+import { RecordIcon } from '../../pages/records/recordIcons'
 import type { LabReportDto } from '../../services/apiClient'
+import { ReportStatusBadge } from './ReportStatusBadge'
 
 type Props = {
   report: LabReportDto
@@ -12,79 +15,32 @@ type Props = {
   onDelete?: (report: LabReportDto) => void
 }
 
-export function ReportLibraryCard({
-  report,
-  ownerName,
-  canChangeSharing,
-  onToggleSharing,
-  onReview,
-  reviewLabel,
-  onViewOriginal,
-  onDelete,
-}: Props) {
-  const range = report.rangeSummary
+export function ReportLibraryCard({ report, ownerName, canChangeSharing, onToggleSharing, onReview, reviewLabel, onViewOriginal, onDelete }: Props) {
   const shared = report.sharedWithFamilyHead === true
-  const readingStatus: Record<string, string> = {
-    Pending: 'Waiting to read report',
-    Processing: 'Reading report values',
-    Completed: 'Values ready to check',
-    Failed: 'Could not read this report',
-    ManualEntry: 'Entered manually',
-  }
+  const collected = report.collectedAt ? new Date(report.collectedAt).toLocaleDateString(undefined, { dateStyle: 'medium' }) : 'Date not recorded'
   return (
-    <article
-      className="panel report-card care-value-card"
-      aria-label={`Lab report ${report.originalFileName}`}
-    >
-      <header>
-        <span className="report-card__kind" aria-hidden="true">{report.originalFileName.toLowerCase().endsWith('.pdf') ? 'PDF' : 'IMAGE'}</span>
-        <h3>{report.originalFileName}</h3>
-        <p className="muted">
-          {ownerName} ·{' '}
-          {report.collectedAt
-            ? new Date(report.collectedAt).toLocaleDateString()
-            : 'Collected date not recorded'}
-        </p>
-      </header>
-      <dl className="report-card__facts">
-        <div>
-          <dt>Visibility</dt>
-          <dd><span className={`report-card__privacy ${shared ? 'is-shared' : ''}`}>{shared ? 'Shared with Family Head' : 'Private from Family Head'}</span></dd>
-        </div>
-        <div>
-          <dt>Report progress</dt>
-          <dd>
-            <span
-              className={`status-badge status-badge--${report.ocrStatus === 'Failed' ? 'warning' : 'muted'}`}
-            >
-              {readingStatus[report.ocrStatus] ?? 'Report status unavailable'}
-            </span>
-          </dd>
-        </div>
-      </dl>
-      <details className="report-card__more"><summary>Report details</summary><dl className="report-card__facts"><div><dt>Original file</dt><dd>{report.hasOriginalFile ? 'Stored' : 'Not stored'}</dd></div><div><dt>Recorded range position</dt><dd>{range ? `${range.belowRange} below · ${range.withinRange} within · ${range.aboveRange} above · ${range.rangeUnavailable} no range` : 'No values confirmed yet'}</dd></div></dl></details>
-      <div className="button-row care-actions">
+    <article className="report-tile" aria-label={`Lab report ${report.originalFileName}`}>
+      <h3>{report.originalFileName}</h3>
+      <p className="report-tile__meta">{collected} · {ownerName}</p>
+      <div className="report-tile__badges">
+        <ReportStatusBadge report={report} />
+        <span className={`hr-badge ${shared ? 'hr-badge--blue' : ''}`}><RecordIcon name={shared ? 'users' : 'lock'} /> {shared ? 'Shared with Family Head' : 'Private from Family Head'}</span>
+      </div>
+      <div className="report-tile__actions">
         {report.hasOriginalFile && onViewOriginal && (
-          <button type="button" className="button button--secondary" aria-label="View original report" onClick={() => onViewOriginal(report)}>Open report</button>
+          <button type="button" className="button button--secondary button--sm" aria-label="View original report" onClick={() => onViewOriginal(report)}><RecordIcon name="file" /> Open</button>
         )}
         {onReview && (
-          <button type="button" className="button button--secondary" onClick={() => onReview(report)}>
-            {reviewLabel ?? 'Check values'}
-          </button>
+          <button type="button" className="button button--secondary button--sm" onClick={() => onReview(report)}><RecordIcon name="chart" /> {reviewLabel ?? 'Check values'}</button>
         )}
         {canChangeSharing && onToggleSharing && (
-          <button
-            type="button"
-            className="button button--secondary"
-            aria-pressed={shared}
-            aria-label={shared ? 'Keep private from Family Head' : 'Share with Family Head'}
-            onClick={() => onToggleSharing(report)}
-          >
-            {shared ? 'Make private' : 'Share with Family Head'}
+          <button type="button" className="button button--secondary button--sm" aria-pressed={shared}
+            aria-label={shared ? 'Keep private from Family Head' : 'Share with Family Head'} onClick={() => onToggleSharing(report)}>
+            <RecordIcon name={shared ? 'lock' : 'users'} /> {shared ? 'Make private' : 'Share'}
           </button>
         )}
         {onDelete && (
-          <button type="button" className="button button--secondary hr-action--danger" aria-label={`Delete ${report.originalFileName}`} onClick={() => onDelete(report)}>Delete</button>
+          <button type="button" className="button button--secondary button--sm hr-action--danger" aria-label={`Delete ${report.originalFileName}`} onClick={() => onDelete(report)}><RecordIcon name="trash" /> Delete</button>
         )}
       </div>
     </article>

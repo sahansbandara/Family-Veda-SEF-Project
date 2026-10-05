@@ -1015,3 +1015,20 @@ label.hr-search:not(.hr-field):focus-within,
   .hr-confirm__actions .button { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { .hr-trash__chevron { transition: none; } }
+
+/* Compact report tile (grid view) */
+.report-library__files--grid { gap: 14px; }
+.report-library__files--grid .report-thumbnail { height: 132px; padding: 10px 22px 0; }
+.report-library__files--grid .report-thumbnail img { max-height: 132px; }
+.report-library__files--grid .report-thumbnail__fallback { gap: 4px; padding-bottom: 10px; }
+.report-library__files--grid .report-thumbnail__fallback > span { font-size: 28px; }
+.report-tile { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 12px 14px 14px; }
+.report-tile h3 { margin: 0; font-size: .86rem; line-height: 1.4; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.report-tile__meta { margin: 0; color: var(--muted); font-size: .74rem; }
+.report-tile__badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.report-tile__actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.report-tile__actions .button { min-height: 32px; padding: 5px 9px; font-size: .72rem; border-radius: 8px; gap: 5px; }
+.report-tile__actions .button svg { width: 13px; height: 13px; }
+.report-library__item { display: flex; flex-direction: column; }
+@media (min-width: 1500px) { .report-library__files--grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .report-tile__actions .button { flex: 1 1 calc(50% - 6px); min-height: 40px; } }
