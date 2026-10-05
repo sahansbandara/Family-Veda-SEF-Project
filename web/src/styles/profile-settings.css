@@ -1,0 +1,80 @@
+/* Owner: S1 · whole-project UI scope (agent/DECISIONS.md 2026-09-28b).
+   Profile settings for every portal. Built on theme tokens so light and dark both work. */
+.profile-settings {
+  --ps-line: color-mix(in srgb, var(--text) 12%, transparent);
+  --ps-surface: color-mix(in srgb, var(--surface) 97%, var(--background));
+  --ps-soft: color-mix(in srgb, var(--primary) 6%, var(--ps-surface));
+  min-width: 0;
+}
+.profile-settings h1, .profile-settings h2 { margin: 0; }
+
+.ps-hero { padding: 24px; border-radius: 18px; color: var(--on-accent); background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary-lum) 70%, var(--primary))); overflow-wrap: anywhere; }
+.ps-hero h1 { font-size: 1.6rem; letter-spacing: -.02em; }
+.ps-hero p { margin: 6px 0 0; opacity: .92; }
+.ps-hero__eyebrow { text-transform: uppercase; letter-spacing: .08em; font-size: .72rem; font-weight: 700; }
+.ps-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.ps-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: .72rem; font-weight: 700; background: color-mix(in srgb, var(--on-accent) 18%, transparent); border: 1px solid color-mix(in srgb, var(--on-accent) 35%, transparent); }
+.ps-chip--ok .ps-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.ps-chip--soft { width: max-content; max-width: 100%; color: var(--primary); background: var(--primary-subtle); border-color: color-mix(in srgb, var(--primary) 35%, transparent); }
+
+.ps-layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 16px; align-items: start; }
+.ps-side, .ps-main { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.ps-card { padding: 20px; border: 1px solid var(--ps-line); border-radius: 16px; background: var(--ps-surface); color: var(--text); min-width: 0; }
+.ps-card h2 { font-size: 1.15rem; color: var(--text-heading); }
+.ps-caption { margin: 4px 0 16px; color: var(--muted); font-size: .85rem; }
+.ps-caption:last-child { margin: 14px 0 0; }
+
+.ps-identity { display: flex; gap: 14px; align-items: center; }
+.ps-identity > div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ps-identity strong { color: var(--text-heading); overflow-wrap: anywhere; }
+.ps-identity span:not(.ps-chip), .ps-identity small { color: var(--muted); font-size: .8rem; overflow-wrap: anywhere; }
+.ps-avatar { display: grid; place-items: center; flex: 0 0 auto; width: 60px; height: 60px; border-radius: 16px; background: linear-gradient(135deg, var(--primary), var(--primary-lum)); color: var(--on-accent); font-weight: 700; font-size: 1.2rem; }
+
+.ps-nav { display: flex; flex-direction: column; gap: 6px; }
+.ps-nav__item { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 11px 14px; border: 1px solid var(--ps-line); border-radius: 12px; background: var(--ps-surface); color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.ps-nav__item span { color: var(--muted); font-size: .75rem; }
+.ps-nav__item:hover { border-color: var(--primary); }
+.ps-nav__item:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.ps-nav__item[aria-current='true'] { border-color: var(--primary); background: var(--primary-subtle); color: var(--primary); }
+
+.ps-note { margin: 0; padding: 12px 14px; border-radius: 12px; border: 1px dashed color-mix(in srgb, var(--primary) 35%, transparent); background: var(--ps-soft); color: var(--muted); font-size: .8rem; line-height: 1.5; }
+
+.ps-form { display: flex; flex-direction: column; gap: 14px; max-width: 520px; }
+.ps-field { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: .85rem; color: var(--text); }
+.ps-field input { width: 100%; min-width: 0; }
+.ps-password { position: relative; display: block; }
+.ps-password input { padding-right: 46px; }
+.ps-eye { position: absolute; top: 50%; right: 6px; transform: translateY(-50%); display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; }
+.ps-eye[aria-pressed='true'] { color: var(--primary); }
+.ps-eye svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.ps-error { color: var(--danger); }
+.ps-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+
+.ps-strength { display: flex; flex-direction: column; gap: 6px; }
+.ps-strength__bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.ps-strength__bar span { height: 6px; border-radius: 3px; background: var(--ps-line); }
+.ps-strength[data-score='1'] .on { background: var(--danger); }
+.ps-strength[data-score='2'] .on { background: var(--warning); }
+.ps-strength[data-score='3'] .on, .ps-strength[data-score='4'] .on { background: var(--success); }
+.ps-strength small { color: var(--muted); }
+
+.ps-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 0; }
+.ps-tile { padding: 12px 14px; border: 1px solid var(--ps-line); border-radius: 12px; background: var(--ps-soft); min-width: 0; }
+.ps-tile dt { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
+.ps-tile dd { margin: 4px 0 0; font-weight: 650; color: var(--text-heading); overflow-wrap: anywhere; }
+.ps-tile small { display: block; margin-top: 4px; color: var(--faint); font-size: .72rem; }
+
+@media (max-width: 900px) {
+  .ps-layout { grid-template-columns: minmax(0, 1fr); }
+  .ps-nav { flex-direction: row; overflow-x: auto; gap: 4px; padding: 4px; border: 1px solid var(--ps-line); border-radius: 12px; background: var(--ps-surface); scrollbar-width: none; }
+  .ps-nav__item { flex: 1 0 auto; align-items: center; padding: 9px 12px; border: 0; white-space: nowrap; }
+  .ps-nav__item span { display: none; }
+  .ps-note { order: 3; }
+}
+@media (max-width: 480px) {
+  .ps-hero { padding: 18px; }
+  .ps-hero h1 { font-size: 1.35rem; }
+  .ps-card { padding: 16px; }
+  .ps-tiles { grid-template-columns: minmax(0, 1fr); }
+  .ps-actions .button { flex: 1 1 0; }
+}
