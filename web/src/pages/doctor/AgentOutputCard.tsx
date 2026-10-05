@@ -4,6 +4,7 @@ import { useId, useState, type ReactNode } from 'react'
 
 import type { AgentTraceDto } from '../../services/apiClient'
 import { formatJson, statusLabel, structuredEntries } from './approvalReview'
+import { isNoDataTrace, NO_DATA_LABEL } from './safetyRules'
 
 type View = 'plain' | 'json'
 
@@ -51,7 +52,7 @@ export function AgentOutputCard({ title, raw, empty, icon, tag, caption, trace, 
       {tag && <p className="approval-tag">{tag}</p>}
       {trace && (
         <p className="care-caption">
-          {statusLabel(trace.status)} · Confidence {Math.round(trace.confidence * 100)}% · {trace.latencyMilliseconds} ms
+          {isNoDataTrace(trace) ? NO_DATA_LABEL : statusLabel(trace.status)} · Confidence {Math.round(trace.confidence * 100)}% · {trace.latencyMilliseconds} ms
         </p>
       )}
 

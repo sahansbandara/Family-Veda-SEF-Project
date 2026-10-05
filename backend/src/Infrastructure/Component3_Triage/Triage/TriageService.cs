@@ -361,6 +361,7 @@ public sealed class TriageService(
         JsonSerializer.Deserialize<IReadOnlyList<string>>(x.ToolsDeniedJson) ?? [],
         x.Confidence,
         x.LatencyMilliseconds,
-        x.OutputSchemaValid);
+        x.OutputSchemaValid,
+        x.Status != AgentStepStatus.NoData);
     private static (int Page, int PageSize) NormalizePage(int page, int pageSize) => (Math.Max(page, 1), Math.Clamp(pageSize, 1, 100));
 }
