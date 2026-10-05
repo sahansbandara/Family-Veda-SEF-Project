@@ -33,16 +33,7 @@ public sealed class CloudflareClient(HttpClient httpClient, IOptions<CloudflareO
         if (string.IsNullOrWhiteSpace(_options.AccountId) || string.IsNullOrWhiteSpace(_options.ApiKey))
             throw new InvalidOperationException("Cloudflare inference is not configured.");
 
-        // State the existing DTO contract explicitly: Workers AI does not infer C# types.
-        var shape = typeof(T).Name switch
-        {
-            nameof(MemberContextOutput) => "memberProfile (non-empty string), recentVitals, episodes, conditions (arrays of non-empty strings)",
-            nameof(AnalysisFindingsOutput) => "deviations, stablePatterns (arrays of non-empty strings)",
-            nameof(FamilialRiskSignalOutput) => "consentedSignals, unknownParties (arrays of non-empty strings), screeningIndication (non-empty string)",
-            _ => throw new JsonException("Unsupported agent output type.")
-        };
-        var fullPrompt = systemPrompt + "\nReturn a single JSON object only, with exactly these properties: " + shape +
-            ", confidence (number between 0 and 1). Use empty arrays when no evidence exists. Do not add facts or properties.";
+        var fullPrompt = AgentOutputPrompt.For<T>(systemPrompt);
         var endpoint = "https://api.cloudflare.com/client/v4/accounts/" + Uri.EscapeDataString(_options.AccountId) +
             "/ai/run/" + string.Join("/", _options.Model.Split('/').Select(segment => Uri.EscapeDataString(segment).Replace("%40", "@", StringComparison.Ordinal)));
         Exception? lastError = null;

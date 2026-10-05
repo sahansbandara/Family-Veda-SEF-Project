@@ -37,6 +37,8 @@ public sealed class ChatCompletionsLlmClient(HttpClient httpClient, IOptions<Llm
 
     public async Task<OllamaResult<T>> GenerateStructuredAsync<T>(string systemPrompt, object input, CancellationToken cancellationToken) where T : class
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        var fullPrompt = AgentOutputPrompt.For<T>(systemPrompt);
         Exception? lastError = null;
         for (var attempt = 0; attempt < 2; attempt++)
         {
@@ -54,7 +56,7 @@ public sealed class ChatCompletionsLlmClient(HttpClient httpClient, IOptions<Llm
                         response_format = new { type = "json_object" },
                         messages = new object[]
                         {
-                            new { role = "system", content = systemPrompt + "\nRespond with a single JSON object only." },
+                            new { role = "system", content = fullPrompt + "\nRespond with a single JSON object only." },
                             new { role = "user", content = JsonSerializer.Serialize(input, RequestJson) }
                         }
                     }, options: RequestJson)
