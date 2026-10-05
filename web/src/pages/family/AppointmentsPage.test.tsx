@@ -40,7 +40,7 @@ const family = {
   ],
 }
 
-function renderAsAdult(entry = '/appointments') {
+function renderAsAdult(entry = '/appointments', appointments: object[] = []) {
   mocks.get.mockImplementation((url: string) =>
     Promise.resolve(
       url === '/families/family-1/doctor'
@@ -48,7 +48,7 @@ function renderAsAdult(entry = '/appointments') {
         : { data: family },
     ),
   )
-  mocks.getMyAppointments.mockResolvedValue({ data: [] })
+  mocks.getMyAppointments.mockResolvedValue({ data: appointments })
 
   const store = configureStore({ reducer: { auth: authReducer } })
   store.dispatch(signedIn({
@@ -83,11 +83,13 @@ describe('AppointmentsPage booking form', () => {
     await screen.findByLabelText('Date')
     await waitFor(() => expect(finishOld).toBeTypeOf('function'))
     fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2027-01-02' } })
-    expect(await screen.findByLabelText('Free time')).toHaveValue('')
+    const newChip = await screen.findByRole('button', { name: '11:00 AM' })
+    expect(newChip).toHaveAttribute('aria-pressed', 'false')
     await act(async () => finishOld({ data: { date: '2027-01-01', availabilityConfigured: true, slotMinutes: 30, slots: [oldSlot] } }))
     expect(screen.getByLabelText('Date')).toHaveValue('2027-01-02')
-    expect(screen.queryByRole('option', { name: '9:00 AM' })).not.toBeInTheDocument()
-    fireEvent.change(screen.getByLabelText('Free time'), { target: { value: newSlot } })
+    expect(screen.queryByRole('button', { name: '9:00 AM' })).not.toBeInTheDocument()
+    fireEvent.click(newChip)
+    expect(newChip).toHaveAttribute('aria-pressed', 'true')
     fireEvent.change(screen.getByLabelText('Member'), { target: { value: 'self-1' } })
     fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Synthetic date change' } })
     fireEvent.submit(screen.getByRole('button', { name: 'Book appointment' }).closest('form')!)
@@ -98,7 +100,7 @@ describe('AppointmentsPage booking form', () => {
     const slot = '2027-01-01T03:30:00Z'
     mocks.getFamilyDoctorSlots.mockResolvedValue({ data: { date: '2027-01-01', availabilityConfigured: true, slotMinutes: 30, slots: [slot] } })
     renderAsAdult(`/appointments?date=2027-01-01&slot=${encodeURIComponent(slot)}`)
-    expect(await screen.findByLabelText('Free time')).toHaveValue(slot)
+    expect(await screen.findByRole('button', { name: '9:00 AM' })).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByLabelText('Date')).toHaveValue('2027-01-01')
   })
   it('limits an adult member to booking for self only', async () => {
@@ -131,7 +133,7 @@ describe('AppointmentsPage booking form', () => {
   it('shows the assigned family doctor without offering a choice the server would ignore', async () => {
     renderAsAdult()
 
-    await waitFor(() => expect(screen.getByText('Dr. Perera')).toBeInTheDocument())
+    expect((await screen.findAllByText('Dr. Perera')).length).toBeGreaterThan(0)
     expect(screen.queryByRole('combobox', { name: 'Doctor' })).not.toBeInTheDocument()
     expect(mocks.get).not.toHaveBeenCalledWith('/doctors/directory')
     expect(screen.getByText('Attachment (optional)')).toBeInTheDocument()
@@ -163,17 +165,41 @@ describe('AppointmentsPage booking form', () => {
     renderAsAdult()
 
     fireEvent.change(await screen.findByLabelText('Date'), { target: { value: '2026-10-05' } })
-    const slotSelect = await screen.findByLabelText('Free time')
+    const slotChip = await screen.findByRole('button', { name: '9:00 AM' })
+    expect(screen.getByRole('group', { name: 'Free time' })).toBeInTheDocument()
     expect(mocks.getFamilyDoctorSlots).toHaveBeenCalledWith('family-1', '2026-10-05')
     expect(screen.queryByLabelText('Time')).not.toBeInTheDocument()
 
     fireEvent.change(screen.getByLabelText('Member'), { target: { value: 'self-1' } })
-    fireEvent.change(slotSelect, { target: { value: '2026-10-05T03:30:00+00:00' } })
+    fireEvent.click(slotChip)
     fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Synthetic follow-up' } })
     fireEvent.submit(screen.getByRole('button', { name: 'Book appointment' }).closest('form')!)
 
     await waitFor(() => expect(mocks.bookAppointment).toHaveBeenCalledWith({
       memberId: 'self-1', startsAt: '2026-10-05T03:30:00+00:00', reason: 'Synthetic follow-up', durationMinutes: 20,
     }))
+  })
+
+  it('splits appointments into mutually exclusive tabs and expands details on View', async () => {
+    const future = new Date(Date.now() + 86_400_000 * 3).toISOString()
+    const past = new Date(Date.now() - 86_400_000 * 3).toISOString()
+    const base = { memberId: 'self-1', memberDisplayName: 'Me', familyName: 'Silva Family', doctor: { id: 'doc-1', displayName: 'Dr. Perera' }, durationMinutes: 30, createdAt: past }
+    renderAsAdult('/appointments', [
+      { ...base, id: 'a1', startsAt: future, status: 'Confirmed', reason: 'Synthetic confirmed', doctorNote: 'Synthetic note' },
+      { ...base, id: 'a2', startsAt: future, status: 'Requested', reason: 'Synthetic request' },
+      { ...base, id: 'a3', startsAt: past, status: 'Completed', reason: 'Synthetic done' },
+      { ...base, id: 'a4', startsAt: past, status: 'Confirmed', reason: 'Synthetic lapsed' },
+    ])
+    const tabs = await screen.findAllByRole('tab')
+    expect(tabs.map((t) => t.textContent)).toEqual(['Upcoming 1', 'Requests 1', 'Past 2'])
+    expect(tabs[0]).toHaveAttribute('aria-selected', 'true')
+    const panel = screen.getByRole('tabpanel')
+    expect(within(panel).getAllByRole('listitem')).toHaveLength(1)
+    fireEvent.click(within(panel).getByRole('button', { name: 'View' }))
+    expect(within(panel).getByText('Synthetic confirmed')).toBeInTheDocument()
+    expect(within(panel).getByText('Synthetic note')).toBeInTheDocument()
+    fireEvent.click(tabs[2])
+    expect(tabs[2]).toHaveAttribute('aria-selected', 'true')
+    expect(within(screen.getByRole('tabpanel')).getAllByRole('listitem')).toHaveLength(2)
   })
 })

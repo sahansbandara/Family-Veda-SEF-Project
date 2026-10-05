@@ -46,7 +46,9 @@ describe('PrivacyPage (Adult Member)', () => {
   it('shares a private report through the sharing endpoint', async () => {
     renderAs('MEMBER')
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Share with Family Head' }))
+    const toggle = await screen.findByRole('switch', { name: 'Share synthetic-cbc.png with Family Head' })
+    expect(toggle).toHaveAttribute('aria-checked', 'false')
+    fireEvent.click(toggle)
     expect(mocks.patch).toHaveBeenCalledWith('/lab-reports/lab-1/sharing', { sharedWithFamilyHead: true })
   })
 
@@ -65,5 +67,58 @@ describe('PrivacyPage (Adult Member)', () => {
 
     expect(await screen.findByText('Synthetic note page 2')).toBeInTheDocument()
     expect(screen.getByText('0 shared · 2 private')).toBeInTheDocument()
+  })
+})
+
+describe('PrivacyPage (Family Head)', () => {
+  const head = { id: 'm-head', familyId: 'f-1', displayName: 'Synthetic Head', dateOfBirth: '1980-01-01', role: 'Head' }
+  const minor = { id: 'm-minor', familyId: 'f-1', displayName: 'Synthetic Child', dateOfBirth: '2015-01-01', role: 'MinorMember' }
+  const adult = { id: 'm-adult', familyId: 'f-1', displayName: 'Synthetic Adult', dateOfBirth: '1995-01-01', role: 'AdultMember' }
+
+  beforeEach(() => {
+    mocks.get.mockReset(); mocks.patch.mockReset(); mocks.put.mockReset()
+    mocks.get.mockImplementation((url: string, config?: { params?: { page?: number } }) => {
+      if (url === '/families/me') return Promise.resolve({ data: { id: 'f-1', name: 'Synthetic Family', members: [head, minor, adult] } })
+      if (url === '/members/me') return Promise.resolve({ data: head })
+      if (url === '/members/m-head/consents') return Promise.resolve({ data: [{ id: 'c-h', memberId: 'm-head', category: 'Conditions', status: 'Granted', grantedByGuardian: false }] })
+      if (url === '/members/m-minor/consents') return Promise.resolve({ data: [{ id: 'c-m', memberId: 'm-minor', category: 'HereditaryFlags', status: 'NotSet', grantedByGuardian: false }] })
+      if (url === '/members/m-adult/lab-reports') return Promise.resolve({ data: [{ id: 'lab-1' }] })
+      if (url === '/members/m-adult/records') return Promise.resolve({ data: { items: [], page: 1, pageSize: 1, totalCount: 0, totalPages: 0 } })
+      if (url === '/families/f-1/doctor') return Promise.resolve({ data: { id: 'd-1', displayName: 'Dr. Synthetic Doctor', specialty: 'General Practice' } })
+      if (url === '/audit') {
+        const page = config?.params?.page ?? 1
+        return Promise.resolve({ data: { items: [{ id: `a-${page}`, eventType: page === 1 ? 'CONSENT_CHANGED' : 'RECORD_CREATED', resourceType: 'Consent', outcome: 'Success', createdAt: '2026-09-01T10:00:00Z' }], page, pageSize: 20, totalCount: 2, totalPages: 2 } })
+      }
+      return Promise.reject(new Error(`unexpected ${url}`))
+    })
+    mocks.put.mockResolvedValue({})
+  })
+
+  it('grants a minor consent through a real switch and never shows adult toggles', async () => {
+    renderAs('FAMILY_HEAD')
+
+    const toggle = await screen.findByRole('switch', { name: 'Family history (screening flags) consent for Synthetic Child' })
+    expect(toggle).toHaveAttribute('aria-checked', 'false')
+    expect(screen.getByText(/1 item shared with you/)).toBeInTheDocument()
+    expect(screen.queryByRole('switch', { name: /Synthetic Adult/ })).not.toBeInTheDocument()
+    fireEvent.click(toggle)
+    expect(mocks.put).toHaveBeenCalledWith('/members/m-minor/consents/HereditaryFlags', { status: 'Granted' })
+    expect(await screen.findByRole('status')).toHaveTextContent('Synthetic Child')
+  })
+
+  it('shows the assigned doctor and paged access history with metadata-only details', async () => {
+    renderAs('FAMILY_HEAD')
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Doctor access' }))
+    expect(screen.getByRole('heading', { name: 'Dr. Synthetic Doctor' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'My Doctor' })).toHaveAttribute('href', '/my-doctor')
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Access history' }))
+    expect(screen.getByRole('tab', { name: 'Access history' })).toHaveAttribute('aria-selected', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Details' }))
+    expect(screen.getByText('Success')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Load more' }))
+    expect(await screen.findByText('Health record added')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Load more' })).not.toBeInTheDocument()
   })
 })
