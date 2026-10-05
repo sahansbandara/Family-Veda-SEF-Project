@@ -75,7 +75,7 @@ export function ReportDetail({
         )}
         {report.values.length === 0 ? (
           <div className="care-empty">
-            <p>{report.ocrStatus === 'Failed' ? 'This report could not be read. No extracted values are available to confirm.' : 'No values are available to check yet.'}</p>
+            <p>{report.ocrStatus === 'Failed' ? 'No extracted values are available to confirm.' : 'No values are available to check yet.'}</p>
           </div>
         ) : (
           <div className="table-scroll">

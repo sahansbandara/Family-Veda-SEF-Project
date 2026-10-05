@@ -159,14 +159,30 @@ describe('ReportReviewDialog', () => {
     expect(props.onRetry).toHaveBeenCalledTimes(1)
     expect(screen.queryByRole('button', { name: 'Confirm values' })).not.toBeInTheDocument()
   })
-  it('retries failed extraction without claiming success or confirming missing values', async () => {
+  it('shows why reading failed and retries without claiming success or confirming missing values', async () => {
     const onExtract = vi.fn().mockResolvedValue(false)
-    renderReview({ report: { ...report, ocrStatus: 'Failed', values: [] }, onExtract })
+    renderReview({ report: { ...report, ocrStatus: 'Failed', ocrErrorCode: 'NO_VALUES_FOUND', values: [] }, onExtract })
+    expect(screen.getByRole('alert')).toHaveTextContent('Why it could not be read: No test results found')
     expect(screen.queryByRole('button', { name: 'Confirm values' })).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Retry reading report' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Read again' }))
     expect(onExtract).toHaveBeenCalledTimes(1)
     expect(await screen.findByText(/Reading could not be completed/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Retry reading report' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Read again' })).toBeEnabled()
+  })
+
+  it('offers to read a report that was never read', () => {
+    const onExtract = vi.fn().mockResolvedValue(true)
+    renderReview({ report: { ...report, ocrStatus: 'Pending', values: [] }, onExtract })
+    fireEvent.click(screen.getByRole('button', { name: 'Read report now' }))
+    expect(onExtract).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows numbered progress and points confirmed values to doctor review, not AI output', () => {
+    renderReview({ report: { ...report, values: report.values.map((value) => ({ ...value, wasManuallyConfirmed: true })) } })
+    const steps = screen.getByRole('list', { name: 'Report progress' })
+    expect(steps).toHaveTextContent(/Uploaded.*Reading text.*Values found.*You confirmed.*Doctor review/)
+    expect(screen.getByRole('link', { name: 'Go to Symptoms & Triage' })).toHaveAttribute('href', '/triage')
+    expect(screen.getByText(/you only see what your doctor approves/)).toBeInTheDocument()
   })
 
   it('keeps keyboard focus inside the leave warning', () => {

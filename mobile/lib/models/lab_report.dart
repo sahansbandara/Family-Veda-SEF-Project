@@ -34,6 +34,7 @@ class LabReport {
     this.sharedWithFamilyHead = false,
     this.hasOriginalFile = false,
     this.rangeSummary,
+    this.ocrErrorCode,
   });
 
   factory LabReport.fromJson(Map<String, dynamic> json) => LabReport(
@@ -49,12 +50,16 @@ class LabReport {
     rangeSummary: json['rangeSummary'] is Map<String, dynamic>
         ? LabRangeSummary.fromJson(json['rangeSummary'] as Map<String, dynamic>)
         : null,
+    ocrErrorCode: json['ocrErrorCode'] as String?,
   );
 
   final String id;
   final String memberId;
   final String fileName;
   final String ocrStatus;
+
+  /// Why reading failed (see report_reading.dart); null unless failed.
+  final String? ocrErrorCode;
   final DateTime? collectedAt;
   final bool sharedWithFamilyHead;
   final bool hasOriginalFile;

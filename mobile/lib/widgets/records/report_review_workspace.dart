@@ -1,6 +1,8 @@
 import 'package:family_veda/models/lab_report.dart';
 import 'package:family_veda/widgets/records/original_report_preview.dart';
 import 'package:family_veda/widgets/records/report_progress.dart';
+import 'package:family_veda/widgets/records/report_reading.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 
 typedef ReportDetailLoader = Future<Map<String, dynamic>> Function();
@@ -181,6 +183,97 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
     }
   }
 
+  /// Why reading failed, what to do next, or the next step once values are confirmed.
+  List<Widget> _readingState(BuildContext context) {
+    final status = widget.report.ocrStatus.toUpperCase();
+    Widget readButton(String label) => FilledButton(
+      onPressed: _saving ? null : _readAgain,
+      child: Text(_saving ? 'Reading report…' : label),
+    );
+    Widget card(String title, String detail, List<Widget> extra, {bool warn = false}) => Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: warn
+              ? const Color(0xFFD59A3D)
+              : Theme.of(context).colorScheme.outlineVariant,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 4),
+            Text(detail),
+            ...extra,
+          ],
+        ),
+      ),
+    );
+    if (_values.isEmpty && (status == 'FAILED' || status == 'FAILED_SAFE')) {
+      final failure = readingFailure(widget.report.ocrErrorCode);
+      return [
+        card(
+          'Why it could not be read: ${failure.title}',
+          failure.detail,
+          [
+            const SizedBox(height: 6),
+            for (final tip in failure.tips) Text('• $tip'),
+            if (widget.readAgain != null) ...[
+              const SizedBox(height: 10),
+              readButton('Read again'),
+            ],
+          ],
+          warn: true,
+        ),
+      ];
+    }
+    if (_values.isEmpty && status == 'PENDING' && widget.readAgain != null) {
+      return [
+        card(
+          'Not read yet',
+          'Read this report now to pull out its test values. It usually takes under a minute.',
+          [const SizedBox(height: 10), readButton('Read report now')],
+        ),
+      ];
+    }
+    if (status == 'PROCESSING') {
+      return [
+        card(
+          'Reading the report text…',
+          'This usually takes under a minute. If it stays here for more than 3 minutes, you can read it again.',
+          [
+            const SizedBox(height: 10),
+            OutlinedButton(onPressed: _load, child: const Text('Refresh status')),
+          ],
+        ),
+      ];
+    }
+    if (_confirmed && !_dirty) {
+      return [
+        card(
+          'Next step: doctor review',
+          'Your confirmed values are saved. To have them looked at, start a check in Symptoms & Triage. An AI assistant prepares a summary for your doctor, and you only see what your doctor approves.',
+          [
+            const SizedBox(height: 10),
+            FilledButton(
+              onPressed: () {
+                final router = GoRouter.maybeOf(context);
+                Navigator.of(context).pop();
+                router?.go('/cases');
+              },
+              child: const Text('Go to Symptoms & Triage'),
+            ),
+          ],
+        ),
+      ];
+    }
+    return const [];
+  }
+
   Widget _original() => widget.report.hasOriginalFile
       ? OriginalReportContent(
           fileName: widget.report.fileName,
@@ -297,6 +390,7 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
                           }),
                   ),
               ],
+              ..._readingState(context),
               if (_message != null)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12),
@@ -309,7 +403,7 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
                   icon: const Icon(Icons.check),
                   label: Text(_saving ? 'Saving…' : 'Confirm values'),
                 ),
-              if (widget.readAgain != null && !_confirmed)
+              if (widget.readAgain != null && !_confirmed && _values.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: OutlinedButton(

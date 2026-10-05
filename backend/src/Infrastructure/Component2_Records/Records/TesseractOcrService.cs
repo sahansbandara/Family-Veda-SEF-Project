@@ -40,7 +40,7 @@ public sealed partial class TesseractOcrService(IConfiguration configuration) : 
                 }
             }
 
-            return text ?? throw new ProcessingException("OCR could not read this report. Use manual entry instead.");
+            return text ?? throw new ProcessingException("OCR could not read this report. Use manual entry instead.", OcrFailureCodes.Unreadable);
         }
         finally
         {
@@ -59,7 +59,7 @@ public sealed partial class TesseractOcrService(IConfiguration configuration) : 
     private int MaxCharacters => Math.Clamp(configuration.GetValue("Ocr:MaxOutputCharacters", 60_000), 1_000, 250_000);
 
     private string? LimitText(string? text) => text is not null && text.Length > MaxCharacters
-        ? throw new ProcessingException("This report contains too much text to read automatically. Use manual entry instead.")
+        ? throw new ProcessingException("This report contains too much text to read automatically. Use manual entry instead.", OcrFailureCodes.TooMuchText)
         : text;
 
     private async Task<string?> RunTesseractAsync(string filePath, string? pageSegmentationMode, CancellationToken cancellationToken)
@@ -80,7 +80,7 @@ public sealed partial class TesseractOcrService(IConfiguration configuration) : 
             startInfo.ArgumentList.Add("--psm");
             startInfo.ArgumentList.Add(pageSegmentationMode);
         }
-        using var process = Process.Start(startInfo) ?? throw new ProcessingException("OCR engine could not be started. Use manual entry instead.");
+        using var process = Process.Start(startInfo) ?? throw new ProcessingException("OCR engine could not be started. Use manual entry instead.", OcrFailureCodes.EngineUnavailable);
         var (exitCode, output) = await WaitForOutputAsync(process, cancellationToken);
         if (exitCode != 0 || string.IsNullOrWhiteSpace(output)) return null;
         return output;
@@ -122,7 +122,7 @@ public sealed partial class TesseractOcrService(IConfiguration configuration) : 
     {
         var pageCount = await CountPdfPagesAsync(filePath, cancellationToken);
         if (pageCount > MaxPages)
-            throw new ProcessingException($"This report has {pageCount} pages. Reports longer than {MaxPages} pages cannot be read automatically. Upload only the result pages or use manual entry.");
+            throw new ProcessingException($"This report has {pageCount} pages. Reports longer than {MaxPages} pages cannot be read automatically. Upload only the result pages or use manual entry.", OcrFailureCodes.TooManyPages);
 
         var embeddedText = LimitText(await ReadPdfTextLayerAsync(filePath, pageCount, cancellationToken));
         if (HasStructuredValues(embeddedText)) return embeddedText!;
@@ -135,16 +135,16 @@ public sealed partial class TesseractOcrService(IConfiguration configuration) : 
         startInfo.ArgumentList.Add(filePath);
         try
         {
-            using var process = Process.Start(startInfo) ?? throw new ProcessingException("PDF reports cannot be read here. Use manual entry instead.");
+            using var process = Process.Start(startInfo) ?? throw new ProcessingException("PDF reports cannot be read here. Use manual entry instead.", OcrFailureCodes.PdfUnsupported);
             var (exitCode, output) = await WaitForOutputAsync(process, cancellationToken);
             var pages = PdfPageCount().Match(output);
             if (exitCode != 0 || !pages.Success || !int.TryParse(pages.Groups["pages"].Value, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var count) || count < 1)
-                throw new ProcessingException("OCR could not read this report. Use manual entry instead.");
+                throw new ProcessingException("OCR could not read this report. Use manual entry instead.", OcrFailureCodes.Unreadable);
             return count;
         }
         catch (System.ComponentModel.Win32Exception)
         {
-            throw new ProcessingException("PDF reports cannot be read here. Use manual entry instead.");
+            throw new ProcessingException("PDF reports cannot be read here. Use manual entry instead.", OcrFailureCodes.PdfUnsupported);
         }
     }
 
@@ -171,7 +171,7 @@ public sealed partial class TesseractOcrService(IConfiguration configuration) : 
     private async Task<string> OcrPdfPagesAsync(string filePath, int pageCount, CancellationToken cancellationToken)
     {
         var command = configuration["Ocr:PdfRenderCommand"];
-        if (string.IsNullOrWhiteSpace(command)) throw new ProcessingException("PDF reports cannot be read here. Use manual entry instead.");
+        if (string.IsNullOrWhiteSpace(command)) throw new ProcessingException("PDF reports cannot be read here. Use manual entry instead.", OcrFailureCodes.PdfUnsupported);
 
         var pageDirectory = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), $"fv-ocr-pdf-{Guid.NewGuid():N}"));
         try
@@ -182,13 +182,13 @@ public sealed partial class TesseractOcrService(IConfiguration configuration) : 
                 startInfo.ArgumentList.Add(argument);
             try
             {
-                using var process = Process.Start(startInfo) ?? throw new ProcessingException("PDF reports cannot be read here. Use manual entry instead.");
+                using var process = Process.Start(startInfo) ?? throw new ProcessingException("PDF reports cannot be read here. Use manual entry instead.", OcrFailureCodes.PdfUnsupported);
                 var (exitCode, _) = await WaitForOutputAsync(process, cancellationToken);
-                if (exitCode != 0) throw new ProcessingException("OCR could not read this report. Use manual entry instead.");
+                if (exitCode != 0) throw new ProcessingException("OCR could not read this report. Use manual entry instead.", OcrFailureCodes.Unreadable);
             }
             catch (System.ComponentModel.Win32Exception)
             {
-                throw new ProcessingException("PDF reports cannot be read here. Use manual entry instead.");
+                throw new ProcessingException("PDF reports cannot be read here. Use manual entry instead.", OcrFailureCodes.PdfUnsupported);
             }
 
             var text = new System.Text.StringBuilder();
@@ -197,7 +197,7 @@ public sealed partial class TesseractOcrService(IConfiguration configuration) : 
                 text.AppendLine(await RunTesseractAsync(page.FullName, pageSegmentationMode: null, cancellationToken));
                 LimitText(text.ToString());
             }
-            if (string.IsNullOrWhiteSpace(text.ToString())) throw new ProcessingException("OCR could not read this report. Use manual entry instead.");
+            if (string.IsNullOrWhiteSpace(text.ToString())) throw new ProcessingException("OCR could not read this report. Use manual entry instead.", OcrFailureCodes.Unreadable);
             return text.ToString();
         }
         finally
@@ -239,7 +239,7 @@ public sealed partial class TesseractOcrService(IConfiguration configuration) : 
                 await process.WaitForExitAsync(CancellationToken.None);
             }
             if (cancellationToken.IsCancellationRequested) throw;
-            throw new ProcessingException("OCR timed out. Use manual entry instead.");
+            throw new ProcessingException("OCR timed out. Use manual entry instead.", OcrFailureCodes.TimedOut);
         }
     }
 }

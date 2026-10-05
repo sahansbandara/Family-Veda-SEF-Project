@@ -37,10 +37,12 @@ describe('ReportLibraryCard', () => {
   })
 
   it('reports reading progress when no values are confirmed yet', () => {
-    const { rerender } = render(<ReportLibraryCard report={{ ...report, rangeSummary: null, ocrStatus: 'Failed' }} ownerName="Synthetic Adult" canChangeSharing={false} />)
-    expect(screen.getByText('Could not read')).toBeInTheDocument()
+    const { rerender } = render(<ReportLibraryCard report={{ ...report, rangeSummary: null, ocrStatus: 'Failed', ocrErrorCode: 'REPORT_TOO_MANY_PAGES' }} ownerName="Synthetic Adult" canChangeSharing={false} />)
+    expect(screen.getByText(/Could not read: Report is longer than 4 pages/)).toBeInTheDocument()
     rerender(<ReportLibraryCard report={{ ...report, rangeSummary: null, ocrStatus: 'Pending' }} ownerName="Synthetic Adult" canChangeSharing={false} />)
-    expect(screen.getByText('Reading report')).toBeInTheDocument()
+    expect(screen.getByText(/Not read yet/)).toBeInTheDocument()
+    rerender(<ReportLibraryCard report={{ ...report, rangeSummary: null, ocrStatus: 'Processing' }} ownerName="Synthetic Adult" canChangeSharing={false} />)
+    expect(screen.getByText(/Reading report/)).toBeInTheDocument()
   })
 
   it('lets the owner toggle sharing', () => {

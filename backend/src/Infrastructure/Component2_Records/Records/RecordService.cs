@@ -486,13 +486,19 @@ public sealed partial class RecordService(AppDbContext dbContext, ICurrentUser c
             statuses.Count(s => s == LabRangeStatus.WithinRange),
             statuses.Count(s => s == LabRangeStatus.AboveRange),
             statuses.Count(s => s == LabRangeStatus.RangeUnavailable));
-        return new(x.Id, x.MemberId, x.OriginalFileName, x.OcrStatus, x.CollectedAt, x.SharedWithFamilyHead, hasOriginalFile, summary);
+        var (status, errorCode) = ReadingState(x);
+        return new(x.Id, x.MemberId, x.OriginalFileName, status, x.CollectedAt, x.SharedWithFamilyHead, hasOriginalFile, summary, errorCode);
     }
+    // A read left "Processing" past the stale window was cut off (restart, crash): report it as failed so it can be retried.
+    private static (OcrStatus Status, string? ErrorCode) ReadingState(LabReport x) =>
+        x.OcrStatus == OcrStatus.Processing && DateTimeOffset.UtcNow - x.UpdatedAt >= OcrFailureCodes.StaleProcessingAfter
+            ? (OcrStatus.Failed, OcrFailureCodes.Interrupted)
+            : (x.OcrStatus, x.OcrStatus == OcrStatus.Failed ? x.OcrErrorCode ?? OcrFailureCodes.Failed : null);
     private static HereditaryFlagDto MapFlag(HereditaryFlag x) => new(x.Id, x.MemberId, x.ConditionCode, x.Finding, x.Confidence, x.ManuallyConfirmed);
     private static LabReportDetailDto MapLabDetail(LabReport report, IReadOnlyList<HereditaryFlagDto> flags) => new(
-        report.Id, report.MemberId, report.OriginalFileName, report.OcrStatus, report.CollectedAt,
+        report.Id, report.MemberId, report.OriginalFileName, ReadingState(report).Status, report.CollectedAt,
         report.Values.OrderBy(x => x.Analyte).Select(x => new LabValueDto(x.Id, x.Analyte, x.Value, x.Unit, x.ReferenceLow, x.ReferenceHigh, x.WasManuallyConfirmed, LabRangeClassifier.Classify(x.Value, x.ReferenceLow, x.ReferenceHigh))).ToList(), flags,
-        report.SharedWithFamilyHead);
+        report.SharedWithFamilyHead, ReadingState(report).ErrorCode);
     private static async Task<bool> HasPdfSignatureAsync(Stream stream, CancellationToken cancellationToken)
     {
         var signature = new byte[5];
