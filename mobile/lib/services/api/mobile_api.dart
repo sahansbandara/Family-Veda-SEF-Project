@@ -50,11 +50,8 @@ abstract interface class MobileApi {
   });
 }
 
-// OCR runs server-side for up to 120 s (Ocr:TimeoutSeconds); the 30 s default cut reads off.
-final Options _ocrExtractOptions = Options(
-  receiveTimeout: const Duration(minutes: 3),
-  sendTimeout: const Duration(minutes: 3),
-);
+// POST /extract only queues the read (202 Accepted); the server reads in the background,
+// so the normal client timeout applies. Callers poll the report (report_reading_poller.dart).
 
 class DioMobileApi implements MobileApi {
   const DioMobileApi(this._client);
@@ -143,7 +140,7 @@ class DioMobileApi implements MobileApi {
       }
     }
     try {
-      await _client.dio.post<void>('/lab-reports/$reportId/extract', options: _ocrExtractOptions);
+      await _client.dio.post<void>('/lab-reports/$reportId/extract');
     } on DioException catch (error) {
       // 422 carries the backend's own reason, e.g. the 4-page limit; it is safe to show as-is.
       final data = error.response?.data;
@@ -152,11 +149,11 @@ class DioMobileApi implements MobileApi {
         throw SavedReportUploadException('Report saved. $detail');
       }
       throw const SavedReportUploadException(
-        'Report saved. Extraction could not finish; manual review is required. Do not upload it again.',
+        'Report saved. Reading could not be started; open it in Health records to read it again. Do not upload it again.',
       );
     } on Object {
       throw const SavedReportUploadException(
-        'Report saved. Extraction could not finish; manual review is required. Do not upload it again.',
+        'Report saved. Reading could not be started; open it in Health records to read it again. Do not upload it again.',
       );
     }
   }
@@ -203,7 +200,7 @@ class DioMobileApi implements MobileApi {
 
   @override
   Future<void> extractLabReport(String reportId) async {
-    await _client.dio.post<void>('/lab-reports/$reportId/extract', options: _ocrExtractOptions);
+    await _client.dio.post<void>('/lab-reports/$reportId/extract');
   }
 
   @override

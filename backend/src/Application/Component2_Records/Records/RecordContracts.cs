@@ -59,7 +59,17 @@ public interface IRecordService
 
 public interface ILabExtractionService
 {
+    /// <summary>Checks access, marks the report Processing and queues the read. Returns at once; the read runs in the background.</summary>
     Task<LabExtractionResultDto> ExtractAsync(Guid reportId, CancellationToken cancellationToken);
+    /// <summary>Runs one queued read (called only by the background worker, never by a client).</summary>
+    Task RunQueuedAsync(Guid reportId, CancellationToken stoppingToken);
+}
+
+/// <summary>In-process queue of lab reports waiting to be read. Singleton; drained by LabExtractionWorker.</summary>
+public interface ILabExtractionQueue
+{
+    ValueTask QueueAsync(Guid reportId, CancellationToken cancellationToken);
+    ValueTask<Guid> DequeueAsync(CancellationToken cancellationToken);
 }
 
 public interface IOcrService
@@ -81,6 +91,8 @@ public static class OcrFailureCodes
     public const string Cancelled = "OCR_CANCELLED";
     public const string Failed = "OCR_FAILED";
 
-    /// <summary>A read still "processing" after this long was cut off (restart, crash) and may be retried.</summary>
-    public static readonly TimeSpan StaleProcessingAfter = TimeSpan.FromMinutes(3);
+    /// <summary>A read still "processing" after this long was cut off (restart, crash) and may be retried.
+    /// Reads are queued and run one at a time, so this covers a full batch (~15 reports x the read budget);
+    /// restarts are recovered at startup by LabExtractionWorker, so this is only the last-resort window.</summary>
+    public static readonly TimeSpan StaleProcessingAfter = TimeSpan.FromMinutes(45);
 }

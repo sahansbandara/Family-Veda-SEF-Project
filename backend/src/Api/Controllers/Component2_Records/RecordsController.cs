@@ -122,8 +122,9 @@ public sealed class RecordsController(IRecordService recordService, ILabExtracti
 
     [HttpPost("lab-reports/{reportId:guid}/extract")]
     [EnableRateLimiting("Ocr")]
+    // 202: the read is queued and runs in the background; clients poll GET lab-reports/{id} until it leaves Processing.
     public async Task<ActionResult<LabExtractionResultDto>> ExtractLabReport(Guid reportId, CancellationToken cancellationToken) =>
-        Ok(await extractionService.ExtractAsync(reportId, cancellationToken));
+        Accepted($"/api/v1/lab-reports/{reportId}", await extractionService.ExtractAsync(reportId, cancellationToken));
 
     [HttpGet("members/{memberId:guid}/hereditary-flags")]
     public async Task<ActionResult<IReadOnlyList<HereditaryFlagDto>>> GetHereditaryFlags(Guid memberId, CancellationToken cancellationToken) =>

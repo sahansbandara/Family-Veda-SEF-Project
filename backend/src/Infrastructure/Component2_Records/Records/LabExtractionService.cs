@@ -16,10 +16,10 @@ using Microsoft.Extensions.Configuration;
 
 namespace FamilyVeda.Infrastructure.Records;
 
-public sealed partial class LabExtractionService(AppDbContext dbContext, ICurrentUser currentUser, IEnumerable<IAgent> agents, IConfiguration? configuration = null) : ILabExtractionService
+public sealed partial class LabExtractionService(AppDbContext dbContext, ICurrentUser currentUser, IEnumerable<IAgent> agents, ILabExtractionQueue queue, IConfiguration? configuration = null) : ILabExtractionService
 {
-    // Server-owned budget for the whole read ("Ocr:TotalTimeoutSeconds", default 150, clamped 10-600; below the 180 s client wait).
-    // "Ocr:TimeoutSeconds" is the separate per-process limit in TesseractOcrService. A client disconnect must not cancel a read.
+    // Server-owned budget for one read ("Ocr:TotalTimeoutSeconds", default 150, clamped 10-600). It starts when the
+    // background worker starts the read, not when the report is queued. "Ocr:TimeoutSeconds" is the per-process limit in TesseractOcrService.
     public TimeSpan OcrTimeout { get; init; } = TimeSpan.FromSeconds(Math.Clamp(
         int.TryParse(configuration?["Ocr:TotalTimeoutSeconds"], out var seconds) ? seconds : 150, 10, 600));
 
@@ -55,7 +55,7 @@ public sealed partial class LabExtractionService(AppDbContext dbContext, ICurren
         if (report.Values.Any(x => x.WasManuallyConfirmed) ||
             await dbContext.HereditaryFlags.AnyAsync(x => x.LabReportId == reportId && x.ManuallyConfirmed, cancellationToken))
             throw new ConflictException("A manually reviewed report cannot be extracted again.");
-        // A read cut off by a restart stays "Processing" forever; after the stale window it may be retried.
+        // A read cut off by a crash stays "Processing"; after the stale window it may be retried.
         if (report.OcrStatus == OcrStatus.Processing && DateTimeOffset.UtcNow - report.UpdatedAt < OcrFailureCodes.StaleProcessingAfter)
             throw new ConflictException("OCR is already processing this report.");
         report.OcrStatus = OcrStatus.Processing;
@@ -69,49 +69,10 @@ public sealed partial class LabExtractionService(AppDbContext dbContext, ICurren
             dbContext.ChangeTracker.Clear();
             throw new ConflictException("OCR is already processing this report.");
         }
-        // Deliberately NOT linked to the request token: web/mobile clients time out long before Tesseract finishes.
-        using var ocrTimeout = new CancellationTokenSource(OcrTimeout);
-        try
-        {
-            var agent = agents.Single(x => x.Kind == AgentKind.Extraction);
-            var result = await agent.RunAsync(new AgentRunContext(reportId, report.MemberId, "{}"), ocrTimeout.Token);
-            using var output = JsonDocument.Parse(result.OutputJson);
-            var valuesExtracted = output.RootElement.GetProperty("valuesExtracted").GetInt32();
-            var flagsExtracted = output.RootElement.GetProperty("flagsExtracted").GetInt32();
-            report.OcrStatus = OcrStatus.Completed;
-            await dbContext.SaveChangesAsync(CancellationToken.None);
-            return new LabExtractionResultDto(report.Id, report.OcrStatus, valuesExtracted, flagsExtracted, true);
-        }
-        catch (OperationCanceledException) when (ocrTimeout.IsCancellationRequested)
-        {
-            report.OcrStatus = OcrStatus.Failed;
-            report.OcrErrorCode = OcrFailureCodes.TimedOut;
-            await dbContext.SaveChangesAsync(CancellationToken.None);
-            throw new ProcessingException("OCR timed out. Use manual entry instead.", OcrFailureCodes.TimedOut);
-        }
-        catch (OperationCanceledException)
-        {
-            // Not our timeout and not the client: only a genuine host-level cancellation reaches here.
-            report.OcrStatus = OcrStatus.Failed;
-            report.OcrErrorCode = OcrFailureCodes.Cancelled;
-            await dbContext.SaveChangesAsync(CancellationToken.None);
-            throw;
-        }
-        catch (ProcessingException exception)
-        {
-            // Our own messages (page limit, text limit, unreadable file) are safe to show the patient as-is.
-            report.OcrStatus = OcrStatus.Failed;
-            report.OcrErrorCode = exception.Code ?? OcrFailureCodes.Failed;
-            await dbContext.SaveChangesAsync(CancellationToken.None);
-            throw;
-        }
-        catch (Exception exception) when (exception is not OutOfMemoryException and not StackOverflowException)
-        {
-            report.OcrStatus = OcrStatus.Failed;
-            report.OcrErrorCode = OcrFailureCodes.Failed;
-            await dbContext.SaveChangesAsync(CancellationToken.None);
-            throw new ProcessingException("OCR could not process this report. Use manual entry instead.");
-        }
+        // Queued, not run: Tesseract on a 0.1-CPU host takes minutes and must not hold the HTTP request.
+        // The queue is unbounded, so this never waits; a client disconnect after this point cannot cancel the read.
+        await queue.QueueAsync(report.Id, CancellationToken.None);
+        return new LabExtractionResultDto(report.Id, OcrStatus.Processing, 0, 0, true);
     }
 
     public static IReadOnlyList<ParsedLabValue> ParseValues(string text)
