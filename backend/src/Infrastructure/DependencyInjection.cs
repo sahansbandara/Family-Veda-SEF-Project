@@ -55,19 +55,23 @@ public static class DependencyInjection
         services.AddSingleton<ITriageWorkQueue, TriageWorkQueue>();
         services.AddSingleton<SafetyValidationService>();
         // Provider chain: Gemini (primary, if configured) -> Groq (openai-compatible,
-        // last resort). See ADR-013 and LlmFallbackClient. Each client is registered
+        // fallback) -> Cloudflare Workers AI (last resort). See ADR-013 and LlmFallbackClient. Each client is registered
         // under its own concrete type; only LlmFallbackClient is exposed as IOllamaClient.
         services.Configure<GeminiOptions>(configuration.GetSection(GeminiOptions.SectionName));
         services.AddHttpClient<GeminiClient>(client =>
         {
             client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
-        });
+        }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
         services.Configure<LlmOptions>(configuration.GetSection(LlmOptions.SectionName));
         services.AddHttpClient<ChatCompletionsLlmClient>((provider, client) =>
         {
             var options = provider.GetRequiredService<Microsoft.Extensions.Options.IOptions<LlmOptions>>().Value;
             client.BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + "/");
-        });
+        }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+        // [S3] Hosted provider fallback; the endpoint is fixed inside CloudflareClient.
+        services.Configure<CloudflareOptions>(configuration.GetSection(CloudflareOptions.SectionName));
+        services.AddHttpClient<CloudflareClient>()
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
         services.AddScoped<IOllamaClient, LlmFallbackClient>();
         services.AddSingleton<ToolRegistry>();
         services.AddScoped<IToolDispatcher, ToolDispatcher>();

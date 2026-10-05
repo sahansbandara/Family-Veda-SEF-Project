@@ -10,43 +10,50 @@ namespace FamilyVeda.Infrastructure.Agents;
 /// Tries hosted providers in order and falls through to the next one on failure
 /// or rate limit, so a single provider hitting its free-tier quota does not stop
 /// the agentic pipeline. Order: Gemini (primary, if configured) -> Groq
-/// (openai-compatible, fallback). A provider with no API key configured is
+/// (openai-compatible, fallback) -> Cloudflare Workers AI (last resort).
+/// A provider with missing required configuration is
 /// skipped without making a network call.
 /// </summary>
 public sealed class LlmFallbackClient(
     GeminiClient gemini,
     ChatCompletionsLlmClient groq,
+    CloudflareClient cloudflare,
     IOptions<GeminiOptions> geminiOptions,
     IOptions<LlmOptions> groqOptions,
+    IOptions<CloudflareOptions> cloudflareOptions,
     ILogger<LlmFallbackClient> logger) : IOllamaClient
 {
     public async Task<OllamaResult<T>> GenerateStructuredAsync<T>(string systemPrompt, object input, CancellationToken cancellationToken) where T : class
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var attempts = new List<(string Name, IOllamaClient Client, bool Configured)>
         {
-            ("Gemini", gemini, !string.IsNullOrWhiteSpace(geminiOptions.Value.ApiKey)),
+            ("Gemini", gemini, geminiOptions.Value.HasConfiguredKey),
             ("Groq", groq, !string.IsNullOrWhiteSpace(groqOptions.Value.ApiKey)),
+            ("Cloudflare", cloudflare, !string.IsNullOrWhiteSpace(cloudflareOptions.Value.AccountId) && !string.IsNullOrWhiteSpace(cloudflareOptions.Value.ApiKey)),
         };
 
         Exception? lastError = null;
         foreach (var (name, client, configured) in attempts)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (!configured)
             {
-                logger.LogInformation("LLM provider {Provider} skipped: no API key configured.", name);
+                logger.LogInformation("LLM provider {Provider} skipped: required configuration missing.", name);
                 continue;
             }
 
             try
             {
                 var result = await client.GenerateStructuredAsync<T>(systemPrompt, input, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
                 if (name != attempts[0].Name)
                     logger.LogWarning("LLM provider {Provider} served this request after an earlier provider failed.", name);
                 return result;
             }
-            catch (Exception exception)
+            catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
             {
-                logger.LogWarning(exception, "LLM provider {Provider} failed; falling back to the next configured provider.", name);
+                logger.LogWarning("LLM provider {Provider} failed ({ErrorType}); falling back to the next configured provider.", name, exception.GetType().Name);
                 lastError = exception;
             }
         }

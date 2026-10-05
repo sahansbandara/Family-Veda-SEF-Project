@@ -12,6 +12,11 @@ public sealed class GeminiOptions
 {
     public const string SectionName = "Gemini";
     public string ApiKey { get; init; } = string.Empty;
+    public string[] ApiKeys { get; init; } = [];
+    public bool HasConfiguredKey => GetConfiguredKeys().Length > 0;
+
+    internal string[] GetConfiguredKeys() => new[] { ApiKey }.Concat(ApiKeys ?? [])
+        .Where(key => !string.IsNullOrWhiteSpace(key)).Distinct(StringComparer.Ordinal).ToArray();
     public string Model { get; init; } = "gemini-3.5-flash";
     public int TimeoutSeconds { get; init; } = 45;
 }
@@ -19,6 +24,8 @@ public sealed class GeminiOptions
 public sealed class GeminiClient(HttpClient httpClient, IOptions<GeminiOptions> options) : IOllamaClient
 {
     private readonly GeminiOptions _options = options.Value;
+    // Typed clients are short-lived; rotation must remain process-wide and atomic.
+    private static long _keyStart;
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNameCaseInsensitive = true,
@@ -27,6 +34,10 @@ public sealed class GeminiClient(HttpClient httpClient, IOptions<GeminiOptions> 
 
     public async Task<OllamaResult<T>> GenerateStructuredAsync<T>(string systemPrompt, object input, CancellationToken cancellationToken) where T : class
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        var keys = _options.GetConfiguredKeys();
+        if (keys.Length == 0) throw new InvalidOperationException("Gemini inference is not configured.");
+        var start = (int)((ulong)Interlocked.Increment(ref _keyStart) % (ulong)keys.Length);
         var typeHint = typeof(T).Name switch
         {
             nameof(MemberContextOutput) => " Output JSON must have: memberProfile (string, non-empty), recentVitals (array of strings, [] if none), episodes (array of strings, [] if none), conditions (array of strings, [] if none), confidence (number between 0.7 and 0.95).",
@@ -40,6 +51,7 @@ public sealed class GeminiClient(HttpClient httpClient, IOptions<GeminiOptions> 
         Exception? lastError = null;
         for (var attempt = 0; attempt < 2; attempt++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             try
             {
                 using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -72,7 +84,7 @@ public sealed class GeminiClient(HttpClient httpClient, IOptions<GeminiOptions> 
                 {
                     Content = JsonContent.Create(payload, options: JsonOptions)
                 };
-                request.Headers.Add("x-goog-api-key", _options.ApiKey);
+                request.Headers.Add("x-goog-api-key", keys[(start + attempt) % keys.Length]);
                 using var response = await httpClient.SendAsync(request, timeout.Token);
                 response.EnsureSuccessStatusCode();
 
@@ -148,14 +160,12 @@ public sealed class GeminiClient(HttpClient httpClient, IOptions<GeminiOptions> 
                 }
 
                 AgentOutputValidator.Validate(parsed);
+                cancellationToken.ThrowIfCancellationRequested();
                 return new OllamaResult<T>(parsed, _options.Model, promptTokens, candidateTokens);
             }
-            catch (Exception exception)
+            catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
             {
                 lastError = exception;
-                // Only the exception type is printed. Framework exception messages can
-                // carry the full request URI and any credential inside it.
-                Console.WriteLine($"[GeminiClient Attempt {attempt + 1} Error]: {exception.GetType().Name}");
             }
         }
 
