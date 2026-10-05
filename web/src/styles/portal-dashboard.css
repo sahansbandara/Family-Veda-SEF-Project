@@ -357,6 +357,7 @@
 .fv-emergency {
   position: fixed; right: 18px; bottom: 18px; z-index: 30; border: 0; border-radius: 999px;
   background: var(--emergency); color: var(--on-accent); padding: 10px 14px; font-weight: 900; text-decoration: none;
+  white-space: nowrap; box-shadow: 0 4px 14px rgba(139, 0, 0, 0.35); cursor: pointer;
 }
 .fv-referral { border: 1px solid var(--emergency); border-radius: 14px; padding: 14px; background: color-mix(in srgb, var(--emergency) 8%, var(--surface)); }
 .fv-referral strong { color: var(--emergency); }
