@@ -14,21 +14,26 @@ export type VitalPreset = {
   icon: RecordIconName
   /** One API vital per field; blood pressure is stored as a systolic and a diastolic reading. */
   fields: VitalField[]
+  normalLabel?: string
+  normalMin?: number
+  normalMax?: number
+  chartType?: 'bar' | 'line'
 }
 
 export const VITAL_PRESETS: readonly VitalPreset[] = [
-  { kind: 'heart', label: 'Heart Rate', hint: 'BPM', unit: 'bpm', icon: 'heart', fields: [{ vitalType: 'heart_rate', label: 'Heart rate' }] },
+  { kind: 'heart', label: 'Heart Rate', hint: 'BPM', unit: 'bpm', icon: 'heart', normalLabel: 'Normal: 60-100', normalMin: 60, normalMax: 100, chartType: 'bar', fields: [{ vitalType: 'heart_rate', label: 'Heart rate' }] },
   {
     kind: 'pressure', label: 'Blood Pressure', hint: 'Systolic / Diastolic (mmHg)', unit: 'mmHg', icon: 'pressure',
+    normalLabel: 'Normal: 120/80', normalMin: 90, normalMax: 120, chartType: 'bar',
     fields: [
       { vitalType: 'blood_pressure_systolic', label: 'Systolic' },
       { vitalType: 'blood_pressure_diastolic', label: 'Diastolic' },
     ],
   },
-  { kind: 'temperature', label: 'Body Temperature', hint: '°C', unit: '°C', icon: 'thermometer', fields: [{ vitalType: 'temperature', label: 'Temperature' }] },
-  { kind: 'oxygen', label: 'Oxygen (SpO₂)', hint: 'Percentage (%)', unit: '%', icon: 'lungs', fields: [{ vitalType: 'oxygen_saturation', label: 'Oxygen saturation' }] },
-  { kind: 'weight', label: 'Weight', hint: 'Kilograms (kg)', unit: 'kg', icon: 'scale', fields: [{ vitalType: 'weight', label: 'Weight' }] },
-  { kind: 'glucose', label: 'Blood Glucose', hint: 'mg/dL', unit: 'mg/dL', icon: 'drop', fields: [{ vitalType: 'blood_glucose', label: 'Blood glucose' }] },
+  { kind: 'temperature', label: 'Body Temperature', hint: '°C', unit: '°C', icon: 'thermometer', normalLabel: 'Normal: 36.5-37.2', normalMin: 36.5, normalMax: 37.2, chartType: 'bar', fields: [{ vitalType: 'temperature', label: 'Temperature' }] },
+  { kind: 'oxygen', label: 'Oxygen (SpO₂)', hint: 'Percentage (%)', unit: '%', icon: 'lungs', normalLabel: 'Normal: 95-100', normalMin: 95, normalMax: 100, chartType: 'bar', fields: [{ vitalType: 'oxygen_saturation', label: 'Oxygen saturation' }] },
+  { kind: 'weight', label: 'Weight', hint: 'Kilograms (kg)', unit: 'kg', icon: 'scale', chartType: 'line', fields: [{ vitalType: 'weight', label: 'Weight' }] },
+  { kind: 'glucose', label: 'Blood Glucose', hint: 'mg/dL', unit: 'mg/dL', icon: 'drop', normalLabel: 'Normal: 70-99', normalMin: 70, normalMax: 99, chartType: 'bar', fields: [{ vitalType: 'blood_glucose', label: 'Blood glucose' }] },
 ]
 
 const KIND_BY_KEY: Record<string, VitalKind> = {
