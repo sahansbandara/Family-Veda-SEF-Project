@@ -1,11 +1,8 @@
 // Owner: S4 · whole-project waiver (agent/DECISIONS.md 2026-09-28b)
 // jsdom does not lay out CSS, so this pins the responsive contract of the vitals overview grid:
 // 3 columns on desktop, 2 on tablet (≤1023px), 1 on phones (≤600px), and badges that wrap.
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-
-const css = readFileSync(resolve(__dirname, 'approval-desk.css'), 'utf8')
+import css from './approval-desk.css?raw'
 
 describe('approval vitals grid CSS', () => {
   it('uses at most three equal columns on desktop', () => {
