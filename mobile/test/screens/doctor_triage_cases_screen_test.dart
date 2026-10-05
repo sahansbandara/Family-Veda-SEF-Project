@@ -60,6 +60,7 @@ DoctorQueueCase _case(
   String status, {
   String priority = 'Routine',
   bool mine = false,
+  SubmittedComplaint? complaint,
 }) => DoctorQueueCase(
   id: id,
   priority: priority,
@@ -67,11 +68,21 @@ DoctorQueueCase _case(
   createdAt: DateTime.utc(2026, 9, 29, 8),
   mine: mine,
   claimable: !mine,
+  complaint: complaint,
+);
+
+const _poolComplaint = SubmittedComplaint(
+  symptoms: ['synthetic_signal_a', 'synthetic_signal_b'],
+  durationDays: 1,
+  severity: 6,
+  notes: 'Synthetic note text.',
+  ageBand: '40–49',
 );
 
 Future<_FakeCasesApi> _pump(
   WidgetTester tester, {
   Size size = const Size(390, 844),
+  SubmittedComplaint? poolComplaint,
 }) async {
   final api = _FakeCasesApi(
     [
@@ -79,7 +90,7 @@ Future<_FakeCasesApi> _pump(
       _case('done0001-x', 'ApprovedRevised', mine: true),
     ],
     [
-      _case('pool0001-x', 'PendingDoctorReview'),
+      _case('pool0001-x', 'PendingDoctorReview', complaint: poolComplaint),
       _case('emer0001-x', 'Escalated', priority: 'Emergency'),
     ],
   );
@@ -136,6 +147,63 @@ void main() {
       find.text('Details available after authorized access.'),
       findsOneWidget,
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  test('a pooled case carries the released complaint and no identity', () {
+    final pooled = DoctorQueueCase.pooled({
+      'id': 'pool0001-x',
+      'priority': 'Routine',
+      'status': 'PendingDoctorReview',
+      'createdAt': '2026-09-29T08:00:00Z',
+      'complaint': {
+        'symptoms': ['synthetic_signal_a', 'synthetic_signal_b'],
+        'durationDays': 1,
+        'severity': 6,
+        'notes': 'Synthetic note text.',
+        'ageBand': '40–49',
+      },
+    });
+
+    expect(
+      pooled.complaint?.summary,
+      'synthetic signal a, synthetic signal b · 1 day · Severity 6 / 10 · Age 40–49',
+    );
+    expect(pooled.memberDisplayName, isNull);
+    expect(pooled.familyName, isNull);
+    expect(
+      DoctorQueueCase.pooled({
+        'id': 'old-api',
+        'createdAt': '2026-09-29T08:00:00Z',
+      }).complaint,
+      isNull,
+    );
+  });
+
+  testWidgets('a doctor can read the complaint before claiming', (
+    tester,
+  ) async {
+    await _pump(tester, poolComplaint: _poolComplaint);
+
+    expect(find.text(_poolComplaint.summary), findsOneWidget);
+    expect(
+      find.text('Details available after authorized access.'),
+      findsNothing,
+    );
+    await _tapVisible(
+      tester,
+      find.byKey(const ValueKey('queue-case-pool0001-x')),
+    );
+
+    expect(find.text('Synthetic note text.'), findsOneWidget);
+    expect(find.text('6 / 10'), findsOneWidget);
+    expect(
+      find.textContaining(
+        'Age band 40–49. Name and family are shown after you claim the case.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('queue-sheet-action')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

@@ -19,6 +19,7 @@ import {
   QUEUE_TABS,
   actionFor,
   caseReference,
+  complaintSummary,
   filterAndSort,
   formatSubmitted,
   mergeQueue,
@@ -352,7 +353,7 @@ export function CasesPage() {
                         <p className="care-caption">
                           {item.mine
                             ? 'Open the case to see the submitted complaint.'
-                            : 'Details available after authorized access.'}
+                            : (complaintSummary(item.complaint) ?? 'Details available after authorized access.')}
                         </p>
                         <div className="triage-card__actions">
                           <button

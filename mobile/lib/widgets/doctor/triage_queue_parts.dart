@@ -147,7 +147,8 @@ class QueueCaseCard extends StatelessWidget {
               Text(
                 item.mine
                     ? 'Open the case to see the submitted complaint.'
-                    : 'Details available after authorized access.',
+                    : item.complaint?.summary ??
+                          'Details available after authorized access.',
                 style: TextStyle(color: palette.muted, fontSize: 13),
               ),
               if (hasAction) ...[
@@ -254,7 +255,9 @@ class QueueCaseSheet extends ConsumerWidget {
                   Text(
                     item.mine
                         ? 'Patient request. Identity is limited to what your case grant allows.'
-                        : 'Patient request in the shared review pool. Identity is not shown before authorized access.',
+                        : 'Patient request in the shared review pool.'
+                              '${(item.complaint?.ageBand ?? '').isEmpty ? '' : ' Age band ${item.complaint!.ageBand}.'}'
+                              ' Name and family are shown after you ${item.isEmergencyReferral ? 'acknowledge' : 'claim'} the case.',
                     style: body,
                   ),
                   const SizedBox(height: 18),
@@ -262,6 +265,12 @@ class QueueCaseSheet extends ConsumerWidget {
                   const SizedBox(height: 4),
                   if (item.mine)
                     _Complaint(caseId: item.id, body: body, palette: palette)
+                  else if (item.complaint != null)
+                    _ComplaintFacts(
+                      complaint: item.complaint!,
+                      body: body,
+                      palette: palette,
+                    )
                   else
                     Text(
                       'Details available after authorized access.',
@@ -340,47 +349,69 @@ class _Complaint extends ConsumerWidget {
                 style: body,
               );
             }
-            final days = complaint.durationDays;
-            final rows = [
-              (
-                'Symptoms',
-                complaint.symptoms.isEmpty
-                    ? 'None recorded'
-                    : complaint.symptoms.join(', '),
-              ),
-              ('Reported duration', '$days ${days == 1 ? 'day' : 'days'}'),
-              ('Reported severity', '${complaint.severity} / 10'),
-              if ((complaint.notes ?? '').isNotEmpty)
-                ('Patient notes', complaint.notes!),
-            ];
-            return Column(
-              children: [
-                for (final (label, value) in rows)
-                  Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: palette.surfaceSubtle,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: palette.border),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(label, style: body.copyWith(fontSize: 12)),
-                        const SizedBox(height: 2),
-                        Text(
-                          value,
-                          style: TextStyle(color: palette.text, fontSize: 14),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
+            return _ComplaintFacts(
+              complaint: complaint,
+              body: body,
+              palette: palette,
             );
           },
         );
+  }
+}
+
+/// The reported complaint as labelled rows; shared by granted and pooled cases.
+class _ComplaintFacts extends StatelessWidget {
+  const _ComplaintFacts({
+    required this.complaint,
+    required this.body,
+    required this.palette,
+  });
+
+  final SubmittedComplaint complaint;
+  final TextStyle body;
+  final CalendarPalette palette;
+
+  @override
+  Widget build(BuildContext context) {
+    final days = complaint.durationDays;
+    final rows = [
+      (
+        'Symptoms',
+        complaint.symptoms.isEmpty
+            ? 'None recorded'
+            : complaint.symptoms.join(', '),
+      ),
+      ('Reported duration', '$days ${days == 1 ? 'day' : 'days'}'),
+      ('Reported severity', '${complaint.severity} / 10'),
+      if ((complaint.notes ?? '').isNotEmpty)
+        ('Patient notes', complaint.notes!),
+    ];
+    return Column(
+      children: [
+        for (final (label, value) in rows)
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: palette.surfaceSubtle,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: palette.border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: body.copyWith(fontSize: 12)),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: TextStyle(color: palette.text, fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
   }
 }
 

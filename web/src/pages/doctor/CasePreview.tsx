@@ -1,7 +1,7 @@
 // Owner: S4 · whole-project waiver (agent/DECISIONS.md 2026-09-28b)
 // Selected-case preview for the Triage Cases queue. Complaint details are read from the
-// grant-checked review endpoint only for cases this doctor already holds; pool cases show
-// limited metadata until the backend authorizes more.
+// grant-checked review endpoint for cases this doctor already holds; a pool case shows the
+// complaint the pool released so the doctor can decide whether to claim it, never an identity.
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -77,6 +77,9 @@ export function CasePreview({ item, open, busy, onClose, onClaim }: CasePreviewP
 
   const action = actionFor(item)
   const emergency = item.status === 'Escalated'
+  // Before a grant the pool's own complaint is shown; after it, the grant-checked review wins.
+  const poolComplaint = item.mine ? null : (item.complaint ?? null)
+  const facts = complaint.kind === 'ready' ? complaint.episode : poolComplaint
 
   return (
     <aside
@@ -126,7 +129,7 @@ export function CasePreview({ item, open, busy, onClose, onClaim }: CasePreviewP
           <p className="care-caption">
             {item.mine
               ? 'Patient request. Identity is limited to what your case grant allows.'
-              : 'Patient request in the shared review pool. Identity is not shown before authorized access.'}
+              : `Patient request in the shared review pool.${poolComplaint ? ` Age band ${poolComplaint.ageBand}.` : ''} Name and family are shown after you ${emergency ? 'acknowledge' : 'claim'} the case.`}
           </p>
         </section>
 
@@ -134,26 +137,26 @@ export function CasePreview({ item, open, busy, onClose, onClaim }: CasePreviewP
           <h3>Complaint</h3>
           {complaint.kind === 'loading' ? (
             <p className="care-caption" role="status">Loading submitted details…</p>
-          ) : complaint.kind === 'ready' && complaint.episode ? (
+          ) : facts ? (
             <dl className="triage-facts">
               <div>
                 <dt>Symptoms</dt>
-                <dd>{complaint.episode.symptoms.length > 0 ? complaint.episode.symptoms.join(', ') : 'None recorded'}</dd>
+                <dd>{facts.symptoms.length > 0 ? facts.symptoms.join(', ') : 'None recorded'}</dd>
               </div>
               <div>
                 <dt>Reported duration</dt>
                 <dd>
-                  {complaint.episode.durationDays} {complaint.episode.durationDays === 1 ? 'day' : 'days'}
+                  {facts.durationDays} {facts.durationDays === 1 ? 'day' : 'days'}
                 </dd>
               </div>
               <div>
                 <dt>Reported severity</dt>
-                <dd>{complaint.episode.severity} / 10</dd>
+                <dd>{facts.severity} / 10</dd>
               </div>
-              {complaint.episode.notes ? (
+              {facts.notes ? (
                 <div>
                   <dt>Patient notes</dt>
-                  <dd>{complaint.episode.notes}</dd>
+                  <dd>{facts.notes}</dd>
                 </div>
               ) : null}
             </dl>
