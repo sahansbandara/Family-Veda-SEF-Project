@@ -13,8 +13,8 @@ import 'package:family_veda/providers/family_portal_provider.dart';
 import 'package:family_veda/providers/members_provider.dart';
 import 'package:family_veda/theme/app_theme.dart';
 import 'package:family_veda/widgets/family/incoming_invitations_section.dart';
+import 'package:family_veda/widgets/family/members_roster_parts.dart';
 import 'package:family_veda/widgets/shared/async_state_views.dart';
-import 'package:family_veda/widgets/shared/member_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -353,37 +353,6 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                             ),
                           ),
                         ),
-                        if (familyCode != null && familyCode.isNotEmpty)
-                          InkWell(
-                            onTap: () {
-                              Clipboard.setData(ClipboardData(text: familyCode));
-                              _showMessage('Family Code $familyCode copied to clipboard.', isSuccess: true);
-                            },
-                            borderRadius: BorderRadius.circular(6),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.25),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.copy_rounded, size: 12, color: Colors.white),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    familyCode,
-                                    style: const TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.8,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -405,6 +374,63 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
                         height: 1.35,
                       ),
                     ),
+                    if (familyCode != null && familyCode.isNotEmpty) ...[
+                      const SizedBox(height: 14),
+                      Material(
+                        color: Colors.white.withValues(alpha: 0.14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(color: Colors.white.withValues(alpha: 0.24)),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          onTap: () {
+                            Clipboard.setData(ClipboardData(text: familyCode));
+                            _showMessage('Family Code $familyCode copied to clipboard.', isSuccess: true);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'FAMILY CODE',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 1.2,
+                                          color: Colors.white.withValues(alpha: 0.78),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        familyCode,
+                                        style: const TextStyle(
+                                          fontSize: 19,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.8,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'Adults still need your approval to join.',
+                                        style: TextStyle(fontSize: 11.5, color: Colors.white.withValues(alpha: 0.85)),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const Icon(Icons.copy_rounded, size: 20, color: Colors.white, semanticLabel: 'Copy family code'),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -590,57 +616,60 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
   }
 
   Widget _renderRoster(List<Member> items, String? activeId, bool isDark) {
+    final pending = ref.watch(familyDashboardProvider).valueOrNull?.pendingJoinRequests ?? 0;
+    final grouped = {
+      for (final group in MemberGroup.values)
+        group: items.where((member) => memberGroupOf(member) == group).toList(),
+    };
+    final minors = grouped[MemberGroup.minor]!.length;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'ROSTER (${items.length})',
-              style: TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.8,
-                color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
-              ),
-            ),
-            Text(
-              'Tap to switch active member',
-              style: TextStyle(
-                fontSize: 11.5,
-                color: isDark ? AppColors.mutedDark : const Color(0xFF64748B),
-              ),
-            ),
-          ],
+        FamilySummaryTiles(
+          total: items.length,
+          adults: items.length - minors,
+          minors: minors,
+          pending: pending,
         ),
-        const SizedBox(height: 10),
-        ...items.map(
-          (member) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: MemberCard(
-              member: member,
-              isActive: member.id == activeId,
-              onSelected: () async {
-                final userId = ref.read(authProvider).userId;
-                if (userId == null) return;
-                ref.read(activeMemberProvider.notifier).state = member.id;
-                try {
-                  await ref
-                      .read(memberPreferenceStoreProvider)
-                      .writeActiveMemberId(
-                        userId: userId,
-                        memberId: member.id,
-                      );
-                } on Object {
-                  // Remembering the choice is a convenience; the selection above already applied.
-                }
-              },
-            ),
+        const SizedBox(height: 14),
+        Text(
+          'Tap a member to make them the active profile.',
+          style: TextStyle(
+            fontSize: 12,
+            color: isDark ? AppColors.mutedDark : AppColors.muted,
           ),
         ),
+        // Minors first: they are the profiles a guardian acts on most often.
+        for (final group in MemberGroup.values)
+          if (grouped[group]!.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            MemberGroupHeader(group: group, count: grouped[group]!.length),
+            const SizedBox(height: 10),
+            for (final member in grouped[group]!)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: FamilyMemberTile(
+                  member: member,
+                  group: group,
+                  isActive: member.id == activeId,
+                  onSelected: () => _selectMember(member),
+                ),
+              ),
+          ],
       ],
     );
+  }
+
+  Future<void> _selectMember(Member member) async {
+    final userId = ref.read(authProvider).userId;
+    if (userId == null) return;
+    ref.read(activeMemberProvider.notifier).state = member.id;
+    try {
+      await ref.read(memberPreferenceStoreProvider).writeActiveMemberId(userId: userId, memberId: member.id);
+    } on Object {
+      // Remembering the choice is a convenience; the selection above already applied.
+    }
   }
 
   // TAB 2: JOIN REQUESTS

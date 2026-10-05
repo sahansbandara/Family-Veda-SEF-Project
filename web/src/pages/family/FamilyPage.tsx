@@ -64,6 +64,15 @@ export function FamilyPage() {
   if (status === 'error') return <ErrorState message="Family details could not be loaded." onRetry={() => void load()} />
   if (!family) return <EmptyState title="No family profile" message="Create a family through onboarding first." />
 
+  async function copyCode(code: string) {
+    try {
+      await navigator.clipboard.writeText(code)
+      setMessage(`Family Code ${code} copied.`)
+    } catch {
+      setMessage('The code could not be copied. Select it and copy it manually.')
+    }
+  }
+
   const badge = (id: TabId) => (id === 'requests' ? counts.requests : id === 'invitations' ? counts.invitations : 0)
 
   return (
@@ -75,9 +84,14 @@ export function FamilyPage() {
           <p>Manage members, join requests, invitations and family settings. Adult health data stays private unless shared.</p>
         </div>
         {family.familyCode && (
-          <span className="status-badge status-badge--primary">
-            Family Code <span className="family-code">{family.familyCode}</span>
-          </span>
+          <div className="family-hero-card">
+            <small>Family Code</small>
+            <strong className="family-code">{family.familyCode}</strong>
+            <span>Adults still need your approval to join.</span>
+            <button type="button" className="family-hero-copy" onClick={() => void copyCode(family.familyCode ?? '')}>
+              Copy code
+            </button>
+          </div>
         )}
       </header>
 
@@ -102,7 +116,15 @@ export function FamilyPage() {
 
       {message && <p role="status" className="status-banner">{message}</p>}
 
-      {tab === 'members' && <FamilyMembersTab family={family} onChanged={refresh} onMessage={setMessage} />}
+      {tab === 'members' && (
+        <FamilyMembersTab
+          family={family}
+          pending={counts}
+          onInviteAdult={() => setParams({ tab: 'invitations' }, { replace: true })}
+          onChanged={refresh}
+          onMessage={setMessage}
+        />
+      )}
       {tab === 'requests' && <FamilyJoinRequestsTab familyId={family.id} onChanged={refresh} onMessage={setMessage} />}
       {tab === 'invitations' && <FamilyInvitationsTab familyId={family.id} onChanged={refresh} onMessage={setMessage} />}
       {tab === 'settings' && <FamilySettingsTab family={family} onChanged={refresh} onMessage={setMessage} />}
