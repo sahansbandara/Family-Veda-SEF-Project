@@ -1,7 +1,7 @@
 // Owner: S1 · Family, Identity & Consent — whole-project waiver (agent/DECISIONS.md 2026-09-28b)
 // Members tab: roster (names + roles only), Add Minor, Remove from Family, minor consent + relationships.
 // Removing an adult moves them, with their history, into their own household (DECISIONS 2026-09-29c).
-import { type FormEvent, useCallback, useEffect, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 
 import { ClinicalSexSelect } from '../../components/shared/ClinicalSexSelect'
 import { StatusBadge } from '../../components/shared/StatusBadge'
@@ -16,18 +16,41 @@ import {
 } from '../../services/apiClient'
 import { extractErrorMessage } from './threePortalUtils'
 
-type Props = { family: FamilyDto; onChanged: () => Promise<void>; onMessage: (message: string) => void }
+type Props = {
+  family: FamilyDto
+  pending: { requests: number; invitations: number }
+  onInviteAdult: () => void
+  onChanged: () => Promise<void>
+  onMessage: (message: string) => void
+}
 
 const roleLabel: Record<RosterMemberDto['role'], string> = { Head: 'Family Head', AdultMember: 'Adult Member', MinorMember: 'Minor' }
 const roleTone: Record<RosterMemberDto['role'], string> = { Head: 'success', AdultMember: 'primary', MinorMember: 'warning' }
+const roleNote: Record<RosterMemberDto['role'], string> = {
+  Head: 'Manages joins, invitations and family settings.',
+  AdultMember: 'Health records stay private unless shared.',
+  MinorMember: 'Guardian-managed child profile.',
+}
+// Minors come first: they are the profiles a guardian acts on most often.
+const groups: { role: RosterMemberDto['role']; title: string; note: string; unit: string }[] = [
+  { role: 'MinorMember', title: 'Minor profiles', note: 'Guardian-managed child profiles with quick consent access.', unit: 'minor' },
+  { role: 'Head', title: 'Family head', note: 'The primary controller for settings, approvals and transfers.', unit: 'head' },
+  { role: 'AdultMember', title: 'Adult members', note: 'Adults keep their own health data private unless it is explicitly shared.', unit: 'adult' },
+]
 
-export function FamilyMembersTab({ family, onChanged, onMessage }: Props) {
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  return ((parts[0]?.[0] ?? '?') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase()
+}
+
+export function FamilyMembersTab({ family, pending, onInviteAdult, onChanged, onMessage }: Props) {
   const [roster, setRoster] = useState<RosterMemberDto[]>([])
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [selected, setSelected] = useState<RosterMemberDto | null>(null)
   const [consents, setConsents] = useState<ConsentDto[]>([])
   const [relationships, setRelationships] = useState<RelationshipDto[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const minorNameRef = useRef<HTMLInputElement>(null)
 
   const loadRoster = useCallback(async () => {
     setStatus('loading')
@@ -167,11 +190,56 @@ export function FamilyMembersTab({ family, onChanged, onMessage }: Props) {
   const canManage = (member: RosterMemberDto) => member.isSelf || member.isMinor
   const todayStr = new Date().toISOString().split('T')[0]
 
+  const countOf = (role: RosterMemberDto['role']) => roster.filter((member) => member.role === role).length
+  const pendingTotal = pending.requests + pending.invitations
+  const summary = [
+    { tone: 'primary', label: 'Total members', value: roster.length, note: 'Everyone in your family group.' },
+    { tone: 'success', label: 'Adults', value: countOf('AdultMember') + countOf('Head'), note: 'Independent adult accounts.' },
+    { tone: 'warning', label: 'Minors', value: countOf('MinorMember'), note: 'Guardian-managed child profiles.' },
+    {
+      tone: 'agent',
+      label: 'Pending actions',
+      value: pendingTotal,
+      note: pendingTotal === 0 ? 'Nothing is waiting on you.' : `${pending.requests} join requests · ${pending.invitations} open invitations`,
+    },
+  ]
+
   return (
     <>
+      {status === 'ready' && roster.length > 0 && (
+        <div className="family-summary" role="group" aria-label="Household summary">
+          {summary.map((card) => (
+            <div key={card.label} className={`family-summary-card family-summary-card--${card.tone}`}>
+              <small>{card.label}</small>
+              <strong>{card.value}</strong>
+              <span>{card.note}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       <section className="panel" aria-label="Members">
-        <h2>Members</h2>
-        <p className="muted">Adult health privacy stays independent. You see names and roles only.</p>
+        <div className="panel-heading family-workspace-head">
+          <div>
+            <h2>Members</h2>
+            <p className="muted">Adult health privacy stays independent. You see names and roles only.</p>
+          </div>
+          <div className="inline-actions">
+            <button className="button button--secondary" type="button" onClick={onInviteAdult}>
+              Invite adult
+            </button>
+            <button
+              className="button button--primary"
+              type="button"
+              onClick={() => {
+                minorNameRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
+                minorNameRef.current?.focus({ preventScroll: true })
+              }}
+            >
+              + Add minor
+            </button>
+          </div>
+        </div>
         {status === 'loading' ? (
           <LoadingState label="Loading members" />
         ) : status === 'error' ? (
@@ -179,49 +247,55 @@ export function FamilyMembersTab({ family, onChanged, onMessage }: Props) {
         ) : roster.length === 0 ? (
           <EmptyState title="No members yet" message="Add a minor or invite an adult to get started." />
         ) : (
-          <div className="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Role</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {roster.map((member) => (
-                  <tr key={member.id}>
-                    <td>
-                      {member.displayName} {member.isSelf && <small className="muted">(you)</small>}
-                    </td>
-                    <td>
-                      <span className={`status-badge status-badge--${roleTone[member.role]}`}>{roleLabel[member.role]}</span>
-                    </td>
-                    <td>
-                      <div className="inline-actions">
-                        {canManage(member) && (
-                          <button className="button button--secondary" type="button" onClick={() => void openMember(member)}>
-                            Consent & relationships
-                          </button>
-                        )}
-                        {member.role === 'AdultMember' && member.hasAccount && (
-                          <button className="button button--danger" type="button" onClick={() => void removeAdult(member)}>
-                            Remove from Family
-                          </button>
-                        )}
-                        {member.isMinor && (
-                          <button className="button button--danger" type="button" onClick={() => void deleteMinor(member)}>
-                            Delete profile
-                          </button>
-                        )}
-                        {!canManage(member) && member.role !== 'AdultMember' && <span className="muted">—</span>}
+          groups.map((group) => {
+            const members = roster.filter((member) => member.role === group.role)
+            if (members.length === 0) return null
+            return (
+              <div key={group.role} className="member-group">
+                <div className="member-group-head">
+                  <div>
+                    <h3>{group.title}</h3>
+                    <p className="muted">{group.note}</p>
+                  </div>
+                  <span className="member-count-pill">
+                    {members.length} {group.unit}
+                    {members.length === 1 ? '' : 's'}
+                  </span>
+                </div>
+                <div className="member-grid">
+                  {members.map((member) => (
+                    <article key={member.id} className={`member-card member-card--${roleTone[member.role]}`}>
+                      <span className="member-avatar" aria-hidden="true">{initials(member.displayName)}</span>
+                      <div className="member-body">
+                        <h4>
+                          {member.displayName} {member.isSelf && <small className="muted">(you)</small>}
+                        </h4>
+                        <p className="member-note">{roleNote[member.role]}</p>
+                        <span className={`status-badge status-badge--${roleTone[member.role]}`}>{roleLabel[member.role]}</span>
+                        <div className="inline-actions member-actions">
+                          {canManage(member) && (
+                            <button className="button button--secondary button--sm" type="button" onClick={() => void openMember(member)}>
+                              Consent & relationships
+                            </button>
+                          )}
+                          {member.role === 'AdultMember' && member.hasAccount && (
+                            <button className="button button--danger button--sm" type="button" onClick={() => void removeAdult(member)}>
+                              Remove from Family
+                            </button>
+                          )}
+                          {member.isMinor && (
+                            <button className="button button--danger button--sm" type="button" onClick={() => void deleteMinor(member)}>
+                              Delete profile
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            )
+          })
         )}
       </section>
 
@@ -231,7 +305,7 @@ export function FamilyMembersTab({ family, onChanged, onMessage }: Props) {
         <form className="form-grid" onSubmit={(event) => void addMinor(event)}>
           <label>
             Display name
-            <input name="displayName" required minLength={2} maxLength={100} placeholder="e.g. Kasun" />
+            <input ref={minorNameRef} name="displayName" required minLength={2} maxLength={100} placeholder="e.g. Kasun" />
           </label>
           <label>
             Date of birth
