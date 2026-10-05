@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({ role: 'ADULT_MEMBER', get: vi.fn(), getFamilyDoctor: vi.fn(), getFamilyDoctorSlots: vi.fn(), getPendingFamilyDoctorRequest: vi.fn(), getDoctorDirectory: vi.fn(), requestFamilyDoctor: vi.fn(), cancelFamilyDoctorRequest: vi.fn() }))
 vi.mock('../../store/hooks', () => ({ useAppSelector: (selector: (state: object) => unknown) => selector({ auth: { user: { role: mocks.role } } }) }))
@@ -56,6 +56,10 @@ describe('MyDoctor availability', () => {
   })
 
   it('ignores a previous date response after the selected appointment date changes', async () => {
+    // Pin "today" to 5 Oct in Sri Lanka time so the change to 6 Oct is a real date change on any run date.
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-10-05T03:00:00Z'))
+    onTestFinished(() => { vi.useRealTimers() })
     let finishOld!: (result: { data: object }) => void
     mocks.getFamilyDoctorSlots.mockImplementationOnce(() => new Promise((resolve) => { finishOld = resolve }))
       .mockResolvedValue({ data: { date: '2026-10-06', availabilityConfigured: true, slotMinutes: 30, slots: ['2026-10-06T05:30:00Z'] } })
