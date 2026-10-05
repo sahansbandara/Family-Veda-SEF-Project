@@ -1,7 +1,7 @@
 // Owner: S2 · Health Records & Extraction — Fernando K.R.N (IT24101875)
 // Ownership binding — do not edit file if not yours. docs/OWNERSHIP.tsv
 import { type DragEvent, type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { DeletedReports } from '../../components/records/DeletedReports'
 import { RecordDialog } from './RecordDialog'
 import { ReportLibrary } from '../../components/records/ReportLibrary'
