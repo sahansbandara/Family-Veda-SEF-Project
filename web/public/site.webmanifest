@@ -1,0 +1,31 @@
+{
+  "name": "Family Veda",
+  "short_name": "Family Veda",
+  "description": "Clinical decision-support workspace. Every AI draft is reviewed by a licensed doctor before a patient sees it.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#146CFF",
+  "background_color": "#EEF4FB",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ]
+}

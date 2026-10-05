@@ -1,0 +1,58 @@
+import '@testing-library/jest-dom/vitest'
+
+import { fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+
+import { ReportLibraryCard } from './ReportLibraryCard'
+import type { LabReportDto } from '../../services/apiClient'
+
+const report: LabReportDto = {
+  id: 'synthetic-report-01',
+  memberId: 'synthetic-member-01',
+  originalFileName: 'synthetic-cbc.png',
+  ocrStatus: 'Completed',
+  collectedAt: '2026-08-01T00:00:00Z',
+  sharedWithFamilyHead: false,
+  hasOriginalFile: true,
+  rangeSummary: { belowRange: 1, withinRange: 2, aboveRange: 0, rangeUnavailable: 1 },
+}
+
+describe('ReportLibraryCard', () => {
+  it('opens an available original independently of extraction and sharing controls', () => {
+    const onView = vi.fn()
+    render(<ReportLibraryCard report={{ ...report, hasOriginalFile: true, ocrStatus: 'Failed' }} ownerName="Synthetic Adult" canChangeSharing={false} onViewOriginal={onView} />)
+    fireEvent.click(screen.getByRole('button', { name: 'View original report' }))
+    expect(onView).toHaveBeenCalledWith(expect.objectContaining({ id: report.id }))
+    expect(screen.queryByRole('button', { name: 'Review extraction' })).not.toBeInTheDocument()
+  })
+
+  it('shows owner, visibility and range position as a count, without interpretation', () => {
+    render(<ReportLibraryCard report={report} ownerName="Synthetic Adult" canChangeSharing={false} />)
+    expect(screen.getByText(/Synthetic Adult/)).toBeInTheDocument()
+    expect(screen.getByText('Private from Family Head')).toBeInTheDocument()
+    expect(screen.getByText('1 outside printed range')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Share with Family Head/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'View original report' })).not.toBeInTheDocument()
+    expect(document.body.textContent ?? '').not.toMatch(/diagnos|abnormal|disease/i)
+  })
+
+  it('reports reading progress when no values are confirmed yet', () => {
+    const { rerender } = render(<ReportLibraryCard report={{ ...report, rangeSummary: null, ocrStatus: 'Failed' }} ownerName="Synthetic Adult" canChangeSharing={false} />)
+    expect(screen.getByText('Could not read')).toBeInTheDocument()
+    rerender(<ReportLibraryCard report={{ ...report, rangeSummary: null, ocrStatus: 'Pending' }} ownerName="Synthetic Adult" canChangeSharing={false} />)
+    expect(screen.getByText('Reading report')).toBeInTheDocument()
+  })
+
+  it('lets the owner toggle sharing', () => {
+    const onToggle = vi.fn()
+    render(<ReportLibraryCard report={report} ownerName="Synthetic Adult" canChangeSharing onToggleSharing={onToggle} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Share with Family Head' }))
+    expect(onToggle).toHaveBeenCalledWith(report)
+  })
+
+  it('offers to make a shared report private again', () => {
+    render(<ReportLibraryCard report={{ ...report, sharedWithFamilyHead: true }} ownerName="Synthetic Adult" canChangeSharing onToggleSharing={vi.fn()} />)
+    expect(screen.getByText('Shared with Family Head')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Keep private from Family Head' })).toHaveAttribute('aria-pressed', 'true')
+  })
+})

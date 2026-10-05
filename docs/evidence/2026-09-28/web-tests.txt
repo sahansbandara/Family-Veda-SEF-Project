@@ -1,0 +1,26 @@
+npm verbose cli /Users/sahansandaruwan/.hermes/node/bin/node /Users/sahansandaruwan/.local/bin/npm
+npm info using npm@10.9.8
+npm info using node@v22.23.2
+npm verbose title npm test --run
+npm verbose argv "test" "--prefix" "web" "--" "--run"
+npm verbose logfile logs-max:10 dir:/Users/sahansandaruwan/.npm/_logs/2026-09-28T14_10_20_375Z-
+npm verbose logfile /Users/sahansandaruwan/.npm/_logs/2026-09-28T14_10_20_375Z-debug-0.log
+
+> family-veda-web@0.1.0 test
+> vitest --run
+
+
+ RUN  v4.1.10 /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda/web
+
+
+ Test Files  15 passed (15)
+      Tests  42 passed (42)
+   Start at  19:40:20
+   Duration  2.21s (transform 1.60s, setup 0ms, import 5.26s, tests 2.31s, environment 8.40s)
+
+npm verbose cwd /Users/sahansandaruwan/.codex/worktrees/completion-audit/Family-Veda
+npm verbose os Darwin 27.0.0
+npm verbose node v22.23.2
+npm verbose npm  v10.9.8
+npm verbose exit 0
+npm info ok

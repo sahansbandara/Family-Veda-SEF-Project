@@ -7,10 +7,10 @@ namespace FamilyVeda.Application.Triage;
 
 public sealed record CreateEpisodeRequest(IReadOnlyList<string> Symptoms, int DurationDays, int Severity, string? Notes);
 public sealed record EpisodeDto(Guid Id, Guid MemberId, IReadOnlyList<string> Symptoms, int DurationDays, int Severity, string? Notes, DateTimeOffset CreatedAt);
-public sealed record TriageCaseDto(Guid Id, Guid EpisodeId, Guid MemberId, TriageStatus Status, TriagePriority Priority, DateTimeOffset CreatedAt);
+public sealed record TriageCaseDto(Guid Id, Guid EpisodeId, Guid MemberId, TriageStatus Status, TriagePriority Priority, DateTimeOffset CreatedAt, int CaseNumber = 0, string? MemberDisplayName = null, string? FamilyName = null, bool ReferralClosed = false);
 public sealed record TriageStatusDto(Guid Id, TriageStatus Status, TriagePriority Priority, string? FailureCode);
 public sealed record AgentTraceDto(int StepNumber, AgentKind Agent, AgentStepStatus Status, IReadOnlyList<string> ToolsRequested, IReadOnlyList<string> ToolsAllowed, IReadOnlyList<string> ToolsDenied, decimal Confidence, long LatencyMilliseconds, bool OutputSchemaValid);
-public sealed record CaseReviewDto(Guid Id, Guid MemberId, TriageStatus Status, TriagePriority Priority, string? ContextJson, string? AnalysisJson, string? FamilialRiskJson, string? DraftAdvisoryJson, IReadOnlyList<AgentTraceDto> Traces);
+public sealed record CaseReviewDto(Guid Id, Guid MemberId, TriageStatus Status, TriagePriority Priority, string? ContextJson, string? AnalysisJson, string? FamilialRiskJson, string? DraftAdvisoryJson, IReadOnlyList<AgentTraceDto> Traces, EpisodeDto? SubmittedEpisode = null, int CaseNumber = 0, string? MemberDisplayName = null, string? FamilyName = null);
 public sealed record ApprovedGuidanceDto(Guid CaseId, TriageStatus Status, string FinalAdvisory, DateTimeOffset ApprovedAt, string Disclaimer);
 public sealed record ApprovedFamilialRiskDto(Guid CaseId, string ScreeningGuidance, DateTimeOffset ApprovedAt, string Disclaimer);
 public sealed record FamilyDashboardDto(int MembersVisible, int OpenCases, int AwaitingDoctorReview, int ApprovedCases, int RecordsCount);

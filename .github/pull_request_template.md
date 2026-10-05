@@ -30,6 +30,15 @@
 - [ ] `security-reviewer` run (required if this touches auth, consent, grants, user input, endpoints, agent tools, or audit)
 - [ ] CI green
 
+## UI parity
+
+Required for any UI change. Tick, or write why a surface does not apply.
+
+- [ ] Web desktop updated
+- [ ] Web mobile updated — checked at 375, 390 and 768 px, no overflow or clipping
+- [ ] Flutter app updated
+- [ ] Same features, data and permissions on every applicable surface; no mock data, no dead buttons
+
 ## Clinical safety
 
 Required for anything touching agents, advisories, rule tables, or patient-visible content.

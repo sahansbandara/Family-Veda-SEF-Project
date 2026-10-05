@@ -9,6 +9,7 @@ using FamilyVeda.Domain.Clinical;
 using FamilyVeda.Domain.Triage;
 using FamilyVeda.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using FamilyVeda.Infrastructure.Families;
 
 namespace FamilyVeda.Infrastructure.Triage;
 
@@ -90,10 +91,14 @@ public sealed class TriageService(
     {
         await RequireCaseAccessAsync(caseId, tracesOnly: true, cancellationToken);
         if (currentUser.UserType != UserType.Doctor) throw new NotFoundException();
-        var item = await dbContext.TriageCases.AsNoTracking().Include(x => x.Traces).SingleAsync(x => x.Id == caseId, cancellationToken);
+        var item = await dbContext.TriageCases.AsNoTracking().Include(x => x.Traces).Include(x => x.Episode).Include(x => x.Member!).ThenInclude(x => x.Family)
+            .SingleAsync(x => x.Id == caseId, cancellationToken);
         return new CaseReviewDto(item.Id, item.MemberId, item.Status, item.Priority, item.ContextOutputJson,
             item.AnalysisOutputJson, item.FamilialRiskOutputJson, item.DraftAdvisoryJson,
-            item.Traces.OrderBy(x => x.StepNumber).Select(MapTrace).ToList());
+            item.Traces.OrderBy(x => x.StepNumber).Select(MapTrace).ToList(),
+            item.Episode is { } episode && episode.MemberId == item.MemberId ? MapEpisode(episode) : null,
+            // Identity is released only here, behind the case-access check above.
+            item.CaseNumber, item.Member?.DisplayName, item.Member?.Family?.Name);
     }
 
     public async Task<ApprovedGuidanceDto> GetApprovedGuidanceAsync(Guid caseId, CancellationToken cancellationToken)
@@ -133,7 +138,7 @@ public sealed class TriageService(
         var query = dbContext.TriageCases.AsNoTracking().Where(x => x.MemberId == memberId);
         var total = await query.CountAsync(cancellationToken);
         var items = await query.OrderByDescending(x => x.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize)
-            .Select(x => new TriageCaseDto(x.Id, x.EpisodeId, x.MemberId, x.Status, x.Priority, x.CreatedAt)).ToListAsync(cancellationToken);
+            .Select(x => new TriageCaseDto(x.Id, x.EpisodeId, x.MemberId, x.Status, x.Priority, x.CreatedAt, x.CaseNumber, null, null, false)).ToListAsync(cancellationToken);
         return new PagedResult<TriageCaseDto>(items, page, pageSize, total);
     }
 
@@ -144,7 +149,7 @@ public sealed class TriageService(
         var query = dbContext.TriageCases.AsNoTracking().Where(x => visibleMemberIds.Contains(x.MemberId));
         var total = await query.CountAsync(cancellationToken);
         var items = await query.OrderByDescending(x => x.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize)
-            .Select(x => new TriageCaseDto(x.Id, x.EpisodeId, x.MemberId, x.Status, x.Priority, x.CreatedAt)).ToListAsync(cancellationToken);
+            .Select(x => new TriageCaseDto(x.Id, x.EpisodeId, x.MemberId, x.Status, x.Priority, x.CreatedAt, x.CaseNumber, null, null, false)).ToListAsync(cancellationToken);
         return new PagedResult<TriageCaseDto>(items, page, pageSize, total);
     }
 
@@ -165,7 +170,7 @@ public sealed class TriageService(
         if (currentUser.UserType != UserType.FamilyUser) throw new NotFoundException();
         var family = await dbContext.Families.AsNoTracking().SingleOrDefaultAsync(x => x.Id == familyId, cancellationToken) ?? throw new NotFoundException();
         var selfMember = await dbContext.Members.AsNoTracking().SingleOrDefaultAsync(x => x.FamilyId == familyId && x.UserId == currentUser.UserId, cancellationToken);
-        var isHead = family.CreatedByUserId == currentUser.UserId;
+        var isHead = await dbContext.Families.Where(x => x.Id == familyId).AnyAsync(FamilyAccess.HeadedBy(currentUser.UserId), cancellationToken);
         if (!isHead && selfMember is null) throw new NotFoundException();
         var adultCutoff = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-18);
         return await dbContext.Members.AsNoTracking().Where(x => x.FamilyId == familyId &&
@@ -225,7 +230,7 @@ public sealed class TriageService(
         }
 
         var isMinor = member.DateOfBirth.AddYears(18) > DateOnly.FromDateTime(DateTime.UtcNow);
-        var isHead = await dbContext.Families.AnyAsync(x => x.Id == member.FamilyId && x.CreatedByUserId == currentUser.UserId, cancellationToken);
+        var isHead = await dbContext.Families.Where(x => x.Id == member.FamilyId).AnyAsync(FamilyAccess.HeadedBy(currentUser.UserId), cancellationToken);
         if (!isMinor || !isHead)
         {
             throw new NotFoundException();

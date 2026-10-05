@@ -72,7 +72,7 @@ public sealed class NotificationService(
             {
                 x.MemberId,
                 MemberUserId = x.Member!.UserId,
-                FamilyOwnerId = x.Member.Family!.CreatedByUserId,
+                FamilyOwnerId = x.Member.Family!.Members.Where(m => m.Role == FamilyRole.Head).Select(m => m.UserId).FirstOrDefault() ?? x.Member.Family.CreatedByUserId,
                 x.Member.DateOfBirth
             })
             .SingleOrDefaultAsync(cancellationToken) ?? throw new NotFoundException();
@@ -135,7 +135,7 @@ public sealed class NotificationService(
         if (currentUser.UserType != UserType.FamilyUser) throw new ForbiddenException();
         var adultCutoff = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-18);
         var visibleMembers = dbContext.Members.Where(x => x.UserId == currentUser.UserId ||
-            (x.Family!.CreatedByUserId == currentUser.UserId && x.DateOfBirth > adultCutoff)).Select(x => x.Id);
+            (x.Family!.Members.Any(m => m.UserId == currentUser.UserId && m.Role == FamilyRole.Head) && x.DateOfBirth > adultCutoff)).Select(x => x.Id);
         var query = dbContext.AuditLogs.AsNoTracking().Where(x => x.EventType == "CASE_STATUS_CHANGED" && x.SubjectMemberId != null && visibleMembers.Contains(x.SubjectMemberId.Value));
         var total = await query.CountAsync(cancellationToken);
         var rows = await query.OrderByDescending(x => x.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize)

@@ -1,0 +1,58 @@
+// Owner: S1 · Family, Identity & Consent — whole-project waiver (agent/DECISIONS.md 2026-09-28b)
+// Family lifecycle endpoints. Authorization is re-checked in FamilyLifecycleService on every call.
+using FamilyVeda.Application.Families;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace FamilyVeda.Api.Controllers;
+
+[Route("api/v1")]
+[Authorize(Policy = "FamilyUser")]
+public sealed class FamilyLifecycleController(IFamilyLifecycleService lifecycleService, IIncomingInvitationService incomingInvitations) : ApiControllerBase
+{
+    /// <summary>Pending invitations sent to the caller's own account email.</summary>
+    [HttpGet("invitations/incoming")]
+    public async Task<ActionResult<IReadOnlyList<IncomingInvitationDto>>> GetIncomingInvitations(CancellationToken cancellationToken) =>
+        Ok(await incomingInvitations.GetMineAsync(cancellationToken));
+
+    [HttpPost("invitations/{invitationId:guid}/approve")]
+    public async Task<ActionResult<MembershipChangeDto>> ApproveInvitation(Guid invitationId, CancellationToken cancellationToken) =>
+        Ok(await incomingInvitations.ApproveAsync(invitationId, cancellationToken));
+
+    [HttpPost("invitations/{invitationId:guid}/reject")]
+    public async Task<IActionResult> RejectInvitation(Guid invitationId, CancellationToken cancellationToken)
+    {
+        await incomingInvitations.RejectAsync(invitationId, cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>Any member of the family. Names and roles only; never another adult's DOB or health data.</summary>
+    [HttpGet("families/{familyId:guid}/roster")]
+    public async Task<ActionResult<IReadOnlyList<RosterMemberDto>>> GetRoster(Guid familyId, CancellationToken cancellationToken) =>
+        Ok(await lifecycleService.GetRosterAsync(familyId, cancellationToken));
+
+    [HttpGet("families/{familyId:guid}/invitations")]
+    public async Task<ActionResult<IReadOnlyList<FamilyInvitationSummaryDto>>> GetInvitations(Guid familyId, CancellationToken cancellationToken) =>
+        Ok(await lifecycleService.GetInvitationsAsync(familyId, cancellationToken));
+
+    [HttpPost("families/{familyId:guid}/invitations/{invitationId:guid}/resend")]
+    public async Task<ActionResult<FamilyInvitationDto>> ResendInvitation(Guid familyId, Guid invitationId, ResendFamilyInvitationRequest request, CancellationToken cancellationToken) =>
+        Ok(await lifecycleService.ResendInvitationAsync(familyId, invitationId, request, cancellationToken));
+
+    [HttpPost("families/{familyId:guid}/invitations/{invitationId:guid}/cancel")]
+    public async Task<IActionResult> CancelInvitation(Guid familyId, Guid invitationId, CancellationToken cancellationToken)
+    {
+        await lifecycleService.CancelInvitationAsync(familyId, invitationId, cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>Head only. The adult keeps their account and history in a new household of their own.</summary>
+    [HttpPost("members/{memberId:guid}/remove-from-family")]
+    public async Task<ActionResult<MembershipChangeDto>> RemoveFromFamily(Guid memberId, CancellationToken cancellationToken) =>
+        Ok(await lifecycleService.RemoveAdultAsync(memberId, cancellationToken));
+
+    /// <summary>Adult only. <c>startOwnFamily</c> records "Start My Own Family" instead of "Leave Family".</summary>
+    [HttpPost("families/me/leave")]
+    public async Task<ActionResult<MembershipChangeDto>> Leave(LeaveFamilyRequest request, CancellationToken cancellationToken) =>
+        Ok(await lifecycleService.LeaveFamilyAsync(request, cancellationToken));
+}

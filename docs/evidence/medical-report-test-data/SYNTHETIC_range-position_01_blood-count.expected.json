@@ -1,0 +1,26 @@
+[
+  {
+    "analyte": "Hemoglobin",
+    "value": "10.8",
+    "unit": "g/dL",
+    "referenceLow": "12.0",
+    "referenceHigh": "15.5",
+    "rangePosition": "Below"
+  },
+  {
+    "analyte": "White Cell Count",
+    "value": "7.2",
+    "unit": "K/uL",
+    "referenceLow": "4.0",
+    "referenceHigh": "11.0",
+    "rangePosition": "Within"
+  },
+  {
+    "analyte": "Platelets",
+    "value": "452",
+    "unit": "K/uL",
+    "referenceLow": "150",
+    "referenceHigh": "400",
+    "rangePosition": "Above"
+  }
+]

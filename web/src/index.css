@@ -3,6 +3,11 @@
 @import './styles/tokens.css';
 @import './styles/materials.css';
 @import './styles/components.css';
+@import './styles/portal-dashboard.css';
+@import './styles/auth-shell.css';
+@import './styles/care-workspace.css';
+@import './styles/health-records.css';
+@import './styles/triage-redesign.css';
 
 /* Base and reset. Tokens are defined in styles/tokens.css. */
 

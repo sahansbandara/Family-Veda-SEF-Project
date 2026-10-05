@@ -135,7 +135,6 @@
 /backend/src/Infrastructure/Agents/ChatCompletionsLlmClient.cs @Jani6969
 /backend/src/Infrastructure/Agents/ContextAgent.cs @Jani6969
 /backend/src/Infrastructure/Agents/GeminiClient.cs @Jani6969
-/backend/src/Infrastructure/Agents/OllamaClient.cs @Jani6969
 /backend/src/Infrastructure/Persistence/Configurations/TriageConfigurations.cs @Jani6969
 /backend/src/Infrastructure/Triage/CaseSlaProcessor.cs @Jani6969
 /backend/src/Infrastructure/Triage/FcmPushNotificationClient.cs @Jani6969
@@ -146,7 +145,6 @@
 /backend/tests/UnitTests/CaseSlaProcessorTests.cs @Jani6969
 /backend/tests/UnitTests/ChatCompletionsLlmClientTests.cs @Jani6969
 /backend/tests/UnitTests/NotificationServiceTests.cs @Jani6969
-/backend/tests/UnitTests/OllamaClientTests.cs @Jani6969
 /backend/tests/UnitTests/TriageOrchestratorEmergencyTests.cs @Jani6969
 /backend/tests/UnitTests/TriageOrchestratorSchemaTests.cs @Jani6969
 /backend/tests/UnitTests/TriageWorkerRecoveryTests.cs @Jani6969
@@ -230,3 +228,13 @@
 /mobile/lib/router/app_router.dart @IT23544154
 /backend/src/Application/Agents/AgentContracts.cs @Jani6969
 /web/src/store/index.ts @Jani6969
+/web/src/components/shared/AiBadge.tsx @Jani6969
+/web/src/pages/triage/TriagePage.tsx @Jani6969
+/web/src/pages/triage/TriagePage.test.tsx @Jani6969
+/web/src/pages/triage/AgentPipeline.tsx @Jani6969
+/web/src/pages/triage/pipelineStages.ts @Jani6969
+/web/src/pages/doctor/SafetyChecks.tsx @sahansbandara
+/web/src/pages/doctor/safetyRules.ts @sahansbandara
+/web/src/pages/doctor/safetyRules.test.ts @sahansbandara
+/web/src/pages/family/FamilyRiskPage.tsx @sahansbandara
+/web/src/pages/family/FamilyRiskPage.test.tsx @sahansbandara

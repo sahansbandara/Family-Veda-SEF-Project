@@ -1,0 +1,846 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Family Veda — Clinic Admin Portal Mockup</title>
+<style>
+  :root {
+    --bg: #0b1716;
+    --surface: #102422;
+    --surface2: #142e2b;
+    --line: #1c3d39;
+    --line-subtle: #163330;
+    --text: #eef7f6;
+    --text-heading: #ffffff;
+    --muted: #8faaa7;
+    --faint: #5f7a77;
+    --brand: #10b981;
+    --brand2: #14b8a6;
+    --brandSoft: rgba(16, 185, 129, 0.16);
+    --amber: #f59e0b;
+    --amberSoft: rgba(245, 158, 11, 0.16);
+    --red: #ef4444;
+    --redSoft: rgba(239, 68, 68, 0.16);
+    --blue: #38bdf8;
+    --blueSoft: rgba(56, 189, 248, 0.16);
+    --purple: #a855f7;
+    --purpleSoft: rgba(168, 85, 247, 0.16);
+    --shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+  }
+  button, input, select, textarea { font: inherit; }
+  button { cursor: pointer; }
+  
+  .topbar {
+    height: 74px;
+    background: rgba(16, 36, 34, 0.85);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 34px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .mark {
+    width: 42px; height: 42px; border-radius: 13px;
+    background: linear-gradient(135deg, var(--brand), var(--brand2));
+    color: #062420; display: grid; place-items: center; font-weight: 900;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.25);
+  }
+  .brand strong { display: block; font-size: 18px; color: #fff; letter-spacing: -0.01em; }
+  .brand small { display: block; color: var(--brand); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+  
+  .admin-id { display: flex; align-items: center; gap: 12px; }
+  .badge-admin {
+    padding: 6px 12px; border-radius: 999px;
+    background: var(--brandSoft); color: var(--brand);
+    font-size: 11px; font-weight: 800; letter-spacing: .08em;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: #1e4541; display: grid; place-items: center;
+    font-weight: 800; color: #a7f3d0; border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+  .admin-id strong { display: block; font-size: 14px; color: #fff; }
+  .admin-id small { display: block; color: var(--muted); font-size: 12px; }
+  
+  .primary-nav {
+    background: rgba(16, 36, 34, 0.75);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 32px;
+    display: flex; gap: 8px; overflow-x: auto;
+    position: sticky; top: 74px; z-index: 40;
+    backdrop-filter: blur(10px);
+  }
+  .nav-btn {
+    border: 0; background: transparent; padding: 9px 15px; border-radius: 11px;
+    color: var(--muted); font-weight: 700; font-size: 13.5px; white-space: nowrap;
+    transition: all 0.15s ease;
+  }
+  .nav-btn:hover { background: var(--surface2); color: #fff; }
+  .nav-btn.active { background: var(--brand); color: #05231f; font-weight: 800; }
+  
+  .main { max-width: 1480px; margin: 0 auto; padding: 28px 32px 60px; }
+  .page { display: none; }
+  .page.active { display: block; animation: fadeIn 0.2s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  
+  .welcome {
+    background: linear-gradient(135deg, #102422 0%, rgba(16, 185, 129, 0.12) 55%, #142e2b 100%);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: 24px; padding: 26px 30px;
+    display: flex; justify-content: space-between; gap: 20px; align-items: center;
+    box-shadow: var(--shadow);
+  }
+  .eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: 11px; font-weight: 900; color: var(--brand); margin: 0 0 6px; }
+  h1 { margin: 0; font-size: 28px; color: #fff; font-weight: 700; letter-spacing: -0.02em; }
+  h2 { margin: 0; font-size: 20px; color: #fff; font-weight: 600; }
+  h3 { margin: 0; font-size: 15px; color: #fff; }
+  .welcome p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+  
+  .pill {
+    display: inline-flex; align-items: center; gap: 7px; padding: 7px 13px;
+    border-radius: 999px; font-size: 12px; font-weight: 800;
+    background: var(--brandSoft); color: var(--brand);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  
+  .metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin: 20px 0; }
+  .metric {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 16px; padding: 18px; min-height: 116px;
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.2);
+    transition: transform 0.15s ease;
+  }
+  .metric:hover { transform: translateY(-2px); }
+  .metric .label { color: var(--muted); font-size: 13px; font-weight: 700; }
+  .metric .num { display: block; font-size: 30px; font-weight: 900; margin: 8px 0 4px; color: #fff; font-family: monospace; }
+  .metric small { color: var(--muted); font-size: 11.5px; }
+  .metric.teal { border-top: 4px solid var(--brand); }
+  .metric.blue { border-top: 4px solid var(--blue); }
+  .metric.amber { border-top: 4px solid var(--amber); }
+  .metric.purple { border-top: 4px solid var(--purple); }
+  .metric.gray { border-top: 4px solid var(--faint); }
+  
+  .grid-main { display: grid; grid-template-columns: minmax(0, 2fr) minmax(330px, 1fr); gap: 18px; }
+  .grid-two { display: grid; grid-template-columns: 1.25fr .75fr; gap: 18px; margin-top: 18px; }
+  
+  .panel {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 22px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+  }
+  .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; margin-bottom: 16px; }
+  .panel-head p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+  
+  .btn {
+    border: 1px solid var(--line); background: var(--surface2); color: var(--text);
+    padding: 8px 14px; border-radius: 10px; font-weight: 700; font-size: 13px;
+    transition: all 0.15s ease; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { background: #1c423e; border-color: rgba(16, 185, 129, 0.4); color: #fff; }
+  .btn.primary { background: var(--brand); color: #042420; border-color: var(--brand); font-weight: 800; }
+  .btn.primary:hover { background: #34d399; }
+  .btn.danger { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.35); color: #f87171; }
+  .btn.danger:hover { background: rgba(239, 68, 68, 0.3); color: #fff; }
+  .btn.sm { padding: 5px 10px; font-size: 12px; }
+  
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left; color: var(--faint); font-size: 11px;
+    text-transform: uppercase; letter-spacing: .06em;
+    padding: 12px 14px; border-bottom: 1px solid var(--line);
+  }
+  td { padding: 13px 14px; border-bottom: 1px solid var(--line-subtle); vertical-align: middle; }
+  tr:last-child td { border-bottom: 0; }
+  tbody tr:hover { background: rgba(16, 185, 129, 0.04); }
+  
+  .status {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 9px; border-radius: 999px; font-size: 11px; font-weight: 800;
+  }
+  .status.verified { background: var(--brandSoft); color: var(--brand); border: 1px solid rgba(16, 185, 129, 0.3); }
+  .status.pending { background: var(--amberSoft); color: var(--amber); border: 1px solid rgba(245, 158, 11, 0.3); }
+  .status.rejected { background: var(--redSoft); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.3); }
+  .status.moreinfo { background: var(--blueSoft); color: var(--blue); border: 1px solid rgba(56, 189, 248, 0.3); }
+  .status.active { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
+  
+  .attention { display: flex; flex-direction: column; gap: 12px; }
+  .attention-item {
+    border: 1px solid var(--line); border-radius: 13px;
+    padding: 15px; background: var(--surface2);
+  }
+  .attention-item strong { display: block; font-size: 13.5px; color: #fff; }
+  .attention-item p { margin: 5px 0 8px; color: var(--muted); font-size: 12.5px; }
+  .attention-item .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  
+  .searchbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .searchbar input, .searchbar select, .field input, .field select, .field textarea {
+    border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px;
+    background: var(--surface2); color: #fff; outline: none; font-size: 13px;
+  }
+  .searchbar input:focus, .searchbar select:focus, .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--brand); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  }
+  
+  .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); margin-bottom: 18px; overflow-x: auto; }
+  .tab {
+    border: 0; background: transparent; padding: 10px 14px; font-weight: 700;
+    color: var(--muted); border-bottom: 2px solid transparent; font-size: 13px;
+    transition: all 0.15s ease;
+  }
+  .tab:hover { color: #fff; }
+  .tab.active { color: var(--brand); border-bottom-color: var(--brand); font-weight: 800; }
+  
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field span { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .field.full { grid-column: 1 / -1; }
+  
+  /* Telemetry Grid for Agents */
+  .telemetry-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 14px; }
+  .agent-card {
+    border: 1px solid var(--line); border-radius: 13px; padding: 14px;
+    background: var(--surface2); display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .agent-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .agent-card-header strong { font-size: 13px; color: #fff; }
+  .agent-card p { margin: 0 0 8px; color: var(--muted); font-size: 12px; }
+  .agent-card .stat { font-size: 11.5px; color: var(--brand); font-weight: 700; }
+
+  .quick-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .quick-card {
+    border: 1px solid var(--line); border-radius: 14px; padding: 16px;
+    background: var(--surface2); cursor: pointer; transition: all 0.15s ease;
+  }
+  .quick-card:hover { border-color: var(--brand); background: #183834; transform: translateY(-2px); }
+  .quick-card strong { display: block; font-size: 14px; color: #fff; margin-bottom: 4px; }
+  .quick-card p { margin: 0; font-size: 12px; color: var(--muted); }
+  
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(5px); display: flex; align-items: center;
+    justify-content: center; z-index: 1000; padding: 16px;
+  }
+  .modal {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 20px; width: 100%; max-width: 560px;
+    padding: 24px; box-shadow: var(--shadow);
+  }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 14px; margin-bottom: 16px; }
+  .modal-head h3 { margin: 0; font-size: 17px; }
+  
+  .toast {
+    position: fixed; top: 20px; right: 20px; background: var(--brand);
+    color: #042420; padding: 12px 20px; border-radius: 12px;
+    font-weight: 800; font-size: 13.5px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 2000; display: none; align-items: center; gap: 8px;
+  }
+  .toast.show { display: flex; animation: slideIn 0.2s ease-out; }
+  @keyframes slideIn { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  
+  .tiny { font-size: 11px; color: var(--muted); }
+  .live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #10b981; margin-right: 5px; box-shadow: 0 0 8px #10b981; }
+
+  @media(max-width: 1100px) {
+    .metrics { grid-template-columns: repeat(3, 1fr); }
+    .grid-main, .grid-two { grid-template-columns: 1fr; }
+    .telemetry-grid { grid-template-columns: 1fr; }
+  }
+  @media(max-width: 720px) {
+    .topbar { padding: 0 16px; } .primary-nav { padding: 8px 16px; } .main { padding: 18px 14px 50px; }
+    .admin-id .name { display: none; } .metrics { grid-template-columns: 1fr 1fr; }
+    .welcome { flex-direction: column; align-items: flex-start; } .quick-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="toast" class="toast"><span>✓</span> <span id="toastMsg">Action completed successfully</span></div>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="mark">FV</div>
+    <div>
+      <strong>Family Veda</strong>
+      <small>Clinic Administration</small>
+    </div>
+  </div>
+  <div class="admin-id">
+    <span class="badge-admin">ADMINISTRATOR</span>
+    <div class="name">
+      <strong>Synthetic Clinic Admin</strong>
+      <small>Governance & Compliance</small>
+    </div>
+    <div class="avatar">SC</div>
+    <button class="btn sm" onclick="showToast('Session ended. Redirecting to login...')">Sign out</button>
+  </div>
+</header>
+
+<nav class="primary-nav">
+  <button class="nav-btn active" data-page="dashboard">Dashboard</button>
+  <button class="nav-btn" data-page="doctor-verif">Doctor Verification</button>
+  <button class="nav-btn" data-page="family-verif">Family Head Verification</button>
+  <button class="nav-btn" data-page="users">User Management</button>
+  <button class="nav-btn" data-page="audit">Audit Trail & Governance</button>
+  <button class="nav-btn" data-page="settings">System Safety & Settings</button>
+</nav>
+
+<main class="main">
+
+<!-- 1. DASHBOARD PAGE (UNIQUE, USEFUL & SYSTEM-WIDE OVERSIGHT) -->
+<section id="dashboard" class="page active">
+  <div class="welcome">
+    <div>
+      <p class="eyebrow">Clinic administration & Governance</p>
+      <h1>Administrative Command Center</h1>
+      <p>System-wide pulse · Cross-module telemetry, multi-agent AI health, and real-time clinical governance.</p>
+    </div>
+    <span class="pill"><span class="dot"></span> All 10 Safety Invariants Active</span>
+  </div>
+
+  <!-- Clean 3 Summary Metrics -->
+  <div class="metrics" style="grid-template-columns: repeat(3, 1fr);">
+    <article class="metric teal">
+      <span class="label">Registered Households</span>
+      <span class="num">18</span>
+      <small>54 Active patient members</small>
+    </article>
+    <article class="metric blue">
+      <span class="label">Verified Clinicians</span>
+      <span class="num">8</span>
+      <small>Licensed medical doctors</small>
+    </article>
+    <article class="metric amber">
+      <span class="label">Pending Action Queue</span>
+      <span class="num">2</span>
+      <small>1 Doctor · 1 Household Head</small>
+    </article>
+  </div>
+
+  <div class="grid-main">
+    <!-- Left Column: Live Cross-System Operational Stream -->
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Live Activity</p>
+            <h2>Recent Clinical Events</h2>
+          </div>
+          <button class="btn sm" onclick="showToast('Refreshed latest clinical events')">↻ Refresh</button>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Origin / Actor</th>
+              <th>Event Summary</th>
+              <th>Workflow State</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>16:42</strong></td>
+              <td><strong>Multi-Agent Pipeline</strong><br><span class="tiny">Episode #FV-TR-1048</span></td>
+              <td>Triage analysis generated for Nimal Perera (Priority)</td>
+              <td><span class="status pending">Awaiting Review</span></td>
+              <td><button class="btn sm" data-go="audit">Inspect trace</button></td>
+            </tr>
+            <tr>
+              <td><strong>16:15</strong></td>
+              <td><strong>Dr. Synthetic Perera</strong><br><span class="tiny">Clinician ID #SP-9941</span></td>
+              <td>Approved final guidance advisory for Silva Family</td>
+              <td><span class="status verified">Approved</span></td>
+              <td><button class="btn sm" data-go="audit">View audit</button></td>
+            </tr>
+            <tr>
+              <td><strong>14:20</strong></td>
+              <td><strong>Dr. Kasun Perera</strong><br><span class="tiny">Paediatrics Registration</span></td>
+              <td>Submitted credentials for SLMC verification</td>
+              <td><span class="status moreinfo">Pending Review</span></td>
+              <td><button class="btn primary sm" data-go="doctor-verif">Verify doctor</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <!-- Right Column: Immediate Action Center -->
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <aside class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Action Queue</p>
+            <h2>Pending Administrator Tasks</h2>
+          </div>
+        </div>
+        <div class="attention">
+          <div class="attention-item">
+            <div class="row">
+              <strong>Doctor Onboarding</strong>
+              <span class="status pending">1 Pending</span>
+            </div>
+            <p>Dr. Kasun Perera submitted SLMC credentials for Paediatrics registration.</p>
+            <div style="display:flex;gap:6px">
+              <button class="btn primary sm" data-go="doctor-verif">Review Dossier</button>
+            </div>
+          </div>
+
+          <div class="attention-item">
+            <div class="row">
+              <strong>Family Head Validation</strong>
+              <span class="status pending">1 Pending</span>
+            </div>
+            <p>Sunil Wijesinghe submitted household verification for Negombo area.</p>
+            <div style="display:flex;gap:6px">
+              <button class="btn primary sm" data-go="family-verif">Issue Family Code</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- 2. DOCTOR VERIFICATION PAGE -->
+<section id="doctor-verif" class="page">
+  <div class="welcome">
+    <div>
+      <p class="eyebrow">Clinician Onboarding</p>
+      <h1>Doctor Verification</h1>
+      <p>Manual administrative review, SLMC validation, and registry control.</p>
+    </div>
+    <span class="pill">2 Verified · 1 Pending</span>
+  </div>
+
+  <section class="panel" style="margin-top:18px">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+      <div class="tabs" style="margin-bottom:0;border-bottom:0">
+        <button class="tab active" onclick="filterDoctors(this, 'ALL')">All (4)</button>
+        <button class="tab" onclick="filterDoctors(this, 'Pending')">Pending (1)</button>
+        <button class="tab" onclick="filterDoctors(this, 'Verified')">Verified (2)</button>
+        <button class="tab" onclick="filterDoctors(this, 'Needs Info')">Needs Info (1)</button>
+        <button class="tab" onclick="filterDoctors(this, 'Suspended')">Suspended (0)</button>
+      </div>
+      <div class="searchbar" style="margin-bottom:0">
+        <input placeholder="Search doctor, hospital, reg no..." style="min-width:280px" onkeyup="searchDocTable(this.value)">
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Doctor</th>
+          <th>Medical Reg No.</th>
+          <th>Specialization</th>
+          <th>Hospital / Clinic</th>
+          <th>Phone Number</th>
+          <th>Status</th>
+          <th style="min-width:220px">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="docTableBody">
+        <tr data-status="Pending">
+          <td><strong>Dr. Kasun Perera</strong><br><span class="tiny">kasun@gmail.com</span></td>
+          <td><strong style="font-family:monospace">SLMC-••••C124</strong></td>
+          <td>Paediatrics</td>
+          <td>Sri Jayewardenepura General Hospital</td>
+          <td>+94 77 455 4622</td>
+          <td><span class="status pending">Pending</span></td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="btn sm" onclick="openDetailsModal('Dr. Kasun Perera', 'kasun@gmail.com', 'SLMC-9874C124', 'Paediatrics', 'Sri Jayewardenepura General Hospital', '+94 77 455 4622', 'Pending')">👁️ Details</button>
+              <button class="btn primary sm" onclick="showToast('Doctor Kasun verified')">Verify</button>
+              <button class="btn danger sm" onclick="showToast('Doctor Kasun rejected')">Reject</button>
+              <button class="btn sm" onclick="showPasswordModal('doc-1', 'Dr. Kasun Perera')">🔑</button>
+              <button class="btn danger sm" onclick="openDeleteModal('Dr. Kasun Perera', 'SLMC-9874C124')">🗑️</button>
+            </div>
+          </td>
+        </tr>
+        <tr data-status="Verified">
+          <td><strong>Dr. Synthetic Perera</strong><br><span class="tiny">doctor@example.invalid</span></td>
+          <td><strong style="font-family:monospace">SLMC-••••9941</strong></td>
+          <td>General Practice</td>
+          <td>Family Care Demo Clinic</td>
+          <td>+94 77 000 0000</td>
+          <td><span class="status verified">Verified</span></td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="btn sm" onclick="openDetailsModal('Dr. Synthetic Perera', 'doctor@example.invalid', 'SLMC-9941', 'General Practice', 'Family Care Demo Clinic', '+94 77 000 0000', 'Verified')">👁️ Details</button>
+              <button class="btn danger sm" onclick="showToast('Account suspended')">Suspend</button>
+              <button class="btn sm" onclick="showPasswordModal('doc-2', 'Dr. Synthetic Perera')">🔑</button>
+              <button class="btn danger sm" onclick="openDeleteModal('Dr. Synthetic Perera', 'SLMC-9941')">🗑️</button>
+            </div>
+          </td>
+        </tr>
+        <tr data-status="Needs Info">
+          <td><strong>Dr. Prabath Silva</strong><br><span class="tiny">prabath@gmail.com</span></td>
+          <td><strong style="font-family:monospace">SLMC-••••MC12</strong></td>
+          <td>Internal Medicine</td>
+          <td>National Hospital Kandy</td>
+          <td>+94 81 223 3445</td>
+          <td><span class="status moreinfo">Needs Info</span></td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="btn sm" onclick="openDetailsModal('Dr. Prabath Silva', 'prabath@gmail.com', 'SLMC-MC12', 'Internal Medicine', 'National Hospital Kandy', '+94 81 223 3445', 'Needs Info')">👁️ Details</button>
+              <button class="btn primary sm" onclick="showToast('Doctor Prabath verified')">Verify</button>
+              <button class="btn sm" onclick="showPasswordModal('doc-3', 'Dr. Prabath Silva')">🔑</button>
+              <button class="btn danger sm" onclick="openDeleteModal('Dr. Prabath Silva', 'SLMC-MC12')">🗑️</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>
+
+<!-- 3. FAMILY HEAD VERIFICATION PAGE -->
+<section id="family-verif" class="page">
+  <div class="welcome">
+    <div>
+      <p class="eyebrow">Household Governance</p>
+      <h1>Family Head Verification</h1>
+      <p>Validate family code issuers and household consent custodians.</p>
+    </div>
+    <span class="pill">1 Pending · 2 Verified</span>
+  </div>
+
+  <section class="panel" style="margin-top:18px">
+    <table>
+      <thead>
+        <tr>
+          <th>Family Name</th>
+          <th>Head of Family</th>
+          <th>Masked NIC</th>
+          <th>Registered Address</th>
+          <th>Family Code</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Wijesinghe Family</strong></td>
+          <td>Sunil Wijesinghe<br><span class="tiny">sunil@wijesinghe.invalid</span></td>
+          <td>••••8921</td>
+          <td>24/B Temple Road, Negombo</td>
+          <td><em>Pending Issuance</em></td>
+          <td><span class="status pending">Pending</span></td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="btn primary sm" onclick="showToast('Wijesinghe Family verified. Code FV-1002 generated.')">✓ Verify & Issue Code</button>
+              <button class="btn sm" onclick="showToast('Additional address proof requested')">Request Info</button>
+              <button class="btn danger sm" onclick="showToast('Application rejected')">Reject</button>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td><strong>Perera Family</strong></td>
+          <td>Nimal Perera<br><span class="tiny">demo-head@example.invalid</span></td>
+          <td>••••4431</td>
+          <td>12 Flower Road, Colombo 07</td>
+          <td><strong style="font-family:monospace;color:var(--brand)">FV-1001</strong></td>
+          <td><span class="status verified">Verified</span></td>
+          <td>
+            <button class="btn danger sm" onclick="showToast('Family Head suspended')">Suspend</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>
+
+<!-- 4. USER MANAGEMENT PAGE -->
+<section id="users" class="page">
+  <div class="welcome">
+    <div>
+      <p class="eyebrow">Identity Registry</p>
+      <h1>User Account Management</h1>
+      <p>Global directory across Clinicians, Household Heads, Members, and Administrators.</p>
+    </div>
+    <span class="pill">24 Total Accounts</span>
+  </div>
+
+  <section class="panel" style="margin-top:18px">
+    <div class="searchbar">
+      <input placeholder="Search user by name or email..." style="min-width:300px">
+      <select><option>All Roles</option><option>Doctor</option><option>Family Head</option><option>Member</option><option>Admin</option></select>
+      <select><option>All Statuses</option><option>Active</option><option>Suspended</option></select>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>User</th><th>Role</th><th>Status</th><th>Created</th><th>Security</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Dr. Synthetic Perera</strong><br><span class="tiny">doctor@example.invalid</span></td>
+          <td><span class="status verified">Doctor</span></td>
+          <td>Active</td>
+          <td>14 Jan 2026</td>
+          <td><button class="btn sm" onclick="showPasswordModal('user-1', 'Dr. Synthetic Perera')">Reset PW</button></td>
+        </tr>
+        <tr>
+          <td><strong>Nimal Perera</strong><br><span class="tiny">demo-head@example.invalid</span></td>
+          <td><span class="status moreinfo">Family Head</span></td>
+          <td>Active</td>
+          <td>10 Jan 2026</td>
+          <td><button class="btn sm" onclick="showPasswordModal('user-2', 'Nimal Perera')">Reset PW</button></td>
+        </tr>
+        <tr>
+          <td><strong>Synthetic Clinic Admin</strong><br><span class="tiny">admin@example.invalid</span></td>
+          <td><span class="status pending">Admin</span></td>
+          <td>Active</td>
+          <td>01 Jan 2026</td>
+          <td><button class="btn sm" onclick="showPasswordModal('user-3', 'Synthetic Clinic Admin')">Reset PW</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>
+
+<!-- 5. AUDIT TRAIL PAGE -->
+<section id="audit" class="page">
+  <div class="welcome">
+    <div>
+      <p class="eyebrow">Immutable Governance</p>
+      <h1>Audit Trail & Security Ledger</h1>
+      <p>Cryptographically linked tamper-evident ledger of clinical decisions and administrative events.</p>
+    </div>
+    <button class="btn primary" onclick="showToast('Audit report exported to CSV')">📥 Export Report</button>
+  </div>
+
+  <section class="panel" style="margin-top:18px">
+    <div class="searchbar">
+      <select><option>All Event Types</option><option>DOCTOR_VERIFICATION_CHANGED</option><option>DOCTOR_DELETED</option><option>FAMILY_HEAD_VERIFIED</option><option>AI_AGENT_INVOKED</option><option>DECISION_APPROVED</option></select>
+      <input type="date" value="2026-09-27">
+      <input placeholder="Correlation ID...">
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Timestamp</th><th>Actor</th><th>Event Type</th><th>Resource</th><th>Outcome</th><th>Details</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>27 Sep 16:30:12</td>
+          <td>Admin (SC)</td>
+          <td><strong>DOCTOR_VERIFIED</strong></td>
+          <td>Doctor / SLMC-9941</td>
+          <td><span class="status verified">SUCCESS</span></td>
+          <td><button class="btn sm" onclick="alert('Metadata:\n{\n  doctorId: 1048,\n  verifiedBy: SC,\n  action: verify\n}')">JSON</button></td>
+        </tr>
+        <tr>
+          <td>27 Sep 15:10:45</td>
+          <td>System Pipeline</td>
+          <td><strong>AI_SAFETY_VALIDATION</strong></td>
+          <td>Case / FV-TR-1048</td>
+          <td><span class="status verified">PASSED</span></td>
+          <td><button class="btn sm" onclick="alert('Deterministic validation:\nZero diagnostic violations.\nZero prescription terms.')">JSON</button></td>
+        </tr>
+        <tr>
+          <td>27 Sep 14:02:11</td>
+          <td>Admin (SC)</td>
+          <td><strong>PASSWORD_TOKEN_GENERATED</strong></td>
+          <td>Doctor / SLMC-9941</td>
+          <td><span class="status verified">SUCCESS</span></td>
+          <td><button class="btn sm" onclick="alert('One-time password reset token issued with 30m expiry.')">JSON</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</section>
+
+<!-- 6. SYSTEM SETTINGS PAGE -->
+<section id="settings" class="page">
+  <div class="welcome">
+    <div>
+      <p class="eyebrow">Safety & Clinical Guardrails</p>
+      <h1>System Safety & Settings</h1>
+      <p>Enforce the 10 Clinical Safety Invariants and dual-hosted LLM configuration.</p>
+    </div>
+    <button class="btn primary" onclick="showToast('Safety policies validated and saved.')">Save Policies</button>
+  </div>
+
+  <div class="grid-two">
+    <section class="panel">
+      <div class="panel-head"><div><h2>Clinical Safety Invariants</h2><p>Hard boundaries enforced across all multi-agent workflows.</p></div></div>
+      <div class="attention">
+        <div class="attention-item">
+          <strong>1. Zero Unapproved Patient Visibility</strong>
+          <p>AI-generated structured drafts remain strictly doctor-only until an authorized approval is logged.</p>
+        </div>
+        <div class="attention-item">
+          <strong>2. Prohibition of Definitive Diagnosis</strong>
+          <p>System only suggests structured guidance and screening advisories. Definite diagnosis statements are blocked by the safety agent.</p>
+        </div>
+        <div class="attention-item">
+          <strong>3. Deterministic Safety Agent (No LLM)</strong>
+          <p>The safety guardrail layer is purely programmatic C# code with zero LLM hallucination risk.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><div><h2>Dual Hosted LLM Architecture</h2><p>ADR-013 hosted cloud infrastructure.</p></div></div>
+      <div class="form-grid">
+        <label class="field full">
+          <span>Primary Provider</span>
+          <select><option>Google Gemini (Hosted 2.0 Flash / Pro)</option></select>
+        </label>
+        <label class="field full">
+          <span>Fallback Provider</span>
+          <select><option>Groq (Hosted Llama-3-70B)</option></select>
+        </label>
+        <label class="field full">
+          <span>Schema Validation Bound</span>
+          <select><option>1 Retry -> Safe Failure</option></select>
+        </label>
+      </div>
+    </section>
+  </div>
+</section>
+
+</main>
+
+<!-- Details Modal -->
+<div id="detailsModal" class="modal-backdrop" style="display:none" onclick="closeDetailsModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div>
+        <span class="eyebrow" style="font-size:10px">Clinician Profile Dossier</span>
+        <h3 id="modalName">Doctor Details</h3>
+      </div>
+      <button class="btn sm" onclick="closeDetailsModal()">✕</button>
+    </div>
+    <div class="form-grid" style="margin-bottom:18px">
+      <div style="background:var(--surface2);padding:10px;border-radius:10px"><span class="tiny">EMAIL</span><div id="modalEmail" style="font-weight:700"></div></div>
+      <div style="background:var(--surface2);padding:10px;border-radius:10px"><span class="tiny">REG NUMBER</span><div id="modalReg" style="font-family:monospace;font-weight:700"></div></div>
+      <div style="background:var(--surface2);padding:10px;border-radius:10px"><span class="tiny">SPECIALIZATION</span><div id="modalSpec" style="font-weight:700"></div></div>
+      <div style="background:var(--surface2);padding:10px;border-radius:10px"><span class="tiny">PHONE</span><div id="modalPhone" style="font-weight:700"></div></div>
+      <div style="background:var(--surface2);padding:10px;border-radius:10px;grid-column:1/-1"><span class="tiny">HOSPITAL / CLINIC</span><div id="modalHospital" style="font-weight:700"></div></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--line);padding-top:14px">
+      <button class="btn primary sm" onclick="closeDetailsModal();showToast('Doctor profile verified')">✓ Verify</button>
+      <button class="btn danger sm" onclick="closeDetailsModal();showToast('Doctor registration rejected')">Reject</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" class="modal-backdrop" style="display:none" onclick="closeDeleteModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h3 style="color:var(--red)">⚠️ Delete Doctor Account</h3>
+      <button class="btn sm" onclick="closeDeleteModal()">✕</button>
+    </div>
+    <p style="font-size:14px;margin-bottom:18px">
+      Are you sure you want to permanently delete doctor <strong id="delDocName"></strong> (<span id="delDocReg" style="font-family:monospace"></span>)?
+      All associated credentials and logs will be removed.
+    </p>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn sm" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn danger sm" onclick="closeDeleteModal();showToast('Doctor account deleted')">🗑️ Confirm Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Password Reset Modal -->
+<div id="passwordModal" class="modal-backdrop" style="display:none" onclick="closePasswordModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h3>🔑 Reset Token Generated</h3>
+      <button class="btn sm" onclick="closePasswordModal()">✕</button>
+    </div>
+    <p>One-time secure reset token for <strong id="pwUserName"></strong>:</p>
+    <div style="background:var(--surface2);padding:12px;border-radius:10px;text-align:center;margin:14px 0">
+      <span id="pwTokenVal" style="font-family:monospace;font-size:20px;letter-spacing:2px;color:var(--brand);font-weight:800">FV-RST-9842-KL</span>
+    </div>
+    <p class="tiny">Valid for 30 minutes. Logged to immutable audit trail.</p>
+    <div style="display:flex;justify-content:flex-end">
+      <button class="btn primary sm" onclick="closePasswordModal()">Done</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const pages = [...document.querySelectorAll('.page')];
+  const navs = [...document.querySelectorAll('.nav-btn')];
+
+  function showPage(id){
+    pages.forEach(p => p.classList.toggle('active', p.id === id));
+    navs.forEach(n => n.classList.toggle('active', n.dataset.page === id));
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  navs.forEach(n => n.addEventListener('click', () => showPage(n.dataset.page)));
+  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => showPage(b.dataset.go)));
+
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    document.getElementById('toastMsg').innerText = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  function filterDoctors(btn, filter){
+    document.querySelectorAll('#doctor-verif .tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    const rows = document.querySelectorAll('#docTableBody tr');
+    rows.forEach(r => {
+      if(filter === 'ALL' || r.dataset.status === filter) r.style.display = '';
+      else r.style.display = 'none';
+    });
+  }
+
+  function searchDocTable(query){
+    const q = query.toLowerCase().trim();
+    document.querySelectorAll('#docTableBody tr').forEach(r => {
+      r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
+    });
+  }
+
+  function openDetailsModal(name, email, reg, spec, hosp, phone, status){
+    document.getElementById('modalName').innerText = name;
+    document.getElementById('modalEmail').innerText = email;
+    document.getElementById('modalReg').innerText = reg;
+    document.getElementById('modalSpec').innerText = spec;
+    document.getElementById('modalHospital').innerText = hosp;
+    document.getElementById('modalPhone').innerText = phone;
+    document.getElementById('detailsModal').style.display = 'flex';
+  }
+  function closeDetailsModal(){ document.getElementById('detailsModal').style.display = 'none'; }
+
+  function openDeleteModal(name, reg){
+    document.getElementById('delDocName').innerText = name;
+    document.getElementById('delDocReg').innerText = reg;
+    document.getElementById('deleteModal').style.display = 'flex';
+  }
+  function closeDeleteModal(){ document.getElementById('deleteModal').style.display = 'none'; }
+
+  function showPasswordModal(id, name){
+    document.getElementById('pwUserName').innerText = name;
+    document.getElementById('pwTokenVal').innerText = 'FV-RST-' + Math.floor(1000 + Math.random() * 9000) + '-TOK';
+    document.getElementById('passwordModal').style.display = 'flex';
+  }
+  function closePasswordModal(){ document.getElementById('passwordModal').style.display = 'none'; }
+</script>
+</body>
+</html>

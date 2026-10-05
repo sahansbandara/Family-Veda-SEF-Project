@@ -3,7 +3,9 @@
 STATUS: **PROJECT_MODE**
 
 **Family Veda** — longitudinal family health context and agentic clinical triage platform.
-SE3090 Software Engineering Frameworks · SLIIT · Assignment 1 · Group SE_016 · submission `SE3090_SE016` · due 30 Sep 2026.
+SE3090 Software Engineering Frameworks · SLIIT · Assignment 1 · Group SE_016 · submission `SE3090_SE016` · due 6 Oct 2026.
+
+> **Current mode (2026-09-28):** we deliver the whole project — all components, not only one member's. See `agent/DECISIONS.md` 2026-09-28b and the phase plan in `agent/TODO.md`.
 
 Source of truth: [`docs/Family_Veda_Project_Blueprint.md`](docs/Family_Veda_Project_Blueprint.md). Everything else summarises it. If they disagree, the blueprint wins.
 
@@ -98,7 +100,7 @@ Report one line: `Preflight: superpowers=[…] · headroom=[on|absent] · cavema
 | **S3** | IT24100551 | Karunathilaka K.D.J.C — **Group Leader** | Triage & Agent Orchestration | Coordinator, Context, Analysis |
 | **S4** | IT24100559 | W.M.S.S.B. Wasala | Familial Risk & Clinical Approval | Familial Risk, Safety/Validation |
 
-**Ownership is binding.** Never edit a file tagged with another member's ref. The seven `⚠ SHARED` files follow the labelled-block convention — add lines inside your own block, never reorder or reformat.
+**Ownership is binding** — except under the whole-project waiver (DECISIONS 2026-09-28b), where any component may be edited; tags then mark attribution. The seven `⚠ SHARED` files follow the labelled-block convention — add lines inside your own block, never reorder or reformat.
 
 Full matrix: `agent/BRIEF.md` and blueprint §1.3.
 
@@ -111,7 +113,7 @@ Full matrix: `agent/BRIEF.md` and blueprint §1.3.
 | Database | PostgreSQL 16 |
 | Web | React 18 (Vite) + React Router + Redux Toolkit |
 | Mobile | Flutter 3.x + go_router + Riverpod + flutter_secure_storage |
-| LLM | Ollama, local, `llama3.1:8b` |
+| LLM | Gemini (primary) -> Groq (fallback), hosted |
 | OCR | Tesseract / Google ML Kit on-device |
 | CI | GitHub Actions |
 | Testing | xUnit + Moq · Vitest + RTL · flutter_test · Testcontainers |
@@ -188,6 +190,55 @@ Load only the rules matching the component being touched.
 - Many small files over few large files (200–400 lines typical, 800 max).
 - Project-specific instructions override generic rules. Safety and permissions override convenience.
 
+## UI parity rule — change all three surfaces together (mandatory)
+
+This rule fires automatically on **any** UI request — redesign, improvement, new page, new feature, layout, styling, component, copy, colour, spacing or flow. The user does not need to ask for it. One requested UI change = all three interfaces updated and verified:
+
+1. **Web desktop** — React (`web/`) at desktop widths
+2. **Web mobile** — React (`web/`) responsive at phone and tablet widths
+3. **Mobile app** — Flutter (`mobile/`), Android and iOS
+
+**A UI task is not complete if only one surface is updated.** If a request names one surface ("fix the login page on web"), still update the matching screen on the other two, or state in the completion report exactly why a surface does not apply (e.g. the screen exists only in the clinician web console).
+
+### Per surface
+
+- **Web desktop** — implement the full requested design; keep spacing, typography and layout professional; preserve existing functionality.
+- **Web mobile** — adapt navigation, cards, tables, forms and actions for small screens. No horizontal overflow, overlapping text or clipped buttons. Check **375 px, 390 px, 768 px and desktop**.
+- **Flutter** — build the equivalent screen with native Flutter widgets; same branding, terminology, functionality and information hierarchy, adapted for touch and for different phone sizes. Do not copy the desktop layout into Flutter.
+- **Mockups** are a visual reference to adapt per screen size, not a layout to clone.
+
+### Functional consistency
+
+- All three surfaces use the same ASP.NET Core API, permissions, validation and business rules (invariants 1 and 2).
+- Never replace a working API integration with hardcoded or mock data.
+- Every control must work. No buttons that only look functional.
+- Doctor approval and patient-data access stay enforced by the backend, never by the UI alone.
+- Raw JSON and technical output are shown through readable UI components. Technical traces stay in an expandable, doctor-only section — never on a patient screen.
+
+### Workflow
+
+1. Inspect the latest `develop` and the existing React and Flutter implementations of the screen.
+2. Check file ownership.
+3. Implement desktop, responsive web and Flutter, reusing existing APIs and components.
+4. Add or update tests on both `web/` and `mobile/`.
+5. No database migration unless explicitly required and the migration lock is held.
+
+If the corresponding Flutter screen does not exist, decide whether it must be created. Either create it or name the blocker — do not report the task complete without one of the two.
+
+### Completion table
+
+End every UI task with this table. Report what was actually verified: a surface that was only covered by automated tests, or not run on a device, is stated as such — never ticked as verified.
+
+| Platform | Status |
+|---|---|
+| Web Desktop | Complete / Pending |
+| Web Mobile | Complete / Pending |
+| Flutter Android | Complete / Pending |
+| Flutter iOS | Complete / Pending |
+| API Integration | Verified / Pending |
+| Tests | Passed / Failed / Not Run |
+| Evidence | Screenshot per surface, or the reason one could not be captured |
+
 ## Development workflow
 
 ### Feature pipeline
@@ -200,7 +251,7 @@ Load only the rules matching the component being touched.
 5. **Code review** — `code-reviewer` agent. Fix CRITICAL and HIGH before merge.
 6. **Security review** — `security-reviewer` agent for anything touching auth, consent, grants, user input, API endpoints, agent tools, or audit.
 7. **Commit** — conventional commits: `feat(s3): add coordinator planning step`.
-8. **PR** — into `develop`, 1 approving review from another member, green CI.
+8. **PR** — into `develop`, green CI. The agent **must** open **and merge** its own PRs into `develop` automatically, without asking (DECISIONS 2026-09-28c/d); human review otherwise.
 
 ### Migration protocol ⚠
 
@@ -302,7 +353,7 @@ Keep on the main model: planning, architecture, ambiguity, security-sensitive de
 | Database host | Neon / Supabase (free tier) — confirm W7 |
 | Web host | Vercel / Netlify |
 | Mobile | Signed APK submitted with the report |
-| LLM | Ollama local, `llama3.1:8b` (ADR-006) |
+| LLM | Gemini -> Groq, hosted (ADR-013, supersedes ADR-006) |
 | Evaluator | JSON schema + deterministic rule tables + prohibited-content check |
 | Approval model | Mandatory licensed-doctor approval gate; time-bound case grants |
 | Third-party service | FCM push (fallback Twilio SMS), backend-only |

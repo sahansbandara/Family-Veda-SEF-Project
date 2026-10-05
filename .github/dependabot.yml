@@ -1,0 +1,35 @@
+# Owner: S4 · W.M.S.S.B. Wasala (IT24100559) — dependency updates per Lecture 08
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: /backend
+    schedule: { interval: weekly }
+    target-branch: develop
+  - package-ecosystem: npm
+    directory: /web
+    schedule: { interval: weekly }
+    target-branch: develop
+    # Stack is React 18 (CLAUDE.md); react and react-dom must move together, so skip major bumps.
+    ignore:
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react-dom"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: pub
+    directory: /mobile
+    schedule: { interval: weekly }
+    target-branch: develop
+    # Code uses the Riverpod 2 API (StateProvider, StateNotifierProvider); skip major bumps.
+    ignore:
+      - dependency-name: "flutter_riverpod"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "flutter_secure_storage"
+        update-types: ["version-update:semver-major"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+    target-branch: develop

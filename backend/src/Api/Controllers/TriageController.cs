@@ -83,7 +83,7 @@ public sealed class TriageController(ITriageService triageService, INotification
         return Created($"/api/v1/notifications/subscriptions/{subscription.Id}", subscription);
     }
 
-    [HttpGet("notifications")]
+    [HttpGet("notifications/inbox")]
     [Authorize(Policy = "FamilyUser")]
     public async Task<ActionResult<PagedResult<NotificationDto>>> GetNotifications(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default) =>
         Ok(await notificationService.GetInboxAsync(page, pageSize, cancellationToken));

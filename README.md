@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="brand/dist/lockup.png" alt="Family Veda — healthier families, brighter tomorrows" width="380">
+  <img src="docs/assets/family-veda-banner.webp" alt="Family Veda — your family doctor, with your family's whole story" width="100%">
 </p>
 
 # Family Veda
@@ -9,6 +9,34 @@
 Longitudinal family health context and agentic clinical triage platform.
 
 **SE3090 — Software Engineering Frameworks** · SLIIT Faculty of Computing · Assignment 1 · Group **SE_016** · submission `SE3090_SE016`
+
+## Download and try
+
+| | |
+|---|---|
+| 📱 **Android APK** | [Download latest release](https://github.com/sahansbandara/Family-Veda-SEF-Project/releases/tag/apk-2026-09-28) · 159 MB · [install guide](DOWNLOAD.md) |
+| 🌐 **Web app** | <https://family-veda-web.vercel.app> |
+| 📘 **API docs** | [Swagger](https://family-veda-api.onrender.com/swagger/index.html) |
+
+Demo accounts: [Live demo access](#live-demo-access). All data is synthetic.
+
+## Table of contents
+
+1. [What it does](#what-it-does)
+2. [Architecture](#architecture)
+3. [The agentic workflow](#the-agentic-workflow)
+4. [Safety position](#safety-position)
+5. [Repository layout](#repository-layout)
+6. [Tech stack](#tech-stack)
+7. [New to .NET? Start here](#new-to-net-start-here)
+8. [Architecture in depth](#architecture-in-depth)
+9. [Run the full project locally](#run-the-full-project-locally)
+10. [Live demo access](#live-demo-access)
+11. [Testing](#testing)
+12. [Team](#team)
+13. [Documentation](#documentation)
+14. [AI use disclosure](#ai-use-disclosure)
+15. [Licence and data policy](#licence-and-data-policy)
 
 ---
 
@@ -48,7 +76,7 @@ Family Veda closes that gap. A family maintains one shared account with individu
                              │    ├─ Analysis Agent         │
                              │    ├─ Familial Risk Agent    │
                              │    └─ Safety/Validation      │
-                             │   Ollama (local model)       │
+                             │   Gemini -> Groq (hosted)    │
                              └──────────────┬───────────────┘
                                             ▼
                              ┌──────────────────────────────┐
@@ -114,7 +142,7 @@ One application, four authors — **not** a folder per student. Reasoning: bluep
 | Database | PostgreSQL 16 |
 | Web | React 18 (Vite) · React Router · Redux Toolkit |
 | Mobile | Flutter 3.x · go_router · Riverpod · flutter_secure_storage |
-| LLM | Ollama (local) — `llama3.1:8b` |
+| LLM | Gemini (primary) -> Groq (fallback) — hosted |
 | OCR | Tesseract / Google ML Kit on-device |
 | CI | GitHub Actions |
 | Testing | xUnit + Moq · Vitest + RTL · flutter_test · Testcontainers |
@@ -212,7 +240,7 @@ backend/
 │   │   ├── Families/FamilyService.cs              families, members, invitations, consent
 │   │   ├── Records/                            RecordService, TesseractOcrService, LabExtractionService
 │   │   ├── Agents/                             Extraction, Context, Analysis, FamilialRisk agents,
-│   │   │                                       OllamaClient (local LLM), ToolDispatcher (allow-list gate)
+│   │   │                                       GeminiClient / ChatCompletionsLlmClient (hosted LLM), ToolDispatcher (allow-list gate)
 │   │   ├── Triage/                             TriageOrchestrator (coordinator), TriageService,
 │   │   │                                       TriageWorkQueue, CaseSlaProcessor, FcmPushNotificationClient
 │   │   └── Clinical/ClinicalService.cs            doctor verification, case pool, approval gate
@@ -273,7 +301,6 @@ Everything below assumes **macOS** (Homebrew). Linux/Windows: install same tools
 | PostgreSQL | 16 | `brew install postgresql@16 && brew services start postgresql@16` | `psql --version` |
 | Node.js | 20+ | `brew install node@20` | `node -v` |
 | Flutter | 3.x | `brew install --cask flutter` + Android Studio (SDK + emulator) or Xcode | `flutter doctor` |
-| Ollama | latest | `brew install ollama` | `ollama --version` |
 | Tesseract | 5.x | `brew install tesseract` | `tesseract --version` |
 | Docker | optional | Docker Desktop — only for integration tests | `docker ps` |
 
@@ -375,21 +402,9 @@ Check:
 
 > Plain `dotnet run` without `--urls` uses `launchSettings.json` port `5139`. Then set `VITE_API_BASE_URL` / `API_BASE_URL` to match.
 
-### 4. Ollama (local LLM)
+### 4. LLM keys (Gemini / Groq)
 
-New terminal:
-
-```bash
-ollama serve
-```
-
-Another terminal (one-time, ~4.7 GB download):
-
-```bash
-ollama pull llama3.1:8b
-```
-
-Without Ollama the API still starts; agent steps time out and cases defer to the doctor (Rule 9).
+Set `Gemini__ApiKey` (and optionally `Llm__ApiKey` for Groq) in your `.env`. Without either configured, the API still starts; agent steps fail closed and cases defer to the doctor (Rule 9).
 
 ### 5. Web app (React)
 
@@ -440,7 +455,6 @@ Physical phone: use your Mac's LAN IP (e.g. `http://192.168.1.20:5000/api/v1`) a
 | Terminal | Command | URL |
 |---|---|---|
 | 1 | PostgreSQL (brew service / Docker) | `localhost:5432` |
-| 2 | `ollama serve` | `localhost:11434` |
 | 3 | backend `dotnet run … --urls http://localhost:5000` | `localhost:5000/swagger` |
 | 4 | web `npm run dev` | `localhost:5173` |
 | 5 | mobile `flutter run …` | emulator |
@@ -457,41 +471,90 @@ Sign in with a seeded synthetic account (see *Live demo access* for emails) usin
 | `dotnet ef: command not found` | Install `dotnet-ef`, add `~/.dotnet/tools` to `PATH`. |
 | Web shows network/CORS error | API not on port 5000, or origin missing from `Cors__AllowedOrigins`. |
 | Android app can't reach API | Use `10.0.2.2`, not `localhost`. |
-| Triage stuck / deferred | Ollama not running or model not pulled. |
+| Triage stuck / deferred | Gemini/Groq keys missing or invalid — check `Gemini__ApiKey` / `Llm__ApiKey`. |
 | OCR fails | `brew install tesseract`; check `Ocr__TesseractDataPath`. |
 
 ## Live demo access
 
-- Web: <https://family-veda-web.vercel.app>
-- API health: <https://family-veda-api.onrender.com/health>
-- Mobile API base URL: `https://family-veda-api.onrender.com/api/v1`
+- Hosted web: <https://family-veda-web.vercel.app>
+- Hosted API health: <https://family-veda-api.onrender.com/health>
+- Hosted mobile API base URL: `https://family-veda-api.onrender.com/api/v1`
+- Local web: <http://localhost:5173>
+- Local API base URL: `http://127.0.0.1:5000/api/v1` (Android emulator: `http://10.0.2.2:5000/api/v1`)
 
-All accounts below are synthetic and use the same demo password.
+**Shared synthetic demo password (local and hosted): `Demo@123456!!`**
 
-| Role | Email |
+All 44 accounts below exist in both the running local and hosted demo databases, checked on 2026-10-03. Local core logins and hosted admin login were verified with this password; every individual hosted login was not tested. Seeded accounts use the shared demo password unless it has subsequently been changed for that account. Changing `Seed:DefaultPassword` does not reset existing passwords.
+
+These are public synthetic test credentials for the demo only. Do not reuse this password for real accounts or production data. No new accounts or password resets are performed by these instructions.
+
+### Core demo accounts
+
+| Role / scenario | Email |
 |---|---|
 | Family Head | `demo-head@example.invalid` |
 | Adult Member | `demo-member@example.invalid` |
 | Verified Doctor | `demo-doctor@example.invalid` |
 | Pending Doctor | `demo-pending@example.invalid` |
 | Clinic Admin | `demo-admin@example.invalid` |
+| Adult Member | `demo-tharushi@example.invalid` |
+| Family Head — Silva | `demo-silva@example.invalid` |
+| Family Head — Fernando | `demo-fernando@example.invalid` |
+| Family Head — Wijesinghe | `demo-wijesinghe@example.invalid` |
+| Family join requester | `demo-ruwan@example.invalid` |
+| Family join requester | `demo-shalini@example.invalid` |
+| Verified Doctor — Silva | `demo-doctor-silva@example.invalid` |
+| Verified Doctor — Fernando | `demo-doctor-fernando@example.invalid` |
+| Suspended Doctor | `demo-doctor-suspended@example.invalid` |
 
-The password is intentionally not committed. On the deployment owner's Mac, copy it from Keychain without printing it into terminal history:
+### Viva accounts
 
-```bash
-security find-generic-password \
-  -a demo-evaluator \
-  -s FamilyVedaDemoPassword \
-  -w | pbcopy
-```
+| Role / scenario | Email |
+|---|---|
+| Adult Member — shared demo family | `viva-adult-01@example.invalid` |
+| Adult Member — shared demo family | `viva-adult-02@example.invalid` |
+| Adult Member — shared demo family | `viva-adult-03@example.invalid` |
+| Family Head — separate family | `viva-adult-04@example.invalid` |
+| Family Head — separate family | `viva-adult-05@example.invalid` |
+| Verified Doctor | `viva-doctor-01@example.invalid` |
+| Verified Doctor | `viva-doctor-02@example.invalid` |
+| Verified Doctor | `viva-doctor-03@example.invalid` |
+| Verified Doctor | `viva-doctor-04@example.invalid` |
 
-Paste it into the app, then clear the clipboard immediately:
+### Phase 1b scenario accounts
 
-```bash
-pbcopy </dev/null
-```
+| Role / scenario | Email |
+|---|---|
+| Family Head — alpha | `phase1b-alpha-head@example.invalid` |
+| Adult Member — alpha | `phase1b-alpha-adult1@example.invalid` |
+| Adult Member — alpha | `phase1b-alpha-adult2@example.invalid` |
+| Family Head — beta | `phase1b-beta-head@example.invalid` |
+| Adult Member — beta | `phase1b-beta-adult1@example.invalid` |
+| Adult Member — beta | `phase1b-beta-adult2@example.invalid` |
+| Family Head — gamma | `phase1b-gamma-head@example.invalid` |
+| Adult Member — gamma | `phase1b-gamma-adult1@example.invalid` |
+| Adult Member — gamma | `phase1b-gamma-adult2@example.invalid` |
+| Verified Doctor | `phase1b-doctor-jaffna@example.invalid` |
+| Verified Doctor | `phase1b-doctor-badulla@example.invalid` |
+| Verified Doctor | `phase1b-doctor-matara@example.invalid` |
+| Pending Doctor | `phase1b-doctor-pending@example.invalid` |
+| Suspended Doctor | `phase1b-doctor-suspended@example.invalid` |
 
-Avoid retrieving it while screen-sharing or recording. Share the password with evaluators through a private channel. Never place it in Git, issues, screenshots or chat history.
+### Coverage and restricted-state accounts
+
+| Role / scenario | Email |
+|---|---|
+| Deactivated family user — sign-in blocked | `coverage-deactivated@example.invalid` |
+| Deactivated doctor — sign-in blocked | `coverage-deactivated-doctor@example.invalid` |
+| Family user — joined request fixture | `coverage-joined@example.invalid` |
+| Family user — declined request fixture | `coverage-declined@example.invalid` |
+| Doctor — rejected verification | `coverage-doctor-rejected@example.invalid` |
+| Doctor — pending verification | `coverage-doctor-pending@example.invalid` |
+| Doctor — more information requested | `coverage-doctor-moreinfo@example.invalid` |
+
+Pending, suspended, rejected and more-information-requested doctors have restricted access; successful authentication does not grant verified-clinician permissions. Deactivated users cannot sign in. Coverage accounts deliberately exercise these states.
+
+Authentication endpoints allow 10 requests per minute per client IP. If you receive HTTP `429`, wait one minute before retrying. Testing many accounts in succession can reach this limit.
 
 ## Testing
 
@@ -538,6 +601,17 @@ Test plan and the 8 priority cases: [`docs/TESTING.md`](docs/TESTING.md).
 | [`docs/FUTURE_WORK.md`](docs/FUTURE_WORK.md) | Deliberate deferrals with reserved extension points |
 | [`docs/adr/`](docs/adr/) | ADR-001 … ADR-009 |
 
+### Dashboard guides
+
+One guide per portal: flow diagram, then every tab and its sub-sections.
+
+| Portal | Guide |
+|---|---|
+| Clinic Admin | [`docs/dashboards/admin.md`](docs/dashboards/admin.md) |
+| Doctor | [`docs/dashboards/doctor.md`](docs/dashboards/doctor.md) |
+| Family Head | [`docs/dashboards/family-head.md`](docs/dashboards/family-head.md) |
+| Adult Member | [`docs/dashboards/adult-member.md`](docs/dashboards/adult-member.md) |
+
 ## AI use disclosure
 
 Development uses AI assistance at Level 4 (permitted, disclosed, verified). The final demonstration and viva are Level 1 — no external AI assistants; only the submitted application's own agentic subsystem runs.
@@ -545,5 +619,7 @@ Development uses AI assistance at Level 4 (permitted, disclosed, verified). The 
 Each member maintains `docs/ai-disclosure/S<n>.md`. Individual reflections are **never AI-generated**.
 
 ## Licence and data policy
+
+See [LICENSE](LICENSE) — all rights reserved to Group SE_016; SLIIT assessors may view and run it for marking only.
 
 Academic coursework. All clinical framing is for a university software engineering project and **does not constitute medical guidance**. All data used is synthetic.

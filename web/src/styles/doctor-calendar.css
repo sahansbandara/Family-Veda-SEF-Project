@@ -1,0 +1,206 @@
+/* Owner: S4 · Familial Risk & Clinical Approval — W.M.S.S.B. Wasala (IT24100559) */
+/* Doctor Calendar. Everything is scoped under .dcal and built on the shared tokens, so light and dark both work. */
+
+.dcal { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+/* Status tones: one custom property drives the accent bar, tint, dot and chip. */
+.dcal [class*='--primary'] { --dcal-tone: var(--primary); }
+.dcal [class*='--warning'] { --dcal-tone: var(--warning); }
+.dcal [class*='--success'] { --dcal-tone: var(--success); }
+.dcal [class*='--danger'] { --dcal-tone: var(--danger); }
+.dcal [class*='--muted'] { --dcal-tone: var(--muted); }
+
+/* ── header and metrics ─────────────────────────────────────────────── */
+.dcal-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.dcal-heading h1 { margin: 0; font-size: 1.45rem; line-height: 1.2; color: var(--text-heading); }
+.dcal-heading p { margin: 2px 0 0; font-size: 0.9rem; color: var(--muted); }
+
+.dcal-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.dcal-metrics > div { display: flex; flex-direction: column-reverse; gap: 2px; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-sm); min-width: 0; }
+.dcal-metrics dt { font-size: 0.82rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dcal-metrics dd { margin: 0; font-size: 1.5rem; font-weight: 700; line-height: 1.15; color: var(--text-heading); font-variant-numeric: tabular-nums; }
+
+.dcal-toast { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--success) 35%, transparent); background: color-mix(in srgb, var(--success) 12%, var(--surface)); color: var(--text); font-size: 0.9rem; }
+
+/* ── layout: calendar beside the selected-day agenda ────────────────── */
+.dcal-body { display: grid; grid-template-columns: minmax(0, 7fr) minmax(280px, 3fr); gap: 16px; align-items: start; }
+.dcal[data-view='day'] .dcal-body { grid-template-columns: minmax(0, 1fr); }
+.dcal-main, .dcal-side { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; box-shadow: var(--shadow-sm); min-width: 0; }
+.dcal-side-title { margin: 0; font-size: 1.05rem; color: var(--text-heading); }
+.dcal-side-date { margin: 2px 0 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); font-size: 0.86rem; color: var(--muted); }
+
+.dcal-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.dcal-title { margin: 0; font-size: 1.1rem; color: var(--text-heading); }
+.dcal-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.dcal-seg { display: inline-flex; padding: 3px; border-radius: 12px; background: var(--surface-subtle); border: 1px solid var(--border); }
+.dcal-seg-btn { min-height: 36px; padding: 0 14px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-weight: 600; font-size: 0.86rem; cursor: pointer; transition: background-color 160ms ease, color 160ms ease; }
+.dcal-seg-btn--on { background: var(--surface); color: var(--text-heading); box-shadow: var(--shadow-sm); }
+
+.dcal-nav { display: inline-flex; gap: 6px; }
+.dcal-nav-btn { min-width: 40px; min-height: 40px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-weight: 600; font-size: 0.95rem; cursor: pointer; }
+.dcal-nav-btn--today { padding: 0 14px; font-size: 0.86rem; }
+.dcal-nav-btn:hover, .dcal-seg-btn:hover { color: var(--primary); }
+
+.dcal-view { animation: dcal-fade 180ms ease-out; }
+@keyframes dcal-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* ── month ──────────────────────────────────────────────────────────── */
+.dcal-weekdays, .dcal-month-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.dcal-weekdays { margin-bottom: 6px; text-align: center; font-size: 0.76rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.dcal-cell { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; gap: 6px; min-height: 78px; padding: 8px 10px; border-radius: 12px; border: 1px solid var(--border-subtle); background: var(--surface-subtle); color: var(--text); text-align: left; cursor: pointer; transition: border-color 160ms ease, background-color 160ms ease; }
+.dcal-cell:hover { border-color: color-mix(in srgb, var(--primary) 55%, transparent); }
+.dcal-cell--outside { opacity: 0.5; }
+.dcal-cell-num { font-weight: 600; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+.dcal-cell--today .dcal-cell-num { color: var(--primary); }
+.dcal-cell--today { border-color: color-mix(in srgb, var(--primary) 45%, transparent); }
+.dcal-cell--selected, .dcal-cell--selected:hover { background: var(--primary); border-color: var(--primary); color: #fff; opacity: 1; }
+.dcal-cell--selected .dcal-cell-num { color: #fff; }
+.dcal-cell-meta { display: flex; align-items: center; justify-content: space-between; gap: 6px; width: 100%; }
+.dcal-cell-count { font-size: 0.74rem; font-weight: 600; color: var(--muted); }
+.dcal-cell--selected .dcal-cell-count { color: #fff; }
+
+.dcal-dots { display: inline-flex; gap: 3px; min-height: 7px; }
+.dcal-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dcal-tone); }
+.dcal-cell--selected .dcal-dot, .dcal-strip-day--selected .dcal-dot { box-shadow: 0 0 0 1.5px #fff; }
+
+/* ── week ───────────────────────────────────────────────────────────── */
+.dcal-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.dcal-week-day { display: flex; flex-direction: column; gap: 6px; min-height: 220px; padding: 6px; border-radius: 12px; border: 1px solid var(--border-subtle); background: var(--surface-subtle); min-width: 0; }
+.dcal-week-day--selected { border-color: var(--primary); }
+.dcal-week-head { display: flex; align-items: baseline; justify-content: center; gap: 6px; min-height: 40px; border: 0; border-radius: 9px; background: transparent; color: var(--text); cursor: pointer; }
+.dcal-week-day--selected .dcal-week-head { background: var(--primary); color: #fff; }
+.dcal-week-name { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.dcal-week-num { font-weight: 700; }
+.dcal-week-day--today:not(.dcal-week-day--selected) .dcal-week-num { color: var(--primary); }
+.dcal-week-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.dcal-week-empty { margin: 4px 0; text-align: center; font-size: 0.78rem; color: var(--muted); }
+.dcal-chip { display: flex; flex-direction: column; gap: 1px; width: 100%; min-height: 44px; padding: 6px 8px; text-align: left; font-size: 0.78rem; }
+.dcal-chip-time { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text-heading); }
+.dcal-chip-status { font-size: 0.7rem; font-weight: 600; color: var(--dcal-tone); }
+
+/* ── day timeline and agenda blocks ─────────────────────────────────── */
+.dcal-hours { margin: 0 0 12px; font-size: 0.84rem; color: var(--muted); }
+.dcal-timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.dcal-slot { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 10px; align-items: start; }
+.dcal-side .dcal-slot { grid-template-columns: minmax(0, 1fr); }
+.dcal-side .dcal-slot-time { display: none; }
+.dcal-slot-time { padding-top: 12px; font-size: 0.9rem; font-weight: 600; color: var(--text-heading); font-variant-numeric: tabular-nums; }
+
+.dcal-block, .dcal-chip { border: 1px solid color-mix(in srgb, var(--dcal-tone) 28%, transparent); border-left: 4px solid var(--dcal-tone); border-radius: 6px 12px 12px 6px; background: color-mix(in srgb, var(--dcal-tone) 13%, var(--surface)); color: var(--text); cursor: pointer; transition: background-color 160ms ease, box-shadow 160ms ease; }
+.dcal-block { display: flex; justify-content: space-between; gap: 12px; width: 100%; min-height: 64px; padding: 10px 12px; text-align: left; box-shadow: -8px 0 18px -14px var(--dcal-tone); }
+button.dcal-block:hover, .dcal-chip:hover { background: color-mix(in srgb, var(--dcal-tone) 22%, var(--surface)); }
+.dcal-block-main { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
+.dcal-block-title { font-weight: 600; color: var(--text-heading); overflow-wrap: anywhere; }
+.dcal-block-sub { font-size: 0.84rem; color: var(--muted); overflow-wrap: anywhere; }
+.dcal-block-times { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; font-size: 0.84rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.dcal-block--inactive .dcal-block-title { text-decoration: line-through; color: var(--muted); }
+.dcal-block--blocked { --dcal-tone: var(--muted); cursor: default; background: repeating-linear-gradient(135deg, var(--surface-subtle) 0 8px, var(--surface) 8px 16px); }
+
+.dcal-status { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 0.74rem; font-weight: 700; color: var(--dcal-tone); background: color-mix(in srgb, var(--dcal-tone) 14%, transparent); border: 1px solid color-mix(in srgb, var(--dcal-tone) 32%, transparent); white-space: nowrap; }
+.dcal-empty { margin: 28px 0; text-align: center; color: var(--muted); font-size: 0.9rem; }
+
+/* ── date strip (day view) ──────────────────────────────────────────── */
+.dcal-strip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-bottom: 14px; padding: 6px; border-radius: 14px; border: 1px solid var(--border-subtle); background: var(--surface-subtle); }
+.dcal-strip-day { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 60px; padding: 4px 0; border: 0; border-bottom: 3px solid transparent; border-radius: 10px; background: transparent; color: var(--text); cursor: pointer; transition: background-color 160ms ease; }
+.dcal-strip-name { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+.dcal-strip-num { font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.dcal-strip-day--today .dcal-strip-num { color: var(--primary); }
+.dcal-strip-day--selected { background: var(--primary); border-bottom-color: var(--primary-lum); color: #fff; }
+.dcal-strip-day--selected .dcal-strip-name, .dcal-strip-day--selected .dcal-strip-num { color: #fff; }
+
+/* ── loading ────────────────────────────────────────────────────────── */
+.dcal-skeleton { display: flex; flex-direction: column; gap: 10px; }
+.dcal-skeleton-row { height: 56px; border-radius: 12px; background: var(--surface-subtle); animation: dcal-pulse 1.4s ease-in-out infinite; }
+@keyframes dcal-pulse { 50% { opacity: 0.55; } }
+
+/* ── drawer / bottom sheet ──────────────────────────────────────────── */
+.dcal-overlay { position: fixed; inset: 0; z-index: 1000; display: flex; justify-content: flex-end; background: rgba(6, 13, 26, 0.55); backdrop-filter: blur(3px); animation: dcal-overlay-in 220ms ease-out; }
+.dcal-drawer { display: flex; flex-direction: column; width: 440px; max-width: 100%; height: 100%; background: var(--surface); border-left: 1px solid var(--border); box-shadow: var(--shadow-lg); animation: dcal-slide-in 260ms cubic-bezier(0.22, 1, 0.36, 1); }
+.dcal-drawer-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.dcal-drawer-head h2 { margin: 0; font-size: 1.1rem; color: var(--text-heading); }
+.dcal-drawer-body { flex: 1; overflow-y: auto; padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; }
+.dcal-drawer-foot { padding: 14px 20px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+
+.dcal-icon-btn { width: 40px; height: 40px; flex-shrink: 0; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font-size: 1.4rem; line-height: 1; cursor: pointer; }
+.dcal-icon-btn:hover { background: var(--surface-subtle); color: var(--text); }
+
+.dcal-patient { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.dcal-avatar { display: grid; place-items: center; width: 46px; height: 46px; flex-shrink: 0; border-radius: 50%; background: var(--primary-subtle); color: var(--primary); font-weight: 700; }
+.dcal-patient-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.dcal-patient-text strong { color: var(--text-heading); overflow-wrap: anywhere; }
+.dcal-patient-text span { font-size: 0.86rem; color: var(--muted); overflow-wrap: anywhere; }
+
+.dcal-details { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.dcal-details > div { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; align-items: baseline; }
+.dcal-details dt { font-size: 0.84rem; color: var(--muted); }
+.dcal-details dd { margin: 0; font-weight: 600; color: var(--text-heading); overflow-wrap: anywhere; }
+.dcal-details dd.dcal-ref { font-weight: 500; font-size: 0.84rem; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+.dcal-reason { padding: 12px 14px; border-radius: 12px; background: var(--surface-subtle); border: 1px solid var(--border-subtle); }
+.dcal-reason h3 { margin: 0 0 4px; font-size: 0.92rem; color: var(--text-heading); }
+.dcal-reason p { margin: 0; color: var(--text); overflow-wrap: anywhere; }
+.dcal-access-note { margin: 0; display: flex; flex-direction: column; gap: 2px; font-size: 0.82rem; color: var(--muted); }
+.dcal-access-note a { font-weight: 600; font-size: 0.9rem; color: var(--primary); }
+
+.dcal-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 10px; }
+.dcal-actions .button { min-height: 46px; }
+.dcal-text-actions { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.dcal-link { min-height: 40px; padding: 0 4px; border: 0; background: transparent; font-weight: 600; font-size: 0.88rem; color: var(--dcal-tone); cursor: pointer; }
+.dcal-link:hover { text-decoration: underline; }
+.dcal-confirm { display: flex; flex-direction: column; gap: 10px; }
+.dcal-confirm p { margin: 0; color: var(--text); }
+.dcal-confirm p.dcal-hint, .dcal-readonly { margin: 0; font-size: 0.82rem; color: var(--muted); }
+.dcal-field { display: flex; flex-direction: column; gap: 4px; font-size: 0.84rem; color: var(--muted); }
+.dcal-field input, .dcal-field textarea { width: 100%; min-height: 44px; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-subtle); color: var(--text); font: inherit; }
+.dcal-field textarea:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.dcal-error { margin: 0; padding: 8px 12px; border-radius: 10px; font-size: 0.86rem; color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, transparent); border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent); }
+
+@keyframes dcal-overlay-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dcal-slide-in { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes dcal-slide-up { from { transform: translateY(100%); } to { transform: none; } }
+
+/* ── tablet: agenda drops under the calendar ────────────────────────── */
+@media (max-width: 1023px) {
+  .dcal-body { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ── phone ──────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .dcal-heading h1 { font-size: 1.25rem; }
+  .dcal-manage { width: 100%; }
+  .dcal-metrics { gap: 8px; }
+  .dcal-metrics > div { padding: 10px; }
+  .dcal-metrics dd { font-size: 1.25rem; }
+  .dcal-metrics dt { font-size: 0.72rem; white-space: normal; }
+  .dcal-main, .dcal-side { padding: 12px; border-radius: 14px; }
+  .dcal-controls { width: 100%; justify-content: space-between; }
+  .dcal-seg-btn { min-height: 40px; padding: 0 12px; }
+
+  /* The month becomes a compact date picker: numbers and dots only, no squeezed text. */
+  .dcal-weekdays, .dcal-month-grid { gap: 3px; }
+  .dcal-cell { min-height: 46px; padding: 4px; align-items: center; justify-content: center; gap: 3px; border-radius: 10px; }
+  .dcal-cell-meta { justify-content: center; }
+  .dcal-cell-count { display: none; }
+
+  /* The week becomes a list of days; the agenda below would repeat it. */
+  .dcal-week { grid-template-columns: minmax(0, 1fr); }
+  .dcal-week-day { min-height: 0; flex-direction: row; align-items: flex-start; gap: 10px; }
+  .dcal-week-head { flex-direction: column; gap: 0; min-width: 52px; min-height: 48px; }
+  .dcal-week-list { flex: 1; min-width: 0; }
+  .dcal-week-empty { flex: 1; margin: 14px 0; text-align: left; }
+  .dcal[data-view='week'] .dcal-side { display: none; }
+
+  .dcal-slot { grid-template-columns: 50px minmax(0, 1fr); gap: 8px; }
+  .dcal-slot-time { font-size: 0.82rem; }
+}
+
+@media (max-width: 640px) {
+  .dcal-overlay { align-items: flex-end; }
+  .dcal-drawer { width: 100%; height: auto; max-height: 92dvh; border-left: 0; border-radius: 20px 20px 0 0; animation-name: dcal-slide-up; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dcal-view, .dcal-overlay, .dcal-drawer, .dcal-skeleton-row { animation: none; }
+  .dcal-cell, .dcal-block, .dcal-chip, .dcal-seg-btn, .dcal-strip-day { transition: none; }
+}

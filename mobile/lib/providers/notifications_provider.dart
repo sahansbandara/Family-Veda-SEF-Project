@@ -8,3 +8,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 final notificationsProvider = FutureProvider.autoDispose<List<AppNotification>>(
   (ref) => ref.watch(patientApiProvider).getNotifications(),
 );
+
+// [S4] Minimal additive wiring: unread badge count for the home dashboard,
+// derived from the existing notifications fetch (no new endpoint needed).
+final unreadNotificationsCountProvider = Provider.autoDispose<int>((ref) {
+  final items = ref.watch(notificationsProvider).valueOrNull ?? const [];
+  return items.where((item) => !item.isRead).length;
+});
