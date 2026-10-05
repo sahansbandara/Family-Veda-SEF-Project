@@ -345,3 +345,5 @@ Render logs at2026-10-05T14:55:02Z confirmed23505 on ix_triage_cases_case_number
 The user subsequently requested Railway hosting. That is a separate infrastructure scope: investigate and obtain migration plan approval before resource creation/cutover. Two backend worker instances must not recover/process the same production Neon cases during verification. No provider key values are recorded here.
 
 User approved adding five Gemini keys as a deduplicated, bounded rotating pool. Subsequent instruction keeps Render after bill payment; Railway migration is not approved. Render service is active and health200. Preserve deterministic safety and doctor review even when all providers fail. Synthetic Groq probe with available openai/gpt-oss-20b succeeded; configuration example updated. No automatic migration, commit, push or deployment.
+
+Follow-up: production synthetic Context output failed strict validation. Clarify exact existing DTO schemas in Groq/Cloudflare system prompts instead of relaxing validation, increasing retries, or replacing deterministic safety. This is a focused correction within approved provider recovery/publication scope.
