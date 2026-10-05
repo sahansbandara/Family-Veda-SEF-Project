@@ -26,6 +26,9 @@ import { formatRecordSummary } from './recordSummaryMeta'
 import { ReportReviewDialog } from '../../components/records/ReportReviewDialog'
 import { type NewVital, VitalsPanel } from './VitalsPanel'
 
+// OCR runs server-side for up to 120 s (Ocr:TimeoutSeconds); the default 15 s client timeout cut reads off.
+const OCR_EXTRACT_TIMEOUT_MS = 180_000
+
 const RECORDS_PAGE_SIZE = 20
 
 type RecordProfile = Pick<MemberDto, 'id' | 'role' | 'displayName'>
@@ -324,7 +327,7 @@ export function RecordsPage() {
       }
       let extractionStarted = true
       let extractionRefusal: string | null = null
-      try { await apiClient.post(`/lab-reports/${data.id}/extract`) }
+      try { await apiClient.post(`/lab-reports/${data.id}/extract`, undefined, { timeout: OCR_EXTRACT_TIMEOUT_MS }) }
       catch (error) {
         extractionStarted = false
         extractionRefusal = extractionRefusalMessage(error)
@@ -433,7 +436,7 @@ export function RecordsPage() {
     const targetMemberId = memberId
     const request = reviewSequence.current
     try {
-      await apiClient.post(`/lab-reports/${targetReportId}/extract`)
+      await apiClient.post(`/lab-reports/${targetReportId}/extract`, undefined, { timeout: OCR_EXTRACT_TIMEOUT_MS })
       if (request !== reviewSequence.current || activeReportId.current !== targetReportId || activeMemberId.current !== targetMemberId) return false
       const { data } = await apiClient.get<LabReportDetailDto>(`/lab-reports/${targetReportId}`)
       if (request !== reviewSequence.current || activeReportId.current !== targetReportId || activeMemberId.current !== targetMemberId || data.id !== targetReportId || data.memberId !== targetMemberId) return false

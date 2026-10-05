@@ -12,11 +12,16 @@ using FamilyVeda.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using FamilyVeda.Infrastructure.Families;
+using Microsoft.Extensions.Configuration;
 
 namespace FamilyVeda.Infrastructure.Records;
 
-public sealed partial class LabExtractionService(AppDbContext dbContext, ICurrentUser currentUser, IEnumerable<IAgent> agents) : ILabExtractionService
+public sealed partial class LabExtractionService(AppDbContext dbContext, ICurrentUser currentUser, IEnumerable<IAgent> agents, IConfiguration? configuration = null) : ILabExtractionService
 {
+    // Server-owned OCR budget ("Ocr:TimeoutSeconds", default 120, clamped 10-600). A client disconnect must not cancel a read.
+    public TimeSpan OcrTimeout { get; init; } = TimeSpan.FromSeconds(Math.Clamp(
+        int.TryParse(configuration?["Ocr:TimeoutSeconds"], out var seconds) ? seconds : 120, 10, 600));
+
     public async Task<LabExtractionResultDto> ExtractAsync(Guid reportId, CancellationToken cancellationToken)
     {
         var report = await dbContext.LabReports.Include(x => x.Values).SingleOrDefaultAsync(x => x.Id == reportId, cancellationToken)
@@ -63,19 +68,29 @@ public sealed partial class LabExtractionService(AppDbContext dbContext, ICurren
             dbContext.ChangeTracker.Clear();
             throw new ConflictException("OCR is already processing this report.");
         }
+        // Deliberately NOT linked to the request token: web/mobile clients time out long before Tesseract finishes.
+        using var ocrTimeout = new CancellationTokenSource(OcrTimeout);
         try
         {
             var agent = agents.Single(x => x.Kind == AgentKind.Extraction);
-            var result = await agent.RunAsync(new AgentRunContext(reportId, report.MemberId, "{}"), cancellationToken);
+            var result = await agent.RunAsync(new AgentRunContext(reportId, report.MemberId, "{}"), ocrTimeout.Token);
             using var output = JsonDocument.Parse(result.OutputJson);
             var valuesExtracted = output.RootElement.GetProperty("valuesExtracted").GetInt32();
             var flagsExtracted = output.RootElement.GetProperty("flagsExtracted").GetInt32();
             report.OcrStatus = OcrStatus.Completed;
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(CancellationToken.None);
             return new LabExtractionResultDto(report.Id, report.OcrStatus, valuesExtracted, flagsExtracted, true);
+        }
+        catch (OperationCanceledException) when (ocrTimeout.IsCancellationRequested)
+        {
+            report.OcrStatus = OcrStatus.Failed;
+            report.OcrErrorCode = OcrFailureCodes.TimedOut;
+            await dbContext.SaveChangesAsync(CancellationToken.None);
+            throw new ProcessingException("OCR timed out. Use manual entry instead.", OcrFailureCodes.TimedOut);
         }
         catch (OperationCanceledException)
         {
+            // Not our timeout and not the client: only a genuine host-level cancellation reaches here.
             report.OcrStatus = OcrStatus.Failed;
             report.OcrErrorCode = OcrFailureCodes.Cancelled;
             await dbContext.SaveChangesAsync(CancellationToken.None);

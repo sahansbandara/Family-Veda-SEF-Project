@@ -119,6 +119,82 @@ public sealed class LabExtractionSafetyTests
         (await db.HereditaryFlags.SingleAsync(x => x.Id == flag.Id)).ManuallyConfirmed.Should().BeTrue();
     }
 
+    [Fact]
+    public async Task ExtractAsync_WhenClientDisconnectsMidRead_StillCompletes()
+    {
+        var (db, user, report) = await SeedPendingReportAsync("synthetic-disconnect");
+        await using var _ = db;
+        using var request = new CancellationTokenSource();
+        var agent = new SlowExtractionAgent(onStart: request.Cancel, delay: TimeSpan.FromMilliseconds(200));
+        var service = new LabExtractionService(db, new StubCurrentUser(user.Id), [agent]);
+
+        var result = await service.ExtractAsync(report.Id, request.Token);
+
+        request.IsCancellationRequested.Should().BeTrue();
+        agent.SawCancellation.Should().BeFalse();
+        result.Status.Should().Be(OcrStatus.Completed);
+        var stored = await db.LabReports.SingleAsync(x => x.Id == report.Id);
+        stored.OcrStatus.Should().Be(OcrStatus.Completed);
+        stored.OcrErrorCode.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ExtractAsync_WhenServerTimeoutElapses_FailsWithOcrTimeout()
+    {
+        var (db, user, report) = await SeedPendingReportAsync("synthetic-timeout");
+        await using var _ = db;
+        var agent = new SlowExtractionAgent(onStart: () => { }, delay: Timeout.InfiniteTimeSpan);
+        var service = new LabExtractionService(db, new StubCurrentUser(user.Id), [agent]) { OcrTimeout = TimeSpan.FromMilliseconds(100) };
+
+        var failure = await service.Invoking(x => x.ExtractAsync(report.Id, CancellationToken.None)).Should().ThrowAsync<ProcessingException>();
+
+        failure.Which.Code.Should().Be(OcrFailureCodes.TimedOut);
+        var stored = await db.LabReports.SingleAsync(x => x.Id == report.Id);
+        stored.OcrStatus.Should().Be(OcrStatus.Failed);
+        stored.OcrErrorCode.Should().Be(OcrFailureCodes.TimedOut);
+    }
+
+    [Theory]
+    [InlineData(null, 120)]
+    [InlineData("1", 10)]
+    [InlineData("45", 45)]
+    [InlineData("9999", 600)]
+    public void OcrTimeout_ReadsAndClampsConfiguration(string? configured, int expectedSeconds)
+    {
+        var configuration = new Microsoft.Extensions.Configuration.ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["Ocr:TimeoutSeconds"] = configured }).Build();
+        var service = new LabExtractionService(null!, new StubCurrentUser(Guid.NewGuid()), [], configuration);
+
+        service.OcrTimeout.Should().Be(TimeSpan.FromSeconds(expectedSeconds));
+    }
+
+    private static async Task<(AppDbContext Db, UserAccount User, LabReport Report)> SeedPendingReportAsync(string tag)
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
+        var db = new AppDbContext(options);
+        var user = new UserAccount { Email = $"{tag}@example.invalid", PasswordHash = "synthetic", DisplayName = "Synthetic User", UserType = UserType.FamilyUser };
+        var family = new Family { Name = "Synthetic Family", CreatedByUser = user };
+        var member = new Member { Family = family, User = user, DisplayName = "Synthetic Member", DateOfBirth = new DateOnly(1990, 1, 1), Role = FamilyRole.Head };
+        var report = new LabReport { Member = member, OriginalFileName = $"{tag}.png", StoredFileName = "db:synthetic.png", ContentType = "image/png", SizeBytes = 100, OcrStatus = OcrStatus.Pending };
+        db.AddRange(user, family, member, report);
+        await db.SaveChangesAsync();
+        return (db, user, report);
+    }
+
+    private sealed class SlowExtractionAgent(Action onStart, TimeSpan delay) : IAgent
+    {
+        public AgentKind Kind => AgentKind.Extraction;
+        public bool SawCancellation { get; private set; }
+
+        public async Task<AgentRunResult> RunAsync(AgentRunContext context, CancellationToken cancellationToken)
+        {
+            onStart();
+            try { await Task.Delay(delay, cancellationToken); }
+            catch (OperationCanceledException) { SawCancellation = true; throw; }
+            return new AgentRunResult(Kind, "{\"valuesExtracted\":1,\"flagsExtracted\":0}", 1m, [], [], [], true);
+        }
+    }
+
     private sealed class StubExtractionAgent : IAgent
     {
         public AgentKind Kind => AgentKind.Extraction;

@@ -16,6 +16,13 @@ public sealed class LabExtractionParserTests
         LabExtractionService.ParseValues(text).Should().BeEmpty();
     }
 
+    [Fact]
+    public void ParseValues_ReadsDemoLabColonPipeFormat()
+    {
+        LabExtractionService.ParseValues("Synthetic demo lab\nGlucose: 92 mg/dL | 70-99").Should().ContainSingle()
+            .Which.Should().Be(new LabExtractionService.ParsedLabValue("Glucose", 92m, "mg/dL", 70m, 99m));
+    }
+
     private const string TableHeader = "Test\nResult\nPrevious Result\nDate\nUnits\nRef Interval";
 
     [Fact]

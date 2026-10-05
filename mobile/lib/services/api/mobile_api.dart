@@ -50,6 +50,12 @@ abstract interface class MobileApi {
   });
 }
 
+// OCR runs server-side for up to 120 s (Ocr:TimeoutSeconds); the 30 s default cut reads off.
+final Options _ocrExtractOptions = Options(
+  receiveTimeout: const Duration(minutes: 3),
+  sendTimeout: const Duration(minutes: 3),
+);
+
 class DioMobileApi implements MobileApi {
   const DioMobileApi(this._client);
 
@@ -137,7 +143,7 @@ class DioMobileApi implements MobileApi {
       }
     }
     try {
-      await _client.dio.post<void>('/lab-reports/$reportId/extract');
+      await _client.dio.post<void>('/lab-reports/$reportId/extract', options: _ocrExtractOptions);
     } on DioException catch (error) {
       // 422 carries the backend's own reason, e.g. the 4-page limit; it is safe to show as-is.
       final data = error.response?.data;
@@ -197,7 +203,7 @@ class DioMobileApi implements MobileApi {
 
   @override
   Future<void> extractLabReport(String reportId) async {
-    await _client.dio.post<void>('/lab-reports/$reportId/extract');
+    await _client.dio.post<void>('/lab-reports/$reportId/extract', options: _ocrExtractOptions);
   }
 
   @override
