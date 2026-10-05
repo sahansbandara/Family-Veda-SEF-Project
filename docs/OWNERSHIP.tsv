@@ -18,9 +18,13 @@
 # CI/testing lead · tool-permission enforcement layer
 SHARED:S1	backend/src/Api/Program.cs
 S1	backend/src/Api/Controllers/ApiControllerBase.cs
-S1	backend/src/Api/Controllers/AuthController.cs
-S1	backend/src/Api/Controllers/FamiliesController.cs
-S1	backend/src/Api/Controllers/MembersController.cs
+S1	backend/src/Api/Controllers/Component1_Family/AuthController.cs
+S1	backend/src/Api/Controllers/Component1_Family/FamiliesController.cs
+S1	backend/src/Api/Controllers/Component1_Family/MembersController.cs
+S1	backend/src/Api/Controllers/Component1_Family/FamilyHeadTransfersController.cs
+S1	backend/src/Api/Controllers/Component1_Family/FamilyLifecycleController.cs
+S1	backend/src/Api/Controllers/Component1_Family/JoinRequestsController.cs
+S1	backend/src/Api/Controllers/Component1_Family/ProfileController.cs
 S1	backend/src/Api/Middleware/ExceptionMiddleware.cs
 S1	backend/src/Api/Security/HttpCurrentUser.cs
 S1	backend/src/Api/FamilyVeda.Api.csproj
@@ -28,31 +32,31 @@ S1	backend/src/Api/FamilyVeda.Api.http
 # JSON files carry no comment syntax — ownership lives in this manifest and CODEOWNERS only
 S1	backend/src/Api/appsettings.json
 S1	backend/src/Api/Properties/launchSettings.json
-S1	backend/src/Application/Auth/AuthContracts.cs
+S1	backend/src/Application/Component1_Family/Auth/AuthContracts.cs
 S1	backend/src/Application/Common/ICurrentUser.cs
 S1	backend/src/Application/Common/PagedResult.cs
-S1	backend/src/Application/Families/FamilyContracts.cs
+S1	backend/src/Application/Component1_Family/Families/FamilyContracts.cs
 S1	.env.example
 S1	web/index.html
 S1	web/package-lock.json
 S1	mobile/analysis_options.yaml
 S1	mobile/android/gradle.properties
 S1	mobile/test/screens/login_screen_test.dart
-S1	backend/src/Application/Validation/RequestValidators.cs
+S1	backend/src/Application/Component1_Family/Validation/RequestValidators.cs
 S1	backend/src/Application/FamilyVeda.Application.csproj
 S1	backend/src/Application/Agents/ToolRegistry.cs
 S1	backend/src/Domain/Common/Entity.cs
 S1	backend/src/Domain/Common/Enums.cs
-S1	backend/src/Domain/Consent/ConsentStateMachine.cs
-S1	backend/src/Domain/Identity/IdentityEntities.cs
+S1	backend/src/Domain/Component1_Family/Consent/ConsentStateMachine.cs
+S1	backend/src/Domain/Component1_Family/Identity/IdentityEntities.cs
 S1	backend/src/Domain/FamilyVeda.Domain.csproj
-S1	backend/src/Infrastructure/Auth/AuthService.cs
-S1	backend/src/Infrastructure/Auth/JwtOptions.cs
-S1	backend/src/Infrastructure/Families/FamilyService.cs
+S1	backend/src/Infrastructure/Component1_Family/Auth/AuthService.cs
+S1	backend/src/Infrastructure/Component1_Family/Auth/JwtOptions.cs
+S1	backend/src/Infrastructure/Component1_Family/Families/FamilyService.cs
 SHARED:S1	backend/src/Infrastructure/DependencyInjection.cs
 S1	backend/src/Infrastructure/FamilyVeda.Infrastructure.csproj
 SHARED:S1	.github/workflows/ci.yml
-S1	backend/src/Infrastructure/Agents/ToolDispatcher.cs
+S1	backend/src/Infrastructure/Agents/Component1_Family/ToolDispatcher.cs
 SHARED:S1	backend/src/Infrastructure/Persistence/AppDbContext.cs
 S1	backend/src/Infrastructure/Persistence/AppDbContextFactory.cs
 SHARED:S1	backend/src/Infrastructure/Persistence/DatabaseInitializer.cs
@@ -106,13 +110,13 @@ S1	mobile/test/services/secure_storage_test.dart
 
 # ── S2 · IT24101875 · Fernando K.R.N · Health Records & Extraction ──
 # OCR pipeline · Extraction Agent
-S2	backend/src/Api/Controllers/RecordsController.cs
-S2	backend/src/Application/Records/RecordContracts.cs
-S2	backend/src/Domain/Records/RecordEntities.cs
-S2	backend/src/Infrastructure/Records/RecordService.cs
-S2	backend/src/Infrastructure/Records/LabExtractionService.cs
-S2	backend/src/Infrastructure/Records/TesseractOcrService.cs
-S2	backend/src/Infrastructure/Agents/ExtractionAgent.cs
+S2	backend/src/Api/Controllers/Component2_Records/RecordsController.cs
+S2	backend/src/Application/Component2_Records/Records/RecordContracts.cs
+S2	backend/src/Domain/Component2_Records/Records/RecordEntities.cs
+S2	backend/src/Infrastructure/Component2_Records/Records/RecordService.cs
+S2	backend/src/Infrastructure/Component2_Records/Records/LabExtractionService.cs
+S2	backend/src/Infrastructure/Component2_Records/Records/TesseractOcrService.cs
+S2	backend/src/Infrastructure/Agents/Component2_Records/ExtractionAgent.cs
 S2	backend/src/Infrastructure/Persistence/Configurations/RecordConfigurations.cs
 S2	backend/tests/UnitTests/LabExtractionParserTests.cs
 S2	backend/tests/UnitTests/LabExtractionSafetyTests.cs
@@ -134,22 +138,25 @@ S2	mobile/test/screens/records_screen_test.dart
 # ── S3 · IT24100551 · Karunathilaka K.D.J.C (Group Leader) · Triage & Orchestration ──
 # notifications · Coordinator + Context + Analysis Agents
 SHARED:S3	backend/src/Application/Agents/AgentContracts.cs
-S3	backend/src/Api/Controllers/TriageController.cs
+S3	backend/src/Api/Controllers/Component3_Triage/TriageController.cs
+S3	backend/src/Api/Controllers/Component3_Triage/NotificationsController.cs
+S3	backend/src/Api/Controllers/Component3_Triage/DashboardController.cs
 S3	backend/src/Api/Background/TriageWorker.cs
 S3	backend/src/Api/Background/CaseSlaWorker.cs
-S3	backend/src/Application/Triage/TriageContracts.cs
-S3	backend/src/Domain/Triage/TriageEntities.cs
-S3	backend/src/Infrastructure/Agents/ContextAgent.cs
-S3	backend/src/Infrastructure/Agents/AnalysisAgent.cs
-S3	backend/src/Infrastructure/Agents/ChatCompletionsLlmClient.cs
-S3	backend/src/Infrastructure/Agents/GeminiClient.cs
+S3	backend/src/Application/Component3_Triage/Triage/TriageContracts.cs
+S3	backend/src/Domain/Component3_Triage/Triage/TriageEntities.cs
+S3	backend/src/Infrastructure/Agents/Component3_Triage/ContextAgent.cs
+S3	backend/src/Infrastructure/Agents/Component3_Triage/AnalysisAgent.cs
+S3	backend/src/Infrastructure/Agents/Component3_Triage/ChatCompletionsLlmClient.cs
+S3	backend/src/Infrastructure/Agents/Component3_Triage/GeminiClient.cs
+S3	backend/src/Infrastructure/Agents/Component3_Triage/LlmFallbackClient.cs
 S3	mobile/test/screens/home_screen_test.dart
-S3	backend/src/Infrastructure/Triage/TriageOrchestrator.cs
-S3	backend/src/Infrastructure/Triage/TriageService.cs
-S3	backend/src/Infrastructure/Triage/TriageWorkQueue.cs
-S3	backend/src/Infrastructure/Triage/CaseSlaProcessor.cs
-S3	backend/src/Infrastructure/Triage/NotificationService.cs
-S3	backend/src/Infrastructure/Triage/FcmPushNotificationClient.cs
+S3	backend/src/Infrastructure/Component3_Triage/Triage/TriageOrchestrator.cs
+S3	backend/src/Infrastructure/Component3_Triage/Triage/TriageService.cs
+S3	backend/src/Infrastructure/Component3_Triage/Triage/TriageWorkQueue.cs
+S3	backend/src/Infrastructure/Component3_Triage/Triage/CaseSlaProcessor.cs
+S3	backend/src/Infrastructure/Component3_Triage/Triage/NotificationService.cs
+S3	backend/src/Infrastructure/Component3_Triage/Triage/FcmPushNotificationClient.cs
 S3	backend/src/Infrastructure/Persistence/Configurations/TriageConfigurations.cs
 S3	backend/tests/UnitTests/TriageOrchestratorSchemaTests.cs
 S3	backend/tests/UnitTests/TriageOrchestratorEmergencyTests.cs
@@ -198,15 +205,18 @@ S3	mobile/test/screens/async_state_views_test.dart
 
 # ── S4 · IT24100559 · W.M.S.S.B. Wasala · Familial Risk & Clinical Approval ──
 # Deterministic rule tables · Familial Risk + Safety Agents
-S4	backend/src/Api/Controllers/ClinicalController.cs
-S4	backend/src/Application/Clinical/ClinicalContracts.cs
-S4	backend/src/Domain/Access/CaseGrantPolicy.cs
-S4	backend/src/Domain/Clinical/ClinicalEntities.cs
-S4	backend/src/Domain/FamilialRisk/FamilialRiskPolicy.cs
-S4	backend/src/Domain/Safety/ClinicalRuleTables.cs
-S4	backend/src/Domain/Safety/SafetyValidationService.cs
-S4	backend/src/Infrastructure/Clinical/ClinicalService.cs
-S4	backend/src/Infrastructure/Agents/FamilialRiskAgent.cs
+S4	backend/src/Api/Controllers/Component4_Clinical/ClinicalController.cs
+S4	backend/src/Api/Controllers/Component4_Clinical/AppointmentsController.cs
+S4	backend/src/Api/Controllers/Component4_Clinical/DoctorWorkspaceController.cs
+S4	backend/src/Api/Controllers/Component4_Clinical/FamilyDoctorController.cs
+S4	backend/src/Application/Component4_Clinical/Clinical/ClinicalContracts.cs
+S4	backend/src/Domain/Component4_Clinical/Access/CaseGrantPolicy.cs
+S4	backend/src/Domain/Component4_Clinical/Clinical/ClinicalEntities.cs
+S4	backend/src/Domain/Component4_Clinical/FamilialRisk/FamilialRiskPolicy.cs
+S4	backend/src/Domain/Component4_Clinical/Safety/ClinicalRuleTables.cs
+S4	backend/src/Domain/Component4_Clinical/Safety/SafetyValidationService.cs
+S4	backend/src/Infrastructure/Component4_Clinical/Clinical/ClinicalService.cs
+S4	backend/src/Infrastructure/Agents/Component4_Clinical/FamilialRiskAgent.cs
 S4	backend/src/Infrastructure/Persistence/Configurations/ClinicalConfigurations.cs
 S4	backend/tests/UnitTests/CaseGrantPolicyTests.cs
 S4	backend/tests/UnitTests/ClinicalCasePoolPrivacyTests.cs
@@ -279,7 +289,7 @@ S4	mobile/test/screens/emergency_screen_test.dart
 ALL	backend/src/Infrastructure/Persistence/Migrations
 S4	.github/workflows/codeql.yml
 S4	.github/dependabot.yml
-S4	backend/src/Domain/Records/LabRangeClassifier.cs
+S4	backend/src/Domain/Component2_Records/Records/LabRangeClassifier.cs
 S4	backend/tests/UnitTests/LabRangeClassifierTests.cs
 S4	backend/tests/UnitTests/AdultPrivacyAuthorizationTests.cs
 S4	web/src/pages/triage/FamilyCaseProgress.tsx
