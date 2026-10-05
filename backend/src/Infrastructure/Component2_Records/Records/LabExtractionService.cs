@@ -114,7 +114,21 @@ public sealed partial class LabExtractionService(AppDbContext dbContext, ICurren
         }
     }
 
-    public static IReadOnlyList<ParsedLabValue> ParseValues(string text)
+    // A wrong value is worse than a missing one: OCR noise is trimmed from units and rows that still look like junk are dropped.
+    public static IReadOnlyList<ParsedLabValue> ParseValues(string text) => ParseValuesCore(text)
+        .Select(value => value with { Unit = CleanUnit(value.Unit) })
+        .Where(IsPlausibleRow)
+        .ToList();
+
+    // Trailing OCR debris after a unit: "mL/min/1.73m2_", "g/dL.", "kU/L|".
+    public static string CleanUnit(string unit) => unit.TrimEnd('_', '|', '.', ',', ';', ':', '—', '-', '–', '\'', '"', '`');
+
+    private static bool IsPlausibleRow(ParsedLabValue value) =>
+        value.Analyte.Count(char.IsLetter) >= 2 && value.Analyte.Length <= 120 &&
+        !StrayNumberInAnalyte().IsMatch(value.Analyte) && !AnalyteFragment().IsMatch(value.Analyte) &&
+        (value.Unit.Length >= 2 || value.Unit is "%" or "L") && value.Unit.Any(c => char.IsLetter(c) || c is '%' or 'µ');
+
+    private static List<ParsedLabValue> ParseValuesCore(string text)
     {
         var values = text.Split('\n')
             .Select(line => LabValueLine().Match(line.Trim())).Where(match => match.Success && !DateInAnalyte().IsMatch(match.Groups["name"].Value) &&
@@ -162,6 +176,17 @@ public sealed partial class LabExtractionService(AppDbContext dbContext, ICurren
         // Column-aligned layout (PDF text layer, most local lab formats): cells are separated by two or more spaces.
         // Header wording varies per laboratory, so rows are matched by shape and analytes found above are not repeated.
         var seen = values.Select(x => x.Analyte).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // Stacked layout: analyte alone on one line, "11.2 g/dL L 13.5 - 17.5 TB" (value unit [flag] range [site]) on the next.
+        for (var index = 0; index + 1 < lines.Count && values.Count < 200; index++)
+        {
+            if (TryParseStackedRow(lines[index], lines[index + 1], out var value) && seen.Add(value.Analyte))
+            {
+                values.Add(value);
+                index++;
+            }
+        }
+
         foreach (var line in text.Split('\n'))
         {
             if (values.Count >= 200) break;
@@ -169,6 +194,35 @@ public sealed partial class LabExtractionService(AppDbContext dbContext, ICurren
         }
         return values;
     }
+
+    private static bool TryParseStackedRow(string nameLine, string valueLine, out ParsedLabValue value)
+    {
+        value = default!;
+        var name = StackedName().Match(nameLine.TrimEnd(StackedLineDebris));
+        var row = StackedValue().Match(valueLine.TrimEnd(StackedLineDebris));
+        if (!name.Success || !row.Success || NonAnalyteLabel().IsMatch(name.Value) || QuestionnaireRow().IsMatch(name.Value) ||
+            StackedHeaderWord().IsMatch(name.Value) || (row.Groups["unit"].Value != "%" && row.Groups["unit"].Value.Count(char.IsLetter) < 2) ||
+            !TryParseInvariantDecimal(row.Groups["value"].Value, out var current)) return false;
+
+        // The value line must carry a range-like remainder; a garbled range ("13:5-175") is dropped, never guessed.
+        decimal? low = null;
+        decimal? high = null;
+        var range = StackedRange().Match(row.Groups["rest"].Value);
+        if (range.Success && TryParseInvariantDecimal(range.Groups["low"].Value, out var parsedLow) &&
+            TryParseInvariantDecimal(range.Groups["high"].Value, out var parsedHigh) && parsedLow <= parsedHigh &&
+            DecimalPlaces(range.Groups["low"].Value) == DecimalPlaces(range.Groups["high"].Value))
+        {
+            low = parsedLow;
+            high = parsedHigh;
+        }
+        value = new ParsedLabValue(name.Value.Trim(), current, row.Groups["unit"].Value, low, high);
+        return true;
+    }
+
+    // Table borders that OCR leaves at the end of a line ("MCV /", "29.5 pg 27.0 - 33.0 TB |").
+    private static readonly char[] StackedLineDebris = ['|', '/', '\\', ';', ':', '_', ' '];
+
+    private static int DecimalPlaces(string number) => number.Contains('.') ? number.Length - number.IndexOf('.') - 1 : 0;
 
     private static bool TryParseLayoutRow(string line, out ParsedLabValue value)
     {
@@ -324,6 +378,23 @@ public sealed partial class LabExtractionService(AppDbContext dbContext, ICurren
     private static partial Regex ThousandsSeparator();
     [GeneratedRegex(@"(?<=\b\d{1,4}),(?=\d{1,2}\b)", RegexOptions.CultureInvariant)]
     private static partial Regex DecimalComma();
+    // Short analyte name or abbreviation alone on its line ("HGB", "Free T4").
+    [GeneratedRegex(@"^[A-Za-z][A-Za-z0-9 ()/,.-]{1,40}$", RegexOptions.CultureInvariant)]
+    private static partial Regex StackedName();
+    // Value starts the line and is separated from its unit ("7A0" is a misread "7.0", not 7 "A0"). Power-of-ten units
+    // ("x10°/uL": 10^3 or 10^6?) are too fragile under OCR, so those rows are dropped rather than guessed.
+    [GeneratedRegex(@"^(?<value>\d+(?:\.\d+)?)(?:\s*(?<unit>%)|\s+(?<unit>(?![xX]\d)[A-Za-zµ][A-Za-z0-9µ/.*^]{0,19}))(?:\s+[HL])?\s+(?<rest>\S*\d.*)$", RegexOptions.CultureInvariant)]
+    private static partial Regex StackedValue();
+    [GeneratedRegex(@"^(?<low>\d+(?:\.\d+)?)\s*[-–]\s*(?<high>\d+(?:\.\d+)?)(?:\s+[A-Z]{1,4})?$", RegexOptions.CultureInvariant)]
+    private static partial Regex StackedRange();
+    [GeneratedRegex(@"^(?:Test|Result|Results|Flag|Reference|Range|Site|Units?|Interval|Previous|Status|Final|Comments?)\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex StackedHeaderWord();
+    // A bare number inside the name ("Serum - 0, 17658") means OCR split the real value off: the row is not trustworthy.
+    [GeneratedRegex(@"(?:^|\s)[-+]?\d[\d.,]*(?:\s|$)", RegexOptions.CultureInvariant)]
+    private static partial Regex StrayNumberInAnalyte();
+    // Wrapped continuation lines ("Automated count", "in Blood by ...") are not analyte names on their own.
+    [GeneratedRegex(@"^(?:Automated count|by|in|of|per|and|or)\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex AnalyteFragment();
     [GeneratedRegex(@"^HEREDITARY_FLAG\s*:\s*(?<code>[A-Za-z0-9_-]{2,40})\s*\|\s*(?<finding>[^|]{3,200})\s*\|\s*(?<confidence>0(?:\.\d+)?|1(?:\.0+)?)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex FlagLine();
 

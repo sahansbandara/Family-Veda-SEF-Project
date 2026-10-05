@@ -40,6 +40,23 @@ public sealed partial class TesseractOcrService(IConfiguration configuration) : 
                 }
             }
 
+            // Last resort for dim, noisy or low-resolution scans: upscale, stretch contrast and binarise, then read once more as a single block
+            // (keeps "name / value" stacked rows in order).
+            // Runs only after every cheaper pass failed, so clean reports pay nothing extra (one convert + one Tesseract run).
+            var enhancedPath = await TryConvertAsync(filePath, "enhance", EnhanceArguments, cancellationToken);
+            if (enhancedPath is not null)
+            {
+                try
+                {
+                    var enhancedText = LimitText(await RunTesseractAsync(enhancedPath, pageSegmentationMode: "6", cancellationToken));
+                    if (HasStructuredValues(enhancedText)) return enhancedText!;
+                }
+                finally
+                {
+                    File.Delete(enhancedPath);
+                }
+            }
+
             return text ?? throw new ProcessingException("OCR could not read this report. Use manual entry instead.", OcrFailureCodes.Unreadable);
         }
         finally
@@ -86,7 +103,15 @@ public sealed partial class TesseractOcrService(IConfiguration configuration) : 
         return output;
     }
 
-    private async Task<string?> TryDeskewAsync(string filePath, CancellationToken cancellationToken)
+    // Benchmarked on the synthetic test set: recovers faint/tilted stacked tables without adding junk rows.
+    private static readonly string[] EnhanceArguments = ["-colorspace", "Gray", "-resize", "200%", "-contrast-stretch", "2%x60%", "-threshold", "65%"];
+
+    private static readonly string[] DeskewArguments = ["-background", "white", "-deskew", "40%", "+repage"];
+
+    private Task<string?> TryDeskewAsync(string filePath, CancellationToken cancellationToken) =>
+        TryConvertAsync(filePath, "deskew", DeskewArguments, cancellationToken);
+
+    private async Task<string?> TryConvertAsync(string filePath, string purpose, string[] operations, CancellationToken cancellationToken)
     {
         var command = configuration["Ocr:DeskewCommand"];
         // An explicit coder prefix stops ImageMagick from choosing a decoder based on file content.
@@ -98,10 +123,11 @@ public sealed partial class TesseractOcrService(IConfiguration configuration) : 
         };
         if (string.IsNullOrWhiteSpace(command) || coder is null) return null;
 
-        var outputPath = Path.Combine(Path.GetTempPath(), $"fv-ocr-deskew-{Guid.NewGuid():N}.png");
+        var outputPath = Path.Combine(Path.GetTempPath(), $"fv-ocr-{purpose}-{Guid.NewGuid():N}.png");
         var startInfo = NewProcess(command);
-        foreach (var argument in new[] { $"{coder}:{filePath}", "-background", "white", "-deskew", "40%", "+repage", $"png:{outputPath}" })
-            startInfo.ArgumentList.Add(argument);
+        startInfo.ArgumentList.Add($"{coder}:{filePath}");
+        foreach (var argument in operations) startInfo.ArgumentList.Add(argument);
+        startInfo.ArgumentList.Add($"png:{outputPath}");
         try
         {
             using var process = Process.Start(startInfo);
@@ -111,7 +137,7 @@ public sealed partial class TesseractOcrService(IConfiguration configuration) : 
         }
         catch (System.ComponentModel.Win32Exception)
         {
-            // Deskew tool is not installed: straightening is optional, the first OCR pass still stands.
+            // Image tool is not installed: straightening/enhancing is optional, the first OCR pass still stands.
         }
         File.Delete(outputPath);
         return null;
