@@ -133,6 +133,7 @@ builder.Services.AddHostedService<CaseSlaWorker>();
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
+app.UseMiddleware<RequestHardeningMiddleware>();
 // Swagger is served in every environment by default so the evaluator can reach /swagger on the
 // deployed API (SE3090 §14). It documents endpoints only; every endpoint still enforces JWT auth.
 if (app.Configuration.GetValue("Swagger:Enabled", true))
