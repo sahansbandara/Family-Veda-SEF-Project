@@ -5,7 +5,7 @@ import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 
 GlobalWorkerOptions.workerSrc = workerUrl
 
-export function PdfReportCanvas({ url, label, thumbnail = false }: { url: string; label: string; thumbnail?: boolean }) {
+export function PdfReportCanvas({ url, label, thumbnail = false, zoom = 1, rotation = 0 }: { url: string; label: string; thumbnail?: boolean; zoom?: number; rotation?: number }) {
   const canvas = useRef<HTMLCanvasElement>(null)
   const container = useRef<HTMLDivElement>(null)
   const [pdf, setPdf] = useState<PDFDocumentProxy | null>(null)
@@ -36,17 +36,20 @@ export function PdfReportCanvas({ url, label, thumbnail = false }: { url: string
     setState('loading')
     void pdf.getPage(page).then(async (documentPage) => {
       if (!active || !canvas.current) return
-      const base = documentPage.getViewport({ scale: 1 })
+      const base = documentPage.getViewport({ scale: 1, rotation: documentPage.rotate + rotation })
       const ratio = Math.min(window.devicePixelRatio || 1, 2)
-      const viewport = documentPage.getViewport({ scale: Math.min(width / base.width, thumbnail ? 0.8 : 2) * ratio })
+      const scale = Math.min(width / base.width, thumbnail ? 0.8 : 2) * zoom
+      const viewport = documentPage.getViewport({ scale: scale * ratio, rotation: documentPage.rotate + rotation })
       const element = canvas.current
       element.width = viewport.width; element.height = viewport.height
+      element.style.width = `${viewport.width / ratio}px`
+      element.style.height = `${viewport.height / ratio}px`
       rendering = documentPage.render({ canvas: element, viewport })
       await rendering.promise
       if (active) setState('ready')
     }).catch(() => { if (active) setState('error') })
     return () => { active = false; rendering?.cancel() }
-  }, [pdf, page, width, thumbnail])
+  }, [pdf, page, width, thumbnail, zoom, rotation])
   return <div ref={container} className={thumbnail ? 'pdf-canvas pdf-canvas--thumbnail' : 'pdf-canvas'}>
     {state === 'loading' && <span role="status">Loading PDF preview…</span>}
     {state === 'error' && <span role="status">Preview unavailable. Open or download the report to view it.</span>}

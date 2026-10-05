@@ -22,7 +22,7 @@ import {
 import { ManualRecordsPanel, type QuickRecord } from './ManualRecordsPanel'
 import { RecordIcon, type RecordIconName } from './recordIcons'
 import { formatRecordSummary } from './recordSummaryMeta'
-import { ReportDetail } from './ReportDetail'
+import { ReportReviewDialog } from '../../components/records/ReportReviewDialog'
 import { type NewVital, VitalsPanel } from './VitalsPanel'
 
 const RECORDS_PAGE_SIZE = 20
@@ -57,6 +57,10 @@ export function RecordsPage() {
   const [vitals, setVitals] = useState<VitalDto[]>([])
   const [originalReport, setOriginalReport] = useState<LabReportDto | null>(null)
   const [selectedReport, setSelectedReport] = useState<LabReportDetailDto | null>(null)
+  const [reviewTarget, setReviewTarget] = useState<LabReportDto | null>(null)
+  const [reviewLoading, setReviewLoading] = useState(false)
+  const [reviewError, setReviewError] = useState('')
+  const reviewSequence = useRef(0)
   const [reportToDelete, setReportToDelete] = useState<LabReportDto | null>(null)
   const [deletingReport, setDeletingReport] = useState(false)
   const [trashVersion, setTrashVersion] = useState(0)
@@ -200,6 +204,7 @@ export function RecordsPage() {
     setTotalCount(0)
     setPendingFile(null)
     setOriginalReport(null)
+    closeReview()
     setSelectedReport(null)
     activeReportId.current = ''
     setEditingRecord(null)
@@ -385,22 +390,55 @@ export function RecordsPage() {
   }
 
   async function openReport(reportId: string) {
+    const target = reports.find((item) => item.id === reportId)
+    if (!target) return
+    const request = ++reviewSequence.current
     const targetMemberId = memberId
     activeReportId.current = reportId
+    setReviewTarget(target)
+    setReviewLoading(true)
+    setReviewError('')
+    setSelectedReport(null)
     try {
       const { data } = await apiClient.get<LabReportDetailDto>(`/lab-reports/${reportId}`)
-      if (activeMemberId.current !== targetMemberId || activeReportId.current !== reportId) return
+      if (request !== reviewSequence.current || activeMemberId.current !== targetMemberId || activeReportId.current !== reportId) return
+      if (data.memberId !== targetMemberId || data.id !== reportId) throw new Error('Report context changed')
       setSelectedReport(data)
-      setMessage('Compare extracted values with the original report before confirming them.')
     } catch {
-      if (activeMemberId.current === targetMemberId && activeReportId.current === reportId)
-        setMessage('Extracted report details could not be loaded.')
+      if (request === reviewSequence.current && activeMemberId.current === targetMemberId && activeReportId.current === reportId)
+        setReviewError('Extracted report details could not be loaded.')
+    } finally {
+      if (request === reviewSequence.current) setReviewLoading(false)
     }
   }
 
-  async function confirmReport(event: FormEvent<HTMLFormElement>) {
+  function closeReview() {
+    reviewSequence.current += 1
+    activeReportId.current = ''
+    setReviewTarget(null)
+    setReviewLoading(false)
+    setReviewError('')
+  }
+
+  async function retryExtraction(): Promise<boolean> {
+    if (!reviewTarget) return false
+    const targetReportId = reviewTarget.id
+    const targetMemberId = memberId
+    const request = reviewSequence.current
+    try {
+      await apiClient.post(`/lab-reports/${targetReportId}/extract`)
+      if (request !== reviewSequence.current || activeReportId.current !== targetReportId || activeMemberId.current !== targetMemberId) return false
+      const { data } = await apiClient.get<LabReportDetailDto>(`/lab-reports/${targetReportId}`)
+      if (request !== reviewSequence.current || activeReportId.current !== targetReportId || activeMemberId.current !== targetMemberId || data.id !== targetReportId || data.memberId !== targetMemberId) return false
+      setSelectedReport(data)
+      await loadRecords()
+      return data.ocrStatus !== 'Failed'
+    } catch { return false }
+  }
+
+  async function confirmReport(event: FormEvent<HTMLFormElement>): Promise<boolean> {
     event.preventDefault()
-    if (!selectedReport) return
+    if (!selectedReport) return false
     const targetMemberId = memberId
     const targetReportId = selectedReport.id
     const form = new FormData(event.currentTarget)
@@ -425,13 +463,13 @@ export function RecordsPage() {
         activeReportId.current !== targetReportId ||
         data.memberId !== targetMemberId
       )
-        return
+        return false
       setSelectedReport(data)
       setMessage('Confirmed values saved. Range status uses only the printed reference range.')
       await loadRecords()
+      return true
     } catch {
-      if (activeMemberId.current === targetMemberId && activeReportId.current === targetReportId)
-        setMessage('Confirmed values could not be saved. Retry.')
+      return false
     }
   }
 
@@ -512,7 +550,13 @@ export function RecordsPage() {
 
   return (
     <div className="page-stack care-workspace health-records">
-      {originalReport?.memberId === memberId && <ReportPreviewDialog report={originalReport} onClose={() => setOriginalReport(null)} />}
+      {originalReport?.memberId === memberId && <ReportPreviewDialog report={originalReport} onClose={() => setOriginalReport(null)}
+        onReview={() => { const id = originalReport.id; setOriginalReport(null); void openReport(id) }}
+        onDelete={isSharedView ? undefined : () => { setReportToDelete(originalReport); setOriginalReport(null) }} />}
+      {reviewTarget && reviewTarget.memberId === memberId && <ReportReviewDialog key={reviewTarget.id} title={reviewTarget.originalFileName}
+        report={selectedReport?.id === reviewTarget.id && selectedReport.memberId === memberId ? selectedReport : null}
+        hasOriginalFile={reviewTarget.hasOriginalFile === true} loading={reviewLoading} error={reviewError}
+        onClose={closeReview} onRetry={() => void openReport(reviewTarget.id)} onSubmit={confirmReport} onExtract={retryExtraction} />}
       <header className="care-header">
         <div>
           <p className="care-eyebrow">{isHead ? 'Family health records' : 'Your health records'}</p>
@@ -737,82 +781,7 @@ export function RecordsPage() {
                   </div>
                 </RecordDialog>}
               </div>
-              <section className="care-panel care-detail" aria-live="polite" hidden={!selectedReport}>
-                {selectedReport?.memberId !== memberId ? (
-                  <div className="care-selection-card care-selection-card--placeholder">
-                    <div className="care-placeholder-hero">
-                      <div className="care-placeholder-badge">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="care-placeholder-icon">
-                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                          <polyline points="14 2 14 8 20 8"></polyline>
-                          <line x1="16" y1="13" x2="8" y2="13"></line>
-                          <line x1="16" y1="17" x2="8" y2="17"></line>
-                          <polyline points="10 9 9 9 8 9"></polyline>
-                        </svg>
-                        <span>{isSharedView ? 'SHARED CLINICAL VAULT' : 'LAB EXTRACTION STUDIO'}</span>
-                      </div>
-                      <p className="care-eyebrow">
-                        {isSharedView ? 'Shared report library' : 'Choose a report'}
-                      </p>
-                      <h2>{isSharedView ? 'Shared reports' : 'Check extracted values'}</h2>
-                      <p className="care-muted">
-                        {isSharedView
-                          ? 'View the original image of reports shared with you.'
-                          : 'Select a report to compare extracted values with its original image.'}
-                      </p>
-                    </div>
 
-                    <div className="care-workflow-steps">
-                      <div className="care-workflow-step">
-                        <span className="step-num">1</span>
-                        <div>
-                          <strong>Select or Upload</strong>
-                          <p>Choose an authorized report or upload a new PNG, JPEG, or PDF lab document.</p>
-                        </div>
-                      </div>
-                      <div className="care-workflow-step">
-                        <span className="step-num">2</span>
-                        <div>
-                          <strong>Verify Extracted Analytes</strong>
-                          <p>Side-by-side verification of test values against reference ranges from the original lab slip.</p>
-                        </div>
-                      </div>
-                      <div className="care-workflow-step">
-                        <span className="step-num">3</span>
-                        <div>
-                          <strong>Confirm & Track</strong>
-                          <p>Confirmed records populate your unified family health timeline with tamper-evident audit protection.</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="care-placeholder-footer">
-                      <div className="care-safety-tip">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                        </svg>
-                        <span>Safety Notice: Extracted lab values reflect recorded laboratory parameters and are for patient-doctor review, not automated diagnosis.</span>
-                      </div>
-                      {!isSharedView && (
-                        <button
-                          type="button"
-                          className="button button--primary"
-                          onClick={() => setShowUploadForm(true)}
-                        >
-                          Upload New Report
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <ReportDetail
-                    key={selectedReport.id}
-                    report={selectedReport}
-                    hasOriginalFile={reports.find((report) => report.id === selectedReport.id)?.hasOriginalFile === true}
-                    onSubmit={confirmReport}
-                  />
-                )}
-              </section>
             </section>
           )}
           {activeTab === 'records' && (

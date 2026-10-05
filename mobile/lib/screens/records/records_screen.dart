@@ -11,6 +11,7 @@ import 'package:family_veda/models/lab_report.dart';
 import 'package:family_veda/services/api/report_trash_api.dart';
 import 'package:family_veda/widgets/records/deleted_reports_section.dart';
 import 'package:family_veda/widgets/records/original_report_preview.dart';
+import 'package:family_veda/widgets/records/report_review_workspace.dart';
 import 'package:family_veda/widgets/records/records_visuals.dart';
 import 'package:family_veda/widgets/records/report_library_card.dart';
 import 'package:family_veda/widgets/records/vitals_tab.dart';
@@ -442,7 +443,7 @@ class _LabReportsTabState extends ConsumerState<_LabReportsTab> {
     ref.invalidate(labReportsByMemberProvider);
   }
 
-  Future<void> _delete(LabReport report, String memberId) async {
+  Future<bool> _delete(LabReport report, String memberId) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -462,7 +463,7 @@ class _LabReportsTabState extends ConsumerState<_LabReportsTab> {
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
+    if (confirmed != true || !mounted) return false;
     final messenger = ScaffoldMessenger.of(context);
     try {
       await ref.read(reportTrashApiProvider).deleteReport(report.id);
@@ -471,12 +472,14 @@ class _LabReportsTabState extends ConsumerState<_LabReportsTab> {
           content: Text('${report.fileName} moved to Recently deleted.'),
         ),
       );
+      return true;
     } on Object {
       messenger.showSnackBar(
         const SnackBar(
           content: Text('The report could not be deleted. Retry.'),
         ),
       );
+      return false;
     } finally {
       _reloadReports();
       ref.invalidate(deletedLabReportsProvider(memberId));
@@ -492,6 +495,9 @@ class _LabReportsTabState extends ConsumerState<_LabReportsTab> {
           _previewRoute = ModalRoute.of(dialogContext);
           return OriginalReportPreviewDialog(
             fileName: report.fileName,
+            onDelete: widget.canManage && memberId != null
+                ? () => _delete(report, memberId)
+                : null,
             load: () async {
               final bytes = await ref
                   .read(mobileApiProvider)
@@ -503,6 +509,58 @@ class _LabReportsTabState extends ConsumerState<_LabReportsTab> {
               }
               return bytes;
             },
+          );
+        },
+      );
+    } finally {
+      _previewRoute = null;
+    }
+  }
+
+  Future<void> _checkValues(LabReport report, String? memberId) async {
+    final api = ref.read(mobileApiProvider);
+    void checkProfile() {
+      if (!mounted ||
+          (widget.memberId ?? ref.read(activeMemberProvider)) != memberId) {
+        throw StateError('Profile changed');
+      }
+    }
+
+    try {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) {
+          _previewRoute = ModalRoute.of(dialogContext);
+          return Dialog.fullscreen(
+            child: ReportReviewWorkspace(
+              report: report,
+              loadDetail: () async {
+                checkProfile();
+                final detail = await api.getLabReportDetail(report.id);
+                checkProfile();
+                return detail;
+              },
+              loadOriginal: () async {
+                checkProfile();
+                final bytes = await api.getLabReportFile(report.id);
+                checkProfile();
+                return bytes;
+              },
+              save: (body) async {
+                checkProfile();
+                final detail = await api.reviewLabReport(report.id, body);
+                checkProfile();
+                _reloadReports();
+                return detail;
+              },
+              readAgain: () async {
+                checkProfile();
+                await api.extractLabReport(report.id);
+                checkProfile();
+                _reloadReports();
+              },
+            ),
           );
         },
       );
@@ -616,6 +674,9 @@ class _LabReportsTabState extends ConsumerState<_LabReportsTab> {
                         canChangeSharing: report.memberId == widget.myMemberId,
                         onToggleSharing: () => widget.onToggle(report),
                         onViewOriginal: () => _viewOriginal(report, memberId),
+                        onCheckValues: widget.canManage
+                            ? () => _checkValues(report, memberId)
+                            : null,
                         onDelete: widget.canManage && memberId != null
                             ? () => _delete(report, memberId)
                             : null,
