@@ -278,7 +278,7 @@ class _HeadPrivacyState extends ConsumerState<_HeadPrivacy> {
     final familyId = widget.familyId;
     final DoctorSummary? doctor = familyId == null ? null : ref.watch(familyDoctorProvider(familyId)).valueOrNull;
     final minors = _rows.where((r) => r.member.isMinor).toList();
-    final managed = [if (_self != null) _self!, ...minors];
+    final managed = [?_self, ...minors];
     final granted = managed.fold<int>(0, (s, r) => s + r.consents.where((c) => c.granted).length);
     final total = managed.fold<int>(0, (s, r) => s + r.consents.length);
 
