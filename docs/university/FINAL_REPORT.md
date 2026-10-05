@@ -2,7 +2,110 @@
 
 ## Family Veda — Longitudinal Family Health Context and Agentic Clinical Triage Platform
 
-> **Export note (Word / PDF).** Apply the built-in Heading 1/2/3 styles to the chapter, section and sub-section headings so that the table of contents can be regenerated automatically. Use lower-case Roman numerals for the pre-body pages (Part A) and restart at Arabic numeral 1 at Chapter 1. Captions are chapter-based (for example, Table 2.1 and Figure 3.2) and should be inserted with the Word caption feature. The exact font, font size, line spacing, margins and binding must follow the SE3090 submission guideline: **[CONFIRM FORMAT WITH MODULE GUIDELINE]**. Submission file name: `SE3090_SE016`.
+
+---
+
+# PLACEHOLDER INDEX — DELETE BEFORE SUBMISSION
+
+Every place that still needs work is marked in the document with a red box starting "ADD HERE #n" (a block to write, a diagram, a table or a screenshot) or a red field "ADD #n" (a single value). There are **95** in total. Search for "ADD HERE" and "ADD #" to jump between them. Blocks marked S1–S4 must be written by that student personally.
+
+| # | Section | Type | Who | What to add |
+|--|----------------|-------|------|------------------------------------------------------------|
+| 1 | TITLE PAGE | FIELD | — | SLIIT logo image |
+| 2 | DECLARATION | FIELD | — | signature |
+| 3 | DECLARATION | FIELD | — | date |
+| 4 | DECLARATION | FIELD | — | signature |
+| 5 | DECLARATION | FIELD | — | date |
+| 6 | DECLARATION | FIELD | — | signature |
+| 7 | DECLARATION | FIELD | — | date |
+| 8 | DECLARATION | FIELD | — | signature |
+| 9 | DECLARATION | FIELD | — | date |
+| 10 | TABLE OF CONTENTS | FORMAT | GROUP | In Word, delete the manual list below and insert an automatic table of contents (References → Table of Contents). Do the same for the List of Tables a… |
+| 11 | 1.7.1 Assumptions and Constraints | TEXT | GROUP | Two short bullet lists. Assumptions (5–6): e.g. users have internet access, all data is synthetic, doctors are verified by an admin before use, a host… |
+| 12 | 2.1.1 Role Permission Matrix | TABLE | GROUP | A grid with features down the side and the four roles across the top (Family Head, Adult Member, Doctor, Clinic Admin), ticks where allowed. About 12–… |
+| 13 | 3.1.1 Request Flow | DIAGRAM | GROUP | Backend component diagram: the parts INSIDE the ASP.NET Core API (controllers, services, ToolDispatcher, the agents, TriageWorker, AppDbContext) and w… |
+| 14 | 3.5.2 Safe-Failure Design | DIAGRAM | GROUP | UML sequence diagram of the main workflow. Lifelines: Family Member, Flutter/React client, ASP.NET Core API, TriageWorker and agents, Hosted LLM, Post… |
+| 15 | 3.8 Health Records and Extraction | TEXT | S2 | Update this section for the change merged in PR #164 after it was written: lab upload now reads the PDF text layer, caps a report at 4 pages and parse… |
+| 16 | 3.11.1 Request and Response Examples | TEXT | GROUP | Two or three real JSON examples copied from Swagger with SYNTHETIC data only: (1) login request and response, (2) submit symptom episode request and r… |
+| 17 | 3.11.2 HTTP Status Codes | TABLE | GROUP | Table: Status code / Meaning in this API / Example. Cover 200, 201, 204, 400, 401, 403, 404, 409, 422, 429 and 500, each with a real example endpoint. |
+| 18 | 3.13.1 React Web Application | TEXT | GROUP | Three short parts. Technology: React 18, Vite, TypeScript, React Router, Redux Toolkit, axios. Main pages: list the real pages per portal (Family Head… |
+| 19 | 3.13.2 Flutter Mobile Application | TEXT | GROUP | Five short parts. Architecture: the folder layout of mobile/lib. Screens: list the real screens. Navigation: go_router and route guards. API communica… |
+| 20 | 4.3 Screens and Outputs | SCREENSHOT | GROUP | Flutter screenshots from an emulator or phone: (1) symptom request form, (2) approved guidance screen, (3) emergency referral screen, (4) lab upload. … |
+| 21 | 4.3 Screens and Outputs | SCREENSHOT | GROUP | Cross-platform golden case, in order: Flutter submit → doctor approval desk on web → Flutter shows approved guidance. Three or four screenshots with t… |
+| 22 | 4.3 Screens and Outputs | SCREENSHOT | GROUP | Optional: photo or screenshot of the app running on a physical Android phone. If not done, leave limitation 4 in Table 4.10 as it is and delete this b… |
+| 23 | 4.4.1 Test Plan | TEXT | ALL FOUR | Each member confirms their rows in Table 4.2: the areas you actually tested and can run and explain in the viva. Change any row that is wrong. |
+| 24 | Agentic AI Evaluation by Criterion | TEXT | S3 + S4 | Regroup the agent evaluation under five headings, as the module expects: Accuracy, Relevance, Tool usage, Routing, Safety. One short paragraph each. F… |
+| 25 | Agentic AI Evaluation by Criterion | TABLE | S3 + S4 | Example AI safety evaluation table: Test type / Input / Expected behaviour / Actual behaviour / Result. At least: normal request, missing data, provid… |
+| 26 | 4.5.3 Security Considerations by Layer | TEXT | S1 | Short summary under six headings: Authentication, Authorisation, Input validation, API security, Database security, AI security. Two or three bullets … |
+| 27 | 4.7 Defects and Retests | TEXT | S4 | D-007 hosted retest: sign in to https://family-veda-web.vercel.app as the synthetic demo doctor, open the dashboard, confirm only live metrics show. T… |
+| 28 | S1 — IT23544154 — Samaranayaka S.G.V.S | TEXT | S1 | Short personal reflection (one paragraph) in your own words; the full one-page reflection goes in Appendix B, section 9. Must not be AI-generated. |
+| 29 | S2 — IT24101875 — Fernando K.R.N | TEXT | S2 | Short personal reflection (one paragraph) in your own words; the full one-page reflection goes in Appendix B, section 9. Must not be AI-generated. |
+| 30 | S3 — IT24100551 — Karunathilaka K.D.J.C (Group Leader) | TEXT | S3 | Short personal reflection (one paragraph) in your own words; the full one-page reflection goes in Appendix B, section 9. Must not be AI-generated. |
+| 31 | S4 — IT24100559 — Wasala W.M.S.S.B. | TEXT | S4 | Short personal reflection (one paragraph) in your own words; the full one-page reflection goes in Appendix B, section 9. Must not be AI-generated. |
+| 32 | REFERENCES | TEXT | GROUP | Check every reference and DOI against its source. Remove any that cannot be opened. |
+| 33 | A.1 Repository Overview | TABLE | S4 | Refresh every number in Tables A.1, A.2 and A.3 at the final submission commit (commits, merges, pull requests, per-author counts). The values below w… |
+| 34 | A.4 Member Contribution Summary | FIELD | — | agreed % |
+| 35 | A.4 Member Contribution Summary | FIELD | — | agreed % |
+| 36 | A.4 Member Contribution Summary | FIELD | — | agreed % |
+| 37 | A.4 Member Contribution Summary | FIELD | — | agreed % |
+| 38 | 1 Contribution Statement | TEXT | S1 | One short paragraph in your own words: what you contributed to Family Veda overall. 3–5 sentences. |
+| 39 | 2 Owned Component | TEXT | S1 | Add one or two sentences confirming which parts of this scope you personally built, and anything you built outside it. |
+| 40 | 3 Technical Work | TEXT | S1 | Bullet list of what you implemented across the five layers: ASP.NET Core API endpoints, database tables/migrations, React pages, Flutter screens, and … |
+| 41 | 4 Git Commits | TEXT | S1 | Paste the output of: git log --author="<your name>" --no-merges --oneline (run on develop). State the total number of your commits. |
+| 42 | 4 Git Commits | SCREENSHOT | S1 | Screenshot of your commits on GitHub (Insights → Contributors, or the commit list filtered by your account). |
+| 43 | 5 Pull Requests | TEXT | S1 | List the pull requests you opened: number, title, what it changed. On GitHub: Pull requests → filter "author:<your-username>". |
+| 44 | 5 Pull Requests | SCREENSHOT | S1 | Screenshot of your merged pull requests on GitHub. |
+| 45 | 6 Tests | TEXT | S1 | The tests you wrote and ran yourself: test file names, tool used (xUnit, Vitest, flutter_test), how many, and what each group checks (normal, invalid,… |
+| 46 | 6 Tests | SCREENSHOT | S1 | Screenshot of your tests passing in the terminal or IDE. |
+| 47 | 7 Challenges and Learning | TEXT | S1 | Two or three real problems you hit, how you debugged them, and what you learned. Mention any defect from Table 4.9 that you found or fixed. |
+| 48 | 8 Individual AI Usage Log | TABLE | S1 | Your own AI usage log as a table: Date / AI tool / Task or prompt / How you checked the result. Follow the CLEAR framework. Must be genuine — do not i… |
+| 49 | 9 One-Page AI Reflection | TEXT | S1 | About one page, written by you and NOT AI-generated (Assignment 1 pp. 15–17): how you used AI, where it helped, where it was wrong, how you verified i… |
+| 50 | 1 Contribution Statement | TEXT | S2 | One short paragraph in your own words: what you contributed to Family Veda overall. 3–5 sentences. |
+| 51 | 2 Owned Component | TEXT | S2 | Add one or two sentences confirming which parts of this scope you personally built, and anything you built outside it. |
+| 52 | 3 Technical Work | TEXT | S2 | Bullet list of what you implemented across the five layers: ASP.NET Core API endpoints, database tables/migrations, React pages, Flutter screens, and … |
+| 53 | 4 Git Commits | TEXT | S2 | Paste the output of: git log --author="<your name>" --no-merges --oneline (run on develop). State the total number of your commits. |
+| 54 | 4 Git Commits | SCREENSHOT | S2 | Screenshot of your commits on GitHub (Insights → Contributors, or the commit list filtered by your account). |
+| 55 | 5 Pull Requests | TEXT | S2 | List the pull requests you opened: number, title, what it changed. On GitHub: Pull requests → filter "author:<your-username>". |
+| 56 | 5 Pull Requests | SCREENSHOT | S2 | Screenshot of your merged pull requests on GitHub. |
+| 57 | 6 Tests | TEXT | S2 | The tests you wrote and ran yourself: test file names, tool used (xUnit, Vitest, flutter_test), how many, and what each group checks (normal, invalid,… |
+| 58 | 6 Tests | SCREENSHOT | S2 | Screenshot of your tests passing in the terminal or IDE. |
+| 59 | 7 Challenges and Learning | TEXT | S2 | Two or three real problems you hit, how you debugged them, and what you learned. Mention any defect from Table 4.9 that you found or fixed. |
+| 60 | 8 Individual AI Usage Log | TABLE | S2 | Your own AI usage log as a table: Date / AI tool / Task or prompt / How you checked the result. Follow the CLEAR framework. Must be genuine — do not i… |
+| 61 | 9 One-Page AI Reflection | TEXT | S2 | About one page, written by you and NOT AI-generated (Assignment 1 pp. 15–17): how you used AI, where it helped, where it was wrong, how you verified i… |
+| 62 | 1 Contribution Statement | TEXT | S3 | One short paragraph in your own words: what you contributed to Family Veda overall. 3–5 sentences. |
+| 63 | 2 Owned Component | TEXT | S3 | Add one or two sentences confirming which parts of this scope you personally built, and anything you built outside it. |
+| 64 | 3 Technical Work | TEXT | S3 | Bullet list of what you implemented across the five layers: ASP.NET Core API endpoints, database tables/migrations, React pages, Flutter screens, and … |
+| 65 | 4 Git Commits | TEXT | S3 | Paste the output of: git log --author="<your name>" --no-merges --oneline (run on develop). State the total number of your commits. |
+| 66 | 4 Git Commits | SCREENSHOT | S3 | Screenshot of your commits on GitHub (Insights → Contributors, or the commit list filtered by your account). |
+| 67 | 5 Pull Requests | TEXT | S3 | List the pull requests you opened: number, title, what it changed. On GitHub: Pull requests → filter "author:<your-username>". |
+| 68 | 5 Pull Requests | SCREENSHOT | S3 | Screenshot of your merged pull requests on GitHub. |
+| 69 | 6 Tests | TEXT | S3 | The tests you wrote and ran yourself: test file names, tool used (xUnit, Vitest, flutter_test), how many, and what each group checks (normal, invalid,… |
+| 70 | 6 Tests | SCREENSHOT | S3 | Screenshot of your tests passing in the terminal or IDE. |
+| 71 | 7 Challenges and Learning | TEXT | S3 | Two or three real problems you hit, how you debugged them, and what you learned. Mention any defect from Table 4.9 that you found or fixed. |
+| 72 | 8 Individual AI Usage Log | TABLE | S3 | Your own AI usage log as a table: Date / AI tool / Task or prompt / How you checked the result. Follow the CLEAR framework. Must be genuine — do not i… |
+| 73 | 9 One-Page AI Reflection | TEXT | S3 | About one page, written by you and NOT AI-generated (Assignment 1 pp. 15–17): how you used AI, where it helped, where it was wrong, how you verified i… |
+| 74 | 1 Contribution Statement | TEXT | S4 | One short paragraph in your own words: what you contributed to Family Veda overall. 3–5 sentences. |
+| 75 | 2 Owned Component | TEXT | S4 | Add one or two sentences confirming which parts of this scope you personally built, and anything you built outside it. |
+| 76 | 3 Technical Work | TEXT | S4 | Bullet list of what you implemented across the five layers: ASP.NET Core API endpoints, database tables/migrations, React pages, Flutter screens, and … |
+| 77 | 4 Git Commits | TEXT | S4 | Paste the output of: git log --author="<your name>" --no-merges --oneline (run on develop). State the total number of your commits. |
+| 78 | 4 Git Commits | SCREENSHOT | S4 | Screenshot of your commits on GitHub (Insights → Contributors, or the commit list filtered by your account). |
+| 79 | 5 Pull Requests | TEXT | S4 | List the pull requests you opened: number, title, what it changed. On GitHub: Pull requests → filter "author:<your-username>". |
+| 80 | 5 Pull Requests | SCREENSHOT | S4 | Screenshot of your merged pull requests on GitHub. |
+| 81 | 6 Tests | TEXT | S4 | The tests you wrote and ran yourself: test file names, tool used (xUnit, Vitest, flutter_test), how many, and what each group checks (normal, invalid,… |
+| 82 | 6 Tests | SCREENSHOT | S4 | Screenshot of your tests passing in the terminal or IDE. |
+| 83 | 7 Challenges and Learning | TEXT | S4 | Two or three real problems you hit, how you debugged them, and what you learned. Mention any defect from Table 4.9 that you found or fixed. |
+| 84 | 8 Individual AI Usage Log | TABLE | S4 | Your own AI usage log as a table: Date / AI tool / Task or prompt / How you checked the result. Follow the CLEAR framework. Must be genuine — do not i… |
+| 85 | 9 One-Page AI Reflection | TEXT | S4 | About one page, written by you and NOT AI-generated (Assignment 1 pp. 15–17): how you used AI, where it helped, where it was wrong, how you verified i… |
+| 86 | APPENDIX E — AI USE DISCLOSURE | TEXT | S1 | CLEAR-framework AI declaration: which AI tools you used, for what, and how you verified the output. The detailed log table is in Appendix B, section 8… |
+| 87 | APPENDIX E — AI USE DISCLOSURE | TEXT | S2 | CLEAR-framework AI declaration: which AI tools you used, for what, and how you verified the output. The detailed log table is in Appendix B, section 8… |
+| 88 | APPENDIX E — AI USE DISCLOSURE | TEXT | S3 | CLEAR-framework AI declaration: which AI tools you used, for what, and how you verified the output. The detailed log table is in Appendix B, section 8… |
+| 89 | APPENDIX E — AI USE DISCLOSURE | TEXT | S4 | CLEAR-framework AI declaration: which AI tools you used, for what, and how you verified the output. The detailed log table is in Appendix B, section 8… |
+| 90 | F.4 Submission Links | FIELD | — | link or file name of the A2 testing report |
+| 91 | F.4 Submission Links | FIELD | — | public video link that opens without an access request |
+| 92 | F.4 Submission Links | FIELD | — | link to the APK rebuilt from the final commit; the one above is from 28 September |
+| 93 | F.4 Submission Links | FIELD | — | Render commit hash used for the demonstration |
+| 94 | F.6 Agentic AI Setup and Access Information | TEXT | S3 | How an assessor reaches the agent subsystem: which hosted LLM providers are configured, that keys are held only in the Render environment, how to trig… |
+| 95 | F.7 PostgreSQL Deployment Evidence | SCREENSHOT | S4 | Screenshot of the Neon console showing the production database and the applied migrations (the __EFMigrationsHistory rows). Hide the connection string… |
 
 ---
 
@@ -12,7 +115,7 @@
 
 <div align="center">
 
-**[INSERT SLIIT LOGO]**
+⟦ADD #1: SLIIT logo image⟧
 
 # Family Veda
 
@@ -32,7 +135,7 @@ Faculty of Computing, Sri Lanka Institute of Information Technology (SLIIT)
 
 | Ref | Student ID | Name | Component | Agent contribution |
 |---|---|---|---|---|
-| S1 | IT23544154 | Samaranayaka S.G.V.S | Family, Identity and Consent | No agent of its own; tool-permission enforcement layer, CI and testing lead |
+| S1 | IT23544154 | Samaranayaka S.G.V.S | Family, Identity and Consent | Tool Permission and Dispatch layer: the controlled-tools mechanism every agent runs through (`ToolRegistry`, `ToolDispatcher`) |
 | S2 | IT24101875 | Fernando K.R.N | Health Records and Extraction | Extraction Agent (OCR) |
 | S3 | IT24100551 | Karunathilaka K.D.J.C (**Group Leader**) | Triage and Agent Orchestration | Coordinator, Context and Analysis Agents |
 | S4 | IT24100559 | Wasala W.M.S.S.B. | Familial Risk and Clinical Approval | Familial Risk and Safety/Validation Agents |
@@ -50,10 +153,10 @@ We further declare that AI-assisted development tools were used during the desig
 
 | Ref | Name | Signature | Date |
 |---|---|---|---|
-| S1 | Samaranayaka S.G.V.S (IT23544154) | [INSERT SIGNATURE] | [INSERT DATE] |
-| S2 | Fernando K.R.N (IT24101875) | [INSERT SIGNATURE] | [INSERT DATE] |
-| S3 | Karunathilaka K.D.J.C (IT24100551) | [INSERT SIGNATURE] | [INSERT DATE] |
-| S4 | Wasala W.M.S.S.B. (IT24100559) | [INSERT SIGNATURE] | [INSERT DATE] |
+| S1 | Samaranayaka S.G.V.S (IT23544154) | ⟦ADD #2: signature⟧ | ⟦ADD #3: date⟧ |
+| S2 | Fernando K.R.N (IT24101875) | ⟦ADD #4: signature⟧ | ⟦ADD #5: date⟧ |
+| S3 | Karunathilaka K.D.J.C (IT24100551) | ⟦ADD #6: signature⟧ | ⟦ADD #7: date⟧ |
+| S4 | Wasala W.M.S.S.B. (IT24100559) | ⟦ADD #8: signature⟧ | ⟦ADD #9: date⟧ |
 
 ---
 
@@ -76,6 +179,9 @@ The members of Group SE_016 thank the lecturers and teaching staff of the Facult
 ---
 
 ## TABLE OF CONTENTS
+
+> ⟦ADD HERE #10 · FORMAT · GROUP⟧ In Word, delete the manual list below and insert an automatic table of contents (References → Table of Contents). Do the same for the List of Tables and List of Figures. Then set Roman page numbers for the front pages and Arabic from Chapter 1.
+
 
 > Manual list for reference. In Word, delete this list and insert an automatic table of contents (References → Table of Contents) after applying the heading styles. Page numbers are inserted at that stage.
 
@@ -333,6 +439,19 @@ The aim of the project is to design, implement and evaluate a family health cont
 - Production-grade regulatory certification, a release-signed store distribution and an iOS store release.
 - Clinical validation of agent output with real patients.
 
+### 1.7.1 Assumptions and Constraints
+
+> ⟦ADD HERE #11 · TEXT · GROUP⟧ Two short bullet lists. Assumptions (5–6): e.g. users have internet access, all data is synthetic, doctors are verified by an admin before use, a hosted LLM is reachable. Constraints (5–6): e.g. free-tier hosting, the fixed submission date, a four-member team, no real patient data, the clinical safety rules.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
 ## 1.8 Solution Overview
 
 Family Veda is delivered as one repository with a single backend, one web application and one mobile application. The ASP.NET Core API is organised as four projects whose dependencies point inward (Api, Infrastructure, Application, Domain). Both clients call the same `/api/v1` endpoints over HTTPS with JWT bearer tokens. PostgreSQL 16 holds the data, accessed through EF Core 8.
@@ -371,6 +490,23 @@ Table 2.1 identifies the stakeholders of Family Veda, their interests and the in
 | Verified Doctor | Reviews prepared case files, approves, revises or rejects, and handles appointments | A concise case file, clear safety flags, time-bound access, an audit trail | High |
 | Clinic Admin | Verifies doctor licences and oversees the platform | A verification queue, deactivation rather than deletion of accounts, visibility of audit data | Medium |
 | Module assessors | Evaluate the system, report and viva against the SE3090 criteria | Traceable requirements, evidence of testing, individual accountability, a working deployment | High |
+
+### 2.1.1 Role Permission Matrix
+
+> ⟦ADD HERE #12 · TABLE · GROUP⟧ A grid with features down the side and the four roles across the top (Family Head, Adult Member, Doctor, Clinic Admin), ticks where allowed. About 12–15 rows: register, sign in, manage family, manage consent, add records, upload lab report, submit symptoms, view approved guidance, book appointment, review case, approve guidance, verify doctor, view audit log. Take the rules from the real authorisation code, not from memory.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
 
 ## 2.2 Functional Requirements
 
@@ -577,6 +713,35 @@ A typical request, from a client action to the point at which a patient sees an 
 6. The TriageWorker dequeues the case and runs the agent pipeline. Agents obtain data only through the ToolDispatcher allow-list, their outputs are persisted as trace rows, and deterministic safety validation decides whether the case may proceed to a doctor.
 7. A verified doctor with an active case grant reviews the case through the approval gate (Section 3.7). Only after an approving decision does the patient endpoint return guidance, and the backend, not the client, sends any notification.
 
+*Figure 3.10 – Backend Component Diagram*
+
+> ⟦ADD HERE #13 · DIAGRAM · GROUP⟧ Backend component diagram: the parts INSIDE the ASP.NET Core API (controllers, services, ToolDispatcher, the agents, TriageWorker, AppDbContext) and what each calls outside (PostgreSQL, Gemini/Groq, Google Drive, FCM). Draw in the same UML style as the others and save the source as docs/diagrams/backend_component_diagram.html. Add it to the List of Figures.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
 ### 3.1.2 Alternatives Considered
 
 Five architectural alternatives were considered and rejected. They are summarised in Table 3.1 and each reason is traceable to an invariant, a safety rule or a project constraint.
@@ -622,7 +787,7 @@ The system is divided into four business components, each owned by one group mem
 
 | Component | Owner | API controllers | Database tables | Agent contribution | Non-CRUD operation |
 |---|---|---|---|---|---|
-| Family, Identity and Consent | S1 – Samaranayaka S.G.V.S (IT23544154) | Auth, Families, Members, JoinRequests, FamilyLifecycle, FamilyHeadTransfers, Profile | users, families, members, relationships, consents (plus invitations, join requests, membership events, head transfers, user profiles) | None; owns the tool-permission enforcement layer and the CI pipeline | Consent state-machine transitions, join-by-code and invitation acceptance, family-head transfer, and token refresh with single-use rotation |
+| Family, Identity and Consent | S1 – Samaranayaka S.G.V.S (IT23544154) | Auth, Families, Members, JoinRequests, FamilyLifecycle, FamilyHeadTransfers, Profile | users, families, members, relationships, consents (plus invitations, join requests, membership events, head transfers, user profiles) | Tool Permission and Dispatch layer (`ToolRegistry`, `ToolDispatcher`): allow-list, deny-by-default dispatch and denial trace for all agents; also the CI pipeline | Consent state-machine transitions, join-by-code and invitation acceptance, family-head transfer, and token refresh with single-use rotation |
 | Health Records and Extraction | S2 – Fernando K.R.N (IT24101875) | Records | health_records, lab_reports, lab_report_files, lab_values, vitals, hereditary_flags | Extraction Agent | Lab-report OCR extraction, parsing and range classification; human confirmation of extracted values; soft-delete, restore and sharing control |
 | Triage and Agent Orchestration | S3 – Karunathilaka K.D.J.C (IT24100551), Group Leader | Triage, Notifications, Dashboard | episodes, triage_cases, agent_traces, notification_subscriptions | Coordinator, Context and Analysis agents | Queued multi-agent triage pipeline with persisted trace, provider fallback and safe-failure handling; case SLA processing |
 | Familial Risk and Clinical Approval | S4 – Wasala W.M.S.S.B. (IT24100559) | Clinical, DoctorWorkspace, FamilyDoctor, Appointments | doctors, doctor_verification_log, family_doctor_assignments, case_access_grants, approvals, audit_log (plus appointments, availability, clinical notes) | Familial Risk and Safety/Validation agents | Doctor verification, time-bound case-grant issue and revocation, the doctor approval gate, and deterministic safety validation |
@@ -691,6 +856,7 @@ Table 3.4 lists the agents, their scope, the tools each may call and whether eac
 | Analysis | Reviews recorded trends and deviations from the member's own baseline | read_lab_trends, compute_deviation | Yes | S3 |
 | Familial Risk | Summarises consented hereditary flags as a screening indication; flags only, never raw relatives' records | read_consented_hereditary_flags, read_relationship_graph, lookup_inheritance_pattern | Yes | S4 |
 | Safety/Validation | Applies deterministic rule tables and prohibited-content checks | None | No | S4 |
+| Tool Permission and Dispatch layer (not an agent; the control every agent passes through) | Checks each tool call against the calling agent's allow-list, dispatches permitted calls and records denied ones | Defines the allow-lists above | No | S1 |
 
 *Figure 3.3 – Agentic Triage Workflow*
 
@@ -703,6 +869,8 @@ Figure 3.3 follows the order in which the worker processes a case. The emergency
 ### 3.5.1 Tool Dispatch Layer
 
 The dispatch layer is the mechanism that makes invariant 5 real. The `ToolRegistry` defines, for each agent kind, the set of tool names it may call. The `ToolDispatcher` consults the registry on every call and denies by default: a tool that is not on the calling agent's list, or an empty tool name, is refused, and the refusal is recorded as a trace with the status ToolDenied before the pipeline stops. Because the check occurs at dispatch, not inside each agent, a new agent or a modified prompt cannot widen its own permissions. The Familial Risk Agent's allow-list contains no raw-record tool (only the Extraction agent's list includes `read_raw_record`), so the same deny-by-default check refuses any attempt by that agent to read one; the one data tool it does hold returns only hereditary flags that have been manually confirmed and whose owner's consent for that category is granted.
+
+**Agentic AI contribution of S1.** The Tool Permission and Dispatch layer is S1's contribution to the agentic subsystem, and it is what the specification calls controlled tools: agents may use only allow-listed tools, with least-privilege access. It has a defined contract. *Input:* the calling agent kind, the tool name, the member and case identifiers and optional arguments (`IToolDispatcher.InvokeAsync`). *Output:* the tool's structured result when the call is allowed, or a `ToolDeniedException` when it is not. *Permissions:* the per-agent allow-lists in `ToolRegistry` (Table 3.4); an agent with no entry can call nothing. *Visible participation:* every tool call in the triage and extraction workflows goes through it, and a refused call is persisted as a trace with the status ToolDenied before the pipeline stops in safe failure. *Tests:* `ToolRegistryTests` and `ToolDispatcherTests` cover the allow-lists, the persisted denial and the consent filter on relatives' flags (test cases TC-07 and TC-08 in Table 4.5). It is a control rather than an agent: it does not plan or call a language model, but no agent can act without it.
 
 This design responds directly to the two threats most relevant to an agentic health application. Excessive agency, where a model is given broader capabilities than its task requires, is listed among the principal risks of LLM applications (OWASP Foundation, 2025); least-privilege tool lists limit that agency. Indirect prompt injection, where adversarial instructions are embedded in content the model later reads, is a documented attack against applications that integrate LLMs with external data (Greshake et al., 2023). For this reason, text recovered by OCR from a laboratory report and any text returned by an LLM are treated as untrusted data and never as instructions: OCR output is parsed and validated before it is stored, agent outputs must satisfy a JSON schema before they are used, and no agent output can enlarge the set of tools available to it. A successful injection can therefore influence at most what a permitted tool would already return, and nothing it produces reaches a patient without passing the safety rules and a doctor.
 
@@ -721,6 +889,35 @@ Rule 9 requires the system to defer to in-person care on any uncertainty. Table 
 | Prohibited clinical content detected in output | Deterministic safety rules stop processing; nothing is shown to the patient. |
 | Gemini fails, times out (45 s), returns HTTP 429 or a 5xx error | The client retries with Groq (30 s timeout); if both fail or neither is configured, the case ends in a safe failure. |
 | Worker restarts during processing | Queued cases that were not started are recovered; cases interrupted mid-processing are marked as safely failed rather than silently replayed. |
+
+*Figure 3.11 – Sequence Diagram: Symptom Request to Approved Guidance*
+
+> ⟦ADD HERE #14 · DIAGRAM · GROUP⟧ UML sequence diagram of the main workflow. Lifelines: Family Member, Flutter/React client, ASP.NET Core API, TriageWorker and agents, Hosted LLM, PostgreSQL, Doctor, Notification service. Show: submit symptoms → case created → agents run → safety validation → doctor reviews → approves → family reads guidance. Use an "alt" fragment for the emergency path and "opt" for notification. docs/AI_FLOW.md section 6 has a starting version. Add it to the List of Figures.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
 
 ## 3.6 Triage Case Lifecycle
 
@@ -799,6 +996,13 @@ Original images are stored through a backend-only seam in Google Drive, with the
 *Notation: UML activity diagram with swimlanes. Source: `docs/diagrams/activity_lab_report_upload.html`.*
 
 Figure 3.6 shows that the workflow has a human-in-the-loop checkpoint between extraction and use. Everything above the confirmation step is automatic and untrusted; everything below it is data a person has vouched for. The failure branch is explicit: if extraction fails, the system reports the failure and allows manual entry instead of fabricating values (rule 9).
+
+> ⟦ADD HERE #15 · TEXT · S2⟧ Update this section for the change merged in PR #164 after it was written: lab upload now reads the PDF text layer, caps a report at 4 pages and parses column-aligned rows. Two or three sentences, and correct Figure 3.6 if the flow changed.
+
+&nbsp;
+
+&nbsp;
+
 
 ## 3.9 Family, Identity and Consent
 
@@ -997,6 +1201,41 @@ The API exposes 146 endpoint actions across 15 controllers, comprising 56 GET, 7
 | POST | /api/v1/admin/doctors/{doctorId}/verify | Verify a doctor's credentials | Admin |
 | GET | /api/v1/audit | Read audit rows | Admin or FamilyUser |
 
+### 3.11.1 Request and Response Examples
+
+> ⟦ADD HERE #16 · TEXT · GROUP⟧ Two or three real JSON examples copied from Swagger with SYNTHETIC data only: (1) login request and response, (2) submit symptom episode request and response, (3) one error response in RFC 7807 problem-details format. Never paste a real token or password.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 3.11.2 HTTP Status Codes
+
+> ⟦ADD HERE #17 · TABLE · GROUP⟧ Table: Status code | Meaning in this API | Example. Cover 200, 201, 204, 400, 401, 403, 404, 409, 422, 429 and 500, each with a real example endpoint.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
 ## 3.12 Third-Party Integration
 
 The system integrates five external services, all of them called from the backend alone (invariant 4). Table 3.8 summarises each integration, with its failure handling and the data it receives. The common design principle is that an external failure must degrade a feature without ever producing unsafe output or losing user data.
@@ -1018,6 +1257,39 @@ The two clients are designed for different purposes while sharing one API. The R
 The project's UI-parity rule requires that every requested interface change is applied to three surfaces together: web at desktop widths, web at phone and tablet widths, and the Flutter application. A task is not complete if only one surface has been updated, or the report states why a surface does not apply. The responsive checks use widths of 375, 390 and 768 pixels and desktop. Functional parity is also required: every control must work against the real API, and doctor approval and data access remain enforced by the backend rather than by the interface.
 
 The design language is documented in `design.md` at the repository root. It describes an Apple-style "liquid glass" material system in which translucent glass carries the application shell, while content on which a clinical decision rests is opaque. Semantic colour tokens (including primary, surface, danger, warning, success, emergency and agent) carry meaning rather than decoration, and a dedicated agent colour marks every piece of unapproved AI content so that it can never be mistaken for doctor-approved guidance. The emergency colour is reserved for the referral screen. Status is never encoded by colour alone, and an accessibility contrast floor applies to lab values and status pills. On the Flutter side the design specifies a budget of at most three live blur layers per screen so that the glass effect remains smooth on mid-range Android devices. Technical traces and raw agent output are shown only inside an expandable, doctor-only section and never on a patient screen, in keeping with rule 2 and the readable-output requirement of the parity rule.
+
+### 3.13.1 React Web Application
+
+> ⟦ADD HERE #18 · TEXT · GROUP⟧ Three short parts. Technology: React 18, Vite, TypeScript, React Router, Redux Toolkit, axios. Main pages: list the real pages per portal (Family Head, Adult Member, Doctor, Clinic Admin). Component structure: the folder layout of web/src (pages, components, routes, store, services, styles) and how route guards work.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 3.13.2 Flutter Mobile Application
+
+> ⟦ADD HERE #19 · TEXT · GROUP⟧ Five short parts. Architecture: the folder layout of mobile/lib. Screens: list the real screens. Navigation: go_router and route guards. API communication: the HTTP client, base URL from --dart-define, secure token storage. State management: Riverpod providers.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
 
 ## 3.14 CI/CD and Deployment
 
@@ -1200,6 +1472,65 @@ Figure 4.3 shows the vitals view after the correction recorded as D-010 (Section
 
 Two limits apply to this evidence. The Android figures predate the features delivered after 2026-09-28, and no screenshot of the Flutter application on a physical device or of the Flutter guidance screen is included.
 
+> ⟦ADD HERE #20 · SCREENSHOT · GROUP⟧ Flutter screenshots from an emulator or phone: (1) symptom request form, (2) approved guidance screen, (3) emergency referral screen, (4) lab upload. Synthetic accounts only.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
+> ⟦ADD HERE #21 · SCREENSHOT · GROUP⟧ Cross-platform golden case, in order: Flutter submit → doctor approval desk on web → Flutter shows approved guidance. Three or four screenshots with the same case number visible. When done, change case A2-E2E-01 in Table 4.5 from Partial to Pass.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
+> ⟦ADD HERE #22 · SCREENSHOT · GROUP⟧ Optional: photo or screenshot of the app running on a physical Android phone. If not done, leave limitation 4 in Table 4.10 as it is and delete this box.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
 ## 4.4 Testing
 
 ### 4.4.1 Test Plan
@@ -1234,7 +1565,7 @@ Table 4.2 sets out what is tested in each area, the type of testing, the tool an
 | Performance (required) | Fourteen read endpoints used by the Family Head and Doctor portals, under concurrent load | Load profile | ApacheBench via `scripts/e2e/local_load_profile.py` (and the earlier single-endpoint `local_performance_check.py`) | Zero failed or non-2xx responses; latency percentiles recorded | S1 |
 | Security (required) | Access control, unauthenticated access, CORS, token reuse, dependency vulnerabilities, static analysis, and a dynamic scan of every API endpoint | Authorisation, dependency audit, static analysis, dynamic application security testing | xUnit, `npm audit`, `dotnet list package --vulnerable`, CodeQL, OWASP ZAP API scan | Unauthorised requests denied; no known vulnerable dependencies; no high- or medium-risk scan alert | S1, S4 |
 
-> `[CONFIRM: the responsible-member column follows component ownership. Each member must confirm the areas they actually tested and can demonstrate in the viva.]`
+> ⟦ADD HERE #23 · TEXT · ALL FOUR⟧ Each member confirms their rows in Table 4.2: the areas you actually tested and can run and explain in the viva. Change any row that is wrong.
 
 ### 4.4.2 Testing Strategy
 
@@ -1353,6 +1684,38 @@ The agentic subsystem was evaluated at component level and at API level. The fol
 
 **Limits of this evaluation.** The golden-case evidence is backend API evidence. The full cross-platform visual trace (Flutter submission, React doctor approval, Flutter result) has **not** yet been executed and retained; it is pending and is reported as such in Table 4.5 and Table 4.7. No agent-latency or LLM-quality measurement has been taken, and the hosted LLM output is non-deterministic, so the deterministic tests above deliberately do not depend on it.
 
+#### Agentic AI Evaluation by Criterion
+
+> ⟦ADD HERE #24 · TEXT · S3 + S4⟧ Regroup the agent evaluation under five headings, as the module expects: Accuracy, Relevance, Tool usage, Routing, Safety. One short paragraph each. For Accuracy and Relevance, state honestly what was and was not measured (the automated tests use deterministic inputs; no live-model accuracy study was run) unless you run one.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
+> ⟦ADD HERE #25 · TABLE · S3 + S4⟧ Example AI safety evaluation table: Test type | Input | Expected behaviour | Actual behaviour | Result. At least: normal request, missing data, provider unavailable, prompt-injection text inside an uploaded report, emergency wording. Use real results from the named tests or from a live run.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
 ### 4.4.7 Test Execution Summary
 
 Table 4.6 summarises the final execution on 2026-10-05, after the same-day fixes for D-008 to D-012.
@@ -1424,6 +1787,23 @@ After the two fixes the scan was repeated: 117 rules passed, none failed, and on
 
 The scan has limits. It ran with one role's token, so it did not test whether a Doctor or Clinic Admin token can reach another role's data; that property is covered by the access-control tests SEC-1 to SEC-5 instead. It tested the API only, not the web or mobile clients. The evaluation as a whole remains **automated testing, not a penetration test**: session-management attacks, business-logic abuse and independent review were not performed (see Table 4.10).
 
+### 4.5.3 Security Considerations by Layer
+
+> ⟦ADD HERE #26 · TEXT · S1⟧ Short summary under six headings: Authentication, Authorisation, Input validation, API security, Database security, AI security. Two or three bullets each, pointing to Section 3.4 and the checks in Table 4.7. No new claims — only what is implemented.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
 ## 4.6 Performance Evaluation
 
 Performance was measured with ApacheBench against a disposable local API and PostgreSQL 16 database loaded with the synthetic seed data. The script `scripts/e2e/local_load_profile.py` signs in as a synthetic Family Head and a synthetic Doctor, then sends 1,000 requests at a concurrency of 25 to each of fourteen read endpoints: 14,000 requests in total. It refuses any non-local host and fails if any request fails or returns a non-2xx status. Table 4.8 reports the result; the raw output is retained in `docs/evidence/2026-10-05/performance-load-profile.txt`.
@@ -1477,6 +1857,11 @@ Table 4.9 is the defect report: each defect recorded during execution of the tes
 Priority follows severity: P1 blocks a user journey or the build, P2 misleads without blocking, and P3 affects only the test suite. D-009 is rated high because a failing build blocks the CI quality gate and the web deployment.
 
 Two of these defects, D-003 and D-006, are instructive. D-003 was found only because the integration tests ran against real PostgreSQL, where Npgsql rejects a non-UTC offset that an in-memory provider would have accepted. D-006 was a contract mismatch between client and API that component tests with mocked data did not detect, and it was found by a live synthetic sign-in; a regression test now guards it. Related deployment findings (a hosted Swagger 500 from a duplicate schema identifier, and a notifications page that previously failed to load until a follow-up Neon migration) were also corrected and are recorded in the release evidence.
+
+> ⟦ADD HERE #27 · TEXT · S4⟧ D-007 hosted retest: sign in to https://family-veda-web.vercel.app as the synthetic demo doctor, open the dashboard, confirm only live metrics show. Then change the D-007 status in Table 4.9 to "Closed" and add the date.
+
+&nbsp;
+
 
 ## 4.8 Limitations
 
@@ -1566,19 +1951,43 @@ Table 5.1 states the contributions with measured outcomes only.
 
 ### S1 — IT23544154 — Samaranayaka S.G.V.S
 
-`[STUDENT-AUTHORED — S1 to write in their own words. Must not be AI-generated (Assignment 1 pp. 15–17).]`
+> ⟦ADD HERE #28 · TEXT · S1⟧ Short personal reflection (one paragraph) in your own words; the full one-page reflection goes in Appendix B, section 9. Must not be AI-generated.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
 
 ### S2 — IT24101875 — Fernando K.R.N
 
-`[STUDENT-AUTHORED — S2 to write in their own words. Must not be AI-generated (Assignment 1 pp. 15–17).]`
+> ⟦ADD HERE #29 · TEXT · S2⟧ Short personal reflection (one paragraph) in your own words; the full one-page reflection goes in Appendix B, section 9. Must not be AI-generated.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
 
 ### S3 — IT24100551 — Karunathilaka K.D.J.C (Group Leader)
 
-`[STUDENT-AUTHORED — S3 to write in their own words. Must not be AI-generated (Assignment 1 pp. 15–17).]`
+> ⟦ADD HERE #30 · TEXT · S3⟧ Short personal reflection (one paragraph) in your own words; the full one-page reflection goes in Appendix B, section 9. Must not be AI-generated.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
 
 ### S4 — IT24100559 — Wasala W.M.S.S.B.
 
-`[STUDENT-AUTHORED — S4 to write in their own words. Must not be AI-generated (Assignment 1 pp. 15–17).]`
+> ⟦ADD HERE #31 · TEXT · S4⟧ Short personal reflection (one paragraph) in your own words; the full one-page reflection goes in Appendix B, section 9. Must not be AI-generated.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
 
 ---
 
@@ -1604,7 +2013,7 @@ Table 5.1 states the contributions with measured outcomes only.
 - Topol, E. J. (2019). High-performance medicine: The convergence of human and artificial intelligence. *Nature Medicine, 25*(1), 44–56. https://doi.org/10.1038/s41591-018-0300-7
 - World Health Organization. (2021). *Ethics and governance of artificial intelligence for health: WHO guidance*. WHO. https://www.who.int/publications/i/item/9789240029200
 
-> [VERIFY each reference and DOI against the source before submission.]
+> ⟦ADD HERE #32 · TEXT · GROUP⟧ Check every reference and DOI against its source. Remove any that cannot be opened.
 
 ---
 # PART C — POST-BODY SECTION
@@ -1639,6 +2048,11 @@ This appendix presents raw, reproducible data from the Git history of the projec
 | EF Core migrations | 10 (from `InitialCreate`, 2026-09-23, to `S2_AddLabReportSoftDelete`, 2026-10-05) |
 
 Table A.1 shows a project delivered in fourteen calendar days on a single shared code base. The commit total includes the commits created by merging branches, which is why Table A.2 reports non-merge commits only.
+
+> ⟦ADD HERE #33 · TABLE · S4⟧ Refresh every number in Tables A.1, A.2 and A.3 at the final submission commit (commits, merges, pull requests, per-author counts). The values below were measured on 5 October while the branch was still moving.
+
+&nbsp;
+
 
 ## A.2 Commits by Git Author
 
@@ -1680,10 +2094,10 @@ The owned-file counts below come from the ownership manifest `docs/OWNERSHIP.tsv
 
 | Ref | Student ID | Member | Component | Owned files per OWNERSHIP manifest (as generated 2026-09-22) | Key evidence pointers | Agreed contribution % |
 |---|---|---|---|---|---|---|
-| S1 | IT23544154 | Samaranayaka S.G.V.S | Family, Identity and Consent; tool-permission enforcement layer; CI and testing lead | 85 | `AuthController`, `FamiliesController`, `MembersController`; `AuthService`, `FamilyService`, `ToolDispatcher`; `ConsentStateMachine`; tests `ConsentStateMachineTests`, `FamilyServicePrivacyTests`, `ToolDispatcherTests`, `ToolRegistryTests`, `AuthAndPatientFlowTests`, `MigrationTests` | `[INSERT — agreed by all four members]` |
-| S2 | IT24101875 | Fernando K.R.N | Health Records and Extraction; Extraction Agent (OCR) | 22 | `RecordsController`; `RecordService`, `LabExtractionService`, `TesseractOcrService`, `ExtractionAgent`; tests `LabExtractionParserTests`, `LabExtractionSafetyTests`, `LabReportDurableStorageTests`, `RecordServiceLabReviewTests`, `RecordsPage.test.tsx`, `records_screen_test.dart` | `[INSERT — agreed by all four members]` |
-| S3 | IT24100551 | Karunathilaka K.D.J.C (Group Leader) | Triage and Agent Orchestration; Coordinator, Context and Analysis agents; notifications | 59 | `TriageController`, `TriageWorker`, `CaseSlaWorker`; `TriageOrchestrator`, `TriageService`, `GeminiClient`, `ChatCompletionsLlmClient`, `NotificationService`, `ContextAgent`, `AnalysisAgent`; tests `TriageOrchestratorEmergencyTests`, `TriageOrchestratorSchemaTests`, `TriageWorkerRecoveryTests`, `CaseSlaProcessorTests`, `NotificationServiceTests`, `ChatCompletionsLlmClientTests` | `[INSERT — agreed by all four members]` |
-| S4 | IT24100559 | Wasala W.M.S.S.B. | Familial Risk and Clinical Approval; Familial Risk and Safety/Validation agents; deterministic rule tables | 33 | `ClinicalController`; `ClinicalService`, `FamilialRiskAgent`, `SafetyValidationService`, `ClinicalRuleTables`, `CaseGrantPolicy`, `FamilialRiskPolicy`; tests `SafetyValidationServiceTests`, `ClinicalRuleTableTests`, `CaseGrantPolicyTests`, `ClinicalEmergencyReferralTests`, `ClinicalCasePoolPrivacyTests`, `FamilialRiskPolicyTests`, `ApprovalsPage.test.tsx`, `approved_guidance_screen_test.dart` | `[INSERT — agreed by all four members]` |
+| S1 | IT23544154 | Samaranayaka S.G.V.S | Family, Identity and Consent; tool-permission enforcement layer; CI and testing lead | 85 | `AuthController`, `FamiliesController`, `MembersController`; `AuthService`, `FamilyService`, `ToolDispatcher`; `ConsentStateMachine`; tests `ConsentStateMachineTests`, `FamilyServicePrivacyTests`, `ToolDispatcherTests`, `ToolRegistryTests`, `AuthAndPatientFlowTests`, `MigrationTests` | ⟦ADD #34: agreed %⟧ |
+| S2 | IT24101875 | Fernando K.R.N | Health Records and Extraction; Extraction Agent (OCR) | 22 | `RecordsController`; `RecordService`, `LabExtractionService`, `TesseractOcrService`, `ExtractionAgent`; tests `LabExtractionParserTests`, `LabExtractionSafetyTests`, `LabReportDurableStorageTests`, `RecordServiceLabReviewTests`, `RecordsPage.test.tsx`, `records_screen_test.dart` | ⟦ADD #35: agreed %⟧ |
+| S3 | IT24100551 | Karunathilaka K.D.J.C (Group Leader) | Triage and Agent Orchestration; Coordinator, Context and Analysis agents; notifications | 59 | `TriageController`, `TriageWorker`, `CaseSlaWorker`; `TriageOrchestrator`, `TriageService`, `GeminiClient`, `ChatCompletionsLlmClient`, `NotificationService`, `ContextAgent`, `AnalysisAgent`; tests `TriageOrchestratorEmergencyTests`, `TriageOrchestratorSchemaTests`, `TriageWorkerRecoveryTests`, `CaseSlaProcessorTests`, `NotificationServiceTests`, `ChatCompletionsLlmClientTests` | ⟦ADD #36: agreed %⟧ |
+| S4 | IT24100559 | Wasala W.M.S.S.B. | Familial Risk and Clinical Approval; Familial Risk and Safety/Validation agents; deterministic rule tables | 33 | `ClinicalController`; `ClinicalService`, `FamilialRiskAgent`, `SafetyValidationService`, `ClinicalRuleTables`, `CaseGrantPolicy`, `FamilialRiskPolicy`; tests `SafetyValidationServiceTests`, `ClinicalRuleTableTests`, `CaseGrantPolicyTests`, `ClinicalEmergencyReferralTests`, `ClinicalCasePoolPrivacyTests`, `FamilialRiskPolicyTests`, `ApprovalsPage.test.tsx`, `approved_guidance_screen_test.dart` | ⟦ADD #37: agreed %⟧ |
 
 The contribution percentages are intentionally blank. They are to be agreed by the four members and entered here; they must not be derived mechanically from Tables A.2 or A.3.
 
@@ -1702,95 +2116,567 @@ To be signed once all members have reviewed Tables A.1 to A.4 and the agreed per
 
 # APPENDIX B — INDIVIDUAL COMPONENT SECTIONS
 
-Each section below begins with a short factual statement of the component's scope, drawn from the repository. Every sub-heading that follows is to be written by the named student. Nothing under those sub-headings has been written on a student's behalf.
+Each section below begins with a short factual statement of the component's scope, drawn from the repository. The nine sub-headings that follow are to be completed by the named student. Nothing under them has been written on a student's behalf.
 
 ## B.1 S1 — Samaranayaka S.G.V.S (IT23544154) — Family, Identity & Consent
 
-**Component scope.** S1 covers the family, identity and consent component, together with the tool-permission enforcement layer that every agent depends on and the continuous-integration workflow. The API surface is `AuthController`, `FamiliesController` and `MembersController`, with the shared `ExceptionMiddleware` (RFC 7807 problem details) and `HttpCurrentUser`. The domain contains `ConsentStateMachine` (consent categories `HereditaryFlags`, `VitalsSummary` and `Conditions`; statuses `NotSet`, `Granted`, `Revoked` and `PendingReaffirmation`). The infrastructure contains `AuthService` (JWT access and refresh tokens, `PasswordHasher`), `FamilyService`, and `ToolDispatcher`, which enforces the per-agent allow-list defined in `ToolRegistry`. Owned tables are `users`, `families`, `members`, `relationships` and `consents`. S1 owns no agent. Key test classes are `ConsentStateMachineTests`, `FamilyServicePrivacyTests`, `ToolDispatcherTests` and `ToolRegistryTests`, with `AuthAndPatientFlowTests` and `MigrationTests` in the integration suite. The ownership manifest also assigns S1 the web authentication and onboarding pages and the Flutter login, splash and members screens.
+**Component scope.** S1 covers the family, identity and consent component, together with the tool-permission enforcement layer that every agent depends on and the continuous-integration workflow. The API surface is `AuthController`, `FamiliesController` and `MembersController`, with the shared `ExceptionMiddleware` (RFC 7807 problem details) and `HttpCurrentUser`. The domain contains `ConsentStateMachine` (consent categories `HereditaryFlags`, `VitalsSummary` and `Conditions`; statuses `NotSet`, `Granted`, `Revoked` and `PendingReaffirmation`). The infrastructure contains `AuthService` (JWT access and refresh tokens, `PasswordHasher`), `FamilyService`, and `ToolDispatcher`, which enforces the per-agent allow-list defined in `ToolRegistry`. Owned tables are `users`, `families`, `members`, `relationships` and `consents`. S1's Agentic AI contribution is the Tool Permission and Dispatch layer: the single point through which every agent's tool call passes, which decides from the per-agent allow-list whether the call is permitted and records a denial when it is not (Section 3.5.1). Key test classes are `ConsentStateMachineTests`, `FamilyServicePrivacyTests`, `ToolDispatcherTests` and `ToolRegistryTests`, with `AuthAndPatientFlowTests` and `MigrationTests` in the integration suite. The ownership manifest also assigns S1 the web authentication and onboarding pages and the Flutter login, splash and members screens.
 
-### Implementation explanation
-`[STUDENT-AUTHORED — S1 to write]`
+### 1 Contribution Statement
 
-### My commits and pull requests (git log --author)
-`[STUDENT-AUTHORED — S1 to write]`
+> ⟦ADD HERE #38 · TEXT · S1⟧ One short paragraph in your own words: what you contributed to Family Veda overall. 3–5 sentences.
 
-### Tests I wrote and ran
-`[STUDENT-AUTHORED — S1 to write]`
+&nbsp;
 
-### Defects I debugged
-`[STUDENT-AUTHORED — S1 to write]`
+&nbsp;
 
-### AI usage log
-`[STUDENT-AUTHORED — S1 to write]`
+### 2 Owned Component
 
-### Personal reflection
-`[STUDENT-AUTHORED — S1 to write]`
+The component scope above is factual and already filled in.
+
+> ⟦ADD HERE #39 · TEXT · S1⟧ Add one or two sentences confirming which parts of this scope you personally built, and anything you built outside it.
+
+&nbsp;
+
+### 3 Technical Work
+
+> ⟦ADD HERE #40 · TEXT · S1⟧ Bullet list of what you implemented across the five layers: ASP.NET Core API endpoints, database tables/migrations, React pages, Flutter screens, and your agent contribution. Name real files and endpoints. Explain one non-trivial piece of logic in detail, because the viva will ask about it.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 4 Git Commits
+
+> ⟦ADD HERE #41 · TEXT · S1⟧ Paste the output of: git log --author="<your name>" --no-merges --oneline (run on develop). State the total number of your commits.
+
+&nbsp;
+
+&nbsp;
+
+
+> ⟦ADD HERE #42 · SCREENSHOT · S1⟧ Screenshot of your commits on GitHub (Insights → Contributors, or the commit list filtered by your account).
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 5 Pull Requests
+
+> ⟦ADD HERE #43 · TEXT · S1⟧ List the pull requests you opened: number, title, what it changed. On GitHub: Pull requests → filter "author:<your-username>".
+
+&nbsp;
+
+&nbsp;
+
+
+> ⟦ADD HERE #44 · SCREENSHOT · S1⟧ Screenshot of your merged pull requests on GitHub.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 6 Tests
+
+> ⟦ADD HERE #45 · TEXT · S1⟧ The tests you wrote and ran yourself: test file names, tool used (xUnit, Vitest, flutter_test), how many, and what each group checks (normal, invalid, boundary, failure). You must be able to run and explain these in the viva.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
+> ⟦ADD HERE #46 · SCREENSHOT · S1⟧ Screenshot of your tests passing in the terminal or IDE.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 7 Challenges and Learning
+
+> ⟦ADD HERE #47 · TEXT · S1⟧ Two or three real problems you hit, how you debugged them, and what you learned. Mention any defect from Table 4.9 that you found or fixed.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 8 Individual AI Usage Log
+
+> ⟦ADD HERE #48 · TABLE · S1⟧ Your own AI usage log as a table: Date | AI tool | Task or prompt | How you checked the result. Follow the CLEAR framework. Must be genuine — do not invent entries.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 9 One-Page AI Reflection
+
+> ⟦ADD HERE #49 · TEXT · S1⟧ About one page, written by you and NOT AI-generated (Assignment 1 pp. 15–17): how you used AI, where it helped, where it was wrong, how you verified its output, and what you would do differently.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
 
 ## B.2 S2 — Fernando K.R.N (IT24101875) — Health Records & Extraction
 
 **Component scope.** S2 covers health records, lab-report upload and extraction, and the Extraction Agent. The API surface is `RecordsController`. The infrastructure contains `RecordService`, `TesseractOcrService`, `LabExtractionService` and `ExtractionAgent`; the Extraction Agent is permitted the tools `read_member_profile`, `read_raw_record`, `ocr_extract` and `write_lab_extraction`. Uploaded PNG and JPEG images (up to 10 MB) are read by Tesseract, parsed into values, units and reference ranges, stored as unconfirmed, and then confirmed or corrected by the user. Original images are held through a backend-only Google Drive seam with a PostgreSQL fallback (ADR-014), and lab reports support soft-delete and restore (migration `S2_AddLabReportSoftDelete`). Owned tables are `health_records`, `lab_reports`, `lab_values`, `vitals` and `hereditary_flags`. Key test classes are `LabExtractionParserTests`, `LabExtractionSafetyTests`, `LabReportDurableStorageTests` and `RecordServiceLabReviewTests`, with `RecordsPage.test.tsx` on the web and `records_screen_test.dart` in Flutter.
 
-### Implementation explanation
-`[STUDENT-AUTHORED — S2 to write]`
+### 1 Contribution Statement
 
-### My commits and pull requests (git log --author)
-`[STUDENT-AUTHORED — S2 to write]`
+> ⟦ADD HERE #50 · TEXT · S2⟧ One short paragraph in your own words: what you contributed to Family Veda overall. 3–5 sentences.
 
-### Tests I wrote and ran
-`[STUDENT-AUTHORED — S2 to write]`
+&nbsp;
 
-### Defects I debugged
-`[STUDENT-AUTHORED — S2 to write]`
+&nbsp;
 
-### AI usage log
-`[STUDENT-AUTHORED — S2 to write]`
+### 2 Owned Component
 
-### Personal reflection
-`[STUDENT-AUTHORED — S2 to write]`
+The component scope above is factual and already filled in.
+
+> ⟦ADD HERE #51 · TEXT · S2⟧ Add one or two sentences confirming which parts of this scope you personally built, and anything you built outside it.
+
+&nbsp;
+
+### 3 Technical Work
+
+> ⟦ADD HERE #52 · TEXT · S2⟧ Bullet list of what you implemented across the five layers: ASP.NET Core API endpoints, database tables/migrations, React pages, Flutter screens, and your agent contribution. Name real files and endpoints. Explain one non-trivial piece of logic in detail, because the viva will ask about it.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 4 Git Commits
+
+> ⟦ADD HERE #53 · TEXT · S2⟧ Paste the output of: git log --author="<your name>" --no-merges --oneline (run on develop). State the total number of your commits.
+
+&nbsp;
+
+&nbsp;
+
+
+> ⟦ADD HERE #54 · SCREENSHOT · S2⟧ Screenshot of your commits on GitHub (Insights → Contributors, or the commit list filtered by your account).
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 5 Pull Requests
+
+> ⟦ADD HERE #55 · TEXT · S2⟧ List the pull requests you opened: number, title, what it changed. On GitHub: Pull requests → filter "author:<your-username>".
+
+&nbsp;
+
+&nbsp;
+
+
+> ⟦ADD HERE #56 · SCREENSHOT · S2⟧ Screenshot of your merged pull requests on GitHub.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 6 Tests
+
+> ⟦ADD HERE #57 · TEXT · S2⟧ The tests you wrote and ran yourself: test file names, tool used (xUnit, Vitest, flutter_test), how many, and what each group checks (normal, invalid, boundary, failure). You must be able to run and explain these in the viva.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
+> ⟦ADD HERE #58 · SCREENSHOT · S2⟧ Screenshot of your tests passing in the terminal or IDE.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 7 Challenges and Learning
+
+> ⟦ADD HERE #59 · TEXT · S2⟧ Two or three real problems you hit, how you debugged them, and what you learned. Mention any defect from Table 4.9 that you found or fixed.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 8 Individual AI Usage Log
+
+> ⟦ADD HERE #60 · TABLE · S2⟧ Your own AI usage log as a table: Date | AI tool | Task or prompt | How you checked the result. Follow the CLEAR framework. Must be genuine — do not invent entries.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 9 One-Page AI Reflection
+
+> ⟦ADD HERE #61 · TEXT · S2⟧ About one page, written by you and NOT AI-generated (Assignment 1 pp. 15–17): how you used AI, where it helped, where it was wrong, how you verified its output, and what you would do differently.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
 
 ## B.3 S3 — Karunathilaka K.D.J.C (IT24100551) — Triage & Agent Orchestration
 
 **Component scope.** S3, the Group Leader, covers triage and agent orchestration. The API surface is `TriageController`, with the background services `TriageWorker` and `CaseSlaWorker`. The infrastructure contains `TriageOrchestrator`, `TriageService`, `TriageWorkQueue`, `CaseSlaProcessor`, `NotificationService` and `FcmPushNotificationClient`, and the language-model clients `GeminiClient` (primary) and `ChatCompletionsLlmClient` (Groq fallback), as recorded in ADR-013. S3 contributes the Coordinator agent (no tools), the Context agent (`read_member_profile`, `read_member_vitals`, `read_member_episodes`, `read_member_conditions`) and the Analysis agent (`read_lab_trends`, `compute_deviation`). Owned tables are `episodes`, `triage_cases`, `agent_traces` and `notification_subscriptions`. Key test classes are `TriageOrchestratorEmergencyTests`, `TriageOrchestratorSchemaTests`, `TriageWorkerRecoveryTests`, `CaseSlaProcessorTests`, `NotificationServiceTests` and `ChatCompletionsLlmClientTests`. The ownership manifest also assigns S3 the web design tokens and layout components and the Flutter home, case-status and notification screens.
 
-### Implementation explanation
-`[STUDENT-AUTHORED — S3 to write]`
+### 1 Contribution Statement
 
-### My commits and pull requests (git log --author)
-`[STUDENT-AUTHORED — S3 to write]`
+> ⟦ADD HERE #62 · TEXT · S3⟧ One short paragraph in your own words: what you contributed to Family Veda overall. 3–5 sentences.
 
-### Tests I wrote and ran
-`[STUDENT-AUTHORED — S3 to write]`
+&nbsp;
 
-### Defects I debugged
-`[STUDENT-AUTHORED — S3 to write]`
+&nbsp;
 
-### AI usage log
-`[STUDENT-AUTHORED — S3 to write]`
+### 2 Owned Component
 
-### Personal reflection
-`[STUDENT-AUTHORED — S3 to write]`
+The component scope above is factual and already filled in.
+
+> ⟦ADD HERE #63 · TEXT · S3⟧ Add one or two sentences confirming which parts of this scope you personally built, and anything you built outside it.
+
+&nbsp;
+
+### 3 Technical Work
+
+> ⟦ADD HERE #64 · TEXT · S3⟧ Bullet list of what you implemented across the five layers: ASP.NET Core API endpoints, database tables/migrations, React pages, Flutter screens, and your agent contribution. Name real files and endpoints. Explain one non-trivial piece of logic in detail, because the viva will ask about it.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 4 Git Commits
+
+> ⟦ADD HERE #65 · TEXT · S3⟧ Paste the output of: git log --author="<your name>" --no-merges --oneline (run on develop). State the total number of your commits.
+
+&nbsp;
+
+&nbsp;
+
+
+> ⟦ADD HERE #66 · SCREENSHOT · S3⟧ Screenshot of your commits on GitHub (Insights → Contributors, or the commit list filtered by your account).
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 5 Pull Requests
+
+> ⟦ADD HERE #67 · TEXT · S3⟧ List the pull requests you opened: number, title, what it changed. On GitHub: Pull requests → filter "author:<your-username>".
+
+&nbsp;
+
+&nbsp;
+
+
+> ⟦ADD HERE #68 · SCREENSHOT · S3⟧ Screenshot of your merged pull requests on GitHub.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 6 Tests
+
+> ⟦ADD HERE #69 · TEXT · S3⟧ The tests you wrote and ran yourself: test file names, tool used (xUnit, Vitest, flutter_test), how many, and what each group checks (normal, invalid, boundary, failure). You must be able to run and explain these in the viva.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
+> ⟦ADD HERE #70 · SCREENSHOT · S3⟧ Screenshot of your tests passing in the terminal or IDE.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 7 Challenges and Learning
+
+> ⟦ADD HERE #71 · TEXT · S3⟧ Two or three real problems you hit, how you debugged them, and what you learned. Mention any defect from Table 4.9 that you found or fixed.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 8 Individual AI Usage Log
+
+> ⟦ADD HERE #72 · TABLE · S3⟧ Your own AI usage log as a table: Date | AI tool | Task or prompt | How you checked the result. Follow the CLEAR framework. Must be genuine — do not invent entries.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 9 One-Page AI Reflection
+
+> ⟦ADD HERE #73 · TEXT · S3⟧ About one page, written by you and NOT AI-generated (Assignment 1 pp. 15–17): how you used AI, where it helped, where it was wrong, how you verified its output, and what you would do differently.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
 
 ## B.4 S4 — Wasala W.M.S.S.B. (IT24100559) — Familial Risk & Clinical Approval
 
 **Component scope.** S4 covers familial risk and the clinical approval gate. The API surface is `ClinicalController`. The domain contains `FamilialRiskPolicy`, `CaseGrantPolicy`, `ClinicalRuleTables` and `SafetyValidationService`, which are deterministic and contain no language-model call. The infrastructure contains `ClinicalService` and `FamilialRiskAgent`, which is permitted only `read_consented_hereditary_flags`, `read_relationship_graph` and `lookup_inheritance_pattern`, and is hard-denied raw records at the dispatch layer. S4 also contributes the Safety/Validation agent (no tools, no language model). Owned tables are `doctors`, `doctor_verification_log`, `family_doctor_assignments`, `case_access_grants`, `approvals` and `audit_log`. Key test classes are `SafetyValidationServiceTests`, `ClinicalRuleTableTests`, `CaseGrantPolicyTests`, `ClinicalEmergencyReferralTests`, `ClinicalCasePoolPrivacyTests` and `FamilialRiskPolicyTests`, with `ApprovalsPage.test.tsx` on the web and `approved_guidance_screen_test.dart` and `emergency_screen_test.dart` in Flutter.
 
-### Implementation explanation
-`[STUDENT-AUTHORED — S4 to write]`
+### 1 Contribution Statement
 
-### My commits and pull requests (git log --author)
-`[STUDENT-AUTHORED — S4 to write]`
+> ⟦ADD HERE #74 · TEXT · S4⟧ One short paragraph in your own words: what you contributed to Family Veda overall. 3–5 sentences.
 
-### Tests I wrote and ran
-`[STUDENT-AUTHORED — S4 to write]`
+&nbsp;
 
-### Defects I debugged
-`[STUDENT-AUTHORED — S4 to write]`
+&nbsp;
 
-### AI usage log
-`[STUDENT-AUTHORED — S4 to write]`
+### 2 Owned Component
 
-### Personal reflection
-`[STUDENT-AUTHORED — S4 to write]`
+The component scope above is factual and already filled in.
+
+> ⟦ADD HERE #75 · TEXT · S4⟧ Add one or two sentences confirming which parts of this scope you personally built, and anything you built outside it.
+
+&nbsp;
+
+### 3 Technical Work
+
+> ⟦ADD HERE #76 · TEXT · S4⟧ Bullet list of what you implemented across the five layers: ASP.NET Core API endpoints, database tables/migrations, React pages, Flutter screens, and your agent contribution. Name real files and endpoints. Explain one non-trivial piece of logic in detail, because the viva will ask about it.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 4 Git Commits
+
+> ⟦ADD HERE #77 · TEXT · S4⟧ Paste the output of: git log --author="<your name>" --no-merges --oneline (run on develop). State the total number of your commits.
+
+&nbsp;
+
+&nbsp;
+
+
+> ⟦ADD HERE #78 · SCREENSHOT · S4⟧ Screenshot of your commits on GitHub (Insights → Contributors, or the commit list filtered by your account).
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 5 Pull Requests
+
+> ⟦ADD HERE #79 · TEXT · S4⟧ List the pull requests you opened: number, title, what it changed. On GitHub: Pull requests → filter "author:<your-username>".
+
+&nbsp;
+
+&nbsp;
+
+
+> ⟦ADD HERE #80 · SCREENSHOT · S4⟧ Screenshot of your merged pull requests on GitHub.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 6 Tests
+
+> ⟦ADD HERE #81 · TEXT · S4⟧ The tests you wrote and ran yourself: test file names, tool used (xUnit, Vitest, flutter_test), how many, and what each group checks (normal, invalid, boundary, failure). You must be able to run and explain these in the viva.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+
+> ⟦ADD HERE #82 · SCREENSHOT · S4⟧ Screenshot of your tests passing in the terminal or IDE.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 7 Challenges and Learning
+
+> ⟦ADD HERE #83 · TEXT · S4⟧ Two or three real problems you hit, how you debugged them, and what you learned. Mention any defect from Table 4.9 that you found or fixed.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 8 Individual AI Usage Log
+
+> ⟦ADD HERE #84 · TABLE · S4⟧ Your own AI usage log as a table: Date | AI tool | Task or prompt | How you checked the result. Follow the CLEAR framework. Must be genuine — do not invent entries.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+### 9 One-Page AI Reflection
+
+> ⟦ADD HERE #85 · TEXT · S4⟧ About one page, written by you and NOT AI-generated (Assignment 1 pp. 15–17): how you used AI, where it helped, where it was wrong, how you verified its output, and what you would do differently.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
 
 ---
 
@@ -1901,10 +2787,30 @@ This statement is made at group level and is limited to what the repository and 
 
 Per-member AI usage logs are to be written by each student:
 
-- `[STUDENT-AUTHORED AI USAGE LOG — S1]`
-- `[STUDENT-AUTHORED AI USAGE LOG — S2]`
-- `[STUDENT-AUTHORED AI USAGE LOG — S3]`
-- `[STUDENT-AUTHORED AI USAGE LOG — S4]`
+> ⟦ADD HERE #86 · TEXT · S1⟧ CLEAR-framework AI declaration: which AI tools you used, for what, and how you verified the output. The detailed log table is in Appendix B, section 8.
+
+&nbsp;
+
+&nbsp;
+
+> ⟦ADD HERE #87 · TEXT · S2⟧ CLEAR-framework AI declaration: which AI tools you used, for what, and how you verified the output. The detailed log table is in Appendix B, section 8.
+
+&nbsp;
+
+&nbsp;
+
+> ⟦ADD HERE #88 · TEXT · S3⟧ CLEAR-framework AI declaration: which AI tools you used, for what, and how you verified the output. The detailed log table is in Appendix B, section 8.
+
+&nbsp;
+
+&nbsp;
+
+> ⟦ADD HERE #89 · TEXT · S4⟧ CLEAR-framework AI declaration: which AI tools you used, for what, and how you verified the output. The detailed log table is in Appendix B, section 8.
+
+&nbsp;
+
+&nbsp;
+
 
 *Note.* The repository documents (`docs/individual-reports/EVIDENCE.md`) refer to per-member files `docs/ai-disclosure/S1.md` to `S4.md`. At the time of measurement the folder `docs/ai-disclosure/` does not exist, so these four files must be written by their students and added to the repository.
 
@@ -2047,9 +2953,45 @@ The device needs network access, because the application calls the hosted API. T
 | API health check | https://family-veda-api.onrender.com/health |
 | Swagger (API reference) | https://family-veda-api.onrender.com/swagger/index.html |
 | Android APK | https://github.com/sahansbandara/Family-Veda-SEF-Project/releases/tag/apk-2026-09-28 |
-| Assignment 2 testing report | `[INSERT A2 TESTING REPORT LINK OR FILE REFERENCE]` |
+| Assignment 2 testing report | ⟦ADD #90: link or file name of the A2 testing report⟧ |
+| Demonstration video | ⟦ADD #91: public video link that opens without an access request⟧ |
+| Final Android APK | ⟦ADD #92: link to the APK rebuilt from the final commit; the one above is from 28 September⟧ |
+| Deployed API revision | ⟦ADD #93: Render commit hash used for the demonstration⟧ |
 
 The hosted API runs on a free tier and may need up to a minute to respond to its first request after idle time; open the health link before any demonstration.
+
+## F.6 Agentic AI Setup and Access Information
+
+> ⟦ADD HERE #94 · TEXT · S3⟧ How an assessor reaches the agent subsystem: which hosted LLM providers are configured, that keys are held only in the Render environment, how to trigger a triage run with a synthetic account, and where the agent traces can be seen (doctor approval desk). No key values.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+## F.7 PostgreSQL Deployment Evidence
+
+> ⟦ADD HERE #95 · SCREENSHOT · S4⟧ Screenshot of the Neon console showing the production database and the applied migrations (the __EFMigrationsHistory rows). Hide the connection string.
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
+&nbsp;
+
 
 ## F.5 Diagram Sources
 
@@ -2106,7 +3048,7 @@ Remove this section before exporting the submission copy.
 - [ ] 15. Regenerate the Git figures in Tables A.1 to A.3 at the final submission commit.
 - [ ] 16. Check each reference and DOI against its source.
 - [ ] 17. Apply the module's formatting rules (font, spacing, margins, page numbers) to the exported file.
-- [ ] 18. Search for `[INSERT`, `[STUDENT-AUTHORED`, `[CONFIRM` and `[VERIFY`; none may remain.
+- [ ] 18. Search for the character `⟦`; no placeholder may remain. Delete the placeholder index at the front.
 - [ ] 19. Open every link in a private browser window; links must work without an access request and stay live until 21 October 2026.
 - [ ] 20. Confirm that no screenshot or text contains a secret, a password, a token or real patient data.
 - [ ] 21. Name the file `SE3090_SE016` and submit through CourseWeb before 6 October 2026, 11:00 AM.
