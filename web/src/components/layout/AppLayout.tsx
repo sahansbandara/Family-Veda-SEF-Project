@@ -10,7 +10,6 @@ import { apiClient } from '../../services/apiClient'
 import markUrl from '../../assets/logo-mark.png'
 // ===== S4 Feature: notifications + three-portal nav (docs/Three_Portal_Feature_Spec.md) =====
 import { NotificationBell } from '../shared/NotificationBell'
-import { EmergencyHelp } from '../../pages/dashboard/dashboardParts'
 import { HeadTransferBanner } from '../../pages/family/HeadTransferBanner'
 
 type NavItem = {
@@ -159,7 +158,6 @@ export function AppLayout() {
   // Family heads are auto-approved (PR #73); this now only fires when an admin rejects or suspends one.
   const isUnverifiedFamilyHead =
     (user?.role === 'FAMILY_HEAD' || user?.role === 'ONBOARDING') && user?.familyHeadVerificationStatus !== 'VERIFIED'
-  const showEmergencyHelp = user?.role === 'FAMILY_HEAD' || user?.role === 'MEMBER'
 
   const visibleItems = navItems.filter((item) => {
     if (!user || !item.roles.includes(user.role)) return false
@@ -285,7 +283,6 @@ export function AppLayout() {
           {user?.role === 'MEMBER' && <HeadTransferBanner />}
           <Outlet />
         </main>
-        {showEmergencyHelp && <EmergencyHelp />}
         <footer className="app-footer">
           Clinical decision-support system. Access is controlled and activity is audited.
         </footer>

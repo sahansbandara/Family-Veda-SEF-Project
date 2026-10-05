@@ -20,7 +20,7 @@ type TriageStatusDto = { id: string; status: string; priority: string; failureCo
 type CaseView =
   | { state: 'loading' }
   | { state: 'error' }
-  | { state: 'ready'; status: TriageStatusDto; guidance: ApprovedGuidanceDto | null }
+  | { state: 'ready'; status: TriageStatusDto; details: TriageCaseDto; guidance: ApprovedGuidanceDto | null }
 
 const POLL_MS = 3000
 const approvedStatuses = ['Approved', 'ApprovedRevised']
@@ -30,9 +30,8 @@ const stoppedStatuses = [
   'Rejected',
   'Escalated',
   'FailedSafe',
-  'LowConfidence',
-  'RequestInformation',
-  'RequestedInformation',
+  'Withdrawn',
+  'Superseded',
 ]
 
 function isApproved(status: string) {
@@ -48,15 +47,20 @@ function caseStatusLabel(status: string) {
   if (isApproved(status)) return 'Guidance available'
   if (status === 'PendingDoctorReview') return 'Waiting for doctor review'
   if (status === 'Claimed') return 'Doctor review in progress'
-  if (status === 'LowConfidence' || status === 'RequestInformation' || status === 'RequestedInformation')
-    return 'More information needed'
+  if (status === 'LowConfidence') return 'Waiting for doctor review'
+  if (status === 'RequestInformation' || status === 'RequestedInformation') return 'More information needed'
+  if (status === 'Withdrawn') return 'Request withdrawn'
+  if (status === 'Superseded') return 'Replaced by updated request'
+  if (status === 'Submitted') return 'Received — waiting for processing'
   if (status === 'Rejected') return 'Review closed'
   if (status === 'Escalated' || status === 'FailedSafe') return 'In-person care needed'
-  return 'Being reviewed'
+  return 'AI processing'
 }
 
+const decisionLabels: Record<string, string> = { Approve: 'Your doctor approved guidance for this request.', ReviseAndApprove: 'Your doctor revised and approved guidance.', RequestInformation: 'Your doctor requested more information. Please contact your doctor to provide it.', Reject: 'Your doctor closed this request without releasing guidance.', Escalate: 'Your doctor directed you to in-person care.', CloseReferral: 'Your doctor recorded a referral follow-up. Continue to follow the in-person-care referral.' }
+
 function needsInformation(status: string) {
-  return status === 'LowConfidence' || status === 'RequestInformation' || status === 'RequestedInformation'
+  return status === 'RequestInformation' || status === 'RequestedInformation'
 }
 function needsInPersonCare(status: string, priority: string) {
   return status === 'Escalated' || status === 'FailedSafe' || priority === 'Emergency'
@@ -110,6 +114,12 @@ export function TriagePage() {
   const [cases, setCases] = useState<TriageCaseDto[]>([])
   const [pageStatus, setPageStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [selectedId, setSelectedId] = useState('')
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  const [popupOpen, setPopupOpen] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [confirmWithdraw, setConfirmWithdraw] = useState(false)
+  const [actionBusy, setActionBusy] = useState(false)
+  const [actionError, setActionError] = useState('')
   const selectedCaseRef = useRef('')
   const loadedCaseRef = useRef('')
   const [caseView, setCaseView] = useState<CaseView | null>(null)
@@ -130,7 +140,11 @@ export function TriagePage() {
     return data.items
   }, [])
   const selectCase = useCallback((id: string) => {
-    if (id === selectedCaseRef.current) return
+    setPopupOpen(true)
+    setEditing(false)
+    setConfirmWithdraw(false)
+    setActionError('')
+    if (id === selectedCaseRef.current) { setRefreshKey((value) => value + 1); return }
     selectedCaseRef.current = id
     loadedCaseRef.current = ''
     setSelectedId(id)
@@ -143,6 +157,7 @@ export function TriagePage() {
       const items = await loadCases(family.id)
       const guidanceCase =
         searchParams.get('view') === 'guidance' ? items.find((item) => isApproved(item.status)) : undefined
+      if (guidanceCase) setPopupOpen(true)
       setMembers(family.members)
       setFamilyId(family.id)
       setCases(items)
@@ -157,6 +172,15 @@ export function TriagePage() {
   }, [load])
 
   useEffect(() => {
+    if (!familyId) return
+    let active = true
+    const timer = setInterval(() => {
+      if (!document.hidden) void loadCases(familyId).then((items) => { if (active) setCases(items) }).catch(() => { /* Keep the last confirmed list; popup provides explicit retry. */ })
+    }, 5000)
+    return () => { active = false; clearInterval(timer) }
+  }, [familyId, loadCases])
+
+  useEffect(() => {
     if (!selectedId) return
     selectedCaseRef.current = selectedId
     let cancelled = false
@@ -167,14 +191,18 @@ export function TriagePage() {
     const tick = async () => {
       if (loadedCaseRef.current !== selectedId) commit({ state: 'loading' })
       try {
-        const { data: status } = await apiClient.get<TriageStatusDto>(`/triage-cases/${selectedId}/status`)
+        const [{ data: status }, { data: details }] = await Promise.all([
+          apiClient.get<TriageStatusDto>(`/triage-cases/${selectedId}/status`),
+          apiClient.get<TriageCaseDto>(`/triage-cases/${selectedId}`),
+        ])
         if (cancelled || selectedCaseRef.current !== selectedId) return
         const guidance = isApproved(status.status)
           ? (await apiClient.get<ApprovedGuidanceDto>(`/triage-cases/${selectedId}/approved-guidance`)).data
           : null
         if (cancelled || selectedCaseRef.current !== selectedId) return
         loadedCaseRef.current = selectedId
-        commit({ state: 'ready', status, guidance })
+        commit({ state: 'ready', status, details, guidance })
+        setCases((items) => items.map((item) => item.id === selectedId ? { ...item, ...details, status: status.status } : item))
         if (!isTerminal(status.status, status.priority)) timer = setTimeout(() => void tick(), POLL_MS)
       } catch {
         commit({ state: 'error' })
@@ -186,6 +214,56 @@ export function TriagePage() {
       if (timer) clearTimeout(timer)
     }
   }, [selectedId, refreshKey])
+
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog) return
+    if (popupOpen && !dialog.open) {
+      if (typeof dialog.showModal === 'function') dialog.showModal()
+      else dialog.setAttribute('open', '')
+    }
+    if (!popupOpen && dialog.open) {
+      if (typeof dialog.close === 'function') dialog.close()
+      else dialog.removeAttribute('open')
+    }
+  }, [popupOpen, pageStatus, selectedId])
+
+  async function changeRequest(event?: FormEvent<HTMLFormElement>) {
+    event?.preventDefault()
+    if (actionBusy || caseView?.state !== 'ready') return
+    const targetId = selectedId
+    const editingRequest = Boolean(event)
+    if (editingRequest ? !caseView.details.canEdit : !caseView.details.canWithdraw) return
+    setActionBusy(true)
+    setActionError('')
+    try {
+      let updated: TriageCaseDto
+      if (event) {
+        const form = new FormData(event.currentTarget)
+        const symptoms = String(form.get('editSymptoms') ?? '').split(',').map((item) => item.trim()).filter(Boolean)
+        if (!symptoms.length) { setActionError('Enter at least one symptom.'); return }
+        updated = (await apiClient.put<TriageCaseDto>(`/triage-cases/${targetId}/submission`, {
+          symptoms, durationDays: Number(form.get('editDuration')), severity: Number(form.get('editSeverity')),
+          notes: String(form.get('editNotes') ?? '').trim() || null,
+        })).data
+      } else {
+        updated = (await apiClient.post<TriageCaseDto>(`/triage-cases/${targetId}/withdraw`)).data
+      }
+      if (selectedCaseRef.current !== targetId) return
+      setCases((items) => [updated, ...items.filter((item) => item.id !== updated.id)])
+      setEditing(false)
+      setConfirmWithdraw(false)
+      selectCase(updated.id)
+      setRefreshKey((value) => value + 1)
+      try { setCases(await loadCases(familyId)) }
+      catch { setActionError('Your change was saved, but the request list could not be refreshed. Reopen the page to check your history.') }
+    } catch (error) {
+      if (selectedCaseRef.current !== targetId) return
+      const conflict = (error as { response?: { status?: number } }).response?.status === 409
+      setActionError(conflict ? 'This request changed or doctor review has started. Refreshing its current permissions.' : 'Could not confirm the change. Check the request before retrying.')
+      setRefreshKey((value) => value + 1)
+    } finally { setActionBusy(false) }
+  }
 
   function toggleSymptom(symptom: string) {
     setSelectedSymptoms((current) =>
@@ -253,7 +331,7 @@ export function TriagePage() {
     filter === 'ready'
       ? isApproved(item.status)
       : filter === 'review'
-        ? !isApproved(item.status) && item.status !== 'Rejected' && !needsInPersonCare(item.status, item.priority)
+        ? !isApproved(item.status) && !['Rejected', 'Withdrawn', 'Superseded'].includes(item.status) && !needsInPersonCare(item.status, item.priority)
         : true,
   )
   const submitted = message.includes('submitted')
@@ -479,13 +557,13 @@ export function TriagePage() {
         )}
 
         {pageStatus === 'ready' && selectedId && (
-          <section className="panel progress-panel" aria-live="polite">
+          <dialog ref={dialogRef} className="panel progress-panel request-dialog" aria-labelledby="request-progress-title" onCancel={() => setPopupOpen(false)} onClose={() => setPopupOpen(false)}><section aria-live="polite">
             <div className="req-head">
               <div>
-                <h2>Request progress</h2>
+                <h2 id="request-progress-title">Request progress</h2>
                 <p className="sub">Selected request · See where it is in the review process.</p>
               </div>
-              {selectedCase && <span className="count">Case {caseReference(selectedCase)}</span>}
+              <div className="form-actions">{selectedCase && <span className="count">Case {caseReference(selectedCase)}</span>}<button type="button" className="btn" onClick={() => setPopupOpen(false)}>Close</button></div>
             </div>
 
             {!caseView || caseView.state === 'loading' ? (
@@ -510,6 +588,20 @@ export function TriagePage() {
                   </span>
                 </div>
 
+                <p className="sub">{caseView.details.doctorReceivedAt ? 'Added to your assigned doctor’s queue.' : 'Request received by the service; awaiting doctor assignment.'} Queue receipt does not mean the doctor has read it.</p>
+                {caseView.details.latestDecisionAction && <div className="current-call"><strong>Doctor response</strong><p>{decisionLabels[caseView.details.latestDecisionAction] ?? 'Your doctor recorded a response to this request.'}</p>{caseView.details.latestDecisionReason && <p>{caseView.details.latestDecisionReason}</p>}</div>}
+                {caseView.details.submittedEpisode && !editing && <div className="review-box"><strong>Your submitted symptoms</strong><p>{caseView.details.submittedEpisode.symptoms.join(', ')}</p><p>Duration: {caseView.details.submittedEpisode.durationDays} days · Severity: {caseView.details.submittedEpisode.severity}/10</p>{caseView.details.submittedEpisode.notes && <p>{caseView.details.submittedEpisode.notes}</p>}</div>}
+                {actionError && <p role="alert" className="error">{actionError}</p>}
+                {editing && caseView.details.canEdit && caseView.details.submittedEpisode ? (
+                  <form onSubmit={(event) => void changeRequest(event)} className="request-edit" key={selectedId}>
+                    <label className="field">Symptoms (comma-separated)<textarea name="editSymptoms" required maxLength={2000} defaultValue={caseView.details.submittedEpisode.symptoms.join(', ')} /></label>
+                    <div className="twocol"><label className="field">Duration in days<input name="editDuration" type="number" min={0} max={365} required defaultValue={caseView.details.submittedEpisode.durationDays} /></label><label className="field">Severity (1–10)<input name="editSeverity" type="number" min={1} max={10} required defaultValue={caseView.details.submittedEpisode.severity} /></label></div>
+                    <label className="field">Additional notes<textarea name="editNotes" maxLength={1000} defaultValue={caseView.details.submittedEpisode.notes ?? ''} /></label>
+                    <p className="hint">Saving replaces this request and runs the checks again. The original stays in your history.</p>
+                    <div className="form-actions"><button className="btn" type="button" disabled={actionBusy} onClick={() => setEditing(false)}>Cancel edit</button><button className="btn primary" disabled={actionBusy}>Save and resubmit</button></div>
+                  </form>
+                ) : <div className="form-actions">{caseView.details.canEdit && <button className="btn" type="button" disabled={actionBusy} onClick={() => { setEditing(true); setConfirmWithdraw(false) }}>Edit request</button>}{caseView.details.canWithdraw && <button className="btn danger" type="button" disabled={actionBusy} onClick={() => setConfirmWithdraw(true)}>Delete request</button>}</div>}
+                {confirmWithdraw && caseView.details.canWithdraw && <div className="current-call" role="alert"><strong>Withdraw this request?</strong><p>It will be removed from the active doctor queue. Its history is retained.</p><div className="form-actions"><button className="btn" type="button" disabled={actionBusy} onClick={() => setConfirmWithdraw(false)}>Keep request</button><button className="btn danger" type="button" disabled={actionBusy} onClick={() => void changeRequest()}>Confirm withdrawal</button></div></div>}
                 {needsInPersonCare(caseView.status.status, caseView.status.priority) ? (
                   <div className="current-call current-call--danger" role="alert">
                     <strong>Please seek in-person care</strong>
@@ -517,7 +609,7 @@ export function TriagePage() {
                   </div>
                 ) : (
                   <>
-                    <FamilyCaseProgress caseStatus={caseView.status.status} />
+                    <FamilyCaseProgress caseStatus={caseView.status.status} doctorReceivedAt={caseView.details.doctorReceivedAt} doctorReviewStartedAt={caseView.details.doctorReviewStartedAt} />
                     {caseView.guidance ? (
                       <div className="current-call current-call--ok">
                         <strong>Doctor-approved guidance</strong>
@@ -533,7 +625,7 @@ export function TriagePage() {
                 )}
               </>
             )}
-          </section>
+          </section></dialog>
         )}
       </div>
     </div>

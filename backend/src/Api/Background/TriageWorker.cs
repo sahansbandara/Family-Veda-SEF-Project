@@ -3,6 +3,7 @@
 using FamilyVeda.Application.Triage;
 using FamilyVeda.Domain.Common;
 using FamilyVeda.Infrastructure.Persistence;
+using FamilyVeda.Infrastructure.Triage;
 using Microsoft.EntityFrameworkCore;
 
 namespace FamilyVeda.Api.Background;
@@ -43,6 +44,11 @@ public sealed class TriageWorker(
     {
         await using var scope = scopeFactory.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        return await dbContext.Database.CreateExecutionStrategy().ExecuteAsync(() => RecoverInterruptedCasesAsyncCore(dbContext, cancellationToken));
+    }
+
+    private async Task<Queue<Guid>> RecoverInterruptedCasesAsyncCore(AppDbContext dbContext, CancellationToken cancellationToken)
+    {
         var activeStatuses = new[]
         {
             TriageStatus.Submitted,
@@ -59,9 +65,11 @@ public sealed class TriageWorker(
         var recoveredCases = new Queue<Guid>();
         foreach (var item in cases)
         {
+            await using var gate = await CaseLifecycleLock.AcquireAsync(dbContext, item.Case.Id, cancellationToken);
+            await dbContext.Entry(item.Case).ReloadAsync(cancellationToken);
+            if (!CaseLifecycle.IsProcessing(item.Case.Status)) continue;
             if (item.Case.Status is TriageStatus.Submitted or TriageStatus.Planning && !item.HasTraces)
             {
-                item.Case.Status = TriageStatus.Planning;
                 recoveredCases.Enqueue(item.Case.Id);
             }
             else
@@ -70,8 +78,9 @@ public sealed class TriageWorker(
                 item.Case.FailureCode = "PROCESS_INTERRUPTED";
                 item.Case.DraftAdvisoryJson = null;
             }
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await gate.CompleteAsync(cancellationToken);
         }
-        await dbContext.SaveChangesAsync(cancellationToken);
         return recoveredCases;
     }
 
@@ -79,12 +88,18 @@ public sealed class TriageWorker(
     {
         await using var scope = scopeFactory.CreateAsyncScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await dbContext.Database.CreateExecutionStrategy().ExecuteAsync(() => MarkFailedSafeAsyncCore(dbContext, caseId, cancellationToken));
+    }
+
+    private async Task MarkFailedSafeAsyncCore(AppDbContext dbContext, Guid caseId, CancellationToken cancellationToken)
+    {
+        await using var gate = await CaseLifecycleLock.AcquireAsync(dbContext, caseId, cancellationToken);
         var triageCase = await dbContext.TriageCases.SingleOrDefaultAsync(x => x.Id == caseId, cancellationToken);
-        if (triageCase is null || triageCase.Status is TriageStatus.Approved or TriageStatus.ApprovedRevised or
-            TriageStatus.Rejected or TriageStatus.Escalated or TriageStatus.FailedSafe) return;
+        if (triageCase is null || !CaseLifecycle.IsProcessing(triageCase.Status)) return;
         triageCase.Status = TriageStatus.FailedSafe;
         triageCase.FailureCode = "WORKER_FAILURE";
         triageCase.DraftAdvisoryJson = null;
         await dbContext.SaveChangesAsync(cancellationToken);
+        await gate.CompleteAsync(cancellationToken);
     }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 // Owner: S4 · whole-project waiver (agent/DECISIONS.md 2026-09-28b)
 import 'package:family_veda/models/doctor_queue_case.dart';
 import 'package:family_veda/providers/core_providers.dart';
@@ -11,6 +12,8 @@ final doctorCasesApiProvider = Provider<DoctorCasesApi>((ref) {
 final doctorQueueProvider = FutureProvider.autoDispose<List<DoctorQueueCase>>((
   ref,
 ) {
+  final timer = Timer(const Duration(seconds: 5), ref.invalidateSelf);
+  ref.onDispose(timer.cancel);
   return ref.watch(doctorCasesApiProvider).getQueue();
 });
 

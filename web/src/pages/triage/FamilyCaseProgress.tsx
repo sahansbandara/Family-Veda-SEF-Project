@@ -1,11 +1,11 @@
 // Owner: S4 · Familial Risk & Clinical Approval — W.M.S.S.B. Wasala (IT24100559)
 // Ownership is binding — whole-project waiver applies; docs/OWNERSHIP.tsv
 
-const steps = ['Submitted', 'Being reviewed', 'Doctor review', 'Guidance available'] as const
+const steps = ['Request received', 'AI processing', 'Doctor review', 'Doctor response'] as const
 const doctorStatuses = ['PendingDoctorReview', 'Claimed']
-const needsInformationStatuses = ['LowConfidence', 'RequestInformation', 'RequestedInformation']
+const needsInformationStatuses = [ 'RequestInformation', 'RequestedInformation']
 const doneStatuses = ['Approved', 'ApprovedRevised']
-const stoppedStatuses = ['Rejected', 'Escalated', 'FailedSafe']
+const stoppedStatuses = ['Escalated', 'FailedSafe']
 
 function familyStepIndex(caseStatus: string): number {
   if (doneStatuses.includes(caseStatus)) return 3
@@ -23,7 +23,9 @@ function ProgressNotice({ tone, title, children }: { tone: 'danger' | 'warn'; ti
   )
 }
 
-export function FamilyCaseProgress({ caseStatus }: { caseStatus: string }) {
+export function FamilyCaseProgress({ caseStatus, doctorReceivedAt, doctorReviewStartedAt }: { caseStatus: string; doctorReceivedAt?: string | null; doctorReviewStartedAt?: string | null }) {
+  if (caseStatus === 'Withdrawn' || caseStatus === 'Superseded') return <p role="status">{caseStatus === 'Withdrawn' ? 'This request was withdrawn.' : 'This request was replaced by an updated submission.'}</p>
+  if (caseStatus === 'Rejected') return <p role="status">The doctor closed this request. No approved guidance was released.</p>
   if (stoppedStatuses.includes(caseStatus))
     return (
       <ProgressNotice tone="danger" title="In-person review needed">
@@ -36,7 +38,7 @@ export function FamilyCaseProgress({ caseStatus }: { caseStatus: string }) {
         More information is needed before this request can continue.
       </ProgressNotice>
     )
-  const current = familyStepIndex(caseStatus)
+  const current = caseStatus === 'LowConfidence' ? 2 : familyStepIndex(caseStatus)
   const allDone = current === steps.length - 1
   return (
     <ol className="progress-track" aria-label="Request progress">
@@ -50,8 +52,8 @@ export function FamilyCaseProgress({ caseStatus }: { caseStatus: string }) {
             aria-current={index === current ? 'step' : undefined}
           >
             <span className="dot" aria-hidden="true">{isPast ? '✓' : index + 1}</span>
-            <strong>{label}</strong>
-            <small>{isPast ? 'Completed' : isCurrent ? 'Current stage' : 'Pending'}</small>
+            <strong>{index === 0 && doctorReceivedAt ? 'Received in doctor’s queue' : label}</strong>
+            <small>{index === 2 && isCurrent ? (doctorReviewStartedAt || caseStatus === 'Claimed' ? 'Doctor is reviewing your request' : 'Waiting for doctor review') : isPast ? 'Completed' : isCurrent ? 'Current stage' : 'Pending'}</small>
           </li>
         )
       })}

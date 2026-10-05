@@ -17,9 +17,9 @@ describe('FamilyCaseProgress', () => {
     expect(screen.getByRole('status')).toHaveTextContent('in-person clinical review')
   })
 
-  it('does not call low confidence a doctor review', () => {
+  it('routes low confidence to doctor review without releasing AI findings', () => {
     render(<FamilyCaseProgress caseStatus="LowConfidence" />)
-    expect(screen.getByRole('status')).toHaveTextContent('More information is needed')
-    expect(screen.queryByText('Doctor review')).not.toBeInTheDocument()
+    expect(screen.getByText('Doctor review')).toBeInTheDocument()
+    expect(screen.getByText('Waiting for doctor review')).toBeInTheDocument()
   })
 })

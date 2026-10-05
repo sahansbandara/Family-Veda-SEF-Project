@@ -25,7 +25,9 @@ public enum TriageStatus
     ApprovedRevised,
     Rejected,
     Escalated,
-    FailedSafe
+    FailedSafe,
+    Withdrawn,
+    Superseded
 }
 
 public enum VerificationStatus { Pending, Verified, MoreInformationRequired, Rejected, Suspended }

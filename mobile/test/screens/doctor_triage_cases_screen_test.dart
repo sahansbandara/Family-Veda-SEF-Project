@@ -1,3 +1,4 @@
+import 'package:family_veda/widgets/doctor/processing_requests_section.dart';
 // Owner: S4 · whole-project waiver (agent/DECISIONS.md 2026-09-28b)
 import 'package:dio/dio.dart';
 import 'package:family_veda/models/doctor_queue_case.dart';
@@ -143,7 +144,10 @@ Future<_FakeCasesApi> _pump(
   addTearDown(() => tester.binding.setSurfaceSize(null));
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [doctorCasesApiProvider.overrideWithValue(api)],
+      overrides: [
+        doctorCasesApiProvider.overrideWithValue(api),
+        processingRequestsProvider.overrideWith((_) async => []),
+      ],
       child: const MaterialApp(home: DoctorTriageCasesScreen()),
     ),
   );

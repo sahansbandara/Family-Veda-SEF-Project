@@ -25,14 +25,24 @@ public sealed class TriageOrchestrator(
 {
     public async Task RunAsync(Guid caseId, CancellationToken cancellationToken)
     {
-        var triageCase = await dbContext.TriageCases.Include(x => x.Episode).Include(x => x.Member).SingleOrDefaultAsync(x => x.Id == caseId, cancellationToken)
-            ?? throw new InvalidOperationException("Queued triage case no longer exists.");
+        var triageCase = await dbContext.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        {
+            await using var gate = await CaseLifecycleLock.AcquireAsync(dbContext, caseId, cancellationToken);
+            var item = await dbContext.TriageCases.Include(x => x.Episode).Include(x => x.Member).SingleOrDefaultAsync(x => x.Id == caseId, cancellationToken)
+                ?? throw new InvalidOperationException("Queued triage case no longer exists.");
+            await dbContext.Entry(item).ReloadAsync(cancellationToken);
+            if (!CaseLifecycle.IsProcessing(item.Status) || await dbContext.AgentTraces.AnyAsync(x => x.TriageCaseId == caseId, cancellationToken)) return null;
+            item.Status = TriageStatus.Planning;
+            var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(item.Episode!.SymptomsJson)));
+            dbContext.AgentTraces.Add(NewTrace(caseId, 0, AgentKind.Coordinator, hash, [], [], [], "{\"plan\":[\"red_flag_check\",\"context\",\"analysis\",\"familial_risk\",\"safety\",\"doctor_review\"]}", 1m));
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await gate.CompleteAsync(cancellationToken);
+            return item;
+        });
+        if (triageCase is null) return;
         var episode = triageCase.Episode ?? throw new InvalidOperationException("Triage case has no episode.");
         var symptoms = JsonSerializer.Deserialize<IReadOnlyList<string>>(episode.SymptomsJson) ?? [];
         var inputHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(episode.SymptomsJson)));
-
-        dbContext.AgentTraces.Add(NewTrace(caseId, 0, AgentKind.Coordinator, inputHash, [], [], [], "{\"plan\":[\"red_flag_check\",\"context\",\"analysis\",\"familial_risk\",\"safety\",\"doctor_review\"]}", 1m));
-        await dbContext.SaveChangesAsync(cancellationToken);
 
         var hasFeverLanguage = symptoms.Any(x => x.Contains("fever", StringComparison.OrdinalIgnoreCase)) ||
             (!string.IsNullOrWhiteSpace(episode.Notes) && episode.Notes.Contains("fever", StringComparison.OrdinalIgnoreCase));
@@ -50,7 +60,7 @@ public sealed class TriageOrchestrator(
             triageCase.DraftAdvisoryJson = null;
             dbContext.AgentTraces.Add(NewTrace(caseId, 1, AgentKind.SafetyValidation, inputHash, [], [], [], JsonSerializer.Serialize(safety), 1m));
             await AssignPrimaryDoctorAsync(triageCase, "EMERGENCY_REFERRAL", cancellationToken);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            if (!await SaveCheckpointAsync(caseId, cancellationToken)) return;
             await notificationService.SendCaseStatusAsync(caseId, triageCase.Status, cancellationToken);
             return;
         }
@@ -79,7 +89,7 @@ public sealed class TriageOrchestrator(
                         result.ModelName, result.InputTokens, result.OutputTokens,
                         AgentStepStatus.SafeFailure, "INVALID_AGENT_SCHEMA"));
                     SetSafeFailure(triageCase, "INVALID_AGENT_SCHEMA");
-                    await dbContext.SaveChangesAsync(cancellationToken);
+                    if (!await SaveCheckpointAsync(caseId, cancellationToken)) return;
                     await notificationService.SendCaseStatusAsync(caseId, triageCase.Status, cancellationToken);
                     return;
                 }
@@ -99,7 +109,7 @@ public sealed class TriageOrchestrator(
                     result.InputTokens,
                     result.OutputTokens));
                 ApplyOutput(triageCase, result);
-                await dbContext.SaveChangesAsync(cancellationToken);
+                if (!await SaveCheckpointAsync(caseId, cancellationToken)) return;
             }
 
             var minimumConfidence = outputs.Count == 0 ? 0m : outputs.Min(x => x.Confidence);
@@ -130,23 +140,41 @@ public sealed class TriageOrchestrator(
             }
             if (triageCase.Status is TriageStatus.PendingDoctorReview or TriageStatus.LowConfidence)
                 await AssignPrimaryDoctorAsync(triageCase, "PRIMARY_DOCTOR_ASSIGNMENT", cancellationToken);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            if (!await SaveCheckpointAsync(caseId, cancellationToken)) return;
             await notificationService.SendCaseStatusAsync(caseId, triageCase.Status, cancellationToken);
         }
         catch (ToolDeniedException denied)
         {
             dbContext.AgentTraces.Add(NewTrace(caseId, step, denied.Agent, inputHash, [denied.Tool], [], [denied.Tool], null, 0m, status: AgentStepStatus.ToolDenied, errorCode: "TOOL_DENIED"));
             SetSafeFailure(triageCase, "TOOL_DENIED");
-            await dbContext.SaveChangesAsync(cancellationToken);
+            if (!await SaveCheckpointAsync(caseId, cancellationToken)) return;
             await notificationService.SendCaseStatusAsync(caseId, triageCase.Status, cancellationToken);
         }
         catch (Exception exception) when (exception is InvalidOperationException or HttpRequestException or JsonException or TaskCanceledException)
         {
             SetSafeFailure(triageCase, "AGENT_UNAVAILABLE");
             dbContext.AgentTraces.Add(NewTrace(caseId, step, AgentKind.Coordinator, inputHash, [], [], [], null, 0m, status: AgentStepStatus.SafeFailure, errorCode: "AGENT_UNAVAILABLE"));
-            await dbContext.SaveChangesAsync(cancellationToken);
+            if (!await SaveCheckpointAsync(caseId, cancellationToken)) return;
             await notificationService.SendCaseStatusAsync(caseId, triageCase.Status, cancellationToken);
         }
+    }
+
+    private Task<bool> SaveCheckpointAsync(Guid caseId, CancellationToken ct) =>
+        dbContext.Database.CreateExecutionStrategy().ExecuteAsync(() => SaveCheckpointAsyncCore(caseId, ct));
+
+    private async Task<bool> SaveCheckpointAsyncCore(Guid caseId, CancellationToken ct)
+    {
+        await using var gate = await CaseLifecycleLock.AcquireAsync(dbContext, caseId, ct);
+        var persistedStatus = await dbContext.TriageCases.AsNoTracking().Where(x => x.Id == caseId).Select(x => x.Status).SingleAsync(ct);
+        if (!CaseLifecycle.IsProcessing(persistedStatus))
+        {
+            // Discard pending output, traces and grants produced by an abandoned/stale worker.
+            dbContext.ChangeTracker.Clear();
+            return false;
+        }
+        await dbContext.SaveChangesAsync(ct);
+        await gate.CompleteAsync(ct);
+        return true;
     }
 
     private async Task AssignPrimaryDoctorAsync(TriageCase triageCase, string reason, CancellationToken cancellationToken)

@@ -1,3 +1,5 @@
+import 'package:family_veda/models/triage_case.dart';
+import 'package:family_veda/screens/triage/case_status_screen.dart';
 import 'package:family_veda/providers/active_member_provider.dart';
 import 'package:family_veda/providers/cases_provider.dart';
 import 'package:family_veda/providers/core_providers.dart';
@@ -9,7 +11,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class SubmitComplaintScreen extends ConsumerStatefulWidget {
-  const SubmitComplaintScreen({super.key});
+  const SubmitComplaintScreen({super.key, this.replacementCase});
+
+  final TriageCase? replacementCase;
 
   @override
   ConsumerState<SubmitComplaintScreen> createState() =>
@@ -49,6 +53,16 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
   void initState() {
     super.initState();
     _selectedMemberId = ref.read(activeMemberProvider);
+    final episode = widget.replacementCase?.submittedEpisode;
+    if (episode != null) {
+      _selectedMemberId = episode['memberId'] as String? ?? _selectedMemberId;
+      _typedSymptomsController.text = (episode['symptoms'] as List? ?? [])
+          .cast<String>()
+          .join(', ');
+      _durationController.text = '${episode['durationDays'] ?? 1}';
+      _severity = (episode['severity'] as num?)?.toInt() ?? 3;
+      _notesController.text = episode['notes'] as String? ?? '';
+    }
   }
 
   @override
@@ -90,16 +104,34 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
     });
 
     try {
-      final caseId = await ref
-          .read(patientApiProvider)
-          .submitComplaint(
-            memberId: _selectedMemberId!,
-            chiefComplaint: symptoms.first,
-            durationDays: int.parse(_durationController.text),
-            severity: _severity,
-            symptoms: symptoms.length > 1 ? symptoms.sublist(1) : [],
-            notes: _notesController.text,
-          );
+      final String caseId;
+      if (widget.replacementCase != null) {
+        final response = await ref
+            .read(apiClientProvider)
+            .dio
+            .put<Map<String, dynamic>>(
+              '/triage-cases/${widget.replacementCase!.id}/submission',
+              data: {
+                'durationDays': int.parse(_durationController.text),
+                'severity': _severity,
+                'symptoms': symptoms,
+                'notes': _notesController.text.trim(),
+              },
+            );
+        caseId = response.data!['id'] as String;
+        ref.invalidate(caseStatusProvider(widget.replacementCase!.id));
+      } else {
+        caseId = await ref
+            .read(patientApiProvider)
+            .submitComplaint(
+              memberId: _selectedMemberId!,
+              chiefComplaint: symptoms.first,
+              durationDays: int.parse(_durationController.text),
+              severity: _severity,
+              symptoms: symptoms.length > 1 ? symptoms.sublist(1) : [],
+              notes: _notesController.text,
+            );
+      }
       ref.invalidate(memberCasesProvider);
 
       // Keep activeMemberProvider in sync if user switched member
@@ -108,7 +140,12 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
       }
 
       if (mounted) {
-        context.go('/cases/$caseId');
+        if (widget.replacementCase != null) {
+          Navigator.of(context).pop(caseId);
+        } else {
+          await showCaseProgressSheet(context, caseId);
+          if (mounted) context.go('/cases');
+        }
       }
     } on Object catch (error) {
       if (mounted) setState(() => _error = userFacingApiError(error));
@@ -123,7 +160,7 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
     ref.watch(activeMemberProvider);
 
     ref.listen<String?>(activeMemberProvider, (previous, next) {
-      if (previous == next) return;
+      if (previous == next || widget.replacementCase != null) return;
       setState(() {
         _step = 0;
         _selectedMemberId = next;
@@ -137,7 +174,13 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('New symptom request')),
+      appBar: AppBar(
+        title: Text(
+          widget.replacementCase == null
+              ? 'New symptom request'
+              : 'Edit symptom request',
+        ),
+      ),
       body: SafeArea(
         child: Form(
           key: _formKey,
@@ -219,7 +262,9 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
                           ),
                         )
                         .toList(),
-                    onChanged: (val) => setState(() => _selectedMemberId = val),
+                    onChanged: widget.replacementCase != null
+                        ? null
+                        : (val) => setState(() => _selectedMemberId = val),
                   ),
                   loading: () => const CircularProgressIndicator(),
                   error: (_, _) => const Text('Could not load members'),
@@ -289,10 +334,15 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
                   decoration: const InputDecoration(
                     labelText: 'How severe do they feel?',
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 3, child: Text('Mild')),
-                    DropdownMenuItem(value: 6, child: Text('Moderate')),
-                    DropdownMenuItem(value: 9, child: Text('Severe')),
+                  items: [
+                    if (![3, 6, 9].contains(_severity))
+                      DropdownMenuItem(
+                        value: _severity,
+                        child: Text('Submitted severity $_severity of 10'),
+                      ),
+                    const DropdownMenuItem(value: 3, child: Text('Mild')),
+                    const DropdownMenuItem(value: 6, child: Text('Moderate')),
+                    const DropdownMenuItem(value: 9, child: Text('Severe')),
                   ],
                   onChanged: (val) => setState(() => _severity = val ?? 3),
                 ),

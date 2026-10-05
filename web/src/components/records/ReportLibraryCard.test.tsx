@@ -31,7 +31,7 @@ describe('ReportLibraryCard', () => {
     expect(screen.getByText(/Synthetic Adult/)).toBeInTheDocument()
     expect(screen.getByText('Private from Family Head')).toBeInTheDocument()
     expect(screen.getByText('1 outside printed range')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Share with Family Head/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: 'Report sharing' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'View original report' })).not.toBeInTheDocument()
     expect(document.body.textContent ?? '').not.toMatch(/diagnos|abnormal|disease/i)
   })
@@ -45,16 +45,47 @@ describe('ReportLibraryCard', () => {
     expect(screen.getByText(/Reading report/)).toBeInTheDocument()
   })
 
-  it('lets the owner toggle sharing', () => {
+  it('lets the owner share a private report using the sharing select', () => {
     const onToggle = vi.fn()
     render(<ReportLibraryCard report={report} ownerName="Synthetic Adult" canChangeSharing onToggleSharing={onToggle} />)
-    fireEvent.click(screen.getByRole('button', { name: 'Share with Family Head' }))
-    expect(onToggle).toHaveBeenCalledWith(report)
+    const sharing = screen.getByRole('combobox', { name: 'Report sharing' })
+    expect(sharing).toHaveValue('private')
+    expect(screen.getByRole('option', { name: 'Private from Family Head' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Shared with Family Head' })).toBeInTheDocument()
+    fireEvent.change(sharing, { target: { value: 'shared' } })
+    expect(onToggle).toHaveBeenCalledExactlyOnceWith(report)
   })
 
-  it('offers to make a shared report private again', () => {
-    render(<ReportLibraryCard report={{ ...report, sharedWithFamilyHead: true }} ownerName="Synthetic Adult" canChangeSharing onToggleSharing={vi.fn()} />)
-    expect(screen.getByText('Shared with Family Head')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Keep private from Family Head' })).toHaveAttribute('aria-pressed', 'true')
+  it('lets the owner make a shared report private again', () => {
+    const onToggle = vi.fn()
+    const sharedReport = { ...report, sharedWithFamilyHead: true }
+    render(<ReportLibraryCard report={sharedReport} ownerName="Synthetic Adult" canChangeSharing onToggleSharing={onToggle} />)
+    const sharing = screen.getByRole('combobox', { name: 'Report sharing' })
+    expect(sharing).toHaveValue('shared')
+    fireEvent.change(sharing, { target: { value: 'private' } })
+    expect(onToggle).toHaveBeenCalledExactlyOnceWith(sharedReport)
+  })
+
+  it('does not toggle sharing when the current option is selected', () => {
+    const onToggle = vi.fn()
+    render(<ReportLibraryCard report={report} ownerName="Synthetic Adult" canChangeSharing onToggleSharing={onToggle} />)
+    fireEvent.change(screen.getByRole('combobox', { name: 'Report sharing' }), { target: { value: 'private' } })
+    expect(onToggle).not.toHaveBeenCalled()
+  })
+
+  it('offers delete directly and passes the report to its callback', () => {
+    const onDelete = vi.fn()
+    render(<ReportLibraryCard report={report} ownerName="Synthetic Adult" canChangeSharing={false} onDelete={onDelete} />)
+    fireEvent.click(screen.getByRole('button', { name: `Delete ${report.originalFileName}` }))
+    expect(onDelete).toHaveBeenCalledExactlyOnceWith(report)
+    expect(screen.queryByRole('button', { name: /Report actions/ })).not.toBeInTheDocument()
+  })
+
+  it('hides sharing without permission and delete without a callback', () => {
+    const onToggle = vi.fn()
+    render(<ReportLibraryCard report={report} ownerName="Synthetic Adult" canChangeSharing={false} onToggleSharing={onToggle} />)
+    expect(screen.queryByRole('combobox', { name: 'Report sharing' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: `Delete ${report.originalFileName}` })).not.toBeInTheDocument()
+    expect(onToggle).not.toHaveBeenCalled()
   })
 })

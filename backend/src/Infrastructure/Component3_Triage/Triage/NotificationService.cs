@@ -64,8 +64,14 @@ public sealed class NotificationService(
         return new NotificationSubscriptionDto(subscription.Id, subscription.Platform, subscription.IsActive, subscription.LastSeenAt);
     }
 
-    public async Task SendCaseStatusAsync(Guid caseId, TriageStatus status, CancellationToken cancellationToken)
+    public Task SendCaseStatusAsync(Guid caseId, TriageStatus status, CancellationToken cancellationToken) =>
+        dbContext.Database.CreateExecutionStrategy().ExecuteAsync(() => SendCaseStatusAsyncCore(caseId, status, cancellationToken));
+
+    private async Task SendCaseStatusAsyncCore(Guid caseId, TriageStatus status, CancellationToken cancellationToken)
     {
+        await using var gate = await CaseLifecycleLock.AcquireAsync(dbContext, caseId, cancellationToken);
+        var actualStatus = await dbContext.TriageCases.AsNoTracking().Where(x => x.Id == caseId).Select(x => (TriageStatus?)x.Status).SingleOrDefaultAsync(cancellationToken);
+        if (actualStatus != status || actualStatus is TriageStatus.Withdrawn or TriageStatus.Superseded) return;
         var caseInfo = await dbContext.TriageCases.AsNoTracking()
             .Where(x => x.Id == caseId)
             .Select(x => new
@@ -112,7 +118,11 @@ public sealed class NotificationService(
             try { tokens.Add(_protector.Unprotect(protectedToken)); }
             catch (CryptographicException) { }
         }
+        await gate.CompleteAsync(cancellationToken);
+        await gate.DisposeAsync();
         if (tokens.Count == 0) return;
+        // Recheck after releasing the transaction; push never holds the lifecycle lock.
+        if (!await dbContext.TriageCases.AsNoTracking().AnyAsync(x => x.Id == caseId && x.Status == status, cancellationToken)) return;
 
         try
         {

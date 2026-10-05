@@ -33,6 +33,20 @@ public sealed class TriageController(ITriageService triageService, INotification
         return Accepted($"/api/v1/triage-cases/{triageCase.Id}/status", triageCase);
     }
 
+    [HttpPut("triage-cases/{caseId:guid}/submission")]
+    [Authorize(Policy = "FamilyUser")]
+    public async Task<ActionResult<TriageCaseDto>> ReplaceSubmission(Guid caseId, CreateEpisodeRequest request, IValidator<CreateEpisodeRequest> validator, CancellationToken cancellationToken)
+    {
+        await ValidateAsync(validator, request, cancellationToken);
+        var replacement = await triageService.ReplaceSubmissionAsync(caseId, request, cancellationToken);
+        return Accepted($"/api/v1/triage-cases/{replacement.Id}/status", replacement);
+    }
+
+    [HttpPost("triage-cases/{caseId:guid}/withdraw")]
+    [Authorize(Policy = "FamilyUser")]
+    public async Task<ActionResult<TriageCaseDto>> Withdraw(Guid caseId, CancellationToken cancellationToken) =>
+        Ok(await triageService.WithdrawAsync(caseId, cancellationToken));
+
     [HttpGet("triage-cases/{caseId:guid}")]
     public async Task<ActionResult<TriageCaseDto>> GetCase(Guid caseId, CancellationToken cancellationToken) =>
         Ok(await triageService.GetCaseAsync(caseId, cancellationToken));

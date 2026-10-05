@@ -1,3 +1,4 @@
+import 'package:family_veda/widgets/doctor/processing_requests_section.dart';
 // Owner: S4 · whole-project waiver (agent/DECISIONS.md 2026-09-28b)
 // Doctor Triage Cases: the work queue (find, claim, open). Same endpoints, statuses and actions
 // as the web queue (web/src/pages/doctor/CasesPage.tsx). The clinical decision stays on the
@@ -43,6 +44,7 @@ class _DoctorTriageCasesScreenState
   String? _claimingId;
 
   Future<void> _refresh() async {
+    ref.invalidate(processingRequestsProvider);
     ref.invalidate(doctorQueueProvider);
     try {
       await ref.read(doctorQueueProvider.future);
@@ -207,6 +209,7 @@ class _DoctorTriageCasesScreenState
                     style: TextStyle(color: palette.muted, fontSize: 14),
                   ),
                   const SizedBox(height: 12),
+                  const ProcessingRequestsSection(),
                   _Summary(
                     counts: counts,
                     onOpen: (tab) => setState(() => _tab = tab),

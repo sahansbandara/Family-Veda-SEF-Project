@@ -7,7 +7,7 @@ namespace FamilyVeda.Application.Triage;
 
 public sealed record CreateEpisodeRequest(IReadOnlyList<string> Symptoms, int DurationDays, int Severity, string? Notes);
 public sealed record EpisodeDto(Guid Id, Guid MemberId, IReadOnlyList<string> Symptoms, int DurationDays, int Severity, string? Notes, DateTimeOffset CreatedAt);
-public sealed record TriageCaseDto(Guid Id, Guid EpisodeId, Guid MemberId, TriageStatus Status, TriagePriority Priority, DateTimeOffset CreatedAt, int CaseNumber = 0, string? MemberDisplayName = null, string? FamilyName = null, bool ReferralClosed = false);
+public sealed record TriageCaseDto(Guid Id, Guid EpisodeId, Guid MemberId, TriageStatus Status, TriagePriority Priority, DateTimeOffset CreatedAt, int CaseNumber = 0, string? MemberDisplayName = null, string? FamilyName = null, bool ReferralClosed = false, DateTimeOffset? SubmittedAt = null, DateTimeOffset? DoctorReceivedAt = null, DateTimeOffset? DoctorReviewStartedAt = null, bool CanEdit = false, bool CanWithdraw = false, EpisodeDto? SubmittedEpisode = null, ApprovalAction? LatestDecisionAction = null, string? LatestDecisionReason = null, string? FailureCode = null);
 public sealed record TriageStatusDto(Guid Id, TriageStatus Status, TriagePriority Priority, string? FailureCode);
 public sealed record AgentTraceDto(int StepNumber, AgentKind Agent, AgentStepStatus Status, IReadOnlyList<string> ToolsRequested, IReadOnlyList<string> ToolsAllowed, IReadOnlyList<string> ToolsDenied, decimal Confidence, long LatencyMilliseconds, bool OutputSchemaValid);
 public sealed record CaseReviewDto(Guid Id, Guid MemberId, TriageStatus Status, TriagePriority Priority, string? ContextJson, string? AnalysisJson, string? FamilialRiskJson, string? DraftAdvisoryJson, IReadOnlyList<AgentTraceDto> Traces, EpisodeDto? SubmittedEpisode = null, int CaseNumber = 0, string? MemberDisplayName = null, string? FamilyName = null);
@@ -23,6 +23,8 @@ public interface ITriageService
     Task<EpisodeDto> CreateEpisodeAsync(Guid memberId, CreateEpisodeRequest request, CancellationToken cancellationToken);
     Task<PagedResult<EpisodeDto>> GetEpisodesAsync(Guid memberId, int page, int pageSize, CancellationToken cancellationToken);
     Task<TriageCaseDto> SubmitTriageAsync(Guid episodeId, CancellationToken cancellationToken);
+    Task<TriageCaseDto> ReplaceSubmissionAsync(Guid caseId, CreateEpisodeRequest request, CancellationToken cancellationToken);
+    Task<TriageCaseDto> WithdrawAsync(Guid caseId, CancellationToken cancellationToken);
     Task<TriageCaseDto> GetCaseAsync(Guid caseId, CancellationToken cancellationToken);
     Task<TriageStatusDto> GetStatusAsync(Guid caseId, CancellationToken cancellationToken);
     Task<IReadOnlyList<AgentTraceDto>> GetTracesAsync(Guid caseId, CancellationToken cancellationToken);

@@ -12,6 +12,7 @@ using FamilyVeda.Domain.Common;
 using FamilyVeda.Domain.Portal;
 using FamilyVeda.Domain.Safety;
 using FamilyVeda.Infrastructure.Persistence;
+using FamilyVeda.Infrastructure.Triage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -512,7 +513,7 @@ public sealed class ClinicalService(
             // Names are released only for cases this doctor holds an active grant on.
             .Select(x => new TriageCaseDto(x.Id, x.EpisodeId, x.MemberId, x.Status, x.Priority, x.CreatedAt,
                 x.CaseNumber, x.Member!.DisplayName, x.Member!.Family!.Name,
-                dbContext.Approvals.Any(a => a.TriageCaseId == x.Id && a.Action == ApprovalAction.CloseReferral)))
+                dbContext.Approvals.Any(a => a.TriageCaseId == x.Id && a.Action == ApprovalAction.CloseReferral), x.SubmittedAt, null, null, false, false, null, null, null, x.FailureCode))
             .ToListAsync(cancellationToken);
         dbContext.AuditLogs.Add(new AuditLog
         {
@@ -524,6 +525,22 @@ public sealed class ClinicalService(
         });
         await dbContext.SaveChangesAsync(cancellationToken);
         return new PagedResult<TriageCaseDto>(items, page, pageSize, total);
+    }
+
+    public async Task<PagedResult<ProcessingCaseDto>> GetProcessingCasesAsync(int page, int pageSize, CancellationToken cancellationToken)
+    {
+        var doctor = await RequireVerifiedDoctorAsync(cancellationToken);
+        (page, pageSize) = NormalizePage(page, pageSize);
+        var statuses = new[] { TriageStatus.Submitted, TriageStatus.Planning, TriageStatus.ContextReady, TriageStatus.Analysed, TriageStatus.RiskAssessed, TriageStatus.Validated, TriageStatus.FailedSafe };
+        // Assignment is metadata routing only, never a clinical access grant.
+        var query = dbContext.TriageCases.AsNoTracking().Where(x => statuses.Contains(x.Status) &&
+            dbContext.FamilyDoctorAssignments.Any(a => a.FamilyId == x.Member!.FamilyId && a.DoctorId == doctor.Id && a.IsPrimary && a.EndedAt == null));
+        var total = await query.CountAsync(cancellationToken);
+        var items = await query.OrderBy(x => x.SubmittedAt).Skip((page - 1) * pageSize).Take(pageSize)
+            .Select(x => new ProcessingCaseDto(x.Id, x.CaseNumber, x.Status, x.SubmittedAt ?? x.CreatedAt)).ToListAsync(cancellationToken);
+        await WriteAuditAsync("DOCTOR_PROCESSING_INBOX_READ", "ProcessingInbox", doctor.Id, "SUCCESS", cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return new(items, page, pageSize, total);
     }
 
     public async Task<PagedResult<AvailableCaseDto>> GetAvailableCasesAsync(int page, int pageSize, CancellationToken cancellationToken)
@@ -539,18 +556,9 @@ public sealed class ClinicalService(
             // A closed referral needs no further acknowledgement.
             !dbContext.Approvals.Any(a => a.TriageCaseId == x.Id && a.Action == ApprovalAction.CloseReferral));
         var total = await query.CountAsync(cancellationToken);
-        var rows = await query.OrderByDescending(x => x.Priority).ThenBy(x => x.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize)
-            .Select(x => new
-            {
-                x.Id, x.Priority, x.CreatedAt, x.Status, x.CaseNumber,
-                x.Episode!.SymptomsJson, x.Episode.DurationDays, x.Episode.Severity, x.Episode.Notes,
-                x.Member!.DateOfBirth
-            }).ToListAsync(cancellationToken);
-        var today = DateOnly.FromDateTime(now.UtcDateTime);
-        // The complaint lets a doctor judge whether to claim; identity stays behind the case grant.
-        var items = rows.Select(x => new AvailableCaseDto(x.Id, x.Priority, x.CreatedAt, x.Status, x.CaseNumber,
-            new PoolComplaintDto(ParseSymptoms(x.SymptomsJson), x.DurationDays, x.Severity,
-                string.IsNullOrWhiteSpace(x.Notes) ? null : x.Notes.Trim(), AgeBand(x.DateOfBirth, today)))).ToList();
+        // Pool reads never release submitted clinical text before a grant and review-start marker.
+        var items = await query.OrderByDescending(x => x.Priority).ThenBy(x => x.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize)
+            .Select(x => new AvailableCaseDto(x.Id, x.Priority, x.CreatedAt, x.Status, x.CaseNumber, null)).ToListAsync(cancellationToken);
         dbContext.AuditLogs.Add(new AuditLog
         {
             ActorUserId = currentUser.UserId,
@@ -563,8 +571,12 @@ public sealed class ClinicalService(
         return new PagedResult<AvailableCaseDto>(items, page, pageSize, total);
     }
 
-    public async Task<ApprovalDto> ClaimCaseAsync(Guid caseId, CancellationToken cancellationToken)
+    public Task<ApprovalDto> ClaimCaseAsync(Guid caseId, CancellationToken cancellationToken) =>
+        dbContext.Database.CreateExecutionStrategy().ExecuteAsync(() => ClaimCaseAsyncCore(caseId, cancellationToken));
+
+    private async Task<ApprovalDto> ClaimCaseAsyncCore(Guid caseId, CancellationToken cancellationToken)
     {
+        await using var gate = await CaseLifecycleLock.AcquireAsync(dbContext, caseId, cancellationToken);
         var doctor = await RequireVerifiedDoctorAsync(cancellationToken);
         var triageCase = await dbContext.TriageCases.SingleOrDefaultAsync(
             x => x.Id == caseId && (x.Status == TriageStatus.PendingDoctorReview || x.Status == TriageStatus.LowConfidence || x.Status == TriageStatus.Claimed || x.Status == TriageStatus.Escalated),
@@ -604,6 +616,7 @@ public sealed class ClinicalService(
         {
             await NotifyEmergencyAcknowledgedAsync(triageCase.MemberId, cancellationToken);
         }
+        await CaseLifecycle.MarkReviewAsync(dbContext, caseId, triageCase.MemberId, currentUser.UserId, cancellationToken);
         await WriteAuditAsync("CASE_CLAIMED", "TriageCase", caseId, "SUCCESS", cancellationToken, triageCase.MemberId);
         try
         {
@@ -614,11 +627,16 @@ public sealed class ClinicalService(
             dbContext.ChangeTracker.Clear();
             throw new ConflictException("Case was claimed by another doctor.");
         }
+        await gate.CompleteAsync(cancellationToken);
         return MapApproval(approval);
     }
 
-    public async Task<ApprovalDto> DecideCaseAsync(Guid caseId, ApprovalRequest request, CancellationToken cancellationToken)
+    public Task<ApprovalDto> DecideCaseAsync(Guid caseId, ApprovalRequest request, CancellationToken cancellationToken) =>
+        dbContext.Database.CreateExecutionStrategy().ExecuteAsync(() => DecideCaseAsyncCore(caseId, request, cancellationToken));
+
+    private async Task<ApprovalDto> DecideCaseAsyncCore(Guid caseId, ApprovalRequest request, CancellationToken cancellationToken)
     {
+        await using var gate = await CaseLifecycleLock.AcquireAsync(dbContext, caseId, cancellationToken);
         var doctor = await RequireVerifiedDoctorAsync(cancellationToken);
         var triageCase = await dbContext.TriageCases.SingleOrDefaultAsync(x => x.Id == caseId, cancellationToken) ?? throw new NotFoundException();
         if (triageCase.Status is not (TriageStatus.PendingDoctorReview or TriageStatus.LowConfidence or TriageStatus.Claimed))
@@ -673,6 +691,7 @@ public sealed class ClinicalService(
                 .ToListAsync(cancellationToken);
             foreach (var activeGrant in activeGrants) activeGrant.RevokedAt = approval.DecidedAt;
         }
+        await CaseLifecycle.MarkReviewAsync(dbContext, caseId, triageCase.MemberId, currentUser.UserId, cancellationToken);
         await WriteAuditAsync("CASE_DECISION", "TriageCase", caseId, "SUCCESS", cancellationToken, triageCase.MemberId);
         try
         {
@@ -683,6 +702,8 @@ public sealed class ClinicalService(
             dbContext.ChangeTracker.Clear();
             throw new ConflictException("Case was decided by another doctor.");
         }
+        await gate.CompleteAsync(cancellationToken);
+        await gate.DisposeAsync();
         await notificationService.SendCaseStatusAsync(caseId, triageCase.Status, cancellationToken);
         return MapApproval(approval);
     }

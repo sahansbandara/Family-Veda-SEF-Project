@@ -14,32 +14,38 @@ final memberCasesProvider = FutureProvider.autoDispose<List<TriageCase>>((
   return ref.watch(patientApiProvider).getCases(memberId);
 });
 
-final caseStatusProvider = StreamProvider.autoDispose.family<TriageCase?, String>((
-  ref,
-  caseId,
-) async* {
-  final memberId = ref.watch(activeMemberProvider);
-  if (memberId == null) {
-    yield null;
-    return;
-  }
-  const terminalStatuses = {
-    'APPROVED',
-    'APPROVED_REVISED',
-    'REJECTED',
-    'ESCALATED',
-    'FAILED_SAFE',
-  };
-  while (true) {
-    final cases = await ref.read(patientApiProvider).getCases(memberId);
-    final matches = cases.where((item) => item.id == caseId);
-    var item = matches.isEmpty ? null : matches.first;
-    if (item != null) {
-      final detail = await ref.read(patientApiProvider).getCaseStatus(caseId);
-      item = item.withStatusDetail(detail);
-    }
-    yield item;
-    if (item == null || terminalStatuses.contains(item.status)) return;
-    await Future<void>.delayed(const Duration(seconds: 3));
-  }
-});
+final caseStatusProvider = StreamProvider.autoDispose
+    .family<TriageCase?, String>((ref, caseId) async* {
+      final memberId = ref.watch(activeMemberProvider);
+      if (memberId == null) {
+        yield null;
+        return;
+      }
+      const terminalStatuses = {
+        'APPROVED',
+        'APPROVED_REVISED',
+        'REJECTED',
+        'ESCALATED',
+        'FAILED_SAFE',
+        'WITHDRAWN',
+        'SUPERSEDED',
+      };
+      while (true) {
+        final cases = await ref.read(patientApiProvider).getCases(memberId);
+        final matches = cases.where((item) => item.id == caseId);
+        var item = matches.isEmpty ? null : matches.first;
+        if (item != null) {
+          final detail = await ref
+              .read(patientApiProvider)
+              .getCaseStatus(caseId);
+          item = TriageCase.fromJson({
+            ...detail,
+            'submittedAt':
+                detail['submittedAt'] ?? item.submittedAt.toIso8601String(),
+          });
+        }
+        yield item;
+        if (item == null || terminalStatuses.contains(item.status)) return;
+        await Future<void>.delayed(const Duration(seconds: 3));
+      }
+    });

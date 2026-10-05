@@ -1234,3 +1234,10 @@
     flex-wrap: wrap;
   }
 }
+
+/* Patient progress stays in a native modal on desktop and touch screens. */
+.triage-redesign .request-dialog { position: fixed; inset: 0; width: min(900px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); margin: auto; padding: 24px; overflow: auto; color: var(--triage-text); }
+.request-dialog::backdrop { background: rgb(0 0 0 / 65%); }
+.triage-redesign .request-dialog .form-actions { flex-wrap: wrap; }
+.triage-redesign .request-edit { margin-block: 20px; }
+@media (max-width: 600px) { .triage-redesign .request-dialog { width: calc(100vw - 16px); max-height: calc(100dvh - 16px); padding: 16px; } .triage-redesign .request-dialog .req-head { align-items: flex-start; gap: 12px; flex-wrap: wrap; } }

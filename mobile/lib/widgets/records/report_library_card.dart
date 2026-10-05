@@ -68,6 +68,15 @@ class _ReportLibraryCardState extends State<ReportLibraryCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (widget.compact &&
+                widget.report.hasOriginalFile &&
+                widget.loadOriginal != null) ...[
+              ReportOriginalThumbnail(
+                load: widget.loadOriginal!,
+                fileName: widget.report.fileName,
+              ),
+              const SizedBox(height: 16),
+            ],
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -115,21 +124,13 @@ class _ReportLibraryCardState extends State<ReportLibraryCard> {
               ReportProgress(status: widget.report.ocrStatus),
             ],
             const SizedBox(height: 8),
-            if (widget.compact) ...[
-              Text(
-                shared ? 'Shared with Family Head' : 'Private',
-                style: Theme.of(context).textTheme.labelMedium,
-              ),
-              const SizedBox(height: 4),
-              Text(extraction, style: Theme.of(context).textTheme.bodySmall),
-              if (!widget.report.hasOriginalFile)
-                const Text('Original not stored'),
-            ] else ...[
-              _Fact(
-                'Visibility',
-                shared ? 'Shared with Family Head' : 'Private from Family Head',
-              ),
-              _Fact('Extraction', extraction),
+            Text(extraction, style: Theme.of(context).textTheme.labelMedium),
+            const SizedBox(height: 8),
+            Text(
+              shared ? 'Shared with Family Head' : 'Private from Family Head',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            if (!widget.compact) ...[
               _Fact(
                 'Original file',
                 widget.report.hasOriginalFile ? 'Stored' : 'Not stored',
@@ -139,7 +140,8 @@ class _ReportLibraryCardState extends State<ReportLibraryCard> {
                 widget.report.rangeSummary?.label ?? 'No values confirmed yet',
               ),
             ],
-            if (widget.report.hasOriginalFile &&
+            if (!widget.compact &&
+                widget.report.hasOriginalFile &&
                 widget.loadOriginal != null) ...[
               TextButton.icon(
                 onPressed: () => setState(() => _preview = !_preview),
@@ -156,7 +158,8 @@ class _ReportLibraryCardState extends State<ReportLibraryCard> {
                   fileName: widget.report.fileName,
                 ),
             ],
-            // One wrapping row keeps the card short; each action stays a full-size tap target.
+            const Divider(height: 24),
+            // Actions remain visible and wrap into full-size touch targets.
             Align(
               alignment: Alignment.centerRight,
               child: Wrap(
@@ -174,49 +177,7 @@ class _ReportLibraryCardState extends State<ReportLibraryCard> {
                       onPressed: widget.onCheckValues,
                       child: const Text('Check values'),
                     ),
-                  if (!widget.compact &&
-                      widget.canChangeSharing &&
-                      widget.onToggleSharing != null)
-                    TextButton(
-                      onPressed: widget.onToggleSharing,
-                      child: Text(
-                        shared
-                            ? 'Keep private from Family Head'
-                            : 'Share with Family Head',
-                      ),
-                    ),
-                  if (widget.compact &&
-                      (widget.onDelete != null ||
-                          (widget.canChangeSharing &&
-                              widget.onToggleSharing != null)))
-                    PopupMenuButton<String>(
-                      tooltip: 'Report actions',
-                      onSelected: (action) {
-                        if (action == 'sharing') {
-                          widget.onToggleSharing?.call();
-                        } else {
-                          widget.onDelete?.call();
-                        }
-                      },
-                      itemBuilder: (_) => [
-                        if (widget.canChangeSharing &&
-                            widget.onToggleSharing != null)
-                          PopupMenuItem(
-                            value: 'sharing',
-                            child: Text(
-                              shared
-                                  ? 'Keep private from Family Head'
-                                  : 'Share with Family Head',
-                            ),
-                          ),
-                        if (widget.onDelete != null)
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Text('Delete'),
-                          ),
-                      ],
-                    ),
-                  if (!widget.compact && widget.onDelete != null)
+                  if (widget.onDelete != null)
                     TextButton.icon(
                       style: TextButton.styleFrom(
                         foregroundColor: Theme.of(context).colorScheme.error,
@@ -228,6 +189,36 @@ class _ReportLibraryCardState extends State<ReportLibraryCard> {
                 ],
               ),
             ),
+            if (widget.canChangeSharing && widget.onToggleSharing != null) ...[
+              const SizedBox(height: 12),
+              InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Report sharing',
+                  border: OutlineInputBorder(),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<bool>(
+                    value: shared,
+                    isExpanded: true,
+                    items: const [
+                      DropdownMenuItem(
+                        value: false,
+                        child: Text('Private from Family Head'),
+                      ),
+                      DropdownMenuItem(
+                        value: true,
+                        child: Text('Shared with Family Head'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null && value != shared) {
+                        widget.onToggleSharing!();
+                      }
+                    },
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
