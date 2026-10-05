@@ -564,9 +564,6 @@ export function RecordsPage() {
           <p className="care-muted">
             Upload a report, check its values, and keep your health history together.
           </p>
-          <p className="care-caption">
-            <Link to="/family-risk">Family history screening</Link>
-          </p>
         </div>
         {!isSharedView && (
           <div className="care-actions">
