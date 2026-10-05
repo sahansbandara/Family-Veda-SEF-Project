@@ -138,6 +138,16 @@ class DioMobileApi implements MobileApi {
     }
     try {
       await _client.dio.post<void>('/lab-reports/$reportId/extract');
+    } on DioException catch (error) {
+      // 422 carries the backend's own reason, e.g. the 4-page limit; it is safe to show as-is.
+      final data = error.response?.data;
+      final detail = data is Map<String, dynamic> ? data['detail'] : null;
+      if (error.response?.statusCode == 422 && detail is String && detail.isNotEmpty) {
+        throw SavedReportUploadException('Report saved. $detail');
+      }
+      throw const SavedReportUploadException(
+        'Report saved. Extraction could not finish; manual review is required. Do not upload it again.',
+      );
     } on Object {
       throw const SavedReportUploadException(
         'Report saved. Extraction could not finish; manual review is required. Do not upload it again.',

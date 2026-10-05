@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace FamilyVeda.Infrastructure.Records;
 
-public sealed class TesseractOcrService(IConfiguration configuration) : IOcrService
+public sealed partial class TesseractOcrService(IConfiguration configuration) : IOcrService
 {
     private readonly SemaphoreSlim _processSlots = new(Math.Clamp(configuration.GetValue("Ocr:MaxConcurrentProcesses", 2), 1, 4));
 
@@ -19,7 +19,7 @@ public sealed class TesseractOcrService(IConfiguration configuration) : IOcrServ
             if (Path.GetExtension(filePath).Equals(".pdf", StringComparison.OrdinalIgnoreCase))
                 return await ExtractPdfTextAsync(filePath, cancellationToken);
 
-            var text = await RunTesseractAsync(filePath, pageSegmentationMode: null, cancellationToken);
+            var text = LimitText(await RunTesseractAsync(filePath, pageSegmentationMode: null, cancellationToken));
             if (HasStructuredValues(text)) return text!;
 
             // Photographed or scanned pages are often tilted, which breaks row detection: straighten and retry.
@@ -30,7 +30,7 @@ public sealed class TesseractOcrService(IConfiguration configuration) : IOcrServ
                 {
                     foreach (var mode in DeskewedPageSegmentationModes)
                     {
-                        var deskewedText = await RunTesseractAsync(deskewedPath, mode, cancellationToken);
+                        var deskewedText = LimitText(await RunTesseractAsync(deskewedPath, mode, cancellationToken));
                         if (HasStructuredValues(deskewedText)) return deskewedText!;
                     }
                 }
@@ -53,6 +53,15 @@ public sealed class TesseractOcrService(IConfiguration configuration) : IOcrServ
 
     private static bool HasStructuredValues(string? text) => text is not null && LabExtractionService.ParseValues(text).Count > 0;
 
+    // Longer reports are rejected rather than partially read, so no result is silently missing.
+    private int MaxPages => Math.Clamp(configuration.GetValue("Ocr:MaxPages", 4), 1, 20);
+
+    private int MaxCharacters => Math.Clamp(configuration.GetValue("Ocr:MaxOutputCharacters", 60_000), 1_000, 250_000);
+
+    private string? LimitText(string? text) => text is not null && text.Length > MaxCharacters
+        ? throw new ProcessingException("This report contains too much text to read automatically. Use manual entry instead.")
+        : text;
+
     private async Task<string?> RunTesseractAsync(string filePath, string? pageSegmentationMode, CancellationToken cancellationToken)
     {
         var startInfo = NewProcess("tesseract");
@@ -74,8 +83,6 @@ public sealed class TesseractOcrService(IConfiguration configuration) : IOcrServ
         using var process = Process.Start(startInfo) ?? throw new ProcessingException("OCR engine could not be started. Use manual entry instead.");
         var (exitCode, output) = await WaitForOutputAsync(process, cancellationToken);
         if (exitCode != 0 || string.IsNullOrWhiteSpace(output)) return null;
-        if (output.Length > configuration.GetValue("Ocr:MaxOutputCharacters", 250_000))
-            throw new ProcessingException("OCR output exceeded safe limits. Use manual entry instead.");
         return output;
     }
 
@@ -110,8 +117,58 @@ public sealed class TesseractOcrService(IConfiguration configuration) : IOcrServ
         return null;
     }
 
-    // Tesseract cannot read PDF: rasterise a bounded number of pages and OCR each page image.
+    // A digital PDF already carries exact text: read it directly and only OCR scanned pages.
     private async Task<string> ExtractPdfTextAsync(string filePath, CancellationToken cancellationToken)
+    {
+        var pageCount = await CountPdfPagesAsync(filePath, cancellationToken);
+        if (pageCount > MaxPages)
+            throw new ProcessingException($"This report has {pageCount} pages. Reports longer than {MaxPages} pages cannot be read automatically. Upload only the result pages or use manual entry.");
+
+        var embeddedText = LimitText(await ReadPdfTextLayerAsync(filePath, pageCount, cancellationToken));
+        if (HasStructuredValues(embeddedText)) return embeddedText!;
+        return await OcrPdfPagesAsync(filePath, pageCount, cancellationToken);
+    }
+
+    private async Task<int> CountPdfPagesAsync(string filePath, CancellationToken cancellationToken)
+    {
+        var startInfo = NewProcess(configuration["Ocr:PdfInfoCommand"] is { Length: > 0 } command ? command : "pdfinfo");
+        startInfo.ArgumentList.Add(filePath);
+        try
+        {
+            using var process = Process.Start(startInfo) ?? throw new ProcessingException("PDF reports cannot be read here. Use manual entry instead.");
+            var (exitCode, output) = await WaitForOutputAsync(process, cancellationToken);
+            var pages = PdfPageCount().Match(output);
+            if (exitCode != 0 || !pages.Success || !int.TryParse(pages.Groups["pages"].Value, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var count) || count < 1)
+                throw new ProcessingException("OCR could not read this report. Use manual entry instead.");
+            return count;
+        }
+        catch (System.ComponentModel.Win32Exception)
+        {
+            throw new ProcessingException("PDF reports cannot be read here. Use manual entry instead.");
+        }
+    }
+
+    private async Task<string?> ReadPdfTextLayerAsync(string filePath, int pageCount, CancellationToken cancellationToken)
+    {
+        var startInfo = NewProcess(configuration["Ocr:PdfTextCommand"] is { Length: > 0 } command ? command : "pdftotext");
+        foreach (var argument in new[] { "-layout", "-enc", "UTF-8", "-f", "1", "-l", pageCount.ToString(System.Globalization.CultureInfo.InvariantCulture), filePath, "-" })
+            startInfo.ArgumentList.Add(argument);
+        try
+        {
+            using var process = Process.Start(startInfo);
+            if (process is null) return null;
+            var (exitCode, output) = await WaitForOutputAsync(process, cancellationToken);
+            return exitCode == 0 && !string.IsNullOrWhiteSpace(output) ? output : null;
+        }
+        catch (System.ComponentModel.Win32Exception)
+        {
+            // Text-layer reader is not installed: fall back to rendering the pages for OCR.
+            return null;
+        }
+    }
+
+    // Tesseract cannot read PDF: rasterise each page and OCR the page images.
+    private async Task<string> OcrPdfPagesAsync(string filePath, int pageCount, CancellationToken cancellationToken)
     {
         var command = configuration["Ocr:PdfRenderCommand"];
         if (string.IsNullOrWhiteSpace(command)) throw new ProcessingException("PDF reports cannot be read here. Use manual entry instead.");
@@ -120,8 +177,8 @@ public sealed class TesseractOcrService(IConfiguration configuration) : IOcrServ
         try
         {
             var startInfo = NewProcess(command);
-            var maxPages = Math.Clamp(configuration.GetValue("Ocr:PdfMaxPages", 5), 1, 20).ToString(System.Globalization.CultureInfo.InvariantCulture);
-            foreach (var argument in new[] { "-png", "-r", "200", "-f", "1", "-l", maxPages, filePath, Path.Combine(pageDirectory.FullName, "page") })
+            var lastPage = pageCount.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            foreach (var argument in new[] { "-png", "-r", "200", "-f", "1", "-l", lastPage, filePath, Path.Combine(pageDirectory.FullName, "page") })
                 startInfo.ArgumentList.Add(argument);
             try
             {
@@ -134,12 +191,11 @@ public sealed class TesseractOcrService(IConfiguration configuration) : IOcrServ
                 throw new ProcessingException("PDF reports cannot be read here. Use manual entry instead.");
             }
 
-            var maxCharacters = configuration.GetValue("Ocr:MaxOutputCharacters", 250_000);
             var text = new System.Text.StringBuilder();
             foreach (var page in pageDirectory.GetFiles("page*.png").OrderBy(x => x.Name, StringComparer.Ordinal))
             {
                 text.AppendLine(await RunTesseractAsync(page.FullName, pageSegmentationMode: null, cancellationToken));
-                if (text.Length > maxCharacters) throw new ProcessingException("OCR output exceeded safe limits. Use manual entry instead.");
+                LimitText(text.ToString());
             }
             if (string.IsNullOrWhiteSpace(text.ToString())) throw new ProcessingException("OCR could not read this report. Use manual entry instead.");
             return text.ToString();
@@ -149,6 +205,9 @@ public sealed class TesseractOcrService(IConfiguration configuration) : IOcrServ
             pageDirectory.Delete(recursive: true);
         }
     }
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"^Pages:\s+(?<pages>\d{1,6})\s*$", System.Text.RegularExpressions.RegexOptions.Multiline | System.Text.RegularExpressions.RegexOptions.CultureInvariant)]
+    private static partial System.Text.RegularExpressions.Regex PdfPageCount();
 
     private static ProcessStartInfo NewProcess(string fileName) => new()
     {
