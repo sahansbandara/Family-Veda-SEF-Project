@@ -741,7 +741,8 @@ label.hr-search:not(.hr-field):focus-within,
   display: flex;
   gap: 12px;
   overflow-x: auto;
-  padding-bottom: 8px;
+  padding: 4px 4px 12px 4px;
+  margin: -4px -4px -4px -4px;
   scrollbar-width: none;
 }
 .hr-quick-grid::-webkit-scrollbar {
@@ -751,8 +752,7 @@ label.hr-search:not(.hr-field):focus-within,
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 150px;
-  max-width: 200px;
+  flex: 1 0 150px;
   padding: 8px 12px;
   text-align: left;
   font: inherit;
@@ -762,7 +762,6 @@ label.hr-search:not(.hr-field):focus-within,
   border-radius: 12px;
   background: var(--surface);
   transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
-  flex-shrink: 0;
 }
 .hr-quick-tile .hr-tone-icon {
   width: 32px;
