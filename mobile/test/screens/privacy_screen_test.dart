@@ -4,6 +4,7 @@ import 'package:family_veda/models/family_dashboard.dart';
 import 'package:family_veda/providers/family_portal_provider.dart';
 import 'package:family_veda/screens/privacy/privacy_screen.dart';
 import 'package:family_veda/services/api/privacy_api.dart';
+import 'package:family_veda/widgets/privacy/privacy_parts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -67,16 +68,19 @@ void main() {
     expect(find.text('Privacy & Access'), findsOneWidget);
     expect(find.text('Member permissions'), findsOneWidget);
     final minorSwitch = find.widgetWithText(SwitchListTile, 'Family history (screening flags)');
-    await tester.ensureVisible(minorSwitch);
+    // NestedScrollView: drag the list so the header scrolls away and the switch is on screen.
+    await tester.dragUntilVisible(minorSwitch.hitTestable(), find.byType(ListView).first, const Offset(0, -200));
+    await tester.pumpAndSettle();
     await tester.tap(minorSwitch);
     await tester.pumpAndSettle();
     expect(api.consentWrites, ['m-minor:HereditaryFlags:Granted']);
-    // Head self + one minor = two switches; the adult has none.
-    expect(find.byType(SwitchListTile), findsNWidgets(2));
 
     // The adult card sits below the fold of the lazy list: scroll to it.
     final adultText = find.textContaining('1 item shared with you');
     await tester.dragUntilVisible(adultText, find.byType(ListView).first, const Offset(0, -200));
     expect(adultText, findsOneWidget);
+    // Adults manage their own privacy: their card carries no switches.
+    final adultCard = find.ancestor(of: adultText, matching: find.byType(MemberCard));
+    expect(find.descendant(of: adultCard, matching: find.byType(SwitchListTile)), findsNothing);
   });
 }
