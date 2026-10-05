@@ -156,14 +156,14 @@ public sealed class LabExtractionSafetyTests
     }
 
     [Theory]
-    [InlineData(null, 120)]
+    [InlineData(null, 150)]
     [InlineData("1", 10)]
     [InlineData("45", 45)]
     [InlineData("9999", 600)]
     public void OcrTimeout_ReadsAndClampsConfiguration(string? configured, int expectedSeconds)
     {
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?> { ["Ocr:TimeoutSeconds"] = configured }).Build();
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["Ocr:TotalTimeoutSeconds"] = configured }).Build();
         var service = new LabExtractionService(null!, new StubCurrentUser(Guid.NewGuid()), [], configuration);
 
         service.OcrTimeout.Should().Be(TimeSpan.FromSeconds(expectedSeconds));

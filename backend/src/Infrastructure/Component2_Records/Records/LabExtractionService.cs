@@ -18,9 +18,10 @@ namespace FamilyVeda.Infrastructure.Records;
 
 public sealed partial class LabExtractionService(AppDbContext dbContext, ICurrentUser currentUser, IEnumerable<IAgent> agents, IConfiguration? configuration = null) : ILabExtractionService
 {
-    // Server-owned OCR budget ("Ocr:TimeoutSeconds", default 120, clamped 10-600). A client disconnect must not cancel a read.
+    // Server-owned budget for the whole read ("Ocr:TotalTimeoutSeconds", default 150, clamped 10-600; below the 180 s client wait).
+    // "Ocr:TimeoutSeconds" is the separate per-process limit in TesseractOcrService. A client disconnect must not cancel a read.
     public TimeSpan OcrTimeout { get; init; } = TimeSpan.FromSeconds(Math.Clamp(
-        int.TryParse(configuration?["Ocr:TimeoutSeconds"], out var seconds) ? seconds : 120, 10, 600));
+        int.TryParse(configuration?["Ocr:TotalTimeoutSeconds"], out var seconds) ? seconds : 150, 10, 600));
 
     public async Task<LabExtractionResultDto> ExtractAsync(Guid reportId, CancellationToken cancellationToken)
     {
