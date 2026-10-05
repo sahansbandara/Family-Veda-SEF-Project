@@ -198,12 +198,25 @@ The members of Group SE_016 thank the lecturers and teaching staff of the Facult
 | Figure 3.8 | Entity-Relationship Diagram |
 | Figure 3.9 | CI/CD and Deployment Pipeline |
 | Figure 4.1 | Family Head Dashboard (Web) |
-| Figure 4.2 | Adult Member Dashboard (Web) |
-| Figure 4.3 | Doctor Dashboard (Web) |
-| Figure 4.4 | Android App Launch |
-| Figure 4.5 | Android Family Head Dashboard |
-| Figure 4.6 | Android Appointments |
-| Figure 4.7 | Android Notifications |
+| Figure 4.2 | Health Records — Lab Reports (Web) |
+| Figure 4.3 | Health Records — Vitals, Values Only (Web) |
+| Figure 4.4 | Symptom Request Form (Web) |
+| Figure 4.5 | Doctor-Approved Guidance Shown to the Family (Web) |
+| Figure 4.6 | Emergency Referral Without AI Output (Web) |
+| Figure 4.7 | Family Screening Indications (Web) |
+| Figure 4.8 | Doctor Dashboard (Web) |
+| Figure 4.9 | Doctor Triage Queue (Web) |
+| Figure 4.10 | Doctor Approval Desk (Web) |
+| Figure 4.11 | Clinic Admin Doctor Verification (Web) |
+| Figure 4.12 | Audit Log (Web) |
+| Figure 4.13 | Swagger API Reference |
+| Figure 4.14 | Family Head Dashboard at 390 px (Web, Responsive) |
+| Figure 4.15 | Health Records at 390 px (Web, Responsive) |
+| Figure 4.16 | Symptom Request at 390 px (Web, Responsive) |
+| Figure 4.17 | Android App Launch |
+| Figure 4.18 | Android Family Head Dashboard |
+| Figure 4.19 | Android Appointments |
+| Figure 4.20 | Android Notifications |
 
 ---
 
@@ -478,71 +491,9 @@ Figure 2.1 shows the use cases of the four human actors, grouped by the componen
 
 *Figure 2.1 – Use Case Diagram*
 
-```mermaid
-graph LR
-    FH["Family Head"]
-    AM["Adult Member"]
-    DR["Doctor"]
-    CA["Clinic Admin"]
+![Figure 2.1 – Use Case Diagram](figures/figure-2-1.png)
 
-    subgraph S1["S1 Family, Identity and Consent"]
-        UC1("Register and sign in")
-        UC2("Create family and invite members")
-        UC3("Manage consent per category")
-        UC4("Transfer family head")
-    end
-
-    subgraph S2["S2 Health Records and Extraction"]
-        UC5("Record vitals and health records")
-        UC6("Upload lab report and confirm values")
-        UC7("Restore report from trash")
-    end
-
-    subgraph S3["S3 Triage and Agent Orchestration"]
-        UC8("Submit triage complaint")
-        UC9("Track case status")
-        UC10("View approved guidance")
-    end
-
-    subgraph S4["S4 Familial Risk and Clinical Approval"]
-        UC11("Verify doctor licence")
-        UC12("Claim case from pool")
-        UC13("Approve, revise or reject case")
-        UC14("Review familial-risk screening indication")
-    end
-
-    subgraph XC["Cross-cutting"]
-        UC15("Book and manage appointments")
-        UC16("Receive notifications")
-    end
-
-    FH --> UC1
-    FH --> UC2
-    FH --> UC3
-    FH --> UC4
-    FH --> UC5
-    FH --> UC6
-    FH --> UC8
-    FH --> UC10
-    FH --> UC15
-    AM --> UC1
-    AM --> UC3
-    AM --> UC5
-    AM --> UC6
-    AM --> UC7
-    AM --> UC8
-    AM --> UC9
-    AM --> UC10
-    AM --> UC15
-    AM --> UC16
-    DR --> UC1
-    DR --> UC12
-    DR --> UC13
-    DR --> UC14
-    DR --> UC15
-    CA --> UC1
-    CA --> UC11
-```
+*Notation: UML use case diagram. Source: `docs/diagrams/use_case_diagram.html`.*
 
 *Explanation.* Figure 2.1 shows that the Family Head and Adult Member share most family-facing capabilities, whereas only the Doctor can claim and decide cases (UC12 and UC13) and only the Clinic Admin can verify a doctor (UC11). The patient-facing use case UC10 depends on UC13, since guidance exists only after approval, which expresses clinical safety rule 2 at requirement level. Notifications (UC16) and appointments (UC15) cut across the components.
 
@@ -684,7 +635,7 @@ Authentication uses JSON Web Tokens. A successful login returns a short-lived ac
 
 A role alone never grants access to another person's data. The governing principle is access by grant, not by role. Three kinds of grant exist. A consent, held per member and per category (hereditary flags, vitals summary, conditions), controls what family information a member shares. A CaseAccessGrant gives one verified doctor time-limited access to one triage case. A VisitAccessGrant gives a doctor access to the data relevant to a booked appointment. Grants carry an expiry (configured at 48 hours in the application settings) and can be revoked; the `CaseGrantPolicy` allows access only when a grant has not been revoked and has not expired.
 
-Adult privacy is the default. A Family Head can manage the family and its minors, but an adult member's records are private to that member unless the member chooses to share them. When a Family Head requests an adult member's record that has not been shared, the API responds with 404 rather than 403, so the existence of the record is not disclosed. Rate limiting protects the most abusable endpoints: authentication routes allow 10 requests per minute per IP address, family-code entry allows 10 requests per 10 minutes, and OCR extraction allows three requests per five minutes. Cross-origin requests are restricted to an explicit allow-list, and secrets are supplied through environment variables on the hosting platforms, never through the repository.
+Adult privacy is the default. A Family Head can manage the family and its minors, but an adult member's records are private to that member unless the member chooses to share them. When a Family Head requests an adult member's record that has not been shared, the API responds with 404 rather than 403, so the existence of the record is not disclosed. Rate limiting protects the most abusable endpoints: every route of the authentication controller allows 10 requests per minute per IP address, submitting a family join request (the family-code route) allows 10 requests per 10 minutes per signed-in account, and OCR extraction allows three requests per five minutes per signed-in account. Cross-origin requests are restricted to an explicit allow-list, and secrets are supplied through environment variables on the hosting platforms, never through the repository.
 
 *Figure 3.2 – Authentication and Access-Control Flow*
 
@@ -743,34 +694,15 @@ Table 3.4 lists the agents, their scope, the tools each may call and whether eac
 
 *Figure 3.3 – Agentic Triage Workflow*
 
-```mermaid
-flowchart TD
-    A["Member submits symptoms,<br/>duration and severity"] --> B["API creates episode and triage case"]
-    B --> C["Case queued to TriageWorker"]
-    C --> D{"Emergency warning<br/>detected deterministically?"}
-    D -->|"Yes"| E["Escalate and show emergency referral<br/>(no AI advisory)"]
-    D -->|"No"| F["Coordinator persists plan"]
-    F --> G["Context Agent"]
-    G --> H["Analysis Agent"]
-    H --> I["Familial Risk Agent"]
-    G -->|"Invalid schema or denied tool"| M["Safe failure<br/>no patient guidance"]
-    H -->|"Invalid schema or denied tool"| M
-    I -->|"Invalid schema or denied tool"| M
-    I --> J["Combine persisted outputs<br/>into doctor-only draft"]
-    J --> K{"Deterministic<br/>safety validation"}
-    K -->|"Checks pass"| L["Pending doctor review"]
-    K -->|"Confidence below threshold"| N["Low confidence:<br/>draft withheld"]
-    K -->|"Prohibited content"| M
-    L --> O["Eligible doctor receives<br/>case access grant"]
-    N --> O
-    O --> P["Doctor approval gate"]
-```
+![Figure 3.3 – Agentic Triage Workflow](figures/figure-3-3.png)
+
+*Notation: UML activity diagram with swimlanes. Source: `docs/diagrams/activity_triage_workflow.html`.*
 
 Figure 3.3 follows the order in which the worker processes a case. The emergency check happens first and is deterministic, so an emergency never waits for a language model and never produces an AI advisory (rule 10). The three LLM-using agents then run sequentially, each reading only through its own allow-listed tools; arrows denote execution order, not an unrestricted transfer of all patient data between agents. Any invalid output structure, denied tool call or prohibited content diverts the case to a safe failure, while low confidence withholds the draft and routes the case to a doctor. Every route that continues leads to the doctor approval gate, which is described in Section 3.7.
 
 ### 3.5.1 Tool Dispatch Layer
 
-The dispatch layer is the mechanism that makes invariant 5 real. The `ToolRegistry` defines, for each agent kind, the set of tool names it may call. The `ToolDispatcher` consults the registry on every call and denies by default: a tool that is not on the calling agent's list, or an empty tool name, is refused, and the refusal is recorded as a trace with the status ToolDenied before the pipeline stops. Because the check occurs at dispatch, not inside each agent, a new agent or a modified prompt cannot widen its own permissions. The Familial Risk Agent is additionally denied raw records outright, so it can only ever see flags that the owner has confirmed and consented to share.
+The dispatch layer is the mechanism that makes invariant 5 real. The `ToolRegistry` defines, for each agent kind, the set of tool names it may call. The `ToolDispatcher` consults the registry on every call and denies by default: a tool that is not on the calling agent's list, or an empty tool name, is refused, and the refusal is recorded as a trace with the status ToolDenied before the pipeline stops. Because the check occurs at dispatch, not inside each agent, a new agent or a modified prompt cannot widen its own permissions. The Familial Risk Agent's allow-list contains no raw-record tool (only the Extraction agent's list includes `read_raw_record`), so the same deny-by-default check refuses any attempt by that agent to read one; the one data tool it does hold returns only hereditary flags that have been manually confirmed and whose owner's consent for that category is granted.
 
 This design responds directly to the two threats most relevant to an agentic health application. Excessive agency, where a model is given broader capabilities than its task requires, is listed among the principal risks of LLM applications (OWASP Foundation, 2025); least-privilege tool lists limit that agency. Indirect prompt injection, where adversarial instructions are embedded in content the model later reads, is a documented attack against applications that integrate LLMs with external data (Greshake et al., 2023). For this reason, text recovered by OCR from a laboratory report and any text returned by an LLM are treated as untrusted data and never as instructions: OCR output is parsed and validated before it is stored, agent outputs must satisfy a JSON schema before they are used, and no agent output can enlarge the set of tools available to it. A successful injection can therefore influence at most what a permitted tool would already return, and nothing it produces reaches a patient without passing the safety rules and a doctor.
 
@@ -792,31 +724,39 @@ Rule 9 requires the system to defer to in-person care on any uncertainty. Table 
 
 ## 3.6 Triage Case Lifecycle
 
-A triage case moves through fourteen statuses defined by the TriageStatus enumeration. The statuses Submitted, Planning, ContextReady, Analysed and RiskAssessed record agent progress; Validated, LowConfidence and PendingDoctorReview record the outcome of safety validation; Claimed records that a doctor has taken the case; Approved, ApprovedRevised, Rejected and Escalated record the doctor's decision; and FailedSafe records a safe failure. Figure 3.4 shows the transitions the pipeline and the approval gate produce.
+A triage case can hold fourteen statuses, defined by the TriageStatus enumeration. A case is created in Planning when the patient submits the episode (TriageService.SubmitTriageAsync). The statuses ContextReady, Analysed and RiskAssessed record the completion of the Context, Analysis and Familial Risk agents respectively; LowConfidence and PendingDoctorReview record the outcome of safety validation; Claimed records that a doctor has claimed the case; Approved, ApprovedRevised, Rejected and Escalated record a doctor's decision or an emergency referral; and FailedSafe records a safe failure. Submitted is only the default value of the entity and Validated is only listed among the active statuses that the worker inspects at start-up; neither is assigned by the pipeline code, so neither appears in Figure 3.4. Figure 3.4 shows the transitions that the source code produces.
 
 *Figure 3.4 – Triage Case State Machine*
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Submitted
-    Submitted --> Planning
-    Submitted --> Escalated: emergency warning
-    Planning --> ContextReady
-    Planning --> FailedSafe
-    ContextReady --> Analysed
-    ContextReady --> FailedSafe
-    Analysed --> RiskAssessed
-    Analysed --> FailedSafe
-    RiskAssessed --> Validated
-    RiskAssessed --> LowConfidence
-    RiskAssessed --> FailedSafe
-    Validated --> PendingDoctorReview
-    LowConfidence --> PendingDoctorReview
-    PendingDoctorReview --> Claimed
-    Claimed --> Approved
-    Claimed --> ApprovedRevised
-    Claimed --> Rejected
-    Claimed --> Escalated
+    [*] --> Planning: patient submits episode
+    Planning --> Escalated: deterministic red-flag rule
+    Planning --> ContextReady: Context agent
+    ContextReady --> Analysed: Analysis agent
+    Analysed --> RiskAssessed: Familial Risk agent
+    RiskAssessed --> PendingDoctorReview: safety validation passed
+    RiskAssessed --> LowConfidence: confidence below threshold
+    Planning --> FailedSafe: failure
+    ContextReady --> FailedSafe: failure
+    Analysed --> FailedSafe: failure
+    RiskAssessed --> FailedSafe: failure
+    PendingDoctorReview --> Claimed: doctor claims
+    LowConfidence --> Claimed: doctor claims
+    Claimed --> Claimed: re-claim after grant passes SLA
+    PendingDoctorReview --> Approved: decision
+    PendingDoctorReview --> ApprovedRevised: decision
+    PendingDoctorReview --> Rejected: decision
+    PendingDoctorReview --> Escalated: decision
+    LowConfidence --> Approved: decision
+    LowConfidence --> ApprovedRevised: decision
+    LowConfidence --> Rejected: decision
+    LowConfidence --> Escalated: decision
+    Claimed --> Approved: decision
+    Claimed --> ApprovedRevised: decision
+    Claimed --> Rejected: decision
+    Claimed --> Escalated: decision
+    Claimed --> PendingDoctorReview: request information
     Approved --> [*]
     ApprovedRevised --> [*]
     Rejected --> [*]
@@ -824,7 +764,11 @@ stateDiagram-v2
     FailedSafe --> [*]
 ```
 
-Figure 3.4 separates the lifecycle into three phases. The first, from Submitted to RiskAssessed, is automatic and each step is recorded as an agent trace. The second, from Validated or LowConfidence to Claimed, is the hand-over to a human. The third, from Claimed to a terminal decision, is the doctor's. Four terminal outcomes are shown in the diagram: Approved and ApprovedRevised release guidance to the patient, whereas Rejected, Escalated and FailedSafe never do. A request for information leaves the case pending rather than terminal, which is why it does not appear as a separate state. Only the two approving statuses can ever return guidance to the patient, which keeps the visible-output rule (rule 2) enforceable by checking one condition.
+Figure 3.4 separates the lifecycle into three phases. The first, from Planning to RiskAssessed, is automatic, and each agent step is recorded as an agent trace. The emergency path leaves this phase early: when the deterministic red-flag rule fires, the orchestrator sets the case directly to Escalated with Emergency priority, calls no language model and stores no draft advisory. FailedSafe is entered from any of the four automatic statuses when an agent returns output that fails schema validation, a tool is denied, an agent is unavailable or the safety validation fails; the background worker also sets FailedSafe when it fails while processing a case (WORKER_FAILURE), and at start-up it sets FailedSafe on cases left mid-pipeline (PROCESS_INTERRUPTED), except that cases still in Submitted or Planning with no traces are placed back in Planning and re-queued. A FailedSafe case does not block a new triage case for the same episode.
+
+The second phase is the hand-over to a human. After safety validation the case is PendingDoctorReview, or LowConfidence when the minimum agent confidence falls below the configured threshold, and the primary doctor of the family, where one is verified, receives a time-limited case grant. Claiming is optional rather than required: a decision is accepted from PendingDoctorReview, LowConfidence or Claimed, provided the deciding doctor holds an active grant on the case. The decision, not the claim, is what moves the case to Approved, ApprovedRevised, Rejected or Escalated; each of these revokes the active grants. A request for information does not produce a terminal status: the decision handler resets the case to PendingDoctorReview, so it appears in the diagram as a return transition from Claimed. Claiming an Escalated case records an acknowledgement and leaves the status unchanged, and closing an emergency referral records a CloseReferral approval row while the case remains Escalated, so that the patient continues to see the referral; neither is shown as a transition because neither changes the status.
+
+The service-level agreement does not change the status. When a case in PendingDoctorReview, LowConfidence or Claimed has waited longer than the configured response period, the SLA processor sets the failure code DOCTOR_RESPONSE_DELAY and sends a notification, and a grant older than the period no longer prevents another doctor from claiming the case. Approved and ApprovedRevised release guidance to the patient, whereas Rejected, Escalated and FailedSafe never do. Only the two approving statuses can ever return guidance to the patient, which keeps the visible-output rule (rule 2) enforceable by checking one condition.
 
 ## 3.7 Doctor Approval Gate
 
@@ -834,23 +778,9 @@ Final guidance is not free text. When a doctor approves or revises, the guidance
 
 *Figure 3.5 – Doctor Approval Gate*
 
-```mermaid
-flowchart TD
-    A["Doctor opens case"] --> B{"Verified doctor and<br/>valid case grant?"}
-    B -->|"No"| C["Access denied"]
-    B -->|"Yes"| D["Read evidence, traces<br/>and safety results"]
-    D --> E{"Doctor decision"}
-    E -->|"Approve or revise and approve"| F["Select guidance from<br/>fixed allow-list"]
-    F --> G["API validates guidance,<br/>saves approval and audit row"]
-    G --> H["Approved or ApprovedRevised"]
-    H --> I["Grants revoked"]
-    I --> J["Patient endpoint returns final guidance,<br/>timestamp and disclaimer"]
-    E -->|"Request information"| K["Decision saved;<br/>case remains pending"]
-    E -->|"Reject"| L["Rejected; grants revoked;<br/>no guidance"]
-    E -->|"Escalate"| M["Escalated; grants revoked;<br/>no guidance"]
-    E -->|"Close referral"| N["Referral closed and recorded"]
-    G -->|"Concurrent decision exists"| O["409 Conflict"]
-```
+![Figure 3.5 – Doctor Approval Gate](figures/figure-3-5.png)
+
+*Notation: UML activity diagram with swimlanes. Source: `docs/diagrams/activity_doctor_approval.html`.*
 
 The explanation of Figure 3.5 is in the order of its branches. The first decision point is identity and grant, so a doctor who is unverified, or whose grant has expired or been revoked, never sees the evidence. After the evidence is read, the two approving actions pass through allow-list validation, are persisted together with an audit row, and only then make guidance available. The three non-approving branches (request information, reject and escalate) save the decision but release nothing to the patient, and the final branch shows that a second, conflicting decision is refused with 409 so that two doctors cannot silently overwrite one another.
 
@@ -858,26 +788,15 @@ The explanation of Figure 3.5 is in the order of its branches. The first decisio
 
 The Health Records component stores structured health records, vitals, laboratory reports and hereditary flags for each family member. Records carry a type (condition, allergy, medication, surgery or note) and a flag indicating whether they are shared with the Family Head, which implements the adult-privacy default described in Section 3.4. Vitals are stored with a measurement timestamp so that trends can be charted and compared with reference ranges by the deterministic range classifier.
 
-Laboratory report handling is a separate workflow from triage. A user uploads a PNG or JPEG image of up to 10 MB; the API checks that the caller may act for the member, stores the report and requests extraction. Tesseract, an open-source optical character recognition engine whose architecture is described by Smith (2007), reads the text. A deterministic parser then extracts values, units and printed reference intervals, and stores them as unconfirmed items. The user compares the extracted items with the original image and confirms or corrects them; only then are the values saved as confirmed and displayed against the report's own reference interval. Uploading a report does not create a triage case.
+Laboratory report handling is a separate workflow from triage. A user uploads a PNG or JPEG image, or a PDF, of up to 10 MB (the `Storage:MaxUploadBytes` setting, 10,485,760 bytes); the API checks that the caller may act for the member, validates the declared type, extension, size and file content, stores the report and, when the user requests it, runs extraction. A PDF is read by the OCR service only when a PDF render command is configured; otherwise the user is told to enter the values manually. Tesseract, an open-source optical character recognition engine whose architecture is described by Smith (2007), reads the text. A deterministic parser then extracts values, units and printed reference intervals, and stores them as unconfirmed items. The user compares the extracted items with the original image and confirms or corrects them; only then are the values saved as confirmed and displayed against the report's own reference interval. Uploading a report does not create a triage case.
 
 Original images are stored through a backend-only seam in Google Drive, with the drive.file scope, and PostgreSQL keeps the metadata, the extracted values and a storage key (ADR-014). If Drive is unavailable at upload time the image falls back to storage in PostgreSQL so an upload is never lost; if Drive cannot be read at retrieval time the API returns a 422 response stating that the file is temporarily unavailable. Lab reports support soft deletion, a trash view and restore, with a separate permanent-delete action. Two points of terminology matter for safety. First, a patient's confirmation means that the extracted values match the report; it is not a doctor's approval and does not release any AI output. Second, because OCR text is untrusted input (Section 3.5.1), no value is used by later triage analysis until it has been confirmed by a person.
 
 *Figure 3.6 – Lab Report Upload and Extraction Flow*
 
-```mermaid
-flowchart TD
-    A["User uploads PNG or JPEG<br/>(10 MB limit)"] --> B["API checks member access"]
-    B --> C["Store original image<br/>(Google Drive, PostgreSQL fallback)"]
-    C --> D["Request extraction<br/>(rate limited)"]
-    D --> E["Tesseract reads report text"]
-    E --> F["Parser extracts values,<br/>units and reference ranges"]
-    F --> G["Store values as unconfirmed"]
-    G --> H["User compares with original image"]
-    H --> I["User corrects and confirms values"]
-    I --> J["Confirmed values saved<br/>and shown against reference interval"]
-    J --> K["Confirmed values available<br/>to later triage analysis"]
-    D -->|"Extraction fails"| L["Show reading failure;<br/>values are never invented"]
-```
+![Figure 3.6 – Lab Report Upload and Extraction Flow](figures/figure-3-6.png)
+
+*Notation: UML activity diagram with swimlanes. Source: `docs/diagrams/activity_lab_report_upload.html`.*
 
 Figure 3.6 shows that the workflow has a human-in-the-loop checkpoint between extraction and use. Everything above the confirmation step is automatic and untrusted; everything below it is data a person has vouched for. The failure branch is explicit: if extraction fails, the system reports the failure and allows manual entry instead of fabricating values (rule 9).
 
@@ -957,8 +876,10 @@ The model contains 34 domain entities, plus a table used by ASP.NET Core Data Pr
 erDiagram
     UserAccount ||--o{ Family : creates
     Family ||--o{ Member : contains
-    UserAccount ||--o| Member : "logs in as"
-    Member ||--o{ Relationship : has
+    UserAccount |o--o| Member : "logs in as"
+    UserAccount ||--o| Doctor : "registers as"
+    Member ||--o{ Relationship : "is subject of"
+    Member ||--o{ Relationship : "is related in"
     Member ||--o{ Consent : holds
     Family ||--o{ FamilyInvitation : issues
     Member ||--o{ HealthRecord : owns
@@ -976,7 +897,7 @@ erDiagram
     Doctor ||--o{ CaseAccessGrant : receives
     TriageCase ||--o{ Approval : decided_by
     Doctor ||--o{ Approval : makes
-    UserAccount ||--o{ AuditLog : acts
+    UserAccount |o--o{ AuditLog : acts
 
     UserAccount {
         uuid Id PK
@@ -1036,7 +957,7 @@ erDiagram
     }
 ```
 
-Figure 3.8 shows the twenty main entities and the relationships among them; the remaining entities in Table 3.6 are supporting tables for the appointment, notification and family-lifecycle features, and are omitted from the diagram for legibility. The diagram reads in three clusters. On the left, the identity cluster ties user accounts to families, members, relationships and consents. In the middle, the record cluster hangs health records, laboratory reports (with their values and stored file), vitals and hereditary flags from the member. On the right, the clinical cluster links an episode to its triage cases, each case to its agent traces, and each case to the case-access grants and approvals that connect it to doctors. Attribute blocks are shown for seven entities whose fields most directly support the safety design: tokens and activity for accounts, role and date of birth for members, status and timestamps for consents, the confirmation flag on laboratory values, the status and failure code of a case, the schema-validity, confidence and latency fields of a trace, and the expiry and revocation fields of a grant.
+Figure 3.8 shows the twenty main entities and the relationships among them; the remaining entities in Table 3.6 are supporting tables for the appointment, notification and family-lifecycle features, and are omitted from the diagram for legibility. The diagram reads in three clusters. On the left, the identity cluster ties user accounts to families, members, relationships and consents. In the middle, the record cluster hangs health records, laboratory reports (with their values and stored file), vitals and hereditary flags from the member. On the right, the clinical cluster links an episode to its triage cases, each case to its agent traces, and each case to the case-access grants and approvals that connect it to doctors. Attribute blocks are shown for seven entities whose fields most directly support the safety design: tokens and activity for accounts, role and date of birth for members, status and timestamps for consents, the confirmation flag on laboratory values, the status and failure code of a case, the schema-validity, confidence and latency fields of a trace, and the expiry and revocation fields of a grant. Some cardinalities follow from nullable keys and unique indexes in the EF Core configuration. A member may have no user account, and a user account is linked to at most one member (a unique index on the non-null user key). A doctor is linked to exactly one user account. A relationship row names two members, which is why the relationship appears twice. The actor of an audit row is optional, because the key is set to null if the account is removed. A case may accumulate several grants over time, but a unique index permits at most one unrevoked grant per case.
 
 ### 3.10.3 Migration Protocol
 
@@ -1056,7 +977,7 @@ The API exposes 146 endpoint actions across 15 controllers, comprising 56 GET, 7
 |---|---|---|---|
 | POST | /api/v1/auth/register/family-head | Register a Family Head and create the account | Anonymous, rate limited |
 | POST | /api/v1/auth/login | Authenticate and receive the token pair | Anonymous, rate limited |
-| POST | /api/v1/auth/refresh | Exchange a single-use refresh token for a new pair | Refresh token |
+| POST | /api/v1/auth/refresh | Exchange a single-use refresh token for a new pair | Anonymous (refresh token in the body), rate limited |
 | GET | /api/v1/families/me | Read the caller's family | FamilyUser |
 | POST | /api/v1/families/{familyId}/invitations | Create a family invitation | FamilyUser (Family Head) |
 | PUT | /api/v1/members/{memberId}/consents/{category} | Grant or revoke consent for a category | FamilyUser |
@@ -1067,8 +988,8 @@ The API exposes 146 endpoint actions across 15 controllers, comprising 56 GET, 7
 | PUT | /api/v1/lab-reports/{reportId}/review | Confirm or correct extracted values | FamilyUser |
 | POST | /api/v1/members/{memberId}/episodes | Report a symptom episode | FamilyUser |
 | POST | /api/v1/episodes/{episodeId}/triage | Submit an episode for agentic triage | FamilyUser |
-| GET | /api/v1/triage-cases/{caseId}/status | Read the status of a triage case | FamilyUser |
-| GET | /api/v1/triage-cases/{caseId}/traces | Read agent traces for a case | Doctor |
+| GET | /api/v1/triage-cases/{caseId}/status | Read the status of a triage case | Authenticated; FamilyUser with access to the patient, or Doctor with a case grant |
+| GET | /api/v1/triage-cases/{caseId}/traces | Read agent traces for a case | Authenticated; Doctor with a case grant, Admin, or FamilyUser with access to the patient (read audited) |
 | POST | /api/v1/triage-cases/{caseId}/claim | Claim a case for review | Doctor |
 | POST | /api/v1/triage-cases/{caseId}/decision | Record an approval-gate decision | Doctor, case grant |
 | GET | /api/v1/triage-cases/{caseId}/approved-guidance | Read doctor-approved guidance (404 until approved) | FamilyUser |
@@ -1100,7 +1021,7 @@ The design language is documented in `design.md` at the repository root. It desc
 
 ## 3.14 CI/CD and Deployment
 
-Every change reaches the integration branch through a pull request. Direct pushes to `main` and `develop` are not allowed, `main` is protected, and `develop` is the integration branch from which hosting is deployed. GitHub Actions runs a detect step followed by backend, web and mobile jobs and a final quality gate; a separate CodeQL workflow performs static analysis, and Dependabot proposes dependency updates. After merge, Vercel builds the web application, Render builds the API from its Docker definition, and the migration workflow applies any new migration to Neon (Section 3.10.3).
+Every change reaches the integration branch through a pull request. By project policy, direct pushes to `main` and `develop` are not made, and `develop` is the integration branch. The CI workflow runs on pushes and pull requests for `main` and `develop`: a detect step is followed by backend, web and mobile jobs, and a final quality job fails unless all three of those jobs succeeded. A separate CodeQL workflow performs static analysis on the same events and weekly, and Dependabot proposes dependency updates. The migration workflow applies new migrations to Neon after a push to `develop` that changes the migrations directory (Section 3.10.3). The repository contains a Render blueprint (`render.yaml`, Docker build) and a Vercel configuration (`web/vercel.json`, Vite build), but neither file nor any workflow defines what triggers a deployment, so the report does not state a trigger for them beyond the comment in the migration workflow that `develop` is the branch Render deploys.
 
 *Figure 3.9 – CI/CD and Deployment Pipeline*
 
@@ -1110,41 +1031,43 @@ flowchart LR
     B --> C["GitHub Actions"]
     C --> C1["Backend job<br/>build and test (.NET 8)"]
     C --> C2["Web job<br/>lint, test, build"]
-    C --> C3["Mobile job<br/>analyse and test"]
-    C --> C5["CodeQL analysis"]
-    C1 --> C4{"Quality gate"}
+    C --> C3["Mobile job<br/>analyse, test, debug APK"]
+    B --> C5["CodeQL workflow<br/>(separate)"]
+    C1 --> C4{"Quality job<br/>(backend, web, mobile)"}
     C2 --> C4
     C3 --> C4
-    C5 --> C4
     C4 -->|"Green"| D["Merge to develop"]
     C4 -->|"Red"| A
-    D --> V["Vercel<br/>web deploy"]
-    D --> R["Render<br/>API Docker deploy"]
-    D --> M["migrate-db workflow<br/>(if migrations changed)"]
+    D -.->|"platform configuration"| V["Vercel<br/>web build"]
+    D -.->|"platform configuration"| R["Render<br/>API Docker build"]
+    D -->|"push changes migrations"| M["migrate-db workflow"]
     M --> N[("Neon<br/>PostgreSQL 16")]
     R --> N
 ```
 
-Figure 3.9 shows that a change cannot reach any hosting platform until the quality gate is green, and that the three deployments are triggered independently from the same merge. The migration job is conditional: it runs only when files under the migrations directory change, and it needs a repository secret holding the production connection string; without that secret the job skips with a warning rather than failing. The workflow is serialised, so two migration runs never overlap. The Android application is not deployed by the pipeline; a debug-signed APK was published as a GitHub release for evaluation.
+Figure 3.9 shows the workflow files in the repository. The quality job depends on the backend, web and mobile jobs only; CodeQL runs as its own workflow and is not part of that dependency. The migration workflow is separate from CI: it is triggered by a push to `develop` that touches the migrations directory (or manually) and does not wait for the quality job. It needs a repository secret holding the production connection string; without that secret the job skips with a warning rather than failing. Its concurrency group is serialised without cancellation, so two migration runs never overlap. The dotted edges to Vercel and Render indicate that those builds are configured on the hosting platforms rather than in the repository, so the diagram does not claim what triggers them or whether they wait for the quality job. The Android application is not deployed by the pipeline; a debug-signed APK was published as a GitHub release for evaluation.
 
 ## 3.15 Architecture Decision Records
 
-Significant decisions are recorded as architecture decision records (ADRs) in `docs/adr/`, together with a shorter log of project decisions in `agent/DECISIONS.md`. Table 3.9 lists the records present in the repository and the other recorded decisions that shaped the design.
-
-> [TO BE ADDED: ADR-001 … ADR-012 files are referenced but not present in docs/adr/ — add them or remove the references before submission.]
+Significant decisions are recorded as architecture decision records (ADRs) in `docs/adr/`, together with a shorter log of project decisions in `agent/DECISIONS.md`. Table 3.9 lists the eleven records in the repository. ADR-006, ADR-013 and ADR-014 were written when the decisions were taken. ADR-015 to ADR-022 record decisions that were taken earlier and logged or implemented at the time, but were written up in ADR form on 2026-10-05; each of them states this and ends with an evidence section pointing to the decision-log entry and the code that implements it. Numbers 001 to 012, other than 006, are not used: the earlier ADRs mention some of them, but those records were never written and their numbers are not reused.
 
 *Table 3.9 – Architecture Decision Records*
 
-| ADR | Decision | Status | Rationale |
+| ADR | Decision | Status, owner and date | Rationale |
 |---|---|---|---|
 | ADR-006 | Use a local LLM through Ollama | Superseded by ADR-013 (2026-09-22) | Keeps health data on team hardware, but cannot run on a 512 MB free-tier host and cannot be evaluated without the team's own machines. |
-| ADR-013 | Use hosted Gemini for agent inference with Groq as fallback | Accepted (2026-09-22), owner S3 | Satisfies the cloud-hosted evaluation requirement within free-tier quotas; safety rules remain deterministic and the model never exercises clinical judgement. |
-| ADR-014 | Store original lab-report images in Google Drive through a backend-only seam, keeping metadata in PostgreSQL | Accepted (2026-10-01), owner S2; extends ADR-010 | Frees limited free-tier database storage while preserving invariants 4 and 5, with a PostgreSQL fallback so no upload is lost. |
-| Decision log, 2026-09-23 | Changes enter `develop` only through pull requests | Recorded | Gives CI a gate and every change a review record. |
-| Decision log, 2026-09-28 | Three-portal blueprint with core and future features separated | Recorded | Limits scope to what can be delivered and tested in the available time. |
-| Decision log, 2026-09-28b | Whole-project delivery with component tags marking attribution | Recorded | The integrated system required changes across ownership boundaries (Section 3.3). |
-| Decision log, 2026-09-29 | Family heads are auto-approved; only doctors require administrator verification; production migrations by idempotent script, never on start-up | Recorded | Removes unnecessary friction for households while keeping clinicians verified; avoids schema lag and a provider defect at start-up. |
-| Decision log | Administrator accounts are deactivated, never deleted; an adult who is removed or leaves a family moves to their own household | Recorded | Preserves audit history and avoids orphaned or lost health data. |
+| ADR-013 | Use hosted Gemini for agent inference with Groq as fallback | Accepted, S3, 2026-09-22 | Satisfies the cloud-hosted evaluation requirement within free-tier quotas; safety rules remain deterministic and the model never exercises clinical judgement. |
+| ADR-014 | Store original lab-report images in Google Drive through a backend-only seam, keeping metadata in PostgreSQL | Accepted, S2, 2026-10-01 | Frees limited free-tier database storage while preserving invariants 4 and 5, with a PostgreSQL fallback so no upload is lost. |
+| ADR-015 | Keep one API, one web application and one mobile application, with ownership recorded per file, instead of a folder per student | Accepted, Group, 2026-09-22 | The integration requirement needs one shared code base, while per-file attribution stays auditable. |
+| ADR-016 | Run clinical safety checks as deterministic Domain-layer rules, with the emergency gate before any LLM call | Accepted, S4, 2026-09-22 | Safety rules 1, 4, 6 and 10 forbid model judgement as the authority. |
+| ADR-017 | Agents reach data only through a per-agent allow-listed tool dispatcher and hold no database credentials | Accepted, S1, 2026-09-23 | Invariants 3 and 5 and rule 8 need a single audited enforcement point. |
+| ADR-018 | Release patient guidance only after a verified doctor with an active, unexpired case grant approves it, choosing from a fixed backend allow-list | Accepted, S4, 2026-09-22 | Invariant 6 and rules 2 and 3 forbid a bypass path or free-text clinical advice. |
+| ADR-019 | Apply production migrations through an idempotent SQL script or the `migrate-db` workflow, never on start-up | Accepted, S1, 2026-09-23 | A defect in the database provider breaks the start-up path, and a script can be reviewed and rerun safely. |
+| ADR-020 | Integrate only by pull request into `develop` | Accepted, Group, 2026-09-23 | Gives CI a gate and every change a review record, after a direct merge to `main` was reverted. |
+| ADR-021 | Keep doctor-assignment history and enforce one active primary doctor and one pending request per family with partial unique indexes | Accepted, S4, 2026-09-28 | The earlier pairwise index blocked return visits, and service-level checks alone could race. |
+| ADR-022 | Host the API on Render, the database on Neon and the web application on Vercel, on free tiers | Accepted, Group, 2026-09-23 | The project has no budget and requires a cloud-hosted evaluation. |
+
+Other decisions that shaped the product rather than the architecture remain in the decision log only: the three-portal scope with core and future features separated (2026-09-28), whole-project delivery with component tags marking attribution (2026-09-28b, Section 3.3), automatic approval of family heads with administrator verification reserved for doctors (2026-09-29), and the rules that administrator accounts are deactivated rather than deleted and that an adult who leaves a family moves to their own household.
 
 ---
 # CHAPTER 4 — RESULTS AND EVALUATION
@@ -1189,47 +1112,93 @@ Table 4.1 summarises the implemented features by component and records, accurate
 
 ## 4.3 Screens and Outputs
 
-Figures 4.1 to 4.7 are retained synthetic-data screenshots from the 2026-09-28 release evidence. No real patient data appears in any of them.
+Figures 4.1 to 4.16 were captured on 2026-10-05 from the current `develop` build, running against a disposable local API and PostgreSQL 16 database loaded with the project's synthetic seed data. Figures 4.17 to 4.20 are the Android screenshots retained from the 2026-09-28 release evidence, taken on an Android API 36 emulator against the hosted API. No real patient data appears in any figure; every name, e-mail address and registration number shown is synthetic.
 
-![Figure 4.1 – Family Head Dashboard (Web)](../evidence/2026-09-28/dashboard-family-head.png)
+![Figure 4.1 – Family Head Dashboard (Web)](../evidence/2026-10-05/screens/web-family-head-dashboard.png)
 
 *Figure 4.1 – Family Head Dashboard (Web)*
 
-![Figure 4.2 – Adult Member Dashboard (Web)](../evidence/2026-09-28/dashboard-adult-member.png)
+![Figure 4.2 – Health Records — Lab Reports (Web)](../evidence/2026-10-05/screens/web-health-records-labs.png)
 
-*Figure 4.2 – Adult Member Dashboard (Web)*
+*Figure 4.2 – Health Records — Lab Reports (Web)*
 
-![Figure 4.3 – Doctor Dashboard (Web)](../evidence/2026-09-28/dashboard-doctor.png)
+![Figure 4.3 – Health Records — Vitals, Values Only (Web)](../evidence/2026-10-05/screens/web-health-records-vitals.png)
 
-*Figure 4.3 – Doctor Dashboard (Web)*
+*Figure 4.3 – Health Records — Vitals, Values Only (Web)*
 
-![Figure 4.4 – Android App Launch](../evidence/2026-09-28/android-launch.png)
+![Figure 4.4 – Symptom Request Form (Web)](../evidence/2026-10-05/screens/web-triage-symptom-request.png)
 
-*Figure 4.4 – Android App Launch*
+*Figure 4.4 – Symptom Request Form (Web)*
 
-![Figure 4.5 – Android Family Head Dashboard](../evidence/2026-09-28/android-hosted-head-dashboard.png)
+![Figure 4.5 – Doctor-Approved Guidance Shown to the Family (Web)](../evidence/2026-10-05/screens/web-approved-guidance.png)
 
-*Figure 4.5 – Android Family Head Dashboard*
+*Figure 4.5 – Doctor-Approved Guidance Shown to the Family (Web)*
 
-![Figure 4.6 – Android Appointments](../evidence/2026-09-28/android-hosted-appointments.png)
+![Figure 4.6 – Emergency Referral Without AI Output (Web)](../evidence/2026-10-05/screens/web-emergency-referral.png)
 
-*Figure 4.6 – Android Appointments*
+*Figure 4.6 – Emergency Referral Without AI Output (Web)*
 
-![Figure 4.7 – Android Notifications](../evidence/2026-09-28/android-hosted-notifications.png)
+![Figure 4.7 – Family Screening Indications (Web)](../evidence/2026-10-05/screens/web-family-screening.png)
 
-*Figure 4.7 – Android Notifications*
+*Figure 4.7 – Family Screening Indications (Web)*
 
-Figures 4.1 to 4.3 show the three web dashboards, each populated from the shared API. Figure 4.3 corresponds to the screen affected by defects D-006 and D-007 (Section 4.7); the screenshot was captured before the D-007 fix reached production. Figures 4.4 to 4.7 were captured on an Android API 36 emulator running the debug-signed APK against the hosted API, signed in as the synthetic Family Head. They show that the mobile client consumes the same API as the web client.
+![Figure 4.8 – Doctor Dashboard (Web)](../evidence/2026-10-05/screens/web-doctor-dashboard.png)
 
-Screens that are still required for a complete evidence set are listed below. Each is a placeholder and must be captured from the live synthetic environment before submission.
+*Figure 4.8 – Doctor Dashboard (Web)*
 
-- `[INSERT SCREENSHOT: Doctor approval desk showing a pending triage case and the decision actions]`
-- `[INSERT SCREENSHOT: Lab report upload and the "check values" comparison screen before confirmation]`
-- `[INSERT SCREENSHOT: Triage (symptom) submission screen on web and mobile]`
-- `[INSERT SCREENSHOT: Approved guidance as displayed on mobile to the family member]`
-- `[INSERT SCREENSHOT: Clinic Admin doctor verification screen]`
-- `[INSERT SCREENSHOT: Emergency referral screen (referral shown instead of AI output)]`
-- `[INSERT SCREENSHOT: Swagger UI at /swagger/index.html]`
+![Figure 4.9 – Doctor Triage Queue (Web)](../evidence/2026-10-05/screens/web-doctor-triage-queue.png)
+
+*Figure 4.9 – Doctor Triage Queue (Web)*
+
+![Figure 4.10 – Doctor Approval Desk (Web)](../evidence/2026-10-05/screens/web-doctor-approval-desk.png)
+
+*Figure 4.10 – Doctor Approval Desk (Web)*
+
+![Figure 4.11 – Clinic Admin Doctor Verification (Web)](../evidence/2026-10-05/screens/web-admin-doctor-verification.png)
+
+*Figure 4.11 – Clinic Admin Doctor Verification (Web)*
+
+![Figure 4.12 – Audit Log (Web)](../evidence/2026-10-05/screens/web-audit-log.png)
+
+*Figure 4.12 – Audit Log (Web)*
+
+![Figure 4.13 – Swagger API Reference](../evidence/2026-10-05/screens/api-swagger.png)
+
+*Figure 4.13 – Swagger API Reference*
+
+![Figure 4.14 – Family Head Dashboard at 390 px (Web, Responsive)](../evidence/2026-10-05/screens/web-mobile-dashboard-390.png)
+
+*Figure 4.14 – Family Head Dashboard at 390 px (Web, Responsive)*
+
+![Figure 4.15 – Health Records at 390 px (Web, Responsive)](../evidence/2026-10-05/screens/web-mobile-health-records-390.png)
+
+*Figure 4.15 – Health Records at 390 px (Web, Responsive)*
+
+![Figure 4.16 – Symptom Request at 390 px (Web, Responsive)](../evidence/2026-10-05/screens/web-mobile-triage-390.png)
+
+*Figure 4.16 – Symptom Request at 390 px (Web, Responsive)*
+
+![Figure 4.17 – Android App Launch](../evidence/2026-09-28/android-launch.png)
+
+*Figure 4.17 – Android App Launch*
+
+![Figure 4.18 – Android Family Head Dashboard](../evidence/2026-09-28/android-hosted-head-dashboard.png)
+
+*Figure 4.18 – Android Family Head Dashboard*
+
+![Figure 4.19 – Android Appointments](../evidence/2026-09-28/android-hosted-appointments.png)
+
+*Figure 4.19 – Android Appointments*
+
+![Figure 4.20 – Android Notifications](../evidence/2026-09-28/android-hosted-notifications.png)
+
+*Figure 4.20 – Android Notifications*
+
+The figures follow one triage case through the system. A family member submits symptoms on the form in Figure 4.4, which states before submission that no guidance is released without a doctor's approval. The doctor sees the case in the queue (Figure 4.9) and reviews it at the approval desk (Figure 4.10), where the decision gate, the deterministic safety-check result and the time-bound record access are all visible. Only after an approved decision does the family see the guidance in Figure 4.5, with its approval time and disclaimer. Figure 4.6 shows the emergency path: the case is marked for in-person care and the screen states that no automated guidance will be shown.
+
+Figure 4.3 shows the vitals view after the correction recorded as D-010 (Section 4.7): readings are displayed as recorded, with no reference band. Figure 4.11 shows the Clinic Admin verification queue with masked registration numbers, and Figure 4.12 the audit log. Figures 4.14 to 4.16 show the same web application at a 390-pixel phone width. They confirm that the content reflows without horizontal scrolling, and they also show one presentation defect that remains open: at this width the brand name wraps and the navigation labels crowd the header bar.
+
+Two limits apply to this evidence. The Android figures predate the features delivered after 2026-09-28, and no screenshot of the Flutter application on a physical device or of the Flutter guidance screen is included.
 
 ## 4.4 Testing
 
@@ -1262,8 +1231,8 @@ Table 4.2 sets out what is tested in each area, the type of testing, the tool an
 | Flutter mobile application | Screens, providers, models, router guards, secure storage | Unit, widget, navigation | flutter_test, `flutter analyze` | No analysis issues; widgets and providers behave as specified | Component owner for each screen (S1–S4) |
 | Integration / end-to-end | Golden case from complaint to approved guidance; safe-failure case; three-role API journey | API integration, complete business workflow | xUnit integration tests, `scripts/e2e/synthetic_portal_journey.py` | Guidance unavailable before approval and available after; privacy denial returns 404 | S3, S4 |
 | Agentic AI evaluation | Tool allow-list and denial, structured-output validation, prompt-injection resistance through untrusted OCR text, approval enforcement, safe failure and recovery | Agent evaluation, deterministic test cases | xUnit | Denied tools recorded and stopped; no advisory on failure | S1 (tool dispatch), S2 (Extraction), S3 (Coordinator, Context, Analysis), S4 (Familial Risk, Safety) |
-| Performance (required) | Authenticated read endpoint under concurrent load | Load baseline | ApacheBench via `scripts/e2e/local_performance_check.py` | Zero failed or non-2xx responses; latency recorded | S1 |
-| Security (required) | Access control, unauthenticated access, CORS, token reuse, dependency vulnerabilities, static analysis | Authorisation, dependency audit, static analysis | xUnit, `npm audit`, `dotnet list package --vulnerable`, CodeQL | Unauthorised requests denied; no known vulnerable dependencies | S1, S4 |
+| Performance (required) | Fourteen read endpoints used by the Family Head and Doctor portals, under concurrent load | Load profile | ApacheBench via `scripts/e2e/local_load_profile.py` (and the earlier single-endpoint `local_performance_check.py`) | Zero failed or non-2xx responses; latency percentiles recorded | S1 |
+| Security (required) | Access control, unauthenticated access, CORS, token reuse, dependency vulnerabilities, static analysis, and a dynamic scan of every API endpoint | Authorisation, dependency audit, static analysis, dynamic application security testing | xUnit, `npm audit`, `dotnet list package --vulnerable`, CodeQL, OWASP ZAP API scan | Unauthorised requests denied; no known vulnerable dependencies; no high- or medium-risk scan alert | S1, S4 |
 
 > `[CONFIRM: the responsible-member column follows component ownership. Each member must confirm the areas they actually tested and can demonstrate in the viva.]`
 
@@ -1276,7 +1245,7 @@ The test strategy follows a test pyramid, with the greatest number of fast, dete
 3. **Web component and page tests (Vitest and React Testing Library)**, together with ESLint and a production Vite build as a quality gate.
 4. **Mobile tests (flutter_test)**, together with `flutter analyze`.
 5. **Scripted API journey.** A repeatable script, `scripts/e2e/synthetic_portal_journey.py`, drives three synthetic roles through the local API. It refuses remote hosts and mutates only synthetic local data.
-6. **Performance baseline.** A local ApacheBench run via `scripts/e2e/local_performance_check.py`.
+6. **Performance load profile.** A local ApacheBench run across fourteen read endpoints via `scripts/e2e/local_load_profile.py`.
 7. **Dependency audits.** `npm audit --omit=dev` for the web client and `dotnet list package --vulnerable --include-transitive` for the API.
 8. **CI gate.** GitHub Actions runs CI and CodeQL on `develop`; both completed successfully on commit `49face54` on 2026-09-28.
 
@@ -1290,8 +1259,8 @@ Performance and security testing are mandatory for this assessment. Table 4.3 re
 
 | Non-functional type | Selected | Justification |
 |---|---|---|
-| Performance (load baseline) | Yes — required | Confirms that an authenticated read path completes without errors under concurrency. Limited to one endpoint and a local environment (Section 4.6). |
-| Security | Yes — required | The system handles health-related records and cross-profile access, so access control, token handling and dependency vulnerabilities carry the highest risk (Section 4.5). |
+| Performance (load profile) | Yes — required | Confirms that the read paths both portals depend on complete without errors under concurrency, and shows which are slowest. Limited to read endpoints and a local environment (Section 4.6). |
+| Security | Yes — required | The system handles health-related records and cross-profile access, so access control, token handling, dependency vulnerabilities and malformed-input handling carry the highest risk. Covered by automated access-control tests, dependency audits, static analysis and an OWASP ZAP scan of the API (Section 4.5). |
 | Reliability and recovery | Yes | A triage case must never be lost or silently replayed. Worker-restart recovery, provider-failure fallback and safe-failure paths are covered by automated tests. |
 | Compatibility | Partly | The mobile application was built and run on an Android API 36 emulator only. No physical device and no iOS build were tested. |
 | Stress testing | No | Free-tier hosting imposes its own limits, so a stress result would describe the hosting plan rather than the application. |
@@ -1306,17 +1275,17 @@ Table 4.4 reports the retained 2026-09-28 execution alongside the final local re
 | Suite | Tool | Retained run 2026-09-28 | Rerun 2026-10-05 @ `613bf7e` | Line coverage (2026-10-05) | Evidence file |
 |---|---|---|---|---|---|
 | Backend unit | xUnit + Moq | 91 / 91 passed | 337 / 337 passed | 20.2% overall; Domain 72.4%, Application 76.0% | `backend-unit.txt` |
-| PostgreSQL integration | xUnit + Testcontainers (PostgreSQL 16) | 11 / 11 passed | 25 / 25 passed | 69.1% overall; Infrastructure 71.1%, Api 59.0% | `backend-integration.txt` |
-| Web tests | Vitest + React Testing Library | 41 / 41 passed | First run 306 / 308 (2 failed); **retest after fixes 308 / 308 passed** (52 files) | Not captured — see note | `web-tests.txt`, `web-tests-retest.txt` |
+| PostgreSQL integration | xUnit + Testcontainers (PostgreSQL 16) | 11 / 11 passed | 25 / 25 passed; **29 / 29 after the four request-hardening tests were added** | 69.1% overall; Infrastructure 71.1%, Api 59.0% | `backend-integration.txt`, `backend-integration-final.txt` |
+| Web tests | Vitest + React Testing Library | 41 / 41 passed | First run 306 / 308 (2 failed); **retest after fixes 308 / 308 passed** (52 files) | 69.6% lines; 67.5% statements; 62.4% branches | `web-tests.txt`, `web-tests-retest.txt`, `web-coverage.txt` |
 | Web lint and build | ESLint; `tsc -b` + Vite build | Passed | First run failed (lint exit 1, build exit 2); **retest after fix: both exit 0** | — | `web-lint-build.txt`, `web-lint-build-retest.txt` |
 | Flutter | `flutter analyze`; flutter_test | No issues; 69 / 69 passed | No issues; 214 / 214 passed | 76.4% | `flutter-tests.txt` |
 | Dependency audits | `npm audit --omit=dev`; `dotnet list package --vulnerable` | 0 vulnerabilities; none reported | 0 vulnerabilities; none reported | — | `dependency-audits.txt` |
 
-Three points qualify these figures. First, the first run at `613bf7e` exposed two defects, both from same-day changes to the records pages: two obsolete tests in `web/src/pages/records/VitalsPanel.test.tsx` (D-008) and an unused `Link` import in `web/src/pages/records/RecordsPage.tsx` that failed lint and the production build (D-009). Both were fixed and retested the same day; the final suite has 308 tests because one obsolete test was removed and one guard test was added with D-010 (Table 4.9). Web coverage was not captured: the coverage-instrumented runs timed out on a heavily loaded development machine, so no trustworthy figure is reported. Second, backend coverage is reported per run and has not been merged: the unit run covers the Domain and Application layers well but barely touches controllers and persistence, which the integration run covers instead. The backend line totals also include generated EF Core migration code, which lowers the overall percentage. Third, the growth from the retained run to the rerun (for example 91 to 337 unit tests) reflects tests added with the features delivered between the two dates.
+Three points qualify these figures. First, the first run at `613bf7e` exposed two defects, both from same-day changes to the records pages: two obsolete tests in `web/src/pages/records/VitalsPanel.test.tsx` (D-008) and an unused `Link` import in `web/src/pages/records/RecordsPage.tsx` that failed lint and the production build (D-009). Both were fixed and retested the same day; the final suite has 308 tests because one obsolete test was removed and one guard test was added with D-010 (Table 4.9). Web coverage was captured in a separate run with fewer workers and a longer test timeout, because coverage-instrumented runs timed out when the development machine was heavily loaded. Second, backend coverage is reported per run and has not been merged: the unit run covers the Domain and Application layers well but barely touches controllers and persistence, which the integration run covers instead. The backend line totals also include generated EF Core migration code, which lowers the overall percentage. Third, the growth from the retained run to the rerun (for example 91 to 337 unit tests) reflects tests added with the features delivered between the two dates.
 
 ### 4.4.5 Test Case Document
 
-Table 4.5 is the test case document. Each case names the feature, its type (normal, invalid, boundary or failure), the preconditions and steps, the expected and actual result, and the status. Cases TC-01 to TC-24 are individual automated tests, identified by their test method so that they can be rerun; cases A2-* are the wider integrated, non-functional and device cases executed on 2026-09-28. Automated cases were last executed on 2026-10-05 as part of the suites in Table 4.4.
+Table 4.5 is the test case document. Each case names the feature, its type (normal, invalid, boundary or failure), the preconditions and steps, the expected and actual result, and the status. Cases TC-01 to TC-26 are individual automated tests, identified by their test method so that they can be rerun; cases A2-* are the wider integrated, non-functional and device cases executed on 2026-09-28. Automated cases were last executed on 2026-10-05 as part of the suites in Table 4.4.
 
 *Table 4.5 – Test Case Document*
 
@@ -1354,14 +1323,17 @@ Table 4.5 is the test case document. Each case names the feature, its type (norm
 | A2-MOB-02 | Android appointment booking | Normal | Synthetic Head on Android API 36 emulator with local API; select 45 minutes and 10:00 AM; submit | Same local time shown in the appointment list | Stored `duration_minutes=45`; list showed 10:00 AM after the time-zone fix | Pass |
 | A2-MOB-03 | Hosted-API Android APK | Normal | Build with the production API URL; install on Android API 36 emulator; sign in as synthetic Head | APK builds, installs and reaches the dashboard | Built, installed, signed in; dashboard, appointments and notifications loaded. Doctor-approved guidance journey on the hosted environment not run | Partial |
 | A2-E2E-01 | Complete integrated workflow | Normal and failure | Flutter → API, database and agents → React approval → Flutter result | Golden case and safe-failure case demonstrated across both clients | Passed at API level (TC-14, TC-23). Cross-platform visual trace not executed | Partial |
-| A2-PERF-01 | Performance | Normal | ApacheBench, 200 authenticated doctor-directory requests at concurrency 10, local API and PostgreSQL 16 | Zero failed or non-2xx responses | 200 completed, 0 failed; 1.827 ms mean; 4 ms p99 | Pass (local baseline) |
+| A2-PERF-01 | Performance | Normal | ApacheBench, 1,000 requests at concurrency 25 on each of 14 read endpoints (14,000 requests), disposable local API and PostgreSQL 16; run `scripts/e2e/local_load_profile.py` | Zero failed or non-2xx responses on every endpoint | 14,000 completed, 0 failed, 0 non-2xx; slowest endpoint 88 ms mean and 267 ms p99 (Table 4.8) | Pass (local) |
 | A2-SEC-01 | Access control | Invalid | Unauthenticated GET on three protected live routes; preflight from an untrusted origin | 401 on each route; no allow-origin header | 401 returned three times; no allow-origin header | Pass (scoped) |
 | A2-SEC-02 | Web dependency audit | Normal | `npm audit --omit=dev --audit-level=high` | No known vulnerabilities | `found 0 vulnerabilities` (2026-10-05) | Pass |
 | A2-SEC-03 | API dependency audit | Normal | `dotnet list package --vulnerable --include-transitive` | No vulnerable packages | None reported (2026-10-05) | Pass |
+| A2-SEC-04 | Dynamic security scan | Normal and invalid | OWASP ZAP API scan over the OpenAPI definition with a synthetic Family Head token, disposable local API | No high- or medium-risk alert | 0 failed; 4 low-risk warnings on first run, 2 after fixes (D-011, D-012) | Pass |
+| TC-25 | Request hardening (S1) | Invalid | Send a query string containing a NUL character — `NulCharacterInQueryString_IsRejectedAsBadRequest_NotServerError` | HTTP 400 problem details, not HTTP 500 | HTTP 400 | Pass |
+| TC-26 | Request hardening (S1) | Normal | Request the health and an API route — `EveryResponse_TellsBrowsersNotToSniffContentType` | `X-Content-Type-Options: nosniff` on each | Present | Pass |
 | A2-WEB-01 | Vitals panel (web) | Normal | Run `VitalsPanel.test.tsx` on 2026-10-05 | All tests pass | First run: two of four failed (D-008). Retest after the tests were aligned with the redesigned panel: three of three passed | Pass (after retest) |
 | A2-WEB-02 | Web quality gate | Normal | `npm run lint` and `npm run build` on 2026-10-05 | Both exit 0 | First run: lint exit 1, build exit 2 (D-009). Retest after fix: both exit 0 | Pass (after retest) |
 
-Of the 38 cases, 36 are Pass (two with stated scope qualifications and two after a same-day fix and retest) and 2 are Partial. No case remains failed.
+Of the 41 cases, 39 are Pass (two with stated scope qualifications and two after a same-day fix and retest) and 2 are Partial. No case remains failed.
 
 ### 4.4.6 Agent Evaluation
 
@@ -1383,27 +1355,29 @@ The agentic subsystem was evaluated at component level and at API level. The fol
 
 ### 4.4.7 Test Execution Summary
 
-Table 4.6 summarises the final execution on 2026-10-05, after the same-day fixes for D-008 and D-009.
+Table 4.6 summarises the final execution on 2026-10-05, after the same-day fixes for D-008 to D-012.
 
 *Table 4.6 – Test Execution Summary*
 
 | Area | Executed | Passed | Failed | Note |
 |---|---|---|---|---|
 | Backend unit tests | 337 | 337 | 0 | |
-| PostgreSQL integration tests | 25 | 25 | 0 | Includes golden case, safe failure, migrations and concurrency |
+| PostgreSQL integration tests | 29 | 29 | 0 | Includes golden case, safe failure, migrations, concurrency and request hardening |
 | Web tests | 308 | 308 | 0 | First run 306 / 308; obsolete tests corrected (D-008); guard test added (D-010) |
 | Flutter tests | 214 | 214 | 0 | `flutter analyze` reported no issues |
-| **Automated tests in total** | **884** | **884** | **0** | |
+| **Automated tests in total** | **888** | **888** | **0** | |
 | Web lint and build | 2 checks | 2 | 0 | First run failed on one unused import (D-009) |
 | Dependency audits | 2 | 2 | 0 | No known vulnerabilities |
-| Integrated, device and non-functional cases (A2-*) | 12 | 10 | 0 | 2 Partial: hosted APK journey and cross-platform trace |
-| Defects recorded | 10 | — | — | 10 fixed and retested; D-007 still awaits a production retest |
+| Dynamic security scan (OWASP ZAP) | 117 rules | 117 | 0 | 2 low-risk warnings remain, one accepted and one false positive |
+| Load profile (ApacheBench) | 14,000 requests | 14,000 | 0 | 14 read endpoints, zero non-2xx |
+| Integrated, device and non-functional cases (A2-*) | see Table 4.5 | — | 0 | 2 Partial: hosted APK journey and cross-platform trace |
+| Defects recorded | 12 | — | — | 12 fixed and retested (D-007 retested locally, not on the hosted site) |
 
-**Conclusion.** The backend, database and mobile suites pass in full, and the properties that protect patients — the approval gate, consent and grant enforcement, tool denial, the emergency path and safe failure — are each covered by passing automated tests. The final rerun also did its job: it exposed two web defects introduced on the last day, which were fixed and retested before submission. Three gaps remain in the evidence: the integrated workflow is proven at API level but not as a cross-platform visual trace; performance testing is a single local baseline; and security testing is scoped to access control, dependency audits and static analysis rather than a dynamic scan.
+**Conclusion.** The backend, database and mobile suites pass in full, and the properties that protect patients — the approval gate, consent and grant enforcement, tool denial, the emergency path and safe failure — are each covered by passing automated tests. The final rerun also did its job: it exposed two web defects introduced on the last day, which were fixed and retested before submission. Three gaps remain in the evidence: the integrated workflow is proven at API level but not as a cross-platform visual trace; performance testing covers read paths on a local environment only; and security testing, although it now includes a dynamic scan, used one role's token and is not a penetration test.
 
 ## 4.5 Security Evaluation
 
-Table 4.7 lists the security checks for which execution evidence exists. Each is scoped and automated; none is a substitute for a penetration test.
+Table 4.7 lists the security checks for which execution evidence exists. Each is automated and tool-based; together they are still not a substitute for an independent penetration test.
 
 *Table 4.7 – Security Checks*
 
@@ -1415,10 +1389,13 @@ Table 4.7 lists the security checks for which execution evidence exists. Each is
 | SEC-4 | Tool dispatch, case grants and consent (11 unit tests) | Unauthorised tool use, stale grants and revoked consent are denied | 11 unit tests passed | Pass |
 | SEC-5 | Unauthenticated GET to `/api/v1/notifications`, `/api/v1/dashboard/family`, `/api/v1/dashboard/doctor` on the live API | HTTP 401 | All three returned HTTP 401 | Pass |
 | SEC-6 | CORS preflight from `https://untrusted.example.invalid` | No allow-origin header | HTTP 204 without `Access-Control-Allow-Origin` | Pass |
-| SEC-7 | `npm audit --omit=dev --audit-level=high` (web production dependencies) | No known vulnerabilities | `found 0 vulnerabilities` (2026-09-28) | Pass |
-| SEC-8 | `dotnet list package --vulnerable --include-transitive` (API) | No known vulnerable packages | None reported (2026-09-28) | Pass |
+| SEC-7 | `npm audit --omit=dev --audit-level=high` (web production dependencies) | No known vulnerabilities | `found 0 vulnerabilities` (2026-09-28 and 2026-10-05) | Pass |
+| SEC-8 | `dotnet list package --vulnerable --include-transitive` (API) | No known vulnerable packages | None reported (2026-09-28 and 2026-10-05) | Pass |
+| SEC-9 | OWASP ZAP API scan of all endpoints in the OpenAPI definition, authenticated as a synthetic Family Head, against a disposable local API | No high- or medium-risk alert | First run: 116 rules passed, 0 failed, 4 low-risk warnings. Retest after fixes: 117 passed, 0 failed, 2 low-risk warnings (Section 4.5.2) | Pass |
+| SEC-10 | Query string carrying a NUL character (integration test) | HTTP 400, not a server error | HTTP 400 with a problem-details body | Pass |
+| SEC-11 | `X-Content-Type-Options` header on API responses (integration test) | `nosniff` on every response | Present on the health and API routes tested | Pass |
 
-Checks SEC-1 to SEC-3 are the three integration tests, and SEC-4 the eleven unit tests, that together form the focused xUnit run of A2-SEC-01 (3 + 11 tests). A further privacy check, that a Family Head receives HTTP 404 on an adult member's records, was part of the synthetic API journey A2-API-01 in Table 4.3.
+Checks SEC-1 to SEC-3 are the three integration tests, and SEC-4 the eleven unit tests, that together form the focused xUnit run of A2-SEC-01 (3 + 11 tests). A further privacy check, that a Family Head receives HTTP 404 on an adult member's records, was part of the synthetic API journey A2-API-01 in Table 4.5. SEC-10 and SEC-11 are the regression tests in `RequestHardeningTests` added after the scan.
 
 ### 4.5.1 Mapping to OWASP
 
@@ -1426,30 +1403,55 @@ The executed checks map to the OWASP Top Ten 2021 categories (OWASP Foundation, 
 
 - **A01 Broken Access Control.** SEC-1, SEC-2, SEC-4, SEC-5 and the Head-404 privacy check address object-level and function-level authorisation, grant expiry and consent revocation.
 - **A02 Cryptographic Failures and A07 Identification and Authentication Failures.** SEC-3 covers refresh-token single use. Password hashing and token lifetimes are design controls described in Chapter 3; they are not separately tested here beyond the checks listed.
-- **A05 Security Misconfiguration.** SEC-6 covers CORS handling for an untrusted origin.
+- **A03 Injection.** SEC-9 exercised every endpoint with the scanner's injection rules (SQL injection, command injection, server-side template injection, path traversal and others) and raised no injection alert. SEC-10 covers the one malformed-input fault it did find.
+- **A05 Security Misconfiguration.** SEC-6 covers CORS handling for an untrusted origin; SEC-9 and SEC-11 cover response security headers.
 - **A06 Vulnerable and Outdated Components.** SEC-7 and SEC-8 are dependency audits; CodeQL and Dependabot provide continuing coverage.
 
 For the agentic subsystem, the controls are relevant to categories in the OWASP Top 10 for large language model applications (OWASP Foundation, 2025), in particular prompt injection and excessive agency. Indirect prompt injection through untrusted content is a recognised risk for LLM-integrated applications (Greshake et al., 2023). The relevant mitigations are structural: agents hold no database credentials, tool access is limited to a per-agent allow-list enforced at dispatch (`ToolRegistryTests`, `ToolDispatcherTests`, SEC-4), safety validation is deterministic rather than an LLM judgement, and no output reaches a patient without doctor approval (SEC-1). OCR text is treated as untrusted input. This mapping describes which controls address which categories; it does not claim that every category was tested.
 
-The evaluation reported here is **scoped automated testing, not a penetration test**. Authenticated fuzzing, session-management attacks, injection testing of every endpoint and independent review were not performed (see Table 4.10).
+### 4.5.2 Dynamic Scan with OWASP ZAP
+
+A dynamic scan was run with OWASP ZAP 2.17.0 using its API scan, which imports the OpenAPI definition published at `/swagger/v1/swagger.json` and then both passively inspects and actively attacks every documented endpoint. The scanner was given a bearer token for a synthetic Family Head so that it could reach authenticated routes. The target was a disposable local API with its own PostgreSQL 16 database and synthetic seed data; the hosted service and its database were deliberately not scanned.
+
+The first run passed 116 rules, failed none and raised four low-risk warnings. No high- or medium-risk alert was raised in either run. The four warnings and their outcome were:
+
+1. **A server error on malformed input.** `GET /api/v1/doctors/directory?search=%00` returned HTTP 500, because PostgreSQL cannot store a NUL character in text. This was a real defect (D-011): the client received a server error for what is a client error. It is now rejected with HTTP 400 before reaching the database.
+2. **`X-Content-Type-Options` header missing.** A real hardening gap (D-012). Every response now carries `nosniff`.
+3. **`Cross-Origin-Resource-Policy` header missing.** Accepted, not changed. The web client is served from a different site from the API, so a restrictive value risks blocking legitimate requests, and the API returns JSON to authenticated callers rather than embeddable resources. It is recorded as a limitation.
+4. **Unexpected content type on `/swagger/`.** A false positive: the Swagger UI page is HTML by design, while the scanner expects JSON from an API.
+
+After the two fixes the scan was repeated: 117 rules passed, none failed, and only warnings 3 and 4 remained. The summary and both full reports are retained in `docs/evidence/2026-10-05/security-zap-summary.txt`, `zap-first-run/` and `zap-retest/`.
+
+The scan has limits. It ran with one role's token, so it did not test whether a Doctor or Clinic Admin token can reach another role's data; that property is covered by the access-control tests SEC-1 to SEC-5 instead. It tested the API only, not the web or mobile clients. The evaluation as a whole remains **automated testing, not a penetration test**: session-management attacks, business-logic abuse and independent review were not performed (see Table 4.10).
 
 ## 4.6 Performance Evaluation
 
-Table 4.8 reports the single performance measurement taken.
+Performance was measured with ApacheBench against a disposable local API and PostgreSQL 16 database loaded with the synthetic seed data. The script `scripts/e2e/local_load_profile.py` signs in as a synthetic Family Head and a synthetic Doctor, then sends 1,000 requests at a concurrency of 25 to each of fourteen read endpoints: 14,000 requests in total. It refuses any non-local host and fails if any request fails or returns a non-2xx status. Table 4.8 reports the result; the raw output is retained in `docs/evidence/2026-10-05/performance-load-profile.txt`.
 
 *Table 4.8 – Performance Baseline*
 
-| Item | Value |
-|---|---|
-| Tool | ApacheBench |
-| Target | Local Kestrel API with PostgreSQL 16, synthetic authenticated doctor-directory request |
-| Load | 200 requests at concurrency 10 |
-| Completed / failed | 200 completed, 0 failed |
-| Mean request time | 1.827 ms |
-| 99th percentile | 4 ms |
-| Throughput | 5473.00 requests per second (retained local rerun) |
+| Endpoint | Completed | Failed | Non-2xx | Requests/s | Mean (ms) | p50 (ms) | p95 (ms) | p99 (ms) | Max (ms) |
+|---|---|---|---|---|---|---|---|---|---|
+| Health check (anonymous) | 1000 | 0 | 0 | 21,439 | 1.2 | 1 | 2 | 2 | 2 |
+| Family: own family | 1000 | 0 | 0 | 2,660 | 9.4 | 7 | 12 | 79 | 89 |
+| Family: dashboard | 1000 | 0 | 0 | 284 | 88.2 | 67 | 197 | 267 | 384 |
+| Family: notifications | 1000 | 0 | 0 | 2,063 | 12.1 | 7 | 34 | 93 | 214 |
+| Family: appointments | 1000 | 0 | 0 | 639 | 39.1 | 33 | 73 | 115 | 191 |
+| Family: health records | 1000 | 0 | 0 | 731 | 34.2 | 27 | 72 | 115 | 181 |
+| Family: vitals | 1000 | 0 | 0 | 1,041 | 24.0 | 19 | 55 | 120 | 184 |
+| Family: lab reports | 1000 | 0 | 0 | 938 | 26.6 | 23 | 47 | 81 | 114 |
+| Family: triage cases | 1000 | 0 | 0 | 1,289 | 19.4 | 16 | 34 | 55 | 94 |
+| Family: doctor directory | 1000 | 0 | 0 | 1,977 | 12.6 | 10 | 27 | 37 | 64 |
+| Doctor: dashboard | 1000 | 0 | 0 | 452 | 55.3 | 50 | 88 | 121 | 162 |
+| Doctor: my cases | 1000 | 0 | 0 | 593 | 42.1 | 37 | 78 | 125 | 242 |
+| Doctor: case pool | 1000 | 0 | 0 | 530 | 47.1 | 42 | 87 | 118 | 164 |
+| Doctor: appointments | 1000 | 0 | 0 | 639 | 39.1 | 21 | 127 | 560 | 570 |
 
-The result should be interpreted conservatively. The run was local, short, and exercised one read endpoint over a small synthetic data set with no network latency between client and server. It shows that the doctor-directory read path completes without errors under modest concurrency in that environment. It does **not** establish production capacity, behaviour under mixed read and write load, or the latency of the agent pipeline, which depends on hosted LLM response times (provider timeouts are configured at 45 seconds for Gemini and 30 seconds for Groq). The hosted deployment uses free-tier tiers of Render, Neon and Vercel, and cold starts on the free Render tier are a known characteristic of that service that users may notice after periods of inactivity; no measurement of this was taken, so no figure is given. Broader load and latency testing is listed in Table 4.10 and Table 4.8.
+Mean is the mean time per request at the stated concurrency. All fourteen endpoints completed every request with no failed and no non-2xx responses.
+
+**Interpretation.** Three observations follow from Table 4.8. First, the two dashboard endpoints are the slowest (88 ms and 55 ms mean): each aggregates several queries into one response, so they are the first place to optimise, for example by combining queries or caching the summary briefly. Second, simple list endpoints stay between 9 ms and 47 ms mean, and every endpoint keeps its 95th percentile under 200 ms. Third, the doctor appointments endpoint has a long tail (560 ms at the 99th percentile against a 21 ms median), which points to occasional contention rather than a consistently slow query and deserves a profiling pass.
+
+The result should be read conservatively. The run was local, with no network latency, a small synthetic data set and a development build. It covers read paths only: no write load and no mixed workload. It says nothing about the hosted environment, where the free-tier API instance sleeps when idle and adds a cold-start delay to the first request, nor about the latency of the agent pipeline, which is dominated by hosted LLM response times (provider timeouts are 45 and 30 seconds). An earlier single-endpoint baseline of 200 requests on 2026-09-28 (1.8 ms mean, zero failures) is retained in the Assignment 2 execution record.
 
 ## 4.7 Defects and Retests
 
@@ -1465,10 +1467,12 @@ Table 4.9 is the defect report: each defect recorded during execution of the tes
 | D-004 | Android appointment time shown in UTC | Medium / P2 | On a Sri Lanka-time emulator, book 10:00 AM and open the appointment list; 4:30 AM is shown | Model displayed the API instant without converting to device-local time | Timestamp parsed to local time; unit test and emulator retest show 10:00 AM | Closed | `docs/evidence/android_appointment_local_time.png` |
 | D-005 | Golden-case test returned HTTP 409 | Test design error / P3 | Run the golden-case test, which called `/claim` on a case the primary doctor already held | Test used the shared-pool route for an already granted case | Test corrected to expect 409 and approve through the existing grant; 2/2 passed | Closed | `GoldenCaseFlowTests` |
 | D-006 | Hosted doctor dashboard rendered blank | High / P1 | Sign in as the synthetic verified doctor on the hosted web app and open `/dashboard` | API returns an integer count; the client expected an array | Client contract corrected (PR #49) and redeployed; panel renders with no console errors; regression test added | Closed | `docs/evidence/2026-09-28/web-tests.txt` |
-| D-007 | Sample metrics shown above live doctor metrics | Medium / P2 | After the D-006 fix, open the doctor `/dashboard`; hard-coded counts disagree with live counts | Static sample content rendered alongside the live panel | Route changed to render the live panel only; web tests, lint and build passed locally | Fixed — production retest `[CONFIRM]` | `docs/university/RELEASE_EVIDENCE_2026-09-28.md` |
+| D-007 | Sample metrics shown above live doctor metrics | Medium / P2 | After the D-006 fix, open the doctor `/dashboard`; hard-coded counts disagree with live counts | Static sample content rendered alongside the live panel | Route changed to render the live panel only (`DashboardPage.tsx` returns `DoctorDashboardPanel` for doctors). Retested on the current `develop` build against a local API on 2026-10-05 (Figure 4.8): live panel only. A sign-in retest on the hosted site was not performed | Closed (local retest) | Figure 4.8; `docs/university/RELEASE_EVIDENCE_2026-09-28.md` |
 | D-008 | Two vitals-panel web tests fail | Medium / P2 | In `web/`, run `npx vitest run src/pages/records/VitalsPanel.test.tsx` at `613bf7e` | The redesign of the vitals panel removed the history table and its type filter, but two tests still asserted them; the product behaved as designed and the tests were obsolete | The history-table assertion was removed from one test and the filter test was deleted; recorded readings remain covered by the per-vital dialog test. Retest: web suite passed in full | Closed | `docs/evidence/2026-10-05/web-tests.txt`, `web-tests-retest.txt` |
 | D-009 | Web lint and production build fail | High / P1 | In `web/`, run `npm run lint` then `npm run build` at `613bf7e` | Unused `Link` import left in `RecordsPage.tsx` (ESLint `no-unused-vars`, TypeScript TS6133) | Import removed. Retest: lint exit 0, build exit 0 | Closed | `docs/evidence/2026-10-05/web-lint-build.txt`, `web-lint-build-retest.txt` |
 | D-010 | Patient vital charts drew a hard-coded "normal" band | High / P1 (clinical safety) | In the web app open Health Records → Vitals at `613bf7e`; each chart shows a green reference band and limits | Fixed reference limits were written into the web client and passed to the chart. One fixed range cannot fit every member (age, pregnancy, measurement context), and showing it classifies a reading for the patient without a doctor, contrary to safety rules 1, 2 and 4. Found by automated pull-request review | Limits removed from the client; the chart now draws recorded values and their average only. A guard test asserts that no reference range is drawn. Retest: web suite 308 / 308, lint and build exit 0 | Closed | `VitalsPanel.test.tsx`; pull request #160 |
+| D-011 | Server error on a NUL character in a query string | Medium / P2 | `GET /api/v1/doctors/directory?search=%00` against the API | The character reached PostgreSQL, which cannot store it in text; the failure surfaced as HTTP 500 instead of a client error. Found by the OWASP ZAP scan | `RequestHardeningMiddleware` rejects such a query string with HTTP 400 problem details. Retest: integration test passed; ZAP rescan no longer reports a server error | Closed | `RequestHardeningTests`; `docs/evidence/2026-10-05/security-zap-summary.txt` |
+| D-012 | `X-Content-Type-Options` header missing from API responses | Low / P3 | Inspect the response headers of any API route | The header was never set. Found by the OWASP ZAP scan | The middleware adds `nosniff` to every response. Retest: integration test passed; ZAP rescan no longer reports it | Closed | `RequestHardeningTests`; `zap-retest/` |
 
 Priority follows severity: P1 blocks a user journey or the build, P2 misleads without blocking, and P3 affects only the test suite. D-009 is rated high because a failing build blocks the CI quality gate and the web deployment.
 
@@ -1489,7 +1493,7 @@ Table 4.10 states the principal limitations of the delivered system and its evid
 | 5 | The full Flutter, React and Flutter visual golden trace is pending; the golden case is evidenced at API level (2/2). Hosted doctor-approved guidance on mobile is also pending (A2-MOB-03). | End-to-end behaviour across all three surfaces is not demonstrated visually. | The deterministic API test exercises the same approval path; the visual trace remains scheduled work. |
 | 6 | Firebase push delivery is configuration-gated. | Without Firebase configuration the subscription endpoint exists but no push is delivered; in-app notifications still work. | Credentials must not be committed; backend-only delivery is retained. |
 | 7 | OCR is limited to typed PNG or JPEG images up to 10 MB; handwritten documents and PDFs are not supported. | Some real-world reports cannot be extracted automatically; manual entry remains available. | Tesseract reliability on handwriting is poor, and unsafe extraction is worse than none. |
-| 8 | Performance and security testing are narrow: one local read-endpoint baseline, scoped access-control checks and dependency audits. | Production capacity, agent latency and resistance to a determined attacker are unknown. | Time limited; no claim beyond the evidence is made. |
+| 8 | Performance testing covers read endpoints on a local environment only. The dynamic security scan used one role's token against the API only, and one low-risk scanner warning (`Cross-Origin-Resource-Policy`) is accepted rather than fixed. | Hosted capacity, write and mixed load, agent latency and resistance to a determined attacker are unknown. | Time limited; load and scan tools were deliberately not pointed at the hosted database. No claim beyond the measured scope is made. |
 | 9 | Only synthetic data was used; no clinical validation, no clinician evaluation and no user study. | The advisory quality and clinical usefulness of agent output are not established. | Rule 7 prohibits real patient data; the system is a prototype and never diagnoses. |
 
 ## 4.9 Future Improvements
@@ -1501,7 +1505,7 @@ Table 4.11 lists the improvements identified in the project plan as future work.
 | Priority | Improvement | Technical approach | Value |
 |---|---|---|---|
 | High | Complete cross-platform visual golden trace and physical-device testing | Scripted journey across Flutter, React and Flutter on synthetic accounts; test on at least one physical Android device; retain screenshots and logs. | Closes the remaining evidence gap in A2-E2E-01 and A2-MOB-03. |
-| High | Broader performance and security testing | Load tests across mixed read and write endpoints and the triage pipeline; agent-latency measurement; independent penetration test. | Establishes capacity and resilience beyond the single local baseline. |
+| High | Broader performance and security testing | Load tests across mixed read and write endpoints and the triage pipeline; agent-latency measurement; independent penetration test. | Establishes capacity and resilience beyond the local read-path profile. |
 | High | Release-signed APK and stable distribution | Production signing key held outside the repository; signed release build in CI. | Removes debug-signing and sideloading limits. |
 | Medium | Doctor Pre-Visit Brief | Doctor-only, case-grant scoped, schema-validated, audited, labelled "AI-generated context only". | Saves doctor preparation time while keeping the doctor in control. |
 | Medium | AI plain-language lab explanation | Built from deterministic range status only and routed through the doctor approval gate. | Helps families understand reports without any diagnostic claim. |
@@ -1542,7 +1546,7 @@ Table 5.1 states the contributions with measured outcomes only.
 | Persistent data model | 34 domain entity sets and 10 EF Core migrations on PostgreSQL 16. |
 | Controlled agent pipeline | Six agent kinds with per-agent tool allow-lists; deterministic safety stage; invalid output yields persisted `SafeFailure` with `INVALID_AGENT_SCHEMA`. |
 | Doctor approval gate | Guidance HTTP 404 before approval; golden case 2/2 passed at API level. |
-| Automated test suites | Final run 2026-10-05: 884 automated tests executed, 884 passed (unit 337, integration 25, web 308, Flutter 214) after three web defects found on the final day were fixed and retested (D-008, D-009, D-010; Table 4.6, Table 4.9). |
+| Automated test suites | Final run 2026-10-05: 888 automated tests executed, 888 passed (unit 337, integration 29, web 308, Flutter 214). Five defects found on the final day by the rerun, by automated review and by the security scan were fixed and retested (D-008 to D-012; Table 4.6, Table 4.9). |
 | Defects found and corrected | Seven defects recorded (D-001 to D-007), each with root cause and retest status. |
 | Cloud deployment and CI | API (Render), database (Neon), web (Vercel) live; CI and CodeQL green on `develop` at `49face54` on 2026-09-28. |
 | Mobile delivery | 159 MB debug-signed Android APK, installed and signed in on an API 36 emulator. |
@@ -2047,6 +2051,23 @@ The device needs network access, because the application calls the hosted API. T
 
 The hosted API runs on a free tier and may need up to a minute to respond to its first request after idle time; open the health link before any demonstration.
 
+## F.5 Diagram Sources
+
+Every diagram in this report is kept as a standalone HTML file in `docs/diagrams/`, which opens offline in any browser and prints at full resolution. The use case diagram and the three activity diagrams are drawn in UML 2 notation; the sequence and state machine diagrams use UML notation and the entity-relationship diagram uses crow's-foot notation.
+
+| Figure | Diagram | Notation | File |
+|---|---|---|---|
+| 2.1 | Use case diagram | UML use case | `use_case_diagram.html` |
+| 3.1 | High-level system architecture | Component view | `system_architecture.html` |
+| 3.2 | Authentication and access-control flow | UML sequence | `sequence_authentication_access_control.html` |
+| 3.3 | Agentic triage workflow | UML activity, swimlanes | `activity_triage_workflow.html` |
+| 3.4 | Triage case state machine | UML state machine | `state_triage_case.html` |
+| 3.5 | Doctor approval gate | UML activity, swimlanes | `activity_doctor_approval.html` |
+| 3.6 | Lab report upload and extraction | UML activity, swimlanes | `activity_lab_report_upload.html` |
+| 3.7 | Consent state machine | UML state machine | `state_consent.html` |
+| 3.8 | Entity-relationship diagram | Crow's-foot ER | `er_diagram.html` |
+| 3.9 | CI/CD and deployment pipeline | Pipeline view | `cicd_deployment_pipeline.html` |
+
 ---
 
 # END OF REPORT
@@ -2055,62 +2076,37 @@ The hosted API runs on a free tier and may need up to a minute to respond to its
 
 ## WHAT STILL NEEDS TO BE DONE — CHECKLIST
 
-**Pre-body**
+Remove this section before exporting the submission copy.
 
-- [ ] 1. Each member to confirm the responsible-member column in Table 4.2.
-- [ ] 2. Add the CLEAR-framework AI declaration required by Assignment 2 (each student, Appendix E).
-- [ ] 3. Confirm group number SE_016, submission name `SE3090_SE016` and all four student names and IDs on the cover and declaration pages.
-- [ ] 4. Complete the declaration, acknowledgements and abstract pages and the lists of tables and figures with final page numbers.
-- [x] 5. Fill the test-rerun tokens (unit, integration, web, Flutter) with the real results of the 5 October 2026 rerun, and make Table 4.4 agree with them.
+**Written by each student (must not be AI-generated)**
 
-**Chapters 1 to 5**
+- [ ] 1. S1, S2, S3 and S4 each write the six sub-sections of their part of Appendix B.
+- [ ] 2. Each student pastes their own `git log --author` output and pull-request list into their section.
+- [ ] 3. Each student writes their own AI usage log in Appendix E, and the CLEAR-framework declaration required by Assignment 2.
+- [ ] 4. Each student writes their own reflection in Section 5.5.
+- [ ] 5. Each member confirms the responsible-member column in Table 4.2 and can run and explain those tests.
 
-- [ ] 6. Verify that every table (2.1 to 5.1) and figure (2.1 to 3.9, 4.1 to 4.7) is referred to by number in the body text.
-- [ ] 7. Check that every Mermaid diagram renders and is exported at readable size.
-- [ ] 8. Add the existing screenshots (Android launch, hosted Head dashboard, appointments, notifications, three dashboards) as Figures 4.1 to 4.7 with captions.
-- [ ] 9. Re-read Chapter 4 so that only measured results are stated, and that the limitations in Table 4.10 are not overstated or softened.
+**Group decisions**
 
-**References**
+- [ ] 6. Agree and enter the contribution percentages in Table A.4, then sign and date the declaration and Appendix A.
+- [ ] 7. Add the SLIIT logo to the title page and confirm names, IDs and group number.
+- [ ] 8. Decide whether the demonstration-video link belongs in this report or only in the submission form.
+- [ ] 9. Review the risk register (Table D.1) and update the statuses at submission time.
 
-- [ ] 10. Check that every in-text citation has a reference-list entry and vice versa (APA 7).
-- [ ] 11. Confirm that every cited source can be opened and that access dates are recorded.
+**Evidence that still has to be produced by the team**
 
-**Appendices**
+- [ ] 10. Record a cross-platform run of the golden case: Flutter → React approval → Flutter (A2-E2E-01 is Partial).
+- [ ] 11. Run the Flutter application on a physical device, or keep the stated limitation; add Flutter screenshots of the symptom form and approved guidance.
+- [ ] 12. Retest D-007 by signing in to the hosted site as the synthetic doctor.
+- [ ] 13. Rebuild the Android APK from the final commit; the published one dates from 28 September.
+- [ ] 14. Record the exact Render revision used for the demonstration.
 
-- [ ] 12. Regenerate `docs/OWNERSHIP.tsv` and `docs/individual-reports/EVIDENCE.md` (generated 22 September) and update the owned-file counts in Table A.4.
-- [ ] 13. Regenerate the Git figures in Tables A.1–A.3 at the final submission commit (the branch was still moving when they were measured).
-- [ ] 14. Agree and enter the contribution percentages in Table A.4 (all four members).
-- [ ] 15. Obtain the four signatures and dates after all members have reviewed Appendix A.
-- [ ] 16. S1 to write all six sub-sections of Appendix B.1.
-- [ ] 17. S2 to write all six sub-sections of Appendix B.2.
-- [ ] 18. S3 to write all six sub-sections of Appendix B.3.
-- [ ] 19. S4 to write all six sub-sections of Appendix B.4.
-- [ ] 20. Each student to paste their own `git log --author` output and pull-request list into their section.
-- [ ] 21. Each student to write their own AI usage log (Appendix E).
-- [ ] 22. Review the risk register (Table D.1) and update the statuses of R6, R7 and R10 at submission time.
+**Checks before export**
 
-**Evidence gaps to close**
-
-- [ ] 23. Capture a visual golden-case trace across Flutter, React and Flutter (A2-E2E-01 is partial).
-- [ ] 24. Run the application on a physical Android device (only an emulator was used) or state the limitation.
-- [ ] 25. Retest defect D-007 (static sample counts mixed with live doctor metrics) in production and record the result.
-- [ ] 26. Add the ADR files that are referred to but missing from `docs/adr/` (ADR-001 to ADR-012), or state them as not written; only ADR-006, ADR-013 and ADR-014 exist.
-- [ ] 27. Add `docs/ai-disclosure/S1.md` to `S4.md` (the folder does not exist).
-- [ ] 28. Add the individual report files `docs/individual-reports/S1.md` to `S4.md` (only `EVIDENCE.md` exists).
-- [ ] 29. Fix the README links to documents that do not exist: `docs/ARCHITECTURE.md`, `docs/DATABASE.md`, `docs/API_CONTRACT.md`, `docs/AGENTS_DESIGN.md`, `docs/CLINICAL_SAFETY.md`, `docs/PERMISSIONS.md`, `docs/AUDIT_LOGGING.md`, `docs/TIMELINE.md`, `docs/RISK_REGISTER.md`, `docs/FUTURE_WORK.md` and `docs/Family_Veda_Project_Blueprint.md`; either create them or remove the links. (The references to `docs/TESTING.md`, `docs/DEPLOYMENT.md` and `docs/VIVA_PREP.md` resolve.)
-- [ ] 30. Replace the reference to `OllamaClientTests` in the ownership manifest if the file has been deleted (the file is listed in `EVIDENCE.md` but is not in the repository).
-- [ ] 31. Obtain the exact Render revision used for the demonstration, and a release-signed APK if one is to be claimed.
-
-**Formatting pass**
-
-- [ ] 32. Apply the faculty template: fonts, margins, line spacing, heading numbering and page numbers.
-- [ ] 33. Check that table captions sit above tables and figure captions above figures, with consistent numbering.
-- [ ] 34. Check British English spelling and a consistent formal tone throughout.
-- [ ] 35. Export to the required file format and check that no table or code block is cut across pages.
-
-**Final sanity check**
-
-- [ ] 36. Search the final file for `[INSERT`, `[STUDENT-AUTHORED`, `[SIGNATURE`, `[CONFIRM` and `{{`; none may remain.
-- [ ] 37. Open every link in a private browser window to confirm that it opens without an access request, and that the links stay live until 21 October 2026.
-- [ ] 38. Confirm that no screenshot, table or text contains a secret, a password, a token or real patient data (synthetic data only).
-- [ ] 39. Name the submission file `SE3090_SE016` and submit through CourseWeb before 6 October 2026, 11:00 AM.
+- [ ] 15. Regenerate the Git figures in Tables A.1 to A.3 at the final submission commit.
+- [ ] 16. Check each reference and DOI against its source.
+- [ ] 17. Apply the module's formatting rules (font, spacing, margins, page numbers) to the exported file.
+- [ ] 18. Search for `[INSERT`, `[STUDENT-AUTHORED`, `[CONFIRM` and `[VERIFY`; none may remain.
+- [ ] 19. Open every link in a private browser window; links must work without an access request and stay live until 21 October 2026.
+- [ ] 20. Confirm that no screenshot or text contains a secret, a password, a token or real patient data.
+- [ ] 21. Name the file `SE3090_SE016` and submit through CourseWeb before 6 October 2026, 11:00 AM.

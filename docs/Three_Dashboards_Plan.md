@@ -6,7 +6,7 @@
 **Page-by-page UX:** `docs/Three_Dashboards_UX_Plan.md`
 **Tracking:** `agent/TODO.md` → "Three dashboards — mockup parity (2026-09-29)" (sections A, B, C)
 
-> Blueprint (`docs/Family_Veda_Project_Blueprint.md`) and the six invariants / ten clinical safety rules in `CLAUDE.md` win over any mockup.
+> Blueprint (`docs/Three_Portal_Implementation_Blueprint.md`) and the six invariants / ten clinical safety rules in `CLAUDE.md` win over any mockup.
 
 ---
 
