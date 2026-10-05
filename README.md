@@ -14,7 +14,7 @@ Longitudinal family health context and agentic clinical triage platform.
 
 | | |
 |---|---|
-| 📱 **Android APK** | [Download latest release](https://github.com/sahansbandara/Family-Veda-SEF-Project/releases/tag/apk-2026-09-28) · 159 MB · [install guide](DOWNLOAD.md) |
+| 📱 **Android APK** | [Download latest release](https://github.com/sahansbandara/Family-Veda-SEF-Project/releases/tag/apk-2026-10-06) · 228 MB · [install guide](DOWNLOAD.md) |
 | 🌐 **Web app** | <https://family-veda-web.vercel.app> |
 | 📘 **API docs** | [Swagger](https://family-veda-api-production.up.railway.app/swagger/index.html) |
 
