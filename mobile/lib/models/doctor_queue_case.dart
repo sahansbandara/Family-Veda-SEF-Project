@@ -29,6 +29,8 @@ class DoctorQueueCase {
     this.caseNumber,
     this.memberDisplayName,
     this.familyName,
+    this.complaint,
+    this.referralClosed = false,
   });
 
   /// A case from /doctors/me/cases: the doctor holds an active grant.
@@ -42,6 +44,7 @@ class DoctorQueueCase {
     caseNumber: (json['caseNumber'] as num?)?.toInt(),
     memberDisplayName: json['memberDisplayName'] as String?,
     familyName: json['familyName'] as String?,
+    referralClosed: json['referralClosed'] as bool? ?? false,
   );
 
   /// A case from /doctors/case-pool: limited metadata, claimable.
@@ -53,6 +56,9 @@ class DoctorQueueCase {
     mine: false,
     claimable: true,
     caseNumber: (json['caseNumber'] as num?)?.toInt(),
+    complaint: json['complaint'] is Map<String, dynamic>
+        ? SubmittedComplaint.fromJson(json['complaint'] as Map<String, dynamic>)
+        : null,
   );
 
   final String id;
@@ -68,6 +74,12 @@ class DoctorQueueCase {
   /// Released by the backend only for cases this doctor holds a grant on.
   final String? memberDisplayName;
   final String? familyName;
+
+  /// The complaint the pool released so the doctor can decide whether to claim. Never an identity.
+  final SubmittedComplaint? complaint;
+
+  /// A doctor closed this emergency referral. The patient still sees the referral.
+  final bool referralClosed;
 
   /// The case number as 0001; falls back to the id prefix when the API omits it.
   String get reference {
@@ -98,10 +110,15 @@ class DoctorQueueCase {
     return family == null || family.isEmpty ? name : '$name · $family';
   }
 
-  bool get isEmergencyReferral => status == 'Escalated';
+  /// An escalated case that still needs a doctor; a closed referral is finished queue work.
+  bool get isEmergencyReferral => status == 'Escalated' && !referralClosed;
+
+  /// An emergency referral this doctor acknowledged and may still follow up on.
+  bool get hasFollowUp => mine && isEmergencyReferral;
   bool get isAwaitingReview => mine && _awaitingReview.contains(status);
 
   QueueTab? get tab {
+    if (referralClosed) return mine ? QueueTab.completed : null;
     if (isEmergencyReferral) return QueueTab.emergency;
     if (claimable) return QueueTab.available;
     if (mine && _completed.contains(status)) return QueueTab.completed;
@@ -111,6 +128,7 @@ class DoctorQueueCase {
 
   /// Doctor-facing copy. Presentation only; the stored status is unchanged.
   String get statusLabel {
+    if (referralClosed) return 'Referral closed';
     if (claimable && status != 'Escalated') return 'Available';
     return switch (status) {
       'Claimed' => 'Assigned to me · In review',
@@ -129,6 +147,7 @@ class DoctorQueueCase {
   }
 
   QueueTone get statusTone {
+    if (referralClosed) return QueueTone.muted;
     if (status == 'Escalated') return QueueTone.danger;
     if (claimable) return QueueTone.primary;
     return switch (status) {
@@ -162,6 +181,9 @@ class DoctorQueueCase {
   /// What happens next for a case with no queue action.
   String get nextStepMessage {
     if (!mine) return 'This case is not available to you.';
+    if (referralClosed) {
+      return 'You closed this referral. The patient was directed to in-person care.';
+    }
     return switch (status) {
       'Claimed' || 'PendingDoctorReview' || 'LowConfidence' =>
         'Assigned to you. The clinical decision is made on the Approval Desk in the doctor web portal.',
@@ -188,6 +210,7 @@ class DoctorQueueCase {
         mine
             ? ('Acknowledged by you', QueueStepState.done)
             : ('Awaiting doctor acknowledgement', QueueStepState.current),
+        if (referralClosed) ('Referral closed by you', QueueStepState.done),
       ];
     }
     if (status == 'FailedSafe') {
@@ -294,13 +317,15 @@ List<DoctorQueueCase> filterAndSortQueue(
   return result;
 }
 
-/// The complaint a patient submitted, as returned by the grant-checked review endpoint.
+/// The complaint a patient submitted: from the grant-checked review endpoint, or — with an age
+/// band and no identity — from the case pool.
 class SubmittedComplaint {
   const SubmittedComplaint({
     required this.symptoms,
     required this.durationDays,
     required this.severity,
     this.notes,
+    this.ageBand,
   });
 
   factory SubmittedComplaint.fromJson(Map<String, dynamic> json) =>
@@ -311,10 +336,28 @@ class SubmittedComplaint {
         durationDays: (json['durationDays'] as num?)?.toInt() ?? 0,
         severity: (json['severity'] as num?)?.toInt() ?? 0,
         notes: json['notes'] as String?,
+        ageBand: json['ageBand'] as String?,
       );
 
   final List<String> symptoms;
   final int durationDays;
   final int severity;
   final String? notes;
+
+  /// A ten-year band released by the pool; null on the review endpoint.
+  final String? ageBand;
+
+  /// One line for a pooled card: what was reported, without identity.
+  String get summary {
+    final readable = [
+      for (final symptom in symptoms)
+        if (symptom.trim().isNotEmpty) symptom.replaceAll('_', ' ').trim(),
+    ];
+    return [
+      readable.isEmpty ? 'No symptoms recorded' : readable.join(', '),
+      '$durationDays ${durationDays == 1 ? 'day' : 'days'}',
+      'Severity $severity / 10',
+      if ((ageBand ?? '').isNotEmpty) 'Age $ageBand',
+    ].join(' · ');
+  }
 }

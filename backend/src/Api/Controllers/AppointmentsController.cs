@@ -28,6 +28,14 @@ public sealed class AppointmentsController(IAppointmentService appointmentServic
     public async Task<ActionResult<AppointmentDto>> Cancel(Guid id, CancellationToken cancellationToken) =>
         Ok(await appointmentService.CancelAsync(id, cancellationToken));
 
+    [HttpPost("triage-cases/{caseId:guid}/appointments")]
+    [Authorize(Policy = "Doctor")]
+    public async Task<ActionResult<AppointmentDto>> BookFollowUp(Guid caseId, FollowUpAppointmentRequest request, CancellationToken cancellationToken)
+    {
+        var result = await appointmentService.BookFollowUpAsync(caseId, request, cancellationToken);
+        return Created($"/api/v1/appointments/{result.Id}", result);
+    }
+
     [HttpGet("doctors/me/appointments")]
     [Authorize(Policy = "Doctor")]
     public async Task<ActionResult<IReadOnlyList<AppointmentDto>>> GetForDoctor(DateTimeOffset? from, DateTimeOffset? to, CancellationToken cancellationToken) =>

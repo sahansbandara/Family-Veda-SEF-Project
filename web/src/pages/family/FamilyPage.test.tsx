@@ -75,6 +75,29 @@ describe('FamilyPage', () => {
     await waitFor(() => expect(screen.getByRole('tab', { name: /Join Requests/ })).toHaveTextContent('1'))
   })
 
+  it('summarises the household and lists minors before the head and adults', async () => {
+    renderAt('/family')
+
+    const summary = await screen.findByRole('group', { name: 'Household summary' })
+    expect(within(summary).getByText('Total members').parentElement).toHaveTextContent('3')
+    expect(within(summary).getByText('Minors').parentElement).toHaveTextContent('1')
+    await waitFor(() => expect(within(summary).getByText('Pending actions').parentElement).toHaveTextContent('2'))
+    const members = screen.getByRole('region', { name: 'Members' })
+    expect(within(members).getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)).toEqual([
+      'Minor profiles',
+      'Family head',
+      'Adult members',
+    ])
+  })
+
+  it('opens the Invitations tab from the Members workspace', async () => {
+    renderAt('/family')
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Invite adult' }))
+
+    expect(await screen.findByRole('tab', { name: /Invitations/ })).toHaveAttribute('aria-selected', 'true')
+  })
+
   it('removes an adult by moving them to their own household after confirmation', async () => {
     mocks.removeFromFamily.mockResolvedValue({ data: { memberId: 'adult-1', familyId: 'new', familyName: 'Synthetic Adult Family' } })
     renderAt('/family')

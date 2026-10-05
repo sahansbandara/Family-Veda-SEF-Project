@@ -315,3 +315,23 @@ User approved the concrete in-chat design: fullscreen protected-original viewer 
 ## 2026-10-05 — Integrate premium report design
 
 User explicitly authorized committing and merging the approved report design into develop. Preserve the configured S4 author identity and existing ownership waiver. Integrate current develop, run web and Flutter checks, and merge only the report UI/API client changes; no backend/schema/dependency changes or deployment. Native device validation remains pending.
+## 2026-10-05 — Case pool releases the complaint before a grant; patient told when an emergency is acknowledged
+
+User request, option B chosen over a notes-free summary after the risk was stated.
+
+- `GET /doctors/case-pool` now returns, per case, the submitted complaint: symptoms, duration, severity, the patient's free-text notes, and a ten-year age band. Reason: a doctor could not judge whether to claim or acknowledge a case from a case number alone.
+- Still withheld until a case grant exists: member id, name, family, date of birth and exact age. The pool stays restricted to verified doctors and every read still writes `CASE_POOL_READ`.
+- Accepted risk: free-text notes can contain identifying detail the patient typed. This widens the pre-grant read; it is a deliberate exception to "access by grant" limited to the complaint a patient submitted for doctor review. Revisit if real (non-synthetic) data is ever in scope.
+- Acknowledging an escalated case now adds an `EMERGENCY_ACKNOWLEDGED` portal notification for the patient (and the family head for a minor), once per case. The text restates the in-person-care referral; it is not AI output and is not gated content (Rules 2, 10).
+- No schema change, no migration.
+
+## 2026-10-05b — Doctor follow-up on an acknowledged emergency referral
+
+User request: let the doctor close a referral, book a follow-up for the patient, and share a contact number.
+
+- All three actions pass one gate (`EmergencyCaseAccess`): verified doctor, case `Escalated`, an active case grant held by that doctor, referral not already closed. Otherwise 404.
+- **Close referral** is recorded as an `Approval` with the new action `CloseReferral`. The case status stays `Escalated`, so the patient keeps seeing the referral to in-person care (Rule 10). A closed referral leaves the pool, cannot be re-acknowledged, and shows under Completed for the closing doctor until the grant expires. No patient notification: "closed" could be read as "no need to seek care".
+- **Book follow-up** creates a `Confirmed` appointment with the acknowledging doctor, who need not be the family's primary doctor. The patient (or the family head for a minor) is notified and can cancel. One open follow-up per doctor and patient.
+- **No visit grant** is issued for a doctor-booked appointment, including on reschedule. A confirmed appointment normally opens record access (2026-09-29h); the patient never agreed to that here, so the booking gives the doctor no access to records (Rule 8).
+- **Share contact** sends the phone number on the doctor's own profile to the patient as a portal notification, once per doctor and case, with a reminder that it does not replace urgent in-person care. It is the doctor's explicit action on their own data.
+- `ApprovalAction` is stored as text, so the new value needs no migration. No schema change.

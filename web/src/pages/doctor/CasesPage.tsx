@@ -19,8 +19,10 @@ import {
   QUEUE_TABS,
   actionFor,
   caseReference,
+  complaintSummary,
   filterAndSort,
   formatSubmitted,
+  isEmergencyReferral,
   mergeQueue,
   priorityTone,
   queueCounts,
@@ -133,7 +135,7 @@ export function CasesPage() {
     if (claimingId) return
     setClaimingId(item.id)
     setNotice(null)
-    const acknowledging = item.status === 'Escalated'
+    const acknowledging = isEmergencyReferral(item)
     try {
       await apiClient.post(`/triage-cases/${item.id}/claim`)
       setNotice({
@@ -324,7 +326,7 @@ export function CasesPage() {
                     <article
                       key={item.id}
                       className={`triage-card${selectedId === item.id ? ' triage-card--selected' : ''}${
-                        item.status === 'Escalated' ? ' triage-card--emergency' : ''
+                        isEmergencyReferral(item) ? ' triage-card--emergency' : ''
                       }`}
                     >
                       <div className="triage-card__top">
@@ -343,7 +345,7 @@ export function CasesPage() {
                             {item.priority}
                           </span>
                           <span className={`status-badge status-badge--${statusTone(item)}`}>
-                            {item.status === 'Escalated' ? <span aria-hidden="true">⚠ </span> : null}
+                            {isEmergencyReferral(item) ? <span aria-hidden="true">⚠ </span> : null}
                             {statusLabel(item)}
                           </span>
                         </div>
@@ -352,7 +354,7 @@ export function CasesPage() {
                         <p className="care-caption">
                           {item.mine
                             ? 'Open the case to see the submitted complaint.'
-                            : 'Details available after authorized access.'}
+                            : (complaintSummary(item.complaint) ?? 'Details available after authorized access.')}
                         </p>
                         <div className="triage-card__actions">
                           <button
@@ -394,6 +396,10 @@ export function CasesPage() {
               busy={claimingId !== ''}
               onClose={closePreview}
               onClaim={(item) => void claim(item)}
+              onFollowUp={(text) => {
+                setNotice({ tone: 'success', text })
+                void loadCases(false)
+              }}
             />
             {previewOpen && selected ? (
               <button type="button" className="triage-backdrop" aria-label="Close case preview" onClick={closePreview} />

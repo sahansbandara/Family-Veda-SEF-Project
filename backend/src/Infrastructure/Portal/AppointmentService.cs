@@ -7,6 +7,7 @@ using FamilyVeda.Domain.Identity;
 using FamilyVeda.Domain.Portal;
 using FamilyVeda.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using FamilyVeda.Infrastructure.Clinical;
 using FamilyVeda.Infrastructure.Families;
 
 namespace FamilyVeda.Infrastructure.Portal;
@@ -96,6 +97,12 @@ public sealed class AppointmentService(AppDbContext dbContext, ICurrentUser curr
         var appointment = await dbContext.Appointments.SingleOrDefaultAsync(x => x.Id == id, cancellationToken) ?? throw new NotFoundException();
         var member = await dbContext.Members.SingleAsync(x => x.Id == appointment.MemberId, cancellationToken);
         var allowed = appointment.BookedByUserId == currentUser.UserId || member.UserId == currentUser.UserId;
+        if (!allowed)
+        {
+            // A doctor-booked follow-up for a minor has no family booker, so the family head may cancel it.
+            var isMinor = member.DateOfBirth.AddYears(18) > DateOnly.FromDateTime(DateTime.UtcNow);
+            allowed = isMinor && await dbContext.Families.Where(x => x.Id == member.FamilyId).AnyAsync(FamilyAccess.HeadedBy(currentUser.UserId), cancellationToken);
+        }
         if (!allowed)
         {
             throw new NotFoundException();
@@ -193,14 +200,89 @@ public sealed class AppointmentService(AppDbContext dbContext, ICurrentUser curr
         appointment.StartsAt = request.StartsAt;
         appointment.UpdatedAt = DateTimeOffset.UtcNow;
         if (!string.IsNullOrWhiteSpace(request.Note)) appointment.DoctorNote = request.Note.Trim();
-        if (appointment.Status == AppointmentStatus.Confirmed)
+        // A follow-up the doctor booked carries no visit grant: the patient never agreed to record access.
+        var doctorBooked = appointment.BookedByUserId == doctor.UserId;
+        if (appointment.Status == AppointmentStatus.Confirmed && !doctorBooked)
         {
             await RevokeVisitGrantsAsync(appointment.Id, cancellationToken);
             IssueVisitGrant(appointment);
         }
         AddAudit("APPOINTMENT_RESCHEDULED", appointment.Id);
-        AddNotification(appointment.BookedByUserId, "APPOINTMENT_RESCHEDULED", "Appointment moved",
-            "Your doctor moved an appointment to a new time. Open Appointments to see it.", "/appointments");
+        var recipients = doctorBooked
+            ? await EmergencyCaseAccess.PatientRecipientsAsync(dbContext, appointment.MemberId, cancellationToken)
+            : [appointment.BookedByUserId];
+        foreach (var userId in recipients)
+        {
+            AddNotification(userId, "APPOINTMENT_RESCHEDULED", "Appointment moved",
+                "Your doctor moved an appointment to a new time. Open Appointments to see it.", "/appointments");
+        }
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return await MapAsync(appointment, cancellationToken);
+    }
+
+    /// <summary>
+    /// A doctor books a follow-up for the patient of an emergency referral they acknowledged. It is
+    /// confirmed at once and the patient may cancel it. No visit grant is issued, so the booking gives
+    /// the doctor no access to the patient's records (agent/DECISIONS.md 2026-10-05b).
+    /// </summary>
+    public async Task<AppointmentDto> BookFollowUpAsync(Guid caseId, FollowUpAppointmentRequest request, CancellationToken cancellationToken)
+    {
+        var access = await EmergencyCaseAccess.RequireAsync(dbContext, currentUser, caseId, cancellationToken);
+        var reason = string.IsNullOrWhiteSpace(request.Reason) ? "Follow-up after urgent care referral" : request.Reason.Trim();
+        if (reason.Length > 200)
+        {
+            throw new Application.Common.ValidationException(new Dictionary<string, string[]> { ["reason"] = ["Reason cannot exceed 200 characters."] });
+        }
+        if (request.StartsAt <= DateTimeOffset.UtcNow)
+        {
+            throw new Application.Common.ValidationException(new Dictionary<string, string[]> { ["startsAt"] = ["Appointment time must be in the future."] });
+        }
+        var duration = request.DurationMinutes ?? 30;
+        if (duration is < 15 or > 120)
+        {
+            throw new Application.Common.ValidationException(new Dictionary<string, string[]> { ["durationMinutes"] = ["Duration must be between 15 and 120 minutes."] });
+        }
+        var doctorId = access.Doctor.Id;
+        var memberId = access.Case.MemberId;
+        var hasOpenFollowUp = await dbContext.Appointments.AnyAsync(x =>
+            x.DoctorId == doctorId && x.MemberId == memberId && x.BookedByUserId == currentUser.UserId &&
+            x.Status == AppointmentStatus.Confirmed && x.StartsAt > DateTimeOffset.UtcNow, cancellationToken);
+        if (hasOpenFollowUp) throw new ConflictException("You already booked a follow-up for this patient.");
+        var endsAt = request.StartsAt.AddMinutes(duration);
+        var overlapping = await dbContext.Appointments.AnyAsync(x =>
+            x.DoctorId == doctorId &&
+            (x.Status == AppointmentStatus.Requested || x.Status == AppointmentStatus.Confirmed) &&
+            x.StartsAt < endsAt && request.StartsAt < x.StartsAt.AddMinutes(x.DurationMinutes), cancellationToken);
+        if (overlapping) throw new ConflictException("You already have an appointment overlapping this time.");
+        await RequireFitsScheduleAsync(doctorId, request.StartsAt, duration, cancellationToken);
+
+        var appointment = new Appointment
+        {
+            MemberId = memberId,
+            DoctorId = doctorId,
+            BookedByUserId = currentUser.UserId,
+            StartsAt = request.StartsAt,
+            DurationMinutes = duration,
+            Reason = reason,
+            Status = AppointmentStatus.Confirmed
+        };
+        dbContext.Appointments.Add(appointment);
+        dbContext.AuditLogs.Add(new AuditLog
+        {
+            ActorUserId = currentUser.UserId,
+            SubjectMemberId = memberId,
+            EventType = "FOLLOW_UP_APPOINTMENT_BOOKED",
+            ResourceType = "Appointment",
+            ResourceId = appointment.Id,
+            Outcome = "SUCCESS",
+            MetadataJson = "{}"
+        });
+        foreach (var userId in await EmergencyCaseAccess.PatientRecipientsAsync(dbContext, memberId, cancellationToken))
+        {
+            AddNotification(userId, "APPOINTMENT_CONFIRMED", "A doctor booked a follow-up appointment",
+                "A doctor who saw your urgent care referral booked a follow-up appointment for you. Open Appointments to see the time or cancel it. This does not replace urgent in-person care.",
+                "/appointments");
+        }
         await dbContext.SaveChangesAsync(cancellationToken);
         return await MapAsync(appointment, cancellationToken);
     }

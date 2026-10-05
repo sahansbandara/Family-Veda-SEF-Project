@@ -45,6 +45,64 @@ public sealed class ClinicalCasePoolPrivacyTests
         json.RootElement.GetProperty("id").GetGuid().Should().Be(triageCase.Id);
     }
 
+    [Fact]
+    public async Task GetAvailableCases_BeforeGrant_ReturnsComplaintAndAgeBandButNoIdentity()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
+        await using var db = new AppDbContext(options);
+        var familyUser = new UserAccount { Email = "synthetic-summary-family@example.invalid", PasswordHash = "synthetic", DisplayName = "Synthetic Family User", UserType = UserType.FamilyUser };
+        var doctorUser = new UserAccount { Email = "synthetic-summary-doctor@example.invalid", PasswordHash = "synthetic", DisplayName = "Synthetic Doctor", UserType = UserType.Doctor };
+        var family = new Family { Name = "Synthetic Summary Family", CreatedByUser = familyUser };
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var member = new Member { Family = family, User = familyUser, DisplayName = "Synthetic Named Member", DateOfBirth = today.AddYears(-45), Role = FamilyRole.Head };
+        var doctor = new Doctor { User = doctorUser, RegistrationNumberHash = "synthetic-hash", RegistrationNumberLastFour = "0003", VerificationStatus = VerificationStatus.Verified };
+        var episode = new Episode { Member = member, SymptomsJson = "[\"synthetic_signal_a\",\"synthetic_signal_b\"]", DurationDays = 3, Severity = 6, Notes = "  Synthetic note text.  " };
+        var triageCase = new TriageCase { Member = member, Episode = episode, Status = TriageStatus.PendingDoctorReview, Priority = TriagePriority.Routine };
+        db.AddRange(familyUser, doctorUser, family, member, doctor, episode, triageCase);
+        await db.SaveChangesAsync();
+        var service = new ClinicalService(db, new StubCurrentUser(doctorUser.Id), new StubNotifications(), new ConfigurationBuilder().AddInMemoryCollection().Build());
+
+        var result = await service.GetAvailableCasesAsync(1, 20, CancellationToken.None);
+
+        var complaint = result.Items.Single().Complaint;
+        complaint.Should().NotBeNull();
+        complaint!.Symptoms.Should().Equal("synthetic_signal_a", "synthetic_signal_b");
+        complaint.DurationDays.Should().Be(3);
+        complaint.Severity.Should().Be(6);
+        complaint.Notes.Should().Be("Synthetic note text.");
+        complaint.AgeBand.Should().Be("40–49");
+        var serialized = JsonSerializer.Serialize(result.Items.Single(), new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        serialized.Should().NotContain("Synthetic Named Member").And.NotContain("Synthetic Summary Family")
+            .And.NotContain(member.Id.ToString()).And.NotContain("dateOfBirth");
+    }
+
+    [Theory]
+    [InlineData(10, "Under 18")]
+    [InlineData(18, "18–19")]
+    [InlineData(29, "20–29")]
+    [InlineData(80, "80+")]
+    public async Task GetAvailableCases_ReportsAgeAsBandNotExactAge(int ageYears, string expectedBand)
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
+        await using var db = new AppDbContext(options);
+        var familyUser = new UserAccount { Email = "synthetic-band-family@example.invalid", PasswordHash = "synthetic", DisplayName = "Synthetic Family User", UserType = UserType.FamilyUser };
+        var doctorUser = new UserAccount { Email = "synthetic-band-doctor@example.invalid", PasswordHash = "synthetic", DisplayName = "Synthetic Doctor", UserType = UserType.Doctor };
+        var family = new Family { Name = "Synthetic Band Family", CreatedByUser = familyUser };
+        var member = new Member { Family = family, User = familyUser, DisplayName = "Synthetic Member", DateOfBirth = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-ageYears), Role = FamilyRole.Head };
+        var doctor = new Doctor { User = doctorUser, RegistrationNumberHash = "synthetic-hash", RegistrationNumberLastFour = "0004", VerificationStatus = VerificationStatus.Verified };
+        var episode = new Episode { Member = member, SymptomsJson = "not-json", DurationDays = 1, Severity = 2 };
+        var triageCase = new TriageCase { Member = member, Episode = episode, Status = TriageStatus.PendingDoctorReview, Priority = TriagePriority.Routine };
+        db.AddRange(familyUser, doctorUser, family, member, doctor, episode, triageCase);
+        await db.SaveChangesAsync();
+        var service = new ClinicalService(db, new StubCurrentUser(doctorUser.Id), new StubNotifications(), new ConfigurationBuilder().AddInMemoryCollection().Build());
+
+        var complaint = (await service.GetAvailableCasesAsync(1, 20, CancellationToken.None)).Items.Single().Complaint!;
+
+        complaint.AgeBand.Should().Be(expectedBand);
+        complaint.Symptoms.Should().BeEmpty();
+        complaint.Notes.Should().BeNull();
+    }
+
     private sealed class StubCurrentUser(Guid userId) : ICurrentUser
     {
         public bool IsAuthenticated => true;
