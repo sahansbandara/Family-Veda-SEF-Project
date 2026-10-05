@@ -307,3 +307,13 @@ Web Approvals and member Labs get lazy PDF/image viewing; responsive layouts at3
 - No generated database migration, permission expansion, commit, push or deployment is included in this implementation pass. Only the explicitly approved PDF renderer dependency/lock change is included. Android runtime evidence requires an available emulator/device.
 
 - Local API was using the database fallback because .env.local omitted the existing Google Drive settings. Aligned only Storage__/GoogleDrive__ keys with the existing private .env configuration and restarted the local API; database/authentication settings preserved. Historical database-backed originals remain accessible; bulk historical migration is excluded.
+
+## 2026-10-05 — Case pool releases the complaint before a grant; patient told when an emergency is acknowledged
+
+User request, option B chosen over a notes-free summary after the risk was stated.
+
+- `GET /doctors/case-pool` now returns, per case, the submitted complaint: symptoms, duration, severity, the patient's free-text notes, and a ten-year age band. Reason: a doctor could not judge whether to claim or acknowledge a case from a case number alone.
+- Still withheld until a case grant exists: member id, name, family, date of birth and exact age. The pool stays restricted to verified doctors and every read still writes `CASE_POOL_READ`.
+- Accepted risk: free-text notes can contain identifying detail the patient typed. This widens the pre-grant read; it is a deliberate exception to "access by grant" limited to the complaint a patient submitted for doctor review. Revisit if real (non-synthetic) data is ever in scope.
+- Acknowledging an escalated case now adds an `EMERGENCY_ACKNOWLEDGED` portal notification for the patient (and the family head for a minor), once per case. The text restates the in-person-care referral; it is not AI output and is not gated content (Rules 2, 10).
+- No schema change, no migration.

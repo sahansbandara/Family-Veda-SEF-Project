@@ -29,6 +29,7 @@ class DoctorQueueCase {
     this.caseNumber,
     this.memberDisplayName,
     this.familyName,
+    this.complaint,
   });
 
   /// A case from /doctors/me/cases: the doctor holds an active grant.
@@ -53,6 +54,9 @@ class DoctorQueueCase {
     mine: false,
     claimable: true,
     caseNumber: (json['caseNumber'] as num?)?.toInt(),
+    complaint: json['complaint'] is Map<String, dynamic>
+        ? SubmittedComplaint.fromJson(json['complaint'] as Map<String, dynamic>)
+        : null,
   );
 
   final String id;
@@ -68,6 +72,9 @@ class DoctorQueueCase {
   /// Released by the backend only for cases this doctor holds a grant on.
   final String? memberDisplayName;
   final String? familyName;
+
+  /// The complaint the pool released so the doctor can decide whether to claim. Never an identity.
+  final SubmittedComplaint? complaint;
 
   /// The case number as 0001; falls back to the id prefix when the API omits it.
   String get reference {
@@ -294,13 +301,15 @@ List<DoctorQueueCase> filterAndSortQueue(
   return result;
 }
 
-/// The complaint a patient submitted, as returned by the grant-checked review endpoint.
+/// The complaint a patient submitted: from the grant-checked review endpoint, or — with an age
+/// band and no identity — from the case pool.
 class SubmittedComplaint {
   const SubmittedComplaint({
     required this.symptoms,
     required this.durationDays,
     required this.severity,
     this.notes,
+    this.ageBand,
   });
 
   factory SubmittedComplaint.fromJson(Map<String, dynamic> json) =>
@@ -311,10 +320,28 @@ class SubmittedComplaint {
         durationDays: (json['durationDays'] as num?)?.toInt() ?? 0,
         severity: (json['severity'] as num?)?.toInt() ?? 0,
         notes: json['notes'] as String?,
+        ageBand: json['ageBand'] as String?,
       );
 
   final List<String> symptoms;
   final int durationDays;
   final int severity;
   final String? notes;
+
+  /// A ten-year band released by the pool; null on the review endpoint.
+  final String? ageBand;
+
+  /// One line for a pooled card: what was reported, without identity.
+  String get summary {
+    final readable = [
+      for (final symptom in symptoms)
+        if (symptom.trim().isNotEmpty) symptom.replaceAll('_', ' ').trim(),
+    ];
+    return [
+      readable.isEmpty ? 'No symptoms recorded' : readable.join(', '),
+      '$durationDays ${durationDays == 1 ? 'day' : 'days'}',
+      'Severity $severity / 10',
+      if ((ageBand ?? '').isNotEmpty) 'Age $ageBand',
+    ].join(' · ');
+  }
 }

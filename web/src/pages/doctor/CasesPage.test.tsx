@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }))
 vi.mock('../../services/apiClient', () => ({ apiClient: mocks }))
 
 import { CasesPage } from './CasesPage'
-import { actionFor, mergeQueue, statusLabel, tabOf } from './triageQueue'
+import { actionFor, complaintSummary, mergeQueue, statusLabel, tabOf } from './triageQueue'
 
 // Synthetic data only.
 const granted = (id: string, status: string, priority = 'Routine') => ({
@@ -20,12 +20,21 @@ const granted = (id: string, status: string, priority = 'Routine') => ({
   priority,
   createdAt: '2026-09-29T08:00:00Z',
 })
-const pooled = (id: string, status = 'PendingDoctorReview', priority = 'Routine') => ({
+type Complaint = { symptoms: string[]; durationDays: number; severity: number; notes?: string | null; ageBand: string }
+const pooled = (id: string, status = 'PendingDoctorReview', priority = 'Routine', complaint?: Complaint) => ({
   id,
   status,
   priority,
   createdAt: '2026-09-30T08:00:00Z',
+  complaint,
 })
+const syntheticComplaint: Complaint = {
+  symptoms: ['synthetic_signal_a', 'synthetic_signal_b'],
+  durationDays: 1,
+  severity: 6,
+  notes: 'Synthetic note text.',
+  ageBand: '40–49',
+}
 const paged = <T,>(items: T[]) => ({ data: { items, page: 1, pageSize: 100, totalCount: items.length, totalPages: 1 } })
 
 let assigned: ReturnType<typeof granted>[] = []
@@ -61,6 +70,23 @@ describe('triageQueue rules', () => {
   })
 })
 
+describe('complaintSummary', () => {
+  it('summarises what was reported without any identity', () => {
+    expect(complaintSummary(syntheticComplaint)).toBe('synthetic signal a, synthetic signal b · 1 day · Severity 6 / 10 · Age 40–49')
+  })
+
+  it('is absent when an older API released no complaint', () => {
+    expect(complaintSummary(undefined)).toBeNull()
+    expect(complaintSummary(null)).toBeNull()
+  })
+
+  it('carries the pool complaint onto the queue case, but not onto a granted one', () => {
+    const merged = mergeQueue([granted('mine0001', 'Claimed')], [pooled('pool0001', 'PendingDoctorReview', 'Routine', syntheticComplaint)])
+    expect(merged.find((item) => item.id === 'pool0001')?.complaint).toEqual(syntheticComplaint)
+    expect(merged.find((item) => item.id === 'mine0001')?.complaint).toBeUndefined()
+  })
+})
+
 describe('CasesPage', () => {
   beforeEach(() => {
     mocks.get.mockReset()
@@ -92,6 +118,18 @@ describe('CasesPage', () => {
     expect(screen.getByRole('heading', { name: 'Case pool0001' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Case mine0001' })).not.toBeInTheDocument()
     expect(screen.getByText('Details available after authorized access.')).toBeInTheDocument()
+  })
+
+  it('lets a doctor read the complaint before claiming, without a name or a review call', async () => {
+    pool = [pooled('pool0001', 'PendingDoctorReview', 'Routine', syntheticComplaint)]
+    renderPage()
+    expect(await screen.findByText('synthetic signal a, synthetic signal b · 1 day · Severity 6 / 10 · Age 40–49')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Preview case pool0001' }))
+    const preview = screen.getByRole('complementary', { name: 'Selected case preview' })
+    expect(within(preview).getByText('Synthetic note text.')).toBeInTheDocument()
+    expect(within(preview).getByText('6 / 10')).toBeInTheDocument()
+    expect(within(preview).getByText(/Age band 40–49\. Name and family are shown after you claim the case\./)).toBeInTheDocument()
+    expect(mocks.get).not.toHaveBeenCalledWith('/triage-cases/pool0001/review')
   })
 
   it('claims a case and re-reads the queue from the server', async () => {

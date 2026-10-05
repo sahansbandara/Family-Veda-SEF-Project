@@ -127,7 +127,9 @@ export type HealthRecordDto = { id: string; memberId: string; recordType: string
 export type EpisodeDto = { id: string; memberId: string; symptoms: string[]; durationDays: number; severity: number; notes?: string; createdAt: string }
 // caseNumber and the names are optional so an older API build still renders; names arrive only for cases the doctor holds a grant on.
 export type TriageCaseDto = { id: string; episodeId: string; memberId: string; status: string; priority: string; createdAt: string; caseNumber?: number; memberDisplayName?: string | null; familyName?: string | null }
-export type AvailableCaseDto = { id: string; priority: string; createdAt: string; status?: string; caseNumber?: number }
+/** The complaint a doctor may read before claiming. Never carries a name, a family or a member id. */
+export type PoolComplaintDto = { symptoms: string[]; durationDays: number; severity: number; notes?: string | null; ageBand: string }
+export type AvailableCaseDto = { id: string; priority: string; createdAt: string; status?: string; caseNumber?: number; complaint?: PoolComplaintDto | null }
 export type AuditDto = { id: string; eventType: string; resourceType: string; resourceId?: string; outcome: string; createdAt: string }
 export type FamilyDashboardDto = { membersVisible: number; openCases: number; awaitingDoctorReview: number; approvedCases: number; recordsCount: number }
 export type AgentTraceDto = { stepNumber: number; agent: string; status: string; toolsRequested: string[]; toolsAllowed: string[]; toolsDenied: string[]; confidence: number; latencyMilliseconds: number; outputSchemaValid: boolean }

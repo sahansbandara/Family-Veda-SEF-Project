@@ -40,6 +40,77 @@ public sealed class ClinicalEmergencyReferralTests
         (await db.CaseAccessGrants.CountAsync(x => x.TriageCaseId == triageCase.Id && x.RevokedAt == null)).Should().Be(1);
     }
 
+    [Fact]
+    public async Task AcknowledgingEmergency_TellsThePatientADoctorHasSeenTheReferral()
+    {
+        var (db, service, patientUser, _, triageCase) = await SeedAsync(TriageStatus.Escalated, patientAgeYears: 34);
+        await using var _db = db;
+
+        await service.ClaimCaseAsync(triageCase.Id, CancellationToken.None);
+
+        var notification = await db.PortalNotifications.SingleAsync();
+        notification.UserId.Should().Be(patientUser.Id);
+        notification.Type.Should().Be("EMERGENCY_ACKNOWLEDGED");
+        notification.LinkPath.Should().Be("/triage");
+        notification.Body.Should().Contain("in-person care");
+    }
+
+    [Fact]
+    public async Task AcknowledgingEmergencyForAMinor_AlsoTellsTheFamilyHead()
+    {
+        var (db, service, patientUser, headUser, triageCase) = await SeedAsync(TriageStatus.Escalated, patientAgeYears: 12);
+        await using var _db = db;
+
+        await service.ClaimCaseAsync(triageCase.Id, CancellationToken.None);
+
+        (await db.PortalNotifications.Select(x => x.UserId).ToListAsync()).Should().BeEquivalentTo([patientUser.Id, headUser.Id]);
+    }
+
+    [Fact]
+    public async Task ReacknowledgingAfterTheSla_DoesNotNotifyThePatientAgain()
+    {
+        var (db, service, _, _, triageCase) = await SeedAsync(TriageStatus.Escalated, patientAgeYears: 34);
+        await using var _db = db;
+        await service.ClaimCaseAsync(triageCase.Id, CancellationToken.None);
+        var grant = await db.CaseAccessGrants.SingleAsync();
+        grant.CreatedAt = DateTimeOffset.UtcNow.AddHours(-7);
+        await db.SaveChangesAsync();
+
+        await service.ClaimCaseAsync(triageCase.Id, CancellationToken.None);
+
+        (await db.PortalNotifications.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task ClaimingAnOrdinaryCase_SendsNoEmergencyNotification()
+    {
+        var (db, service, _, _, triageCase) = await SeedAsync(TriageStatus.PendingDoctorReview, patientAgeYears: 34);
+        await using var _db = db;
+
+        await service.ClaimCaseAsync(triageCase.Id, CancellationToken.None);
+
+        (await db.PortalNotifications.AnyAsync()).Should().BeFalse();
+    }
+
+    private static async Task<(AppDbContext Db, ClinicalService Service, UserAccount Patient, UserAccount Head, TriageCase Case)> SeedAsync(TriageStatus status, int patientAgeYears)
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
+        var db = new AppDbContext(options);
+        var headUser = User("synthetic-ack-head@example.invalid", UserType.FamilyUser);
+        var patientUser = User("synthetic-ack-patient@example.invalid", UserType.FamilyUser);
+        var doctorUser = User("synthetic-ack-clinician@example.invalid", UserType.Doctor);
+        var family = new Family { Name = "Synthetic Ack Family", CreatedByUser = headUser };
+        var head = new Member { Family = family, User = headUser, DisplayName = "Synthetic Head", DateOfBirth = new DateOnly(1980, 1, 1), Role = FamilyRole.Head };
+        var patient = new Member { Family = family, User = patientUser, DisplayName = "Synthetic Patient", DateOfBirth = DateOnly.FromDateTime(DateTime.UtcNow).AddYears(-patientAgeYears), Role = patientAgeYears < 18 ? FamilyRole.MinorMember : FamilyRole.AdultMember };
+        var episode = new Episode { Member = patient, SymptomsJson = "[\"synthetic_signal\"]", DurationDays = 0, Severity = 9 };
+        var triageCase = new TriageCase { Member = patient, Episode = episode, Status = status, Priority = TriagePriority.Emergency };
+        db.AddRange(headUser, patientUser, doctorUser, family, head, patient, episode, triageCase,
+            new FamilyVeda.Domain.Clinical.Doctor { User = doctorUser, RegistrationNumberHash = "SYNTHETIC-ACK", RegistrationNumberLastFour = "0005", VerificationStatus = VerificationStatus.Verified });
+        await db.SaveChangesAsync();
+        var service = new ClinicalService(db, new StubCurrentUser(doctorUser.Id, UserType.Doctor), new StubNotifications(), new ConfigurationBuilder().AddInMemoryCollection().Build());
+        return (db, service, patientUser, headUser, triageCase);
+    }
+
     private static UserAccount User(string email, UserType type) => new() { Email = email, PasswordHash = "synthetic", DisplayName = "Synthetic User", UserType = type };
 
     private sealed class StubCurrentUser(Guid userId, UserType userType) : ICurrentUser

@@ -2,7 +2,7 @@
 // Presentation rules for the doctor's Triage Cases work queue. Everything here is derived from
 // the two authoritative lists (/doctors/me/cases and /doctors/case-pool); nothing invents a
 // status, a count or an action the backend has not offered.
-import type { AvailableCaseDto, TriageCaseDto } from '../../services/apiClient'
+import type { AvailableCaseDto, PoolComplaintDto, TriageCaseDto } from '../../services/apiClient'
 
 export type QueueTab = 'available' | 'mine' | 'completed' | 'emergency'
 export type QueueSort = 'oldest' | 'newest' | 'priority'
@@ -23,6 +23,8 @@ export type QueueCase = {
   mine: boolean
   /** The backend lists the case in the claimable pool and it is not already granted to this doctor. */
   claimable: boolean
+  /** The complaint released for a pooled case so the doctor can decide whether to claim it. */
+  complaint?: PoolComplaintDto | null
 }
 
 export type QueueAction = { kind: QueueActionKind; label: string; message?: string }
@@ -64,6 +66,7 @@ export function mergeQueue(assigned: TriageCaseDto[], pool: AvailableCaseDto[]):
         createdAt: item.createdAt,
         mine: false,
         claimable: true,
+        complaint: item.complaint ?? null,
       })),
   ]
 }
@@ -189,6 +192,21 @@ export function workflowSteps(item: QueueCase): WorkflowStep[] {
     },
     { label: decided ? statusLabel(item) : 'Doctor decision', state: decided ? 'done' : 'upcoming' },
   ]
+}
+
+const readable = (value: string) => value.replaceAll('_', ' ').trim()
+
+/** One line for a pooled card: what was reported, without identity. Null on an older API build. */
+export function complaintSummary(complaint?: PoolComplaintDto | null): string | null {
+  if (!complaint) return null
+  const symptoms = complaint.symptoms.map(readable).filter(Boolean)
+  const parts = [
+    symptoms.length > 0 ? symptoms.join(', ') : 'No symptoms recorded',
+    `${complaint.durationDays} ${complaint.durationDays === 1 ? 'day' : 'days'}`,
+    `Severity ${complaint.severity} / 10`,
+    `Age ${complaint.ageBand}`,
+  ]
+  return parts.join(' · ')
 }
 
 /** The database case number as 0001; falls back to the id prefix when an older API omits it. */

@@ -27,7 +27,13 @@ public sealed record ApprovalRequest(ApprovalAction Action, string? DoctorNotes,
 public sealed record ApprovalContentRequest(string? DoctorNotes, string? FinalAdvisory);
 public sealed record ApprovalDto(Guid Id, Guid TriageCaseId, Guid DoctorId, ApprovalAction Action, DateTimeOffset DecidedAt);
 public sealed record AuditDto(Guid Id, string EventType, string ResourceType, Guid? ResourceId, string Outcome, DateTimeOffset CreatedAt);
-public sealed record AvailableCaseDto(Guid Id, TriagePriority Priority, DateTimeOffset CreatedAt, TriageStatus Status, int CaseNumber = 0);
+/// <summary>
+/// What a verified doctor may read about a pooled case before holding a grant, so they can decide
+/// whether to claim it. Carries the submitted complaint and an age band — never a name, a family or
+/// a member id (agent/DECISIONS.md 2026-10-05).
+/// </summary>
+public sealed record PoolComplaintDto(IReadOnlyList<string> Symptoms, int DurationDays, int Severity, string? Notes, string AgeBand);
+public sealed record AvailableCaseDto(Guid Id, TriagePriority Priority, DateTimeOffset CreatedAt, TriageStatus Status, int CaseNumber = 0, PoolComplaintDto? Complaint = null);
 
 public sealed record FamilyHeadDto(Guid Id, Guid UserId, Guid FamilyId, string FamilyName, string DisplayName, string Email, int MemberCount, VerificationStatus VerificationStatus, bool IsActive, DateTimeOffset CreatedAt, string? Nic = null, string? Address = null, string? FamilyCode = null);
 public sealed record VerifyFamilyHeadRequest(VerificationStatus Status, string? Reason);
