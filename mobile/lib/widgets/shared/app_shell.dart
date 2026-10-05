@@ -37,7 +37,7 @@ class AppShell extends StatelessWidget {
     ('/cases', Icons.show_chart_rounded, Icons.show_chart_rounded, 'Symptoms & Triage'),
     ('/my-doctor', Icons.person_outline_rounded, Icons.person_rounded, 'My Doctor'),
     ('/appointments', Icons.calendar_today_outlined, Icons.calendar_month_rounded, 'Appointments'),
-    ('/profile', Icons.lock_outline_rounded, Icons.lock_rounded, 'Privacy & Access'),
+    ('/privacy', Icons.lock_outline_rounded, Icons.lock_rounded, 'Privacy & Access'),
   ];
 
   // Core 5 bottom navigation bar tabs for quick one-handed access

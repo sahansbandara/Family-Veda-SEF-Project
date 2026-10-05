@@ -1,0 +1,79 @@
+// Owner: S1 · whole-project waiver (agent/DECISIONS.md 2026-09-28b). Synthetic data only.
+import 'package:family_veda/models/doctor_summary.dart';
+import 'package:family_veda/models/family_dashboard.dart';
+import 'package:family_veda/providers/family_portal_provider.dart';
+import 'package:family_veda/screens/privacy/privacy_screen.dart';
+import 'package:family_veda/services/api/privacy_api.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+class _FakePrivacyApi implements PrivacyApi {
+  final consentWrites = <String>[];
+
+  @override
+  Future<PrivacyMember> getMe() async => const PrivacyMember(id: 'm-head', displayName: 'Synthetic Head', role: 'Head');
+
+  @override
+  Future<List<PrivacyMember>> getFamilyMembers() async => const [
+    PrivacyMember(id: 'm-head', displayName: 'Synthetic Head', role: 'Head'),
+    PrivacyMember(id: 'm-minor', displayName: 'Synthetic Child', role: 'MinorMember'),
+    PrivacyMember(id: 'm-adult', displayName: 'Synthetic Adult', role: 'AdultMember'),
+  ];
+
+  @override
+  Future<List<ConsentSetting>> getConsents(String memberId) async => memberId == 'm-minor'
+      ? const [ConsentSetting(id: 'c-m', category: 'HereditaryFlags', status: 'NotSet')]
+      : const [ConsentSetting(id: 'c-h', category: 'Conditions', status: 'Granted')];
+
+  @override
+  Future<void> setConsent(String memberId, String category, String status) async =>
+      consentWrites.add('$memberId:$category:$status');
+
+  @override
+  Future<AuditPage> getAudit({int page = 1, int pageSize = 20}) async => AuditPage(
+    items: [AuditEntry(id: 'a-$page', eventType: 'CONSENT_CHANGED', resourceType: 'Consent', outcome: 'Success', createdAt: DateTime(2026, 9, 1))],
+    page: page,
+    totalPages: 1,
+    totalCount: 1,
+  );
+
+  @override
+  Future<List<SharedItem>> getSharingItems(String memberId) async =>
+      const [SharedItem(id: 'lab-1', isReport: true, title: 'shared.png', shared: true)];
+
+  @override
+  Future<void> setSharing(SharedItem item, {required bool shared}) async {}
+}
+
+void main() {
+  testWidgets('Family Head toggles a minor consent; adults show no switches', (tester) async {
+    tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    final api = _FakePrivacyApi();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          privacyApiProvider.overrideWithValue(api),
+          familyDashboardProvider.overrideWith((ref) async => FamilyDashboard.fromJson({'role': 'Head', 'familyId': 'f-1'})),
+          familyDoctorProvider('f-1').overrideWith((ref) async => DoctorSummary.fromJson({'id': 'd-1', 'displayName': 'Dr. Synthetic Doctor'})),
+        ],
+        child: const MaterialApp(home: PrivacyScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Privacy & Access'), findsOneWidget);
+    expect(find.text('Member permissions'), findsOneWidget);
+    expect(find.textContaining('1 item shared with you'), findsOneWidget);
+
+    final minorSwitch = find.widgetWithText(SwitchListTile, 'Family history (screening flags)');
+    await tester.ensureVisible(minorSwitch);
+    await tester.tap(minorSwitch);
+    await tester.pumpAndSettle();
+    expect(api.consentWrites, ['m-minor:HereditaryFlags:Granted']);
+    // Head self + one minor = two switches; the adult has none.
+    expect(find.byType(SwitchListTile), findsNWidgets(2));
+  });
+}

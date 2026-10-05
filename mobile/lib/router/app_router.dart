@@ -16,6 +16,7 @@ import 'package:family_veda/screens/family/members_screen.dart';
 import 'package:family_veda/screens/family/my_doctor_screen.dart';
 import 'package:family_veda/screens/home/home_screen.dart';
 import 'package:family_veda/screens/notifications/notifications_screen.dart';
+import 'package:family_veda/screens/privacy/privacy_screen.dart';
 import 'package:family_veda/screens/records/records_screen.dart';
 import 'package:family_veda/screens/records/lab_upload_screen.dart';
 import 'package:family_veda/screens/records/record_entry_screen.dart';
@@ -77,6 +78,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/my-doctor', builder: (_, _) => const MyDoctorScreen()),
           GoRoute(path: '/appointments', builder: (_, _) => const AppointmentsScreen()),
           GoRoute(path: '/profile', builder: (_, _) => const ProfileScreen()),
+          GoRoute(path: '/privacy', builder: (_, _) => const PrivacyScreen()),
           GoRoute(path: '/calendar', builder: (_, _) => const DoctorCalendarScreen()),
           GoRoute(path: '/triage-cases', builder: (_, _) => const DoctorTriageCasesScreen()),
           GoRoute(path: '/families', builder: (_, _) => const DoctorFamiliesScreen()),

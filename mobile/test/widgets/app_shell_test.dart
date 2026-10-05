@@ -44,6 +44,10 @@ void main() {
               path: '/profile',
               builder: (_, _) => const Scaffold(body: Text('Profile Screen Content')),
             ),
+            GoRoute(
+              path: '/privacy',
+              builder: (_, _) => const Scaffold(body: Text('Privacy Screen Content')),
+            ),
           ],
         ),
       ],
@@ -78,7 +82,7 @@ void main() {
     await tester.ensureVisible(find.text('Privacy & Access'));
     await tester.tap(find.text('Privacy & Access'));
     await tester.pumpAndSettle();
-    expect(find.text('Profile Screen Content'), findsOneWidget);
+    expect(find.text('Privacy Screen Content'), findsOneWidget);
 
     // Tap "My Family" tab
     await tester.ensureVisible(find.text('My Family').first);

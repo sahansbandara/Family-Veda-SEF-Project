@@ -9,6 +9,9 @@
 @import './styles/health-records.css';
 @import './styles/records-studio.css';
 @import './styles/triage-redesign.css';
+@import './styles/privacy-access.css';
+@import './styles/profile-settings.css';
+@import './styles/appointments.css';
 
 /* Base and reset. Tokens are defined in styles/tokens.css. */
 
