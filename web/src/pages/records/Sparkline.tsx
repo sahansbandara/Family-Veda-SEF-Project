@@ -146,13 +146,13 @@ export function Sparkline({ values, className, normalMin, normalMax, normalLabel
           <text x={4} y={Math.max(12, topY - 4)} fontSize="10" fill="var(--success, #22c55e)" fontWeight="800" letterSpacing="0.5" stroke="var(--surface-subtle, var(--surface))" strokeWidth="4" paintOrder="stroke">
             {normalMax}
           </text>
-          <text x={4} y={Math.max(12, bottomY - 4)} fontSize="10" fill="var(--success, #22c55e)" fontWeight="800" letterSpacing="0.5" stroke="var(--surface-subtle, var(--surface))" strokeWidth="4" paintOrder="stroke">
+          <text x={4} y={Math.min(chartBottom - 4, bottomY + 12)} fontSize="10" fill="var(--success, #22c55e)" fontWeight="800" letterSpacing="0.5" stroke="var(--surface-subtle, var(--surface))" strokeWidth="4" paintOrder="stroke">
             {normalMin}
           </text>
         </>
       ) : (
         <text x={4} y={labelY} fontSize="11" fill="currentColor" fontWeight="700" letterSpacing="0.5" stroke="var(--surface-subtle, var(--surface))" strokeWidth="4" paintOrder="stroke">
-          {lineLabel.toUpperCase()}
+          {hasRange ? lineLabel.toUpperCase() : `${lineLabel.toUpperCase()} ${avgValue.toFixed(1)}`}
         </text>
       )}
       
