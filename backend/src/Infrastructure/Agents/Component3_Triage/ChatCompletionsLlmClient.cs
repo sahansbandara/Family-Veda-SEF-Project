@@ -40,6 +40,7 @@ public sealed class ChatCompletionsLlmClient(HttpClient httpClient, IOptions<Llm
         Exception? lastError = null;
         for (var attempt = 0; attempt < 2; attempt++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             try
             {
                 using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -69,10 +70,11 @@ public sealed class ChatCompletionsLlmClient(HttpClient httpClient, IOptions<Llm
                 var parsed = JsonSerializer.Deserialize<T>(content, OutputJson)
                     ?? throw new JsonException("LLM structured output was null.");
                 AgentOutputValidator.Validate(parsed);
+                cancellationToken.ThrowIfCancellationRequested();
                 return new OllamaResult<T>(parsed, envelope.Model ?? _options.Model,
                     envelope.Usage?.PromptTokens, envelope.Usage?.CompletionTokens);
             }
-            catch (Exception exception) when (exception is HttpRequestException or JsonException or TaskCanceledException)
+            catch (Exception exception) when (!cancellationToken.IsCancellationRequested && exception is HttpRequestException or JsonException or OperationCanceledException)
             {
                 lastError = exception;
             }

@@ -335,3 +335,13 @@ User request: let the doctor close a referral, book a follow-up for the patient,
 - **No visit grant** is issued for a doctor-booked appointment, including on reschedule. A confirmed appointment normally opens record access (2026-09-29h); the patient never agreed to that here, so the booking gives the doctor no access to records (Rule 8).
 - **Share contact** sends the phone number on the doctor's own profile to the patient as a portal notification, once per doctor and case, with a reminder that it does not replace urgent in-person care. It is the doctor's explicit action on their own data.
 - `ApprovalAction` is stored as text, so the new value needs no migration. No schema change.
+
+## 2026-10-05 — Approved hosted triage provider recovery
+
+User approved the guarded case-number sequence repair check and Gemini/Groq configuration verification, then explicitly approved extending the fallback chain to Gemini → Groq → Cloudflare Workers AI. Cloudflare local credentials passed a synthetic HTTP200 structured JSON probe. Add the existing IOllamaClient implementation and typed HttpClient registration, preserve strict schema/semantic validation, at most one retry per provider, and propagate caller cancellation. Reject fabricated provider success, unbounded key rotation, bypassing deterministic safety, or patient auto-approval. No real clinical data is used in connectivity probes.
+
+Render logs at2026-10-05T14:55:02Z confirmed23505 on ix_triage_cases_case_number. A later case was inserted but failed when Gemini returned503 and Groq404. Read-only Neon verification subsequently showed the sequence caught up; the guarded operational script must only move it forward when required, preserve rows, and fail closed on unsupported sequence settings. The cause of the historical sequence drift has not been established.
+
+The user subsequently requested Railway hosting. That is a separate infrastructure scope: investigate and obtain migration plan approval before resource creation/cutover. Two backend worker instances must not recover/process the same production Neon cases during verification. No provider key values are recorded here.
+
+User approved adding five Gemini keys as a deduplicated, bounded rotating pool. Subsequent instruction keeps Render after bill payment; Railway migration is not approved. Render service is active and health200. Preserve deterministic safety and doctor review even when all providers fail. Synthetic Groq probe with available openai/gpt-oss-20b succeeded; configuration example updated. No automatic migration, commit, push or deployment.
