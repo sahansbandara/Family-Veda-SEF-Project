@@ -38,6 +38,27 @@
 .appt-form { display: grid; gap: 14px; margin-top: 14px; }
 .appt-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; margin: 0; font-size: .8rem; font-weight: 650; }
 .appt-field input:not([type=file]), .appt-field select, .appt-field textarea { width: 100%; box-sizing: border-box; font: inherit; font-weight: 400; }
+.appt-field input:not([type=file]), .appt-field select, .appt-field textarea,
+.appt-tool select {
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  color: var(--text);
+  background: var(--ap-soft);
+  border: 1px solid var(--ap-line);
+  border-radius: 12px;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+.appt-field textarea::placeholder, .appt-field input::placeholder { color: var(--muted); opacity: 1; }
+.appt-field input:not([type=file]):hover, .appt-field select:hover, .appt-field textarea:hover,
+.appt-tool select:hover { border-color: var(--primary); }
+.appt-field input:not([type=file]):focus-visible, .appt-field select:focus-visible,
+.appt-field textarea:focus-visible, .appt-tool select:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-color: var(--primary);
+}
+.appt-field select option, .appt-tool select option { background: var(--surface); color: var(--text); }
 .appt-field textarea { resize: vertical; min-height: 72px; }
 .appt-doctor { display: flex; align-items: center; gap: 12px; margin: 0; padding: 12px; border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--ap-line)); border-radius: 12px; background: var(--ap-soft); font-weight: 400; }
 .appt-doctor > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
