@@ -15,7 +15,8 @@ public sealed record AgentRunResult(
     bool SchemaValid,
     string? ModelName = null,
     int? InputTokens = null,
-    int? OutputTokens = null);
+    int? OutputTokens = null,
+    bool HasData = true);
 
 public interface IAgent
 {
@@ -76,4 +77,25 @@ public static class AgentOutputValidator
     private static bool ValidText(string? value, int maxLength) => !string.IsNullOrWhiteSpace(value) && value.Length <= maxLength;
     private static bool ValidList(IReadOnlyList<string>? values, int maxItems, int maxItemLength) =>
         values is not null && values.Count <= maxItems && values.All(value => ValidText(value, maxItemLength));
+}
+
+// ── S3 block: no-data agent signal (deterministic, never LLM judgement — RULE 4) ──
+public static class AgentInputData
+{
+    /// <summary>True when a tool result is a non-empty JSON array (or any non-null, non-array value).</summary>
+    public static bool HasAny(object? toolResult, int minimumCount = 1)
+    {
+        if (toolResult is null) return false;
+        var element = System.Text.Json.JsonSerializer.SerializeToElement(toolResult);
+        return element.ValueKind switch
+        {
+            System.Text.Json.JsonValueKind.Array => element.GetArrayLength() >= minimumCount,
+            System.Text.Json.JsonValueKind.Null or System.Text.Json.JsonValueKind.Undefined => false,
+            _ => true
+        };
+    }
+
+    /// <summary>An agent with no input data reports confidence 0 and is excluded from the confidence check.</summary>
+    public static AgentRunResult MarkNoDataIfEmpty(AgentRunResult result, bool hasData) =>
+        hasData ? result : result with { Confidence = 0m, HasData = false };
 }

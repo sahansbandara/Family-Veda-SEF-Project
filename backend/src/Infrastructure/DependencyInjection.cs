@@ -45,6 +45,7 @@ public static class DependencyInjection
         services.AddHttpClient<IExternalReportFileStore, GoogleDriveReportFileStore>(client => client.Timeout = TimeSpan.FromSeconds(30));
         services.AddSingleton<IOcrService, TesseractOcrService>();
         services.AddScoped<ILabExtractionService, LabExtractionService>();
+        services.AddSingleton<ILabExtractionQueue, LabExtractionQueue>();
         services.AddScoped<ITriageService, TriageService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<ICaseSlaProcessor, CaseSlaProcessor>();

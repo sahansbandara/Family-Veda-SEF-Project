@@ -50,6 +50,9 @@ abstract interface class MobileApi {
   });
 }
 
+// POST /extract only queues the read (202 Accepted); the server reads in the background,
+// so the normal client timeout applies. Callers poll the report (report_reading_poller.dart).
+
 class DioMobileApi implements MobileApi {
   const DioMobileApi(this._client);
 
@@ -146,11 +149,11 @@ class DioMobileApi implements MobileApi {
         throw SavedReportUploadException('Report saved. $detail');
       }
       throw const SavedReportUploadException(
-        'Report saved. Extraction could not finish; manual review is required. Do not upload it again.',
+        'Report saved. Reading could not be started; open it in Health records to read it again. Do not upload it again.',
       );
     } on Object {
       throw const SavedReportUploadException(
-        'Report saved. Extraction could not finish; manual review is required. Do not upload it again.',
+        'Report saved. Reading could not be started; open it in Health records to read it again. Do not upload it again.',
       );
     }
   }

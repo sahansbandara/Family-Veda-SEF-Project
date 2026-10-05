@@ -116,7 +116,8 @@ class _LabUploadScreenState extends ConsumerState<LabUploadScreen> {
       if (mounted && ref.read(activeMemberProvider) == memberId) {
         setState(() {
           _file = null;
-          _message = 'Report uploaded. OCR output requires manual review.';
+          _message =
+              'Report uploaded. It is being read in the background; you can upload more or leave. Check the values in Health records when ready.';
         });
       }
     } on SavedReportUploadException catch (error) {

@@ -11,6 +11,7 @@ using FamilyVeda.Infrastructure.Agents;
 using FamilyVeda.Infrastructure.Records;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace FamilyVeda.UnitTests;
 
@@ -28,9 +29,10 @@ public sealed class LabExtractionSafetyTests
         db.AddRange(user, family, member, report);
         await db.SaveChangesAsync();
         var dispatcher = new ZeroRowsDispatcher();
-        var service = new LabExtractionService(db, new StubCurrentUser(user.Id), [new ExtractionAgent(dispatcher)]);
+        var service = new LabExtractionService(db, new StubCurrentUser(user.Id), [new ExtractionAgent(dispatcher)], new LabExtractionQueue());
 
-        await service.Invoking(x => x.ExtractAsync(report.Id, CancellationToken.None)).Should().ThrowAsync<ProcessingException>();
+        (await service.ExtractAsync(report.Id, CancellationToken.None)).Status.Should().Be(OcrStatus.Processing);
+        await service.RunQueuedAsync(report.Id, CancellationToken.None);
 
         dispatcher.WriteCalls.Should().Be(0);
         (await db.LabValues.CountAsync()).Should().Be(0);
@@ -41,8 +43,8 @@ public sealed class LabExtractionSafetyTests
     }
 
     [Theory]
-    [InlineData(10, true)]
-    [InlineData(1, false)]
+    [InlineData(60, true)]
+    [InlineData(10, false)]
     public async Task ExtractAsync_RetriesOnlyReadsStuckInProcessingPastTheStaleWindow(int minutesAgo, bool retried)
     {
         var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
@@ -56,12 +58,13 @@ public sealed class LabExtractionSafetyTests
         // A restart cut the read off: the row was last touched before the stale window.
         report.UpdatedAt = DateTimeOffset.UtcNow.AddMinutes(-minutesAgo);
         var agent = new StubExtractionAgent();
-        var service = new LabExtractionService(db, new StubCurrentUser(user.Id), [agent]);
+        var service = new LabExtractionService(db, new StubCurrentUser(user.Id), [agent], new LabExtractionQueue());
 
         var extraction = () => service.ExtractAsync(report.Id, CancellationToken.None);
 
-        if (retried) (await extraction()).Status.Should().Be(OcrStatus.Completed);
+        if (retried) (await extraction()).Status.Should().Be(OcrStatus.Processing);
         else await extraction.Should().ThrowAsync<ConflictException>();
+        if (retried) await service.RunQueuedAsync(report.Id, CancellationToken.None);
         agent.CallCount.Should().Be(retried ? 1 : 0);
     }
 
@@ -79,7 +82,7 @@ public sealed class LabExtractionSafetyTests
         db.AddRange(user, family, member, report, value, flag);
         await db.SaveChangesAsync();
         var agent = new StubExtractionAgent();
-        var service = new LabExtractionService(db, new StubCurrentUser(user.Id), [agent]);
+        var service = new LabExtractionService(db, new StubCurrentUser(user.Id), [agent], new LabExtractionQueue());
 
         var extraction = () => service.ExtractAsync(report.Id, CancellationToken.None);
 
@@ -109,7 +112,7 @@ public sealed class LabExtractionSafetyTests
         db.AddRange(user, family, member, report, value, flag);
         await db.SaveChangesAsync();
         var agent = new StubExtractionAgent();
-        var service = new LabExtractionService(db, new StubCurrentUser(user.Id), [agent]);
+        var service = new LabExtractionService(db, new StubCurrentUser(user.Id), [agent], new LabExtractionQueue());
 
         var extraction = () => service.ExtractAsync(report.Id, CancellationToken.None);
 
@@ -117,6 +120,112 @@ public sealed class LabExtractionSafetyTests
         agent.CallCount.Should().Be(0);
         (await db.LabValues.SingleAsync(x => x.Id == value.Id)).Analyte.Should().Be("Unconfirmed Synthetic Analyte");
         (await db.HereditaryFlags.SingleAsync(x => x.Id == flag.Id)).ManuallyConfirmed.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ExtractAsync_QueuesTheReadAndReturnsProcessingWithoutRunningTheAgent()
+    {
+        var (db, user, report) = await SeedPendingReportAsync("synthetic-enqueue");
+        await using var _ = db;
+        var agent = new StubExtractionAgent();
+        var queue = new LabExtractionQueue();
+        var service = new LabExtractionService(db, new StubCurrentUser(user.Id), [agent], queue);
+
+        var result = await service.ExtractAsync(report.Id, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(2));
+
+        result.Status.Should().Be(OcrStatus.Processing);
+        agent.CallCount.Should().Be(0);
+        (await queue.DequeueAsync(CancellationToken.None).AsTask().WaitAsync(TimeSpan.FromSeconds(1))).Should().Be(report.Id);
+        (await db.LabReports.SingleAsync(x => x.Id == report.Id)).OcrStatus.Should().Be(OcrStatus.Processing);
+    }
+
+    [Fact]
+    public async Task RunQueuedAsync_CompletesTheReportWithoutAnHttpUser()
+    {
+        var (db, user, report) = await SeedPendingReportAsync("synthetic-worker-complete");
+        await using var _ = db;
+        var agent = new SlowExtractionAgent(onStart: () => { }, delay: TimeSpan.FromMilliseconds(50));
+        await new LabExtractionService(db, new StubCurrentUser(user.Id), [agent], new LabExtractionQueue()).ExtractAsync(report.Id, CancellationToken.None);
+        // The worker scope has no signed-in user: any ICurrentUser access must throw.
+        var worker = new LabExtractionService(db, new NoUser(), [agent], new LabExtractionQueue());
+
+        await worker.RunQueuedAsync(report.Id, CancellationToken.None);
+
+        agent.SawCancellation.Should().BeFalse();
+        var stored = await db.LabReports.SingleAsync(x => x.Id == report.Id);
+        stored.OcrStatus.Should().Be(OcrStatus.Completed);
+        stored.OcrErrorCode.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task RunQueuedAsync_WhenServerTimeoutElapses_FailsWithOcrTimeout()
+    {
+        var (db, user, report) = await SeedPendingReportAsync("synthetic-timeout");
+        await using var _ = db;
+        var agent = new SlowExtractionAgent(onStart: () => { }, delay: Timeout.InfiniteTimeSpan);
+        var service = new LabExtractionService(db, new StubCurrentUser(user.Id), [agent], new LabExtractionQueue()) { OcrTimeout = TimeSpan.FromMilliseconds(100) };
+        await service.ExtractAsync(report.Id, CancellationToken.None);
+
+        await service.RunQueuedAsync(report.Id, CancellationToken.None);
+
+        var stored = await db.LabReports.SingleAsync(x => x.Id == report.Id);
+        stored.OcrStatus.Should().Be(OcrStatus.Failed);
+        stored.OcrErrorCode.Should().Be(OcrFailureCodes.TimedOut);
+    }
+
+    [Fact]
+    public async Task RunQueuedAsync_WhenReportIsNoLongerProcessing_DoesNothing()
+    {
+        var (db, user, report) = await SeedPendingReportAsync("synthetic-skip");
+        await using var _ = db;
+        var agent = new StubExtractionAgent();
+        var service = new LabExtractionService(db, new StubCurrentUser(user.Id), [agent], new LabExtractionQueue());
+
+        await service.RunQueuedAsync(report.Id, CancellationToken.None);
+
+        agent.CallCount.Should().Be(0);
+        (await db.LabReports.SingleAsync(x => x.Id == report.Id)).OcrStatus.Should().Be(OcrStatus.Pending);
+    }
+
+    [Theory]
+    [InlineData(null, 150)]
+    [InlineData("1", 10)]
+    [InlineData("45", 45)]
+    [InlineData("9999", 600)]
+    public void OcrTimeout_ReadsAndClampsConfiguration(string? configured, int expectedSeconds)
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["Ocr:TotalTimeoutSeconds"] = configured }).Build();
+        var service = new LabExtractionService(null!, new StubCurrentUser(Guid.NewGuid()), [], new LabExtractionQueue(), configuration);
+
+        service.OcrTimeout.Should().Be(TimeSpan.FromSeconds(expectedSeconds));
+    }
+
+    private static async Task<(AppDbContext Db, UserAccount User, LabReport Report)> SeedPendingReportAsync(string tag)
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
+        var db = new AppDbContext(options);
+        var user = new UserAccount { Email = $"{tag}@example.invalid", PasswordHash = "synthetic", DisplayName = "Synthetic User", UserType = UserType.FamilyUser };
+        var family = new Family { Name = "Synthetic Family", CreatedByUser = user };
+        var member = new Member { Family = family, User = user, DisplayName = "Synthetic Member", DateOfBirth = new DateOnly(1990, 1, 1), Role = FamilyRole.Head };
+        var report = new LabReport { Member = member, OriginalFileName = $"{tag}.png", StoredFileName = "db:synthetic.png", ContentType = "image/png", SizeBytes = 100, OcrStatus = OcrStatus.Pending };
+        db.AddRange(user, family, member, report);
+        await db.SaveChangesAsync();
+        return (db, user, report);
+    }
+
+    private sealed class SlowExtractionAgent(Action onStart, TimeSpan delay) : IAgent
+    {
+        public AgentKind Kind => AgentKind.Extraction;
+        public bool SawCancellation { get; private set; }
+
+        public async Task<AgentRunResult> RunAsync(AgentRunContext context, CancellationToken cancellationToken)
+        {
+            onStart();
+            try { await Task.Delay(delay, cancellationToken); }
+            catch (OperationCanceledException) { SawCancellation = true; throw; }
+            return new AgentRunResult(Kind, "{\"valuesExtracted\":1,\"flagsExtracted\":0}", 1m, [], [], [], true);
+        }
     }
 
     private sealed class StubExtractionAgent : IAgent
@@ -148,6 +257,13 @@ public sealed class LabExtractionSafetyTests
             if (tool == "write_lab_extraction") WriteCalls++;
             return Task.FromResult<object>(new object());
         }
+    }
+
+    private sealed class NoUser : ICurrentUser
+    {
+        public bool IsAuthenticated => false;
+        public Guid UserId => throw new UnauthorizedAccessException();
+        public UserType UserType => throw new UnauthorizedAccessException();
     }
 
     private sealed class StubCurrentUser(Guid userId) : ICurrentUser

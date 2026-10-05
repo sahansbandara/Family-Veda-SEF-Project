@@ -24,7 +24,13 @@ public sealed class ContextAgent(IToolDispatcher dispatcher, IOllamaClient ollam
             new { request = context.InputJson, toolData },
             cancellationToken);
         ValidateConfidence(result.Value.Confidence);
-        return new AgentRunResult(Kind, JsonSerializer.Serialize(result.Value), result.Value.Confidence, Tools, Tools, [], true, result.ModelName, result.InputTokens, result.OutputTokens);
+        // Prior history beyond the submitted episode (which is always present) counts as data.
+        var hasData = AgentInputData.HasAny(toolData["read_member_vitals"])
+            || AgentInputData.HasAny(toolData["read_member_conditions"])
+            || AgentInputData.HasAny(toolData["read_member_episodes"], minimumCount: 2);
+        return AgentInputData.MarkNoDataIfEmpty(
+            new AgentRunResult(Kind, JsonSerializer.Serialize(result.Value), result.Value.Confidence, Tools, Tools, [], true, result.ModelName, result.InputTokens, result.OutputTokens),
+            hasData);
     }
 
     private static void ValidateConfidence(decimal confidence)

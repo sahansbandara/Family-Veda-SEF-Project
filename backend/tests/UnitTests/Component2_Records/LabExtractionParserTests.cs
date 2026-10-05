@@ -16,6 +16,13 @@ public sealed class LabExtractionParserTests
         LabExtractionService.ParseValues(text).Should().BeEmpty();
     }
 
+    [Fact]
+    public void ParseValues_ReadsDemoLabColonPipeFormat()
+    {
+        LabExtractionService.ParseValues("Synthetic demo lab\nGlucose: 92 mg/dL | 70-99").Should().ContainSingle()
+            .Which.Should().Be(new LabExtractionService.ParsedLabValue("Glucose", 92m, "mg/dL", 70m, 99m));
+    }
+
     private const string TableHeader = "Test\nResult\nPrevious Result\nDate\nUnits\nRef Interval";
 
     [Fact]
@@ -171,5 +178,85 @@ public sealed class LabExtractionParserTests
     public void CleanOcrDigits_FixesConfusionsOnlyInsideNumbers(string input, string expected)
     {
         LabExtractionService.CleanOcrDigits(input).Should().Be(expected);
+    }
+
+    // Synthetic OCR output of a ClinOCR t15-style report: analyte alone on a line, "value unit [flag] range site" below.
+    private const string StackedOcrText = """
+        03/15/2026 Blue Ridge Medical Center — Laboratory Services |
+        11.4x10°7/yL | 4.5-11.0 TB
+        REC
+        3.80 x10°/uL iL 4.00 - 5.20 TB
+        HGB
+        11.2 g/dL L 13:5-175 TB
+        HCT
+
+        33.4% L 41.0 - 53.0 TB
+        MCV /
+        87.8 fL 80.0 - 100.0 TB
+        MCHC
+        33.5 g/dL 32.0 - 36.0 TB |
+        PLT |
+        310 x10°/pL 150 - 400 TB
+        """;
+
+    [Fact]
+    public void ParseValues_ReadsStackedNameValueLayout()
+    {
+        var values = LabExtractionService.ParseValues(StackedOcrText);
+
+        values.Should().BeEquivalentTo(new[]
+        {
+            new LabExtractionService.ParsedLabValue("HGB", 11.2m, "g/dL", null, null),
+            new LabExtractionService.ParsedLabValue("HCT", 33.4m, "%", 41.0m, 53.0m),
+            new LabExtractionService.ParsedLabValue("MCV", 87.8m, "fL", 80.0m, 100.0m),
+            new LabExtractionService.ParsedLabValue("MCHC", 33.5m, "g/dL", 32.0m, 36.0m),
+        }, options => options.WithStrictOrdering());
+    }
+
+    [Fact]
+    public void ParseValues_StackedLayout_DropsGarbledRangeInsteadOfGuessing()
+    {
+        // "13:5-175" is a misread "13.5 - 17.5": the value stays, the range is left empty for the patient to fill in.
+        var hgb = LabExtractionService.ParseValues("HGB\n11.2 g/dL L 13:5-175 TB").Should().ContainSingle().Subject;
+        hgb.Low.Should().BeNull();
+        hgb.High.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData("WBC\n11.4 x10°/uL H 4.5 - 11.0 TB")]  // power-of-ten unit mangled by OCR
+    [InlineData("RBC\n3.80 x10/L L 4.00 - 5.20 TB")]   // exponent lost entirely
+    [InlineData("Result\n7A0 165 03/01/2026 % <5.7")]  // header word + "7.0" misread as "7A0"
+    [InlineData("Automated count\n39.8 Serene _")]      // wrapped continuation line, no range
+    [InlineData("HGB\n11.2 g/dL")]                      // no range-like remainder: not a stacked result row
+    public void ParseValues_StackedLayout_RejectsUntrustworthyRows(string text)
+    {
+        LabExtractionService.ParseValues(text).Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("mL/min/1.73m2_", "mL/min/1.73m2")]
+    [InlineData("g/dL.", "g/dL")]
+    [InlineData("kU/L|", "kU/L")]
+    [InlineData("mg/dL", "mg/dL")]
+    public void CleanUnit_TrimsTrailingOcrDebris(string unit, string expected)
+    {
+        LabExtractionService.CleanUnit(unit).Should().Be(expected);
+    }
+
+    [Fact]
+    public void ParseValues_TrimsUnitNoiseInParsedRows()
+    {
+        const string text = "Test Result Previous Date Units Ref\neGFR 112 108 01/15/2026 mL/min/1.73m2_ >=60";
+
+        LabExtractionService.ParseValues(text).Should().ContainSingle()
+            .Which.Unit.Should().Be("mL/min/1.73m2");
+    }
+
+    [Theory]
+    [InlineData("Automated count 7 i. Not supplied")]                                  // one-letter junk unit, wrapped name
+    [InlineData("Codfish IgE Ab in Serum - 0, 17658   7   KU/L")]                         // value split into the name
+    public void ParseValues_RejectsGarbageRows(string line)
+    {
+        LabExtractionService.ParseValues("RESULT UNIT REFERENCE RANGE FLAG\n" + line).Should().BeEmpty();
     }
 }

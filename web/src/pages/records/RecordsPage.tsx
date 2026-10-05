@@ -1,6 +1,7 @@
 // Owner: S2 · Health Records & Extraction — Fernando K.R.N (IT24101875)
 // Ownership binding — do not edit file if not yours. docs/OWNERSHIP.tsv
 import { extractionRefusalMessage } from './extractionRefusal'
+import { waitForReading } from './pollReading'
 import { type DragEvent, type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { DeletedReports } from '../../components/records/DeletedReports'
@@ -25,6 +26,7 @@ import { RecordIcon, type RecordIconName } from './recordIcons'
 import { formatRecordSummary } from './recordSummaryMeta'
 import { ReportReviewDialog } from '../../components/records/ReportReviewDialog'
 import { type NewVital, VitalsPanel } from './VitalsPanel'
+
 
 const RECORDS_PAGE_SIZE = 20
 
@@ -89,6 +91,8 @@ export function RecordsPage() {
   const activeMemberId = useRef('')
   const activeReportId = useRef('')
   const loadSequence = useRef(0)
+  const loadRecordsRef = useRef<() => Promise<void>>(async () => {})
+  const watchedReports = useRef(new Set<string>())
   const bootstrapSequence = useRef(0)
 
   const loadWorkspace = useCallback(async () => {
@@ -136,6 +140,7 @@ export function RecordsPage() {
       if (bootstrapSequence.current === request) setStatus('error')
     }
   }, [])
+
 
   useEffect(() => {
     void loadWorkspace()
@@ -193,8 +198,30 @@ export function RecordsPage() {
   }, [filter, isSharedView, memberId, page, search, sort])
 
   useEffect(() => {
+    loadRecordsRef.current = loadRecords
     void loadRecords()
   }, [loadRecords])
+
+  // The server reads reports in the background (POST /extract returns 202). Poll each queued report until it
+  // leaves Processing, then refresh the library and, if it is open, the review. Never blocks the upload form.
+  const watchReading = useCallback((reportId: string, targetMemberId: string) => {
+    if (watchedReports.current.has(reportId)) return
+    watchedReports.current.add(reportId)
+    void waitForReading(
+      async () => (await apiClient.get<LabReportDetailDto>(`/lab-reports/${reportId}`)).data,
+      { isActive: () => activeMemberId.current === targetMemberId },
+    ).then(async (done) => {
+      watchedReports.current.delete(reportId)
+      if (!done || activeMemberId.current !== targetMemberId || done.id !== reportId || done.memberId !== targetMemberId) return
+      if (activeReportId.current === reportId) setSelectedReport(done)
+      await loadRecordsRef.current()
+    })
+  }, [])
+  // Reports still being read (e.g. uploaded before leaving the page) keep being watched when the library loads.
+  useEffect(() => {
+    if (isSharedView || !memberId) return
+    for (const report of reports) if (report.ocrStatus === 'Processing') watchReading(report.id, memberId)
+  }, [isSharedView, memberId, reports, watchReading])
 
   function selectProfile(nextMemberId: string) {
     activeMemberId.current = nextMemberId
@@ -324,7 +351,10 @@ export function RecordsPage() {
       }
       let extractionStarted = true
       let extractionRefusal: string | null = null
-      try { await apiClient.post(`/lab-reports/${data.id}/extract`) }
+      try {
+        await apiClient.post(`/lab-reports/${data.id}/extract`)
+        watchReading(data.id, targetMemberId)
+      }
       catch (error) {
         extractionStarted = false
         extractionRefusal = extractionRefusalMessage(error)
@@ -333,7 +363,7 @@ export function RecordsPage() {
       formElement.reset()
       setShowUploadForm(false)
       setUploadFileName('')
-      setMessage(`Report uploaded.${sharingFailed ? ' Could not confirm sharing. Check the visibility shown in the library before retrying.' : shareAfterUpload ? ' Shared with Family Head.' : ' Kept private.'} ${extractionStarted ? 'Extraction is in progress; check the values when they are ready.' : extractionRefusal ?? 'Reading report values could not be started. Open View status to retry.'}`)
+      setMessage(`Report uploaded.${sharingFailed ? ' Could not confirm sharing. Check the visibility shown in the library before retrying.' : shareAfterUpload ? ' Shared with Family Head.' : ' Kept private.'} ${extractionStarted ? 'Reading the report in the background. You can upload more or leave this page; values appear when ready.' : extractionRefusal ?? 'Reading report values could not be started. Open View status to retry.'}`)
       await loadRecords()
     } catch {
       if (activeMemberId.current === targetMemberId)
@@ -437,7 +467,9 @@ export function RecordsPage() {
       if (request !== reviewSequence.current || activeReportId.current !== targetReportId || activeMemberId.current !== targetMemberId) return false
       const { data } = await apiClient.get<LabReportDetailDto>(`/lab-reports/${targetReportId}`)
       if (request !== reviewSequence.current || activeReportId.current !== targetReportId || activeMemberId.current !== targetMemberId || data.id !== targetReportId || data.memberId !== targetMemberId) return false
+      // Shows the "Reading the report text…" card; the watcher swaps in the result when the read finishes.
       setSelectedReport(data)
+      if (data.ocrStatus === 'Processing') watchReading(targetReportId, targetMemberId)
       await loadRecords()
       return data.ocrStatus !== 'Failed'
     } catch { return false }

@@ -107,12 +107,16 @@ public sealed class TriageOrchestrator(
                     stopwatch.ElapsedMilliseconds,
                     result.ModelName,
                     result.InputTokens,
-                    result.OutputTokens));
+                    result.OutputTokens,
+                    result.HasData ? AgentStepStatus.Completed : AgentStepStatus.NoData));
                 ApplyOutput(triageCase, result);
                 if (!await SaveCheckpointAsync(caseId, cancellationToken)) return;
             }
 
-            var minimumConfidence = outputs.Count == 0 ? 0m : outputs.Min(x => x.Confidence);
+            // Only agents that had input data are counted. If none had data the minimum is 0,
+            // so LOW_CONFIDENCE fires and the case defers to the doctor (RULE 9).
+            var counted = outputs.Where(x => x.HasData).ToList();
+            var minimumConfidence = counted.Count == 0 ? 0m : counted.Min(x => x.Confidence);
             var draft = JsonSerializer.Serialize(new
             {
                 forDoctorReviewOnly = true,
@@ -245,7 +249,7 @@ public sealed class TriageOrchestrator(
             ToolsAllowedJson = JsonSerializer.Serialize(allowed),
             ToolsDeniedJson = JsonSerializer.Serialize(denied),
             OutputJson = output,
-            OutputSchemaValid = status == AgentStepStatus.Completed,
+            OutputSchemaValid = status is AgentStepStatus.Completed or AgentStepStatus.NoData,
             Confidence = confidence,
             LatencyMilliseconds = latency,
             ModelName = model,

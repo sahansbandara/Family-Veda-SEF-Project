@@ -605,7 +605,11 @@
 .approval-chip--warn { color: var(--warning); background: color-mix(in srgb, var(--warning) 14%, transparent); }
 .approval-chip--muted { color: var(--care-muted); }
 
-.approval-vitals { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.approval-vitals { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.approval-vitals > .approval-vital { min-width: 0; max-width: 100%; }
+.approval-vital .approval-chip { max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-align: left; }
+.approval-vital__foot { flex-wrap: wrap; min-width: 0; }
+@media (max-width: 1023px) { .approval-vitals { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 button.approval-vital { gap: 7px; padding: 13px; border-radius: 12px; color: inherit; font: inherit; text-align: left; cursor: pointer; transition: border-color 0.15s, transform 0.15s; }
 button.approval-vital:hover { border-color: var(--primary); transform: translateY(-1px); }
 button.approval-vital:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
@@ -660,7 +664,7 @@ button.approval-vital strong small { font-size: 0.75rem; font-weight: 500; }
   .approval-snapshot { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 600px) {
-  .approval-vitals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .approval-vitals { grid-template-columns: minmax(0, 1fr); }
   .approval-tile__sub { margin-left: 0; flex-basis: 100%; }
   .approval-report__row { grid-template-columns: auto minmax(0, 1fr); }
   .approval-report__actions { grid-column: 1 / -1; justify-content: flex-start; }

@@ -129,6 +129,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 builder.Services.AddHealthChecks();
 builder.Services.AddHostedService<TriageWorker>();
+builder.Services.AddHostedService<LabExtractionWorker>();
 builder.Services.AddHostedService<CaseSlaWorker>();
 
 var app = builder.Build();

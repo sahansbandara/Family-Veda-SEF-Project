@@ -38,6 +38,8 @@ public sealed class FamilialRiskAgent(IToolDispatcher dispatcher, IOllamaClient 
             .ToList();
         var output = result.Value with { UnknownParties = unknownParties };
         AgentOutputValidator.Validate(output);
-        return new AgentRunResult(Kind, JsonSerializer.Serialize(output), result.Value.Confidence, Tools, Tools, [], true, result.ModelName, result.InputTokens, result.OutputTokens);
+        return AgentInputData.MarkNoDataIfEmpty(
+            new AgentRunResult(Kind, JsonSerializer.Serialize(output), result.Value.Confidence, Tools, Tools, [], true, result.ModelName, result.InputTokens, result.OutputTokens),
+            hasData: knownMembers.Count > 0);
     }
 }

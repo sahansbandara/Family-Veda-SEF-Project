@@ -33,5 +33,5 @@ public enum TriageStatus
 public enum VerificationStatus { Pending, Verified, MoreInformationRequired, Rejected, Suspended }
 public enum ApprovalAction { Approve, ReviseAndApprove, RequestInformation, Reject, Escalate, CloseReferral }
 public enum AgentKind { Extraction, Coordinator, Context, Analysis, FamilialRisk, SafetyValidation }
-public enum AgentStepStatus { Started, Completed, Failed, ToolDenied, SafeFailure }
+public enum AgentStepStatus { Started, Completed, Failed, ToolDenied, SafeFailure, NoData }
 public enum CarrierStatus { Carrier, NotCarrier, Unknown }

@@ -6,6 +6,7 @@ import 'package:family_veda/models/doctor_family_workspace.dart';
 import 'package:family_veda/models/record_summary_meta.dart';
 import 'package:family_veda/widgets/doctor/calendar_parts.dart';
 import 'package:family_veda/widgets/doctor/family_workspace_parts.dart';
+import 'package:family_veda/widgets/doctor/vital_overview_grid.dart';
 import 'package:flutter/material.dart';
 
 const _gap = SizedBox(height: 12);
@@ -428,24 +429,13 @@ class _VitalsTabState extends State<VitalsTab> {
               'Readings the member recorded, grouped by measurement and unit.',
         ),
         const SizedBox(height: 8),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              for (final group in groups)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text('${group.label} · ${group.latest.valueLabel}'),
-                    selected: group.key == series.key,
-                    onSelected: (_) => setState(() {
-                      _selected = group.key;
-                      _showAll = false;
-                    }),
-                  ),
-                ),
-            ],
-          ),
+        VitalOverviewGrid(
+          groups: groups,
+          selectedKey: series.key,
+          onSelect: (key) => setState(() {
+            _selected = key;
+            _showAll = false;
+          }),
         ),
         _gap,
         WorkspaceCard(

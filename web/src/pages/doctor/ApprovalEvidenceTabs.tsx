@@ -7,6 +7,7 @@ import type { CaseReviewDto, MemberWorkspaceDto } from '../../services/apiClient
 import { AgentOutputCard } from './AgentOutputCard'
 import { IconBrain, IconDna, IconStethoscope } from './ApprovalIcons'
 import { findTrace, reviewReasons, statusLabel } from './approvalReview'
+import { isNoDataTrace, NO_DATA_LABEL } from './safetyRules'
 import { ApprovalSupportingEvidence } from './ApprovalSupportingEvidence'
 import { SafetyChecks } from './SafetyChecks'
 
@@ -121,7 +122,7 @@ export function ApprovalEvidenceTabs({ review, onWorkspace }: { review: CaseRevi
                         <tr key={trace.stepNumber}>
                           <td>{trace.stepNumber}</td>
                           <td>{statusLabel(trace.agent)}</td>
-                          <td>{statusLabel(trace.status)}</td>
+                          <td>{isNoDataTrace(trace) ? NO_DATA_LABEL : statusLabel(trace.status)}</td>
                           <td>{Math.round(trace.confidence * 100)}%</td>
                           <td>{trace.latencyMilliseconds} ms</td>
                           <td>{trace.toolsDenied.length}</td>

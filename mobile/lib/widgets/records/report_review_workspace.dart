@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:family_veda/models/lab_report.dart';
+import 'package:family_veda/services/api/report_reading_poller.dart';
 import 'package:family_veda/widgets/records/original_report_preview.dart';
 import 'package:family_veda/widgets/records/report_progress.dart';
 import 'package:family_veda/widgets/records/report_reading.dart';
@@ -37,12 +40,19 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
       _saving = false,
       _dirty = false,
       _confirmed = false,
-      _allowPop = false;
+      _allowPop = false,
+      _watching = false;
   String? _message;
+  // Server-side status; starts from the library row and is refreshed from each detail load.
+  late String _status = widget.report.ocrStatus.toUpperCase();
   @override
   void initState() {
     super.initState();
-    _load();
+    unawaited(
+      _load().then((_) {
+        if (mounted && _status == 'PROCESSING') unawaited(_watchReading());
+      }),
+    );
   }
 
   @override
@@ -65,10 +75,12 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
       final flags = (detail['flags'] as List).cast<Map<String, dynamic>>();
       // Validate before replacing the previous state; malformed responses are errors.
       final drafts = values.map(_ValueDraft.new).toList();
+      final status = (detail['ocrStatus'] ?? _status).toString().toUpperCase();
       for (final old in _values) {
         old.dispose();
       }
       setState(() {
+        _status = status;
         _values = drafts;
         _flags = flags;
         _selectedFlags.clear();
@@ -162,6 +174,21 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
     }
   }
 
+  /// The read runs in the background on the server: poll until it leaves Processing, then reload.
+  Future<void> _watchReading() async {
+    if (_watching) return;
+    _watching = true;
+    try {
+      final done = await waitForReportReading(
+        widget.loadDetail,
+        isActive: () => mounted,
+      );
+      if (done != null && mounted) await _load();
+    } finally {
+      _watching = false;
+    }
+  }
+
   Future<void> _readAgain() async {
     if (_saving || _dirty || _confirmed || widget.readAgain == null) return;
     setState(() {
@@ -171,6 +198,7 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
     try {
       await widget.readAgain!();
       if (mounted) await _load();
+      if (mounted && _status == 'PROCESSING') unawaited(_watchReading());
     } catch (_) {
       if (mounted) {
         setState(
@@ -185,7 +213,7 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
 
   /// Why reading failed, what to do next, or the next step once values are confirmed.
   List<Widget> _readingState(BuildContext context) {
-    final status = widget.report.ocrStatus.toUpperCase();
+    final status = _status;
     Widget readButton(String label) => FilledButton(
       onPressed: _saving ? null : _readAgain,
       child: Text(_saving ? 'Reading report…' : label),
@@ -244,7 +272,7 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
       return [
         card(
           'Reading the report text…',
-          'This usually takes under a minute. If it stays here for more than 3 minutes, you can read it again.',
+          'Reports are read one at a time in the background, so this can take a few minutes when several are waiting. You can close this and come back.',
           [
             const SizedBox(height: 10),
             OutlinedButton(onPressed: _load, child: const Text('Refresh status')),

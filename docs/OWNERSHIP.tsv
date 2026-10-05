@@ -115,6 +115,14 @@ S2	backend/src/Application/Component2_Records/Records/RecordContracts.cs
 S2	backend/src/Domain/Component2_Records/Records/RecordEntities.cs
 S2	backend/src/Infrastructure/Component2_Records/Records/RecordService.cs
 S2	backend/src/Infrastructure/Component2_Records/Records/LabExtractionService.cs
+S2	backend/src/Infrastructure/Component2_Records/Records/LabExtractionService.Run.cs
+S2	backend/src/Infrastructure/Component2_Records/Records/LabExtractionQueue.cs
+S2	backend/src/Api/Background/LabExtractionWorker.cs
+S2	backend/tests/UnitTests/Component2_Records/LabExtractionWorkerTests.cs
+S2	web/src/pages/records/pollReading.ts
+S2	web/src/pages/records/pollReading.test.ts
+S2	mobile/lib/services/api/report_reading_poller.dart
+S2	mobile/test/services/report_reading_poller_test.dart
 S2	backend/src/Infrastructure/Component2_Records/Records/TesseractOcrService.cs
 S2	backend/src/Infrastructure/Agents/Component2_Records/ExtractionAgent.cs
 S2	backend/src/Infrastructure/Persistence/Configurations/RecordConfigurations.cs

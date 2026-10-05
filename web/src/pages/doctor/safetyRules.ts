@@ -7,14 +7,35 @@ export const MIN_CONFIDENCE = 0.6
 
 type Check = { label: string; passed: boolean }
 
+export const NO_DATA_LABEL = 'No data — not counted'
+
+/** An agent that had no input data reports confidence 0 and is excluded from the confidence check. */
+export function isNoDataTrace(trace: AgentTraceDto): boolean {
+  return trace.hasData === false || trace.status === 'NoData'
+}
+
+function confidenceCheck(traces: AgentTraceDto[]): Check {
+  const threshold = Math.round(MIN_CONFIDENCE * 100)
+  const counted = traces.filter((trace) => !isNoDataTrace(trace))
+  const skipped = traces.length - counted.length
+  const specialists = traces.filter((trace) => trace.agent !== 'SafetyValidation')
+  const specialistsWithData = specialists.filter((trace) => !isNoDataTrace(trace))
+  const lowest = counted.length ? Math.min(...counted.map((trace) => trace.confidence)) : 0
+  // No agent had data -> never pass silently; the case defers to the doctor (Rule 9).
+  const passed = counted.length > 0 && lowest >= MIN_CONFIDENCE && !(specialists.length > 0 && specialistsWithData.length === 0)
+  const label = skipped > 0
+    ? `Every agent with data has confidence at or above ${threshold}% (${skipped} not counted: no data)`
+    : `Every agent confidence at or above ${threshold}%`
+  return { label, passed }
+}
+
 export function buildSafetyChecks(traces: AgentTraceDto[]): Check[] {
   const safety = traces.find((trace) => trace.agent === 'SafetyValidation')
   const denied = traces.flatMap((trace) => trace.toolsDenied)
-  const lowest = traces.length ? Math.min(...traces.map((trace) => trace.confidence)) : 0
   return [
     { label: 'Safety/Validation agent completed', passed: safety?.status === 'Completed' },
     { label: 'Every agent output matched its JSON schema', passed: traces.length > 0 && traces.every((trace) => trace.outputSchemaValid) },
     { label: 'No agent requested a tool outside its allow-list', passed: traces.length > 0 && denied.length === 0 },
-    { label: `Every agent confidence at or above ${Math.round(MIN_CONFIDENCE * 100)}%`, passed: traces.length > 0 && lowest >= MIN_CONFIDENCE },
+    confidenceCheck(traces),
   ]
 }

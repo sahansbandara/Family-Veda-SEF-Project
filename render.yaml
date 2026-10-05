@@ -52,9 +52,11 @@ services:
       - key: Ocr__Engine
         value: Tesseract
       - key: Ocr__TimeoutSeconds
-        value: "30"
+        value: "90" # per Tesseract pass; the free plan has 0.1 CPU, so one pass can take over a minute
+      - key: Ocr__TotalTimeoutSeconds
+        value: "170" # whole read, kept below the 180 s web/mobile wait
       - key: Ocr__MaxConcurrentProcesses
-        value: "2"
+        value: "1" # 0.1 CPU / 512 MB: parallel passes only slow each other down
       - key: Ocr__MaxOutputCharacters
         value: "60000"
       - key: Ocr__MaxPages

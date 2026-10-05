@@ -17,6 +17,32 @@ describe('buildSafetyChecks', () => {
     expect(checks.filter((check) => !check.passed)).toHaveLength(3)
   })
 
+  it('excludes no-data agents from the confidence check and says so in the label', () => {
+    const checks = buildSafetyChecks([
+      { ...base, agent: 'Context', confidence: 0.8 },
+      { ...base, agent: 'Analysis', status: 'NoData', hasData: false, confidence: 0 },
+      { ...base, agent: 'FamilialRisk', status: 'NoData', hasData: false, confidence: 0 },
+      { ...base, confidence: 0.8 },
+    ])
+    const confidence = checks[3]
+    expect(confidence.passed).toBe(true)
+    expect(confidence.label).toBe('Every agent with data has confidence at or above 60% (2 not counted: no data)')
+  })
+
+  it('does not pass silently when no agent had data', () => {
+    const checks = buildSafetyChecks([
+      { ...base, agent: 'Context', status: 'NoData', hasData: false, confidence: 0 },
+      { ...base, agent: 'Analysis', status: 'NoData', hasData: false, confidence: 0 },
+      { ...base, confidence: 0 },
+    ])
+    expect(checks[3].passed).toBe(false)
+  })
+
+  it('fails when an agent with data is below the threshold', () => {
+    const checks = buildSafetyChecks([{ ...base, agent: 'Context', confidence: 0.5 }, { ...base, agent: 'FamilialRisk', status: 'NoData', hasData: false, confidence: 0 }, base])
+    expect(checks[3].passed).toBe(false)
+  })
+
   it('fails closed on an empty trace list', () => {
     expect(buildSafetyChecks([]).some((check) => check.passed)).toBe(false)
   })
