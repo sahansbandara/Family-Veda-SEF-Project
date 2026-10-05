@@ -1,16 +1,15 @@
 // S2 · Health Records — trend line of recorded values. Decorative: the numbers are always shown as text nearby.
+// Draws recorded values and their average only. It never draws a reference or "normal" range:
+// patient screens show no interpretation (clinical safety rules 1 and 2).
 type Props = { 
   values: number[]; 
   width?: number; 
   height?: number; 
   className?: string; 
-  normalMin?: number; 
-  normalMax?: number;
-  normalLabel?: string;
   chartType?: 'bar' | 'line';
 }
 
-export function Sparkline({ values, className, normalMin, normalMax, normalLabel, chartType = 'bar' }: Props) {
+export function Sparkline({ values, className, chartType = 'bar' }: Props) {
   if (values.length === 0) return <span className="hr-sparkline hr-sparkline--empty" aria-hidden="true" />
   
   // Use a fixed viewBox so that font sizes and proportions remain consistent
@@ -18,11 +17,8 @@ export function Sparkline({ values, className, normalMin, normalMax, normalLabel
   const width = 400
   const height = 180
   
-  const hasRange = normalMin !== undefined && normalMax !== undefined
-  
-  const valsAndNormal = hasRange ? [...values, normalMin, normalMax] : values
-  const actualMin = Math.min(...valsAndNormal)
-  const actualMax = Math.max(...valsAndNormal)
+  const actualMin = Math.min(...values)
+  const actualMax = Math.max(...values)
   const span = Math.max(actualMax - actualMin, Number.EPSILON)
   
   const isLine = chartType === 'line'
@@ -51,18 +47,13 @@ export function Sparkline({ values, className, normalMin, normalMax, normalLabel
     return { x, y, value }
   })
   
-  const topY = hasRange ? chartBottom - ((normalMax - low) / displaySpan) * chartHeight : 0
-  const bottomY = hasRange ? chartBottom - ((normalMin - low) / displaySpan) * chartHeight : 0
-  
-  // Fallback line for "AVG" if no range is defined
+  // Average of the recorded values: a fact about the data, not a clinical judgement.
   const avgValue = values.reduce((a, b) => a + b, 0) / values.length
   const avgY = chartBottom - ((avgValue - low) / displaySpan) * chartHeight
-    
-  const lineLabel = normalLabel || 'AVG'
 
   const barWidth = Math.min(slot * 0.85, 60)
   const radius = Math.min(barWidth / 2, 8)
-  const labelY = Math.max(12, (hasRange ? topY : avgY) - 6)
+  const labelY = Math.max(12, avgY - 6)
 
   const ptsString = points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
 
@@ -74,27 +65,8 @@ export function Sparkline({ values, className, normalMin, normalMax, normalLabel
       focusable="false"
       style={{ overflow: 'visible', width: '100%', height: 'auto' }}
     >
-      {/* Normal Range Area */}
-      {hasRange && (
-        <rect
-          x={0}
-          y={topY}
-          width={width}
-          height={Math.max(0, bottomY - topY)}
-          fill="var(--success, #22c55e)"
-          opacity={0.1}
-        />
-      )}
-
-      {/* Normal/Average Line(s) */}
-      {hasRange ? (
-        <>
-          <line x1={0} y1={topY} x2={width} y2={topY} stroke="var(--success, #22c55e)" strokeOpacity={0.3} strokeWidth="1.5" strokeDasharray="4 4" />
-          <line x1={0} y1={bottomY} x2={width} y2={bottomY} stroke="var(--success, #22c55e)" strokeOpacity={0.3} strokeWidth="1.5" strokeDasharray="4 4" />
-        </>
-      ) : (
-        <line x1={0} y1={avgY} x2={width} y2={avgY} stroke="currentColor" strokeOpacity={0.15} strokeWidth="1.5" />
-      )}
+      {/* Average line */}
+      <line x1={0} y1={avgY} x2={width} y2={avgY} stroke="currentColor" strokeOpacity={0.15} strokeWidth="1.5" />
       
       {isLine ? (
         <>
@@ -140,21 +112,10 @@ export function Sparkline({ values, className, normalMin, normalMax, normalLabel
         })
       )}
 
-      {/* Reference label(s), drawn on top so bars never hide it */}
-      {hasRange ? (
-        <>
-          <text x={4} y={Math.max(12, topY - 4)} fontSize="10" fill="var(--success, #22c55e)" fontWeight="800" letterSpacing="0.5" stroke="var(--surface-subtle, var(--surface))" strokeWidth="4" paintOrder="stroke">
-            {normalMax}
-          </text>
-          <text x={4} y={Math.min(chartBottom - 4, bottomY + 12)} fontSize="10" fill="var(--success, #22c55e)" fontWeight="800" letterSpacing="0.5" stroke="var(--surface-subtle, var(--surface))" strokeWidth="4" paintOrder="stroke">
-            {normalMin}
-          </text>
-        </>
-      ) : (
-        <text x={4} y={labelY} fontSize="11" fill="currentColor" fontWeight="700" letterSpacing="0.5" stroke="var(--surface-subtle, var(--surface))" strokeWidth="4" paintOrder="stroke">
-          {hasRange ? lineLabel.toUpperCase() : `${lineLabel.toUpperCase()} ${avgValue.toFixed(1)}`}
-        </text>
-      )}
+      {/* Average label, drawn on top so bars never hide it */}
+      <text x={4} y={labelY} fontSize="11" fill="currentColor" fontWeight="700" letterSpacing="0.5" stroke="var(--surface-subtle, var(--surface))" strokeWidth="4" paintOrder="stroke">
+        {`AVG ${avgValue.toFixed(1)}`}
+      </text>
       
       {/* Bottom Axis Line */}
       <line x1={0} y1={chartBottom} x2={width} y2={chartBottom} stroke="currentColor" strokeOpacity={0.15} strokeWidth="1" />

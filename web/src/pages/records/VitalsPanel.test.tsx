@@ -20,6 +20,15 @@ describe('VitalsPanel', () => {
     expect(screen.queryByText(/normal|abnormal|diagnos|high|low/i)).not.toBeInTheDocument()
   })
 
+  it('draws no reference range on the vital charts', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<VitalsPanel vitals={vitals} onAdd={vi.fn()} />)
+    // Charts are aria-hidden, so check their raw text rather than accessible queries.
+    expect(container.textContent).not.toMatch(/normal/i)
+    await user.click(screen.getByRole('button', { name: /Heart Rate: 76 bpm/ }))
+    expect(document.body.textContent).not.toMatch(/normal:/i)
+  })
+
   it('records blood pressure as a systolic and a diastolic reading with one timestamp', async () => {
     const user = userEvent.setup()
     const onAdd = vi.fn().mockResolvedValue(true)
