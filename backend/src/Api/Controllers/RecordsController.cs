@@ -44,6 +44,28 @@ public sealed class RecordsController(IRecordService recordService, ILabExtracti
     public async Task<ActionResult<HealthRecordDto>> SetRecordSharing(Guid recordId, UpdateSharingRequest request, CancellationToken cancellationToken) =>
         Ok(await recordService.SetRecordSharingAsync(recordId, request.SharedWithFamilyHead, cancellationToken));
 
+    [HttpDelete("lab-reports/{reportId:guid}")]
+    public async Task<ActionResult<object>> DeleteLabReport(Guid reportId, CancellationToken cancellationToken)
+    {
+        await recordService.DeleteLabReportAsync(reportId, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpGet("members/{memberId:guid}/lab-reports/deleted")]
+    public async Task<ActionResult<IReadOnlyList<DeletedLabReportDto>>> GetDeletedLabReports(Guid memberId, CancellationToken cancellationToken) =>
+        Ok(await recordService.GetDeletedLabReportsAsync(memberId, cancellationToken));
+
+    [HttpPost("lab-reports/{reportId:guid}/restore")]
+    public async Task<ActionResult<LabReportDto>> RestoreLabReport(Guid reportId, CancellationToken cancellationToken) =>
+        Ok(await recordService.RestoreLabReportAsync(reportId, cancellationToken));
+
+    [HttpDelete("lab-reports/{reportId:guid}/permanent")]
+    public async Task<ActionResult<object>> PermanentlyDeleteLabReport(Guid reportId, CancellationToken cancellationToken)
+    {
+        await recordService.PermanentlyDeleteLabReportAsync(reportId, cancellationToken);
+        return NoContent();
+    }
+
     [HttpPatch("lab-reports/{reportId:guid}/sharing")]
     public async Task<ActionResult<LabReportDto>> SetLabReportSharing(Guid reportId, UpdateSharingRequest request, CancellationToken cancellationToken) =>
         Ok(await recordService.SetLabReportSharingAsync(reportId, request.SharedWithFamilyHead, cancellationToken));

@@ -36,6 +36,9 @@ public static class DatabaseInitializer
                 ALTER TABLE families ADD COLUMN IF NOT EXISTS family_code character varying(9);
                 ALTER TABLE members ADD COLUMN IF NOT EXISTS sex_for_clinical_reference character varying(16) NOT NULL DEFAULT 'NotSpecified';
                 ALTER TABLE lab_reports ADD COLUMN IF NOT EXISTS shared_with_family_head boolean NOT NULL DEFAULT false;
+                ALTER TABLE lab_reports ADD COLUMN IF NOT EXISTS deleted_at timestamp with time zone;
+                ALTER TABLE lab_reports ADD COLUMN IF NOT EXISTS deleted_by_user_id uuid;
+                CREATE INDEX IF NOT EXISTS ix_lab_reports_member_id_deleted_at ON lab_reports (member_id, deleted_at);
                 ALTER TABLE health_records ADD COLUMN IF NOT EXISTS shared_with_family_head boolean NOT NULL DEFAULT false;
                 ALTER TABLE appointments ADD COLUMN IF NOT EXISTS rescheduled_from_starts_at timestamp with time zone;
                 ALTER TABLE family_invitations ADD COLUMN IF NOT EXISTS cancelled_at timestamp with time zone;

@@ -37,6 +37,10 @@ internal sealed class LabReportConfiguration : IEntityTypeConfiguration<LabRepor
         builder.HasOne(x => x.Member).WithMany().HasForeignKey(x => x.MemberId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(x => new { x.MemberId, x.CollectedAt });
         builder.HasAlternateKey(x => new { x.Id, x.MemberId });
+        // Soft-deleted reports are invisible to every reader (family, doctor, agent tools) unless a
+        // query opts out for the owner's "Recently deleted" list.
+        builder.HasQueryFilter(x => x.DeletedAt == null);
+        builder.HasIndex(x => new { x.MemberId, x.DeletedAt });
     }
 }
 
@@ -49,6 +53,7 @@ internal sealed class LabReportFileConfiguration : IEntityTypeConfiguration<LabR
         builder.Property(x => x.Content).HasColumnType("bytea").IsRequired();
         builder.HasOne(x => x.LabReport).WithOne(x => x.File).HasForeignKey<LabReportFile>(x => x.LabReportId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(x => x.LabReportId).IsUnique();
+        builder.HasQueryFilter(x => x.LabReport != null && x.LabReport.DeletedAt == null);
     }
 }
 
@@ -62,6 +67,7 @@ internal sealed class LabValueConfiguration : IEntityTypeConfiguration<LabValue>
         builder.Property(x => x.Unit).HasMaxLength(48).IsRequired();
         builder.HasOne(x => x.LabReport).WithMany(x => x.Values).HasForeignKey(x => x.LabReportId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(x => new { x.LabReportId, x.Analyte });
+        builder.HasQueryFilter(x => x.LabReport != null && x.LabReport.DeletedAt == null);
     }
 }
 
@@ -94,5 +100,7 @@ internal sealed class HereditaryFlagConfiguration : IEntityTypeConfiguration<Her
         builder.HasOne(x => x.HealthRecord).WithMany().HasForeignKey(x => new { x.HealthRecordId, x.MemberId })
             .HasPrincipalKey(x => new { x.Id, x.MemberId }).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(x => new { x.MemberId, x.ConditionCode }).IsUnique();
+        // A flag found in a soft-deleted report is hidden with it and returns on restore.
+        builder.HasQueryFilter(x => x.LabReportId == null || (x.LabReport != null && x.LabReport.DeletedAt == null));
     }
 }

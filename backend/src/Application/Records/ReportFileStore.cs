@@ -17,6 +17,9 @@ public interface IExternalReportFileStore
     Task<string> SaveAsync(string extension, string contentType, byte[] content, CancellationToken cancellationToken);
 
     Task<byte[]> ReadAsync(string storageKey, CancellationToken cancellationToken);
+
+    /// <summary>Removes the stored bytes for a permanently deleted report.</summary>
+    Task DeleteAsync(string storageKey, CancellationToken cancellationToken);
 }
 
 /// <summary>The external store could not complete a request. The message never contains provider responses or credentials.</summary>

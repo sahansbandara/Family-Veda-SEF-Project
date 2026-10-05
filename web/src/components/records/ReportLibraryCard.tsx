@@ -9,6 +9,7 @@ type Props = {
   onReview?: (report: LabReportDto) => void
   onViewOriginal?: (report: LabReportDto) => void
   reviewLabel?: string
+  onDelete?: (report: LabReportDto) => void
 }
 
 export function ReportLibraryCard({
@@ -19,6 +20,7 @@ export function ReportLibraryCard({
   onReview,
   reviewLabel,
   onViewOriginal,
+  onDelete,
 }: Props) {
   const range = report.rangeSummary
   const shared = report.sharedWithFamilyHead === true
@@ -80,6 +82,9 @@ export function ReportLibraryCard({
           >
             {shared ? 'Make private' : 'Share with Family Head'}
           </button>
+        )}
+        {onDelete && (
+          <button type="button" className="button button--secondary hr-action--danger" aria-label={`Delete ${report.originalFileName}`} onClick={() => onDelete(report)}>Delete</button>
         )}
       </div>
     </article>

@@ -8,6 +8,8 @@ import 'package:family_veda/providers/records_roster_provider.dart';
 import 'package:family_veda/models/record_summary_meta.dart';
 import 'package:family_veda/providers/records_provider.dart';
 import 'package:family_veda/models/lab_report.dart';
+import 'package:family_veda/services/api/report_trash_api.dart';
+import 'package:family_veda/widgets/records/deleted_reports_section.dart';
 import 'package:family_veda/widgets/records/original_report_preview.dart';
 import 'package:family_veda/widgets/records/records_visuals.dart';
 import 'package:family_veda/widgets/records/report_library_card.dart';
@@ -387,6 +389,7 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
                       ),
                       memberId: selected,
                       myMemberId: myMemberId,
+                      canManage: !readOnly,
                       onToggle: _toggleReport,
                     ),
                     VitalsTab(readOnly: readOnly),
@@ -406,9 +409,13 @@ class _LabReportsTab extends ConsumerStatefulWidget {
     super.key,
     this.memberId,
     required this.myMemberId,
+    required this.canManage,
     required this.onToggle,
   });
   final String? memberId;
+
+  /// False for a Head reading another adult's shared reports: no delete, no trash.
+  final bool canManage;
 
   final String? myMemberId;
   final Future<void> Function(LabReport report) onToggle;
@@ -428,6 +435,52 @@ class _LabReportsTabState extends ConsumerState<_LabReportsTab> {
       });
     }
     super.dispose();
+  }
+
+  void _reloadReports() {
+    ref.invalidate(memberLabReportsProvider);
+    ref.invalidate(labReportsByMemberProvider);
+  }
+
+  Future<void> _delete(LabReport report, String memberId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete this report?'),
+        content: Text(
+          '${report.fileName} will be hidden from your records, your doctor and symptom checks. You can restore it from Recently deleted.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete report'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(reportTrashApiProvider).deleteReport(report.id);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('${report.fileName} moved to Recently deleted.'),
+        ),
+      );
+    } on Object {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('The report could not be deleted. Retry.'),
+        ),
+      );
+    } finally {
+      _reloadReports();
+      ref.invalidate(deletedLabReportsProvider(memberId));
+    }
   }
 
   Route<void>? _previewRoute;
@@ -481,78 +534,100 @@ class _LabReportsTabState extends ConsumerState<_LabReportsTab> {
           }
         },
       ),
-      data: (items) => items.isEmpty
-          ? const EmptyStateView(
-              title: 'No lab reports',
-              message: 'Upload a synthetic lab report to start the library.',
-            )
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '${items.length} reports',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: 'List view',
-                      isSelected: !_grid,
-                      onPressed: () => setState(() => _grid = false),
-                      icon: const Icon(Icons.view_list_outlined),
-                    ),
-                    IconButton(
-                      tooltip: 'Grid view',
-                      isSelected: _grid,
-                      onPressed: () => setState(() => _grid = true),
-                      icon: const Icon(Icons.grid_view_outlined),
-                    ),
-                  ],
+      data: (items) {
+        final trash = widget.canManage && memberId != null
+            ? DeletedReportsSection(
+                key: ValueKey('trash:$memberId'),
+                memberId: memberId,
+                onRestored: _reloadReports,
+              )
+            : null;
+        if (items.isEmpty) {
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              const SizedBox(
+                height: 320,
+                child: EmptyStateView(
+                  title: 'No lab reports',
+                  message:
+                      'Upload a synthetic lab report to start the library.',
                 ),
-                const SizedBox(height: 12),
-                LayoutBuilder(
-                  builder: (context, constraints) => Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      for (final report in items)
-                        SizedBox(
-                          width: _grid && constraints.maxWidth >= 340
-                              ? (constraints.maxWidth - 12) / 2
-                              : constraints.maxWidth,
-                          child: ReportLibraryCard(
-                            key: ValueKey('$memberId:${report.id}'),
-                            compact: _grid,
-                            loadOriginal: () async {
-                              final bytes = await ref
-                                  .read(mobileApiProvider)
-                                  .getLabReportFile(report.id);
-                              if (!mounted ||
-                                  (widget.memberId ??
-                                          ref.read(activeMemberProvider)) !=
-                                      memberId) {
-                                throw StateError('Profile changed');
-                              }
-                              return bytes;
-                            },
-                            report: report,
-                            ownerName: report.memberId == widget.myMemberId
-                                ? 'You'
-                                : 'Family member',
-                            canChangeSharing:
-                                report.memberId == widget.myMemberId,
-                            onToggleSharing: () => widget.onToggle(report),
-                            onViewOriginal: () =>
-                                _viewOriginal(report, memberId),
-                          ),
-                        ),
-                    ],
+              ),
+              ?trash,
+            ],
+          );
+        }
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '${items.length} reports',
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
+                ),
+                IconButton(
+                  tooltip: 'List view',
+                  isSelected: !_grid,
+                  onPressed: () => setState(() => _grid = false),
+                  icon: const Icon(Icons.view_list_outlined),
+                ),
+                IconButton(
+                  tooltip: 'Grid view',
+                  isSelected: _grid,
+                  onPressed: () => setState(() => _grid = true),
+                  icon: const Icon(Icons.grid_view_outlined),
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+            LayoutBuilder(
+              builder: (context, constraints) => Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  for (final report in items)
+                    SizedBox(
+                      width: _grid && constraints.maxWidth >= 340
+                          ? (constraints.maxWidth - 12) / 2
+                          : constraints.maxWidth,
+                      child: ReportLibraryCard(
+                        key: ValueKey('$memberId:${report.id}'),
+                        compact: _grid,
+                        loadOriginal: () async {
+                          final bytes = await ref
+                              .read(mobileApiProvider)
+                              .getLabReportFile(report.id);
+                          if (!mounted ||
+                              (widget.memberId ??
+                                      ref.read(activeMemberProvider)) !=
+                                  memberId) {
+                            throw StateError('Profile changed');
+                          }
+                          return bytes;
+                        },
+                        report: report,
+                        ownerName: report.memberId == widget.myMemberId
+                            ? 'You'
+                            : 'Family member',
+                        canChangeSharing: report.memberId == widget.myMemberId,
+                        onToggleSharing: () => widget.onToggle(report),
+                        onViewOriginal: () => _viewOriginal(report, memberId),
+                        onDelete: widget.canManage && memberId != null
+                            ? () => _delete(report, memberId)
+                            : null,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            ?trash,
+          ],
+        );
+      },
     );
   }
 }

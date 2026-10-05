@@ -428,6 +428,7 @@ public sealed class DoctorWorkspaceServiceTests
         public bool Owns(string key) => key.StartsWith("gdrive:", StringComparison.Ordinal);
         public Task<string> SaveAsync(string extension, string type, byte[] bytes, CancellationToken token) => throw new NotSupportedException();
         public Task<byte[]> ReadAsync(string key, CancellationToken token) { ReadCount++; return load(); }
+        public Task DeleteAsync(string key, CancellationToken token) => throw new NotSupportedException();
     }
 
     [Fact]

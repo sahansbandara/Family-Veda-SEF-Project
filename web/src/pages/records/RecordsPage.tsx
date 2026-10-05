@@ -2,6 +2,8 @@
 // Ownership binding — do not edit file if not yours. docs/OWNERSHIP.tsv
 import { type DragEvent, type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { DeletedReports } from '../../components/records/DeletedReports'
+import { RecordDialog } from './RecordDialog'
 import { ReportLibrary } from '../../components/records/ReportLibrary'
 import { ReportPreviewDialog } from '../../components/records/ReportPreviewDialog'
 import { EmptyState, ErrorState, LoadingState } from '../../components/shared/ViewState'
@@ -55,6 +57,9 @@ export function RecordsPage() {
   const [vitals, setVitals] = useState<VitalDto[]>([])
   const [originalReport, setOriginalReport] = useState<LabReportDto | null>(null)
   const [selectedReport, setSelectedReport] = useState<LabReportDetailDto | null>(null)
+  const [reportToDelete, setReportToDelete] = useState<LabReportDto | null>(null)
+  const [deletingReport, setDeletingReport] = useState(false)
+  const [trashVersion, setTrashVersion] = useState(0)
   const [editingRecord, setEditingRecord] = useState<HealthRecordDto | null>(null)
   const [showRecordForm, setShowRecordForm] = useState(false)
   const [showUploadForm, setShowUploadForm] = useState(uploadRequested)
@@ -339,6 +344,25 @@ export function RecordsPage() {
       await loadRecords()
     } catch {
       if (activeMemberId.current === targetMemberId) setMessage('Sharing could not be changed. Retry.')
+    }
+  }
+
+  async function deleteReport(report: LabReportDto) {
+    if (deletingReport) return
+    const targetMemberId = memberId
+    setDeletingReport(true)
+    try {
+      await apiClient.delete(`/lab-reports/${report.id}`)
+      if (activeMemberId.current !== targetMemberId) return
+      if (selectedReport?.id === report.id) setSelectedReport(null)
+      setMessage(`${report.originalFileName} moved to Recently deleted. You can restore it from there.`)
+      setTrashVersion((value) => value + 1)
+      await loadRecords()
+    } catch {
+      if (activeMemberId.current === targetMemberId) setMessage('The report could not be deleted. Retry.')
+    } finally {
+      setDeletingReport(false)
+      setReportToDelete(null)
     }
   }
 
@@ -699,8 +723,19 @@ export function RecordsPage() {
                     onToggleSharing={(item) => void toggleReportSharing(item)}
                     onViewOriginal={(item) => setOriginalReport(item)}
                     onReview={isSharedView ? undefined : (item) => void openReport(item.id)}
-                    reviewLabel={(report) => reportStep(report, selectedReport)} />
+                    reviewLabel={(report) => reportStep(report, selectedReport)}
+                    onDelete={isSharedView ? undefined : (item) => setReportToDelete(item)} />
                 )}
+                {!isSharedView && memberId && <DeletedReports key={`trash-${memberId}`} memberId={memberId}
+                  ownerName={selectedMember?.displayName ?? 'Member'} refreshKey={trashVersion}
+                  onRestored={() => void loadRecords()} onMessage={setMessage} />}
+                {reportToDelete && <RecordDialog eyebrow="Move to Recently deleted" title="Delete this report?" onClose={() => { if (!deletingReport) setReportToDelete(null) }}>
+                  <p className="hr-confirm__text"><b>{reportToDelete.originalFileName}</b> will be hidden from your records, your doctor and symptom checks. You can restore it from Recently deleted.</p>
+                  <div className="hr-confirm__actions">
+                    <button type="button" className="button button--secondary" disabled={deletingReport} onClick={() => setReportToDelete(null)}>Cancel</button>
+                    <button type="button" className="button button--danger" disabled={deletingReport} onClick={() => void deleteReport(reportToDelete)}>{deletingReport ? 'Deleting…' : 'Delete report'}</button>
+                  </div>
+                </RecordDialog>}
               </div>
               <section className="care-panel care-detail" aria-live="polite" hidden={!selectedReport}>
                 {selectedReport?.memberId !== memberId ? (

@@ -245,6 +245,50 @@ public sealed class AdultReportSharingTests : IAsyncLifetime
         invalid.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
+    [Fact]
+    public async Task DeletedReport_LeavesEveryList_OnlyOwnerOrGuardianCanUseTrash_AndRestoreBringsItBack()
+    {
+        var world = await ArrangeFamilyAsync("trash-flow");
+        var head = world.Head;
+        var adult = world.Adult;
+        (await adult.PatchAsJsonAsync($"/api/v1/lab-reports/{world.AdultReportId}/sharing", new { sharedWithFamilyHead = true }))
+            .StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // A shared report is readable by the Head but never deletable by them, and outsiders get 404.
+        (await head.DeleteAsync($"/api/v1/lab-reports/{world.AdultReportId}")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await world.Outsider.DeleteAsync($"/api/v1/lab-reports/{world.AdultReportId}")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        // Permanent delete is refused until the report is in the bin.
+        (await adult.DeleteAsync($"/api/v1/lab-reports/{world.AdultReportId}/permanent")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        (await adult.DeleteAsync($"/api/v1/lab-reports/{world.AdultReportId}")).StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        (await ListLabReportsAsync(adult, world.AdultMemberId)).Should().BeEmpty();
+        (await ListLabReportsAsync(head, world.AdultMemberId)).Should().BeEmpty();
+        (await adult.GetAsync($"/api/v1/lab-reports/{world.AdultReportId}")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await DashboardAsync(head)).GetProperty("visibleReportCount").GetInt32().Should().Be(1);
+        (await head.GetAsync($"/api/v1/members/{world.AdultMemberId}/lab-reports/deleted")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await head.PostAsync($"/api/v1/lab-reports/{world.AdultReportId}/restore", null)).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        var trash = await adult.GetFromJsonAsync<List<JsonElement>>($"/api/v1/members/{world.AdultMemberId}/lab-reports/deleted");
+        trash.Should().ContainSingle().Which.GetProperty("id").GetGuid().Should().Be(world.AdultReportId);
+
+        (await adult.PostAsync($"/api/v1/lab-reports/{world.AdultReportId}/restore", null)).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await ListLabReportsAsync(head, world.AdultMemberId)).Should().ContainSingle();
+        (await DashboardAsync(head)).GetProperty("visibleReportCount").GetInt32().Should().Be(2);
+
+        // Without guardian consent the Head cannot bin a minor's report; with it they can, and can remove it for good.
+        (await head.DeleteAsync($"/api/v1/lab-reports/{world.MinorReportId}")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        await using var scope = _factory!.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var minorMemberId = await db.LabReports.Where(x => x.Id == world.MinorReportId).Select(x => x.MemberId).SingleAsync();
+        db.Consents.Add(new FamilyVeda.Domain.Identity.Consent { MemberId = minorMemberId, Category = ConsentCategory.Conditions, Status = ConsentStatus.Granted, GrantedByGuardian = true, GrantedAt = DateTimeOffset.UtcNow });
+        await db.SaveChangesAsync();
+        (await head.DeleteAsync($"/api/v1/lab-reports/{world.MinorReportId}")).StatusCode.Should().Be(HttpStatusCode.NoContent);
+        (await head.DeleteAsync($"/api/v1/lab-reports/{world.MinorReportId}/permanent")).StatusCode.Should().Be(HttpStatusCode.NoContent);
+        (await db.LabReports.IgnoreQueryFilters().AnyAsync(x => x.Id == world.MinorReportId)).Should().BeFalse();
+        (await db.LabValues.IgnoreQueryFilters().AnyAsync(x => x.LabReportId == world.MinorReportId)).Should().BeFalse();
+        (await db.AuditLogs.CountAsync(x => x.EventType == "LAB_REPORT_PERMANENTLY_DELETED" && x.ResourceId == world.MinorReportId)).Should().Be(1);
+    }
+
     private sealed record World(HttpClient Head, HttpClient Adult, HttpClient Outsider,
         Guid AdultMemberId, Guid AdultReportId, Guid AdultRecordId, Guid MinorReportId);
 

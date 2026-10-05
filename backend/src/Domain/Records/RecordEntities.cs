@@ -30,6 +30,9 @@ public sealed class LabReport : Entity
     public DateTimeOffset? CollectedAt { get; set; }
     /// <summary>Adult owner opted to let the Family Head read this report. Default private.</summary>
     public bool SharedWithFamilyHead { get; set; }
+    /// <summary>Set while the report sits in "Recently deleted". A global query filter hides it everywhere else.</summary>
+    public DateTimeOffset? DeletedAt { get; set; }
+    public Guid? DeletedByUserId { get; set; }
     public ICollection<LabValue> Values { get; set; } = [];
     public LabReportFile? File { get; set; }
 }

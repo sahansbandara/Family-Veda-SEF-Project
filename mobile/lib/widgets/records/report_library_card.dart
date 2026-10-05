@@ -13,6 +13,7 @@ class ReportLibraryCard extends StatefulWidget {
     required this.canChangeSharing,
     this.onToggleSharing,
     this.onViewOriginal,
+    this.onDelete,
     this.loadOriginal,
     this.compact = false,
   });
@@ -23,6 +24,9 @@ class ReportLibraryCard extends StatefulWidget {
   final bool canChangeSharing;
   final VoidCallback? onToggleSharing;
   final VoidCallback? onViewOriginal;
+
+  /// Present only when the viewer may move this report to Recently deleted.
+  final VoidCallback? onDelete;
 
   final OriginalReportLoader? loadOriginal;
   @override
@@ -71,10 +75,7 @@ class _ReportLibraryCardState extends State<ReportLibraryCard> {
                 style: Theme.of(context).textTheme.labelMedium,
               ),
               const SizedBox(height: 4),
-              Text(
-                extraction,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
+              Text(extraction, style: Theme.of(context).textTheme.bodySmall),
               if (!widget.report.hasOriginalFile)
                 const Text('Original not stored'),
             ] else ...[
@@ -127,6 +128,18 @@ class _ReportLibraryCardState extends State<ReportLibraryCard> {
                         ? 'Keep private from Family Head'
                         : 'Share with Family Head',
                   ),
+                ),
+              ),
+            if (widget.onDelete != null)
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.error,
+                  ),
+                  onPressed: widget.onDelete,
+                  icon: const Icon(Icons.delete_outline, size: 18),
+                  label: const Text('Delete'),
                 ),
               ),
           ],
