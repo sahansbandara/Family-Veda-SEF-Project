@@ -130,3 +130,17 @@ Doctor original-view verification before publish: unit292/292, PostgreSQLintegra
 ## 2026-10-05 — Report library layout
 
 User approved cross-owner UI edits: direct Delete actions in web list/grid and Flutter cards; larger previews and phone cards; sharing select below actions; removed global Emergency Help CTA in web and family dashboard CTA in Flutter. Flutter sharing uses a controlled DropdownButton so failed saves cannot display an unpersisted privacy selection. Web synthetic component preview checked at 375, 390, 768 and 1280px with no horizontal overflow and 44px action targets. Browser evidence is synthetic; live API and Android/iOS devices were not exercised.
+
+
+## 2026-10-06 — Approved Render to Railway backend cutover
+
+User explicitly approved migration and all environment-variable transfer; confirmed SLIIT Render workspace. Render service srv-d9oqfsm7bikc73fs7h20 is suspended, retained for rollback. Railway project f66775ab-3ef8-4a65-a728-d45ad73d9ec6, service dc6df4fa-24f3-4436-83a8-0d67a75dd572, production d1aa55fd-1dcb-4087-a3cc-3dee025426a1. Deployment f5f35d4a-c32a-4c0d-8923-408c5773ec87 SUCCESS. Docker /backend on develop; one Singapore replica, 5GB volume /app/storage. Retain same Neon DB and private Google Drive; no migration, permission expansion, provider change or patient auto-approval.
+
+Source dashboard export copied 40 variables via Railway CLI stdin with deployments skipped; readback equality 40/40. Do not record secret values. Target DataProtection__KeysPath deliberately adjusted from /app/keys to persistent /app/storage/data-protection-keys. Previous Render key ring was not copied: previously encrypted FCM subscriptions may need device token re-registration. Retained JWT key passed doctor and family-head login checks. Never run Render and Railway workers together; startup recovery can mark in-flight cases FailedSafe.
+
+Production API https://family-veda-api-production.up.railway.app/api/v1. Vercel production VITE_API_BASE_URL updated and existing production build redeployed; public bundle verified Railway URL. Health200, both synthetic logins/dashboard200, CORS204 correct origin, existing private report200/383698bytes. Genuine synthetic migration case9ee10a78-51bd-45eb-a628-45b8ddeef48c reached PendingDoctorReview with5 actual traces, all schema-valid; left unapproved. Android release build uses Railway dart-define; existing installed clients must be replaced. No commit/push included. Read-only security/code review found no confirmed cutover blocker; native device checks remain separate.
+
+Android release build failed: required ANDROID_KEYSTORE_* signing credentials are not available in the build environment. Preserve signing rules; build a debug demo APK with the production Railway URL instead. Store-signed release and iOS distribution remain pending their existing signing requirements.
+Railway environment status confirmed one running replica, zero crashed replicas and no current warnings/critical issues; the recent failure is the historical missing-JWT deployment. Reused image build logs include Tesseract, ImageMagick and Poppler installation evidence. Direct runtime SSH check was unavailable because no SSH key is registered; no access permissions were expanded.
+
+Android debug demo APK build PASSED (assembleDebug 516.6s): mobile/build/app/outputs/flutter-apk/app-debug.apk. Compiled kernel verified contains exact Railway /api/v1 URL. No Android device or iOS runtime verification performed; signed release still requires existing signing credentials.
