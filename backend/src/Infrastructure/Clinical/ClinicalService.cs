@@ -511,7 +511,8 @@ public sealed class ClinicalService(
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize)
             // Names are released only for cases this doctor holds an active grant on.
             .Select(x => new TriageCaseDto(x.Id, x.EpisodeId, x.MemberId, x.Status, x.Priority, x.CreatedAt,
-                x.CaseNumber, x.Member!.DisplayName, x.Member!.Family!.Name))
+                x.CaseNumber, x.Member!.DisplayName, x.Member!.Family!.Name,
+                dbContext.Approvals.Any(a => a.TriageCaseId == x.Id && a.Action == ApprovalAction.CloseReferral)))
             .ToListAsync(cancellationToken);
         dbContext.AuditLogs.Add(new AuditLog
         {
@@ -534,7 +535,9 @@ public sealed class ClinicalService(
         var query = dbContext.TriageCases.AsNoTracking().Where(x =>
             (x.Status == TriageStatus.PendingDoctorReview || x.Status == TriageStatus.LowConfidence || x.Status == TriageStatus.Claimed || x.Status == TriageStatus.Escalated) &&
             (!x.AccessGrants.Any(g => g.RevokedAt == null && g.ExpiresAt > now) ||
-             x.AccessGrants.Any(g => g.RevokedAt == null && g.ExpiresAt > now && g.CreatedAt <= slaCutoff)));
+             x.AccessGrants.Any(g => g.RevokedAt == null && g.ExpiresAt > now && g.CreatedAt <= slaCutoff)) &&
+            // A closed referral needs no further acknowledgement.
+            !dbContext.Approvals.Any(a => a.TriageCaseId == x.Id && a.Action == ApprovalAction.CloseReferral));
         var total = await query.CountAsync(cancellationToken);
         var rows = await query.OrderByDescending(x => x.Priority).ThenBy(x => x.CreatedAt).Skip((page - 1) * pageSize).Take(pageSize)
             .Select(x => new
@@ -566,6 +569,7 @@ public sealed class ClinicalService(
         var triageCase = await dbContext.TriageCases.SingleOrDefaultAsync(
             x => x.Id == caseId && (x.Status == TriageStatus.PendingDoctorReview || x.Status == TriageStatus.LowConfidence || x.Status == TriageStatus.Claimed || x.Status == TriageStatus.Escalated),
             cancellationToken) ?? throw new NotFoundException();
+        if (await EmergencyCaseAccess.IsClosedAsync(dbContext, caseId, cancellationToken)) throw new NotFoundException();
         var now = DateTimeOffset.UtcNow;
         var slaCutoff = now.AddHours(-configuration.GetValue("Sla:DoctorResponseHours", 6));
         var existingUnrevokedGrants = await dbContext.CaseAccessGrants
@@ -598,7 +602,7 @@ public sealed class ClinicalService(
         if (triageCase.Status == TriageStatus.Escalated &&
             !await dbContext.Approvals.AnyAsync(x => x.TriageCaseId == caseId && x.DoctorNotes == EmergencyAcknowledgedNote, cancellationToken))
         {
-            await NotifyEmergencyAcknowledgedAsync(triageCase.MemberId, now, cancellationToken);
+            await NotifyEmergencyAcknowledgedAsync(triageCase.MemberId, cancellationToken);
         }
         await WriteAuditAsync("CASE_CLAIMED", "TriageCase", caseId, "SUCCESS", cancellationToken, triageCase.MemberId);
         try
@@ -738,21 +742,9 @@ public sealed class ClinicalService(
     /// Tells the patient a doctor has seen their referral. For a minor the family head is told too,
     /// matching who receives case status changes. The text repeats the referral; it is not AI output.
     /// </summary>
-    private async Task NotifyEmergencyAcknowledgedAsync(Guid memberId, DateTimeOffset now, CancellationToken cancellationToken)
+    private async Task NotifyEmergencyAcknowledgedAsync(Guid memberId, CancellationToken cancellationToken)
     {
-        var member = await dbContext.Members.AsNoTracking()
-            .Where(x => x.Id == memberId)
-            .Select(x => new
-            {
-                x.UserId,
-                x.DateOfBirth,
-                HeadUserId = x.Family!.Members.Where(m => m.Role == FamilyRole.Head).Select(m => m.UserId).FirstOrDefault() ?? x.Family.CreatedByUserId
-            })
-            .SingleOrDefaultAsync(cancellationToken);
-        if (member is null) return;
-        var isMinor = member.DateOfBirth.AddYears(18) > DateOnly.FromDateTime(now.UtcDateTime);
-        var recipients = new Guid?[] { member.UserId, isMinor ? member.HeadUserId : null }
-            .Where(x => x.HasValue).Select(x => x!.Value).Distinct();
+        var recipients = await EmergencyCaseAccess.PatientRecipientsAsync(dbContext, memberId, cancellationToken);
         foreach (var userId in recipients)
         {
             dbContext.PortalNotifications.Add(new PortalNotification

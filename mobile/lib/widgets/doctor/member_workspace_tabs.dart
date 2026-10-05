@@ -275,7 +275,11 @@ String _summary(String? summary) {
 }
 
 class LabsTab extends StatelessWidget {
-  const LabsTab({super.key, required this.reports, required this.onViewOriginal});
+  const LabsTab({
+    super.key,
+    required this.reports,
+    required this.onViewOriginal,
+  });
 
   final List<LabReport>? reports;
   final Future<void> Function(String reportId, String fileName) onViewOriginal;
@@ -335,7 +339,8 @@ class LabsTab extends StatelessWidget {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: TextButton.icon(
-                          onPressed: () => onViewOriginal(report.id, report.fileName),
+                          onPressed: () =>
+                              onViewOriginal(report.id, report.fileName),
                           icon: const Icon(Icons.visibility_outlined),
                           label: const Text('View original report'),
                         ),

@@ -80,7 +80,15 @@ class _DoctorTriageCasesScreenState
 
   Future<void> _open(DoctorQueueCase item) async {
     final act = await showQueueCaseSheet(context, item);
-    if (act == true && mounted) await _claim(item);
+    if (!mounted) return;
+    if (act == true) {
+      await _claim(item);
+    } else if (act is String) {
+      // A follow-up was saved inside the sheet; re-read so the queue shows server truth.
+      await _refresh();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(act)));
+    }
   }
 
   Future<void> _openFilters() async {

@@ -6,10 +6,12 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { apiClient, type CaseReviewDto } from '../../services/apiClient'
+import { EmergencyFollowUp } from './EmergencyFollowUp'
 import {
   actionFor,
   caseReference,
   formatSubmitted,
+  isEmergencyReferral,
   priorityTone,
   statusLabel,
   statusTone,
@@ -30,9 +32,11 @@ type CasePreviewProps = {
   busy: boolean
   onClose: () => void
   onClaim: (item: QueueCase) => void
+  /** A follow-up action was saved; the text says what happened. */
+  onFollowUp: (message: string) => void
 }
 
-export function CasePreview({ item, open, busy, onClose, onClaim }: CasePreviewProps) {
+export function CasePreview({ item, open, busy, onClose, onClaim, onFollowUp }: CasePreviewProps) {
   const [complaint, setComplaint] = useState<ComplaintState>({ kind: 'locked' })
   const caseId = item?.id
   const authorized = item?.mine ?? false
@@ -76,7 +80,7 @@ export function CasePreview({ item, open, busy, onClose, onClaim }: CasePreviewP
   }
 
   const action = actionFor(item)
-  const emergency = item.status === 'Escalated'
+  const emergency = isEmergencyReferral(item)
   // Before a grant the pool's own complaint is shown; after it, the grant-checked review wins.
   const poolComplaint = item.mine ? null : (item.complaint ?? null)
   const facts = complaint.kind === 'ready' ? complaint.episode : poolComplaint
@@ -204,6 +208,11 @@ export function CasePreview({ item, open, busy, onClose, onClaim }: CasePreviewP
               {action.label}
             </Link>
             <p className="care-caption">The clinical decision is made on the Approval Desk.</p>
+          </>
+        ) : action.kind === 'follow-up' ? (
+          <>
+            <p className="care-caption">{action.message}</p>
+            <EmergencyFollowUp key={item.id} caseId={item.id} caseRef={caseReference(item)} onDone={onFollowUp} />
           </>
         ) : (
           <p className="care-caption">{action.message}</p>

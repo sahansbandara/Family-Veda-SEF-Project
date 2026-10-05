@@ -51,6 +51,7 @@ public static class DependencyInjection
         services.AddHttpClient<IPushNotificationClient, FcmPushNotificationClient>(client =>
             client.BaseAddress = new Uri("https://fcm.googleapis.com/"));
         services.AddScoped<IClinicalService, ClinicalService>();
+        services.AddScoped<IEmergencyFollowUpService, EmergencyFollowUpService>();
         services.AddSingleton<ITriageWorkQueue, TriageWorkQueue>();
         services.AddSingleton<SafetyValidationService>();
         // Provider chain: Gemini (primary, if configured) -> Groq (openai-compatible,
