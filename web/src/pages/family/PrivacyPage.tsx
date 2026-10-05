@@ -198,7 +198,7 @@ function HeadPrivacy() {
       apiClient.get<FamilyDto>('/families/me'),
       apiClient.get<MemberDto>('/members/me'),
     ])
-    const loadConsents = (id: string) => apiClient.get<ConsentDto[]>(`/members/${id}/consents`).then((r) => r.data).catch(() => [] as ConsentDto[])
+    const loadConsents = (id: string) => apiClient.get<ConsentDto[]>(`/members/${id}/consents`).then((r) => r.data)
     const others = family.members.filter((member) => member.id !== mine.id)
     const loaded = await Promise.all(others.map(async (member): Promise<HeadMember> => {
       if (member.role === 'MinorMember') return { member, sharedCount: 0, consents: await loadConsents(member.id) }

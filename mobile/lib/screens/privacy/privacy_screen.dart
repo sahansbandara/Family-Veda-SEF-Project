@@ -202,7 +202,7 @@ class _HeadPrivacyState extends ConsumerState<_HeadPrivacy> {
   }
 
   Future<List<ConsentSetting>> _consentsFor(String id) =>
-      ref.read(privacyApiProvider).getConsents(id).catchError((_) => <ConsentSetting>[]);
+      ref.read(privacyApiProvider).getConsents(id);
 
   Future<void> _loadMembers() async {
     final api = ref.read(privacyApiProvider);

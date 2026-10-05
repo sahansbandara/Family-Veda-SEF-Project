@@ -410,7 +410,7 @@ class _AccountSection extends StatelessWidget {
             ),
           if (role != null)
             TextButton.icon(
-              onPressed: () => context.push('/family'),
+              onPressed: () => context.push('/members'),
               icon: const Icon(Icons.groups_outlined),
               label: const Text('Manage family'),
             ),
