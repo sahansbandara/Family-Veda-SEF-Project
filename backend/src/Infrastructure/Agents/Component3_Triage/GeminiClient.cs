@@ -46,7 +46,7 @@ public sealed class GeminiClient(HttpClient httpClient, IOptions<GeminiOptions> 
             _ => ""
         };
 
-        var fullSystemPrompt = systemPrompt + typeHint;
+        var fullSystemPrompt = systemPrompt + typeHint + AgentOutputPrompt.WordingGuard;
 
         Exception? lastError = null;
         for (var attempt = 0; attempt < 2; attempt++)

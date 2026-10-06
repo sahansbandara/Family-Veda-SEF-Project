@@ -38,6 +38,16 @@ public sealed class GeminiKeyPoolTests
     }
 
     [Fact]
+    public async Task Prompt_AsksModelToAvoidCommandVerbsBlockedBySafetyValidator()
+    {
+        var handler = new KeyHandler();
+        await Create(handler, new GeminiOptions { ApiKeys = ["synthetic-a"] }).GenerateStructuredAsync<AnalysisFindingsOutput>("Synthetic", new { }, CancellationToken.None);
+        using var body = JsonDocument.Parse(handler.Body!);
+        var prompt = body.RootElement.GetProperty("systemInstruction").GetProperty("parts")[0].GetProperty("text").GetString()!;
+        prompt.Should().Contain("Never use the words take, start, stop, continue, increase, decrease");
+    }
+
+    [Fact]
     public async Task CancelledRequest_DoesNotSendPoolKey()
     {
         var handler = new KeyHandler();
@@ -72,9 +82,11 @@ public sealed class GeminiKeyPoolTests
     private sealed class KeyHandler(HttpStatusCode status = HttpStatusCode.OK) : HttpMessageHandler
     {
         public System.Collections.Concurrent.ConcurrentBag<string> Keys { get; } = [];
+        public string? Body { get; private set; }
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             Keys.Add(request.Headers.GetValues("x-goog-api-key").Single());
+            Body = request.Content!.ReadAsStringAsync(cancellationToken).GetAwaiter().GetResult();
             var envelope = JsonSerializer.Serialize(new { candidates = new[] { new { content = new { parts = new[] { new { text = CloudflareClientTests.ContextJson } } } } } });
             return Task.FromResult(new HttpResponseMessage(status) { Content = new StringContent(envelope) });
         }
