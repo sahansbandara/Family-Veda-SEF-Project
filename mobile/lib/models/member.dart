@@ -9,6 +9,7 @@ class Member {
     required this.relationshipLabel,
     this.dateOfBirth,
     this.sexForClinicalReference = 'NotSpecified',
+    this.isSelf = false,
   });
 
   factory Member.fromJson(Map<String, dynamic> json) => Member(
@@ -20,6 +21,7 @@ class Member {
     dateOfBirth: (json['dateOfBirth'] ?? json['dob']) as String?,
     sexForClinicalReference:
         (json['sexForClinicalReference'] ?? 'NotSpecified') as String,
+    isSelf: json['isSelf'] == true,
   );
 
   final String id;
@@ -28,4 +30,8 @@ class Member {
   final String? dateOfBirth;
   /// Selects the printed lab reference range only; never used to infer anything.
   final String sexForClinicalReference;
+
+  /// The signed-in user's own profile. A Family Head's list also holds minors, so
+  /// "first in the list" is not a safe default member.
+  final bool isSelf;
 }

@@ -171,7 +171,7 @@ class _RequestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final reference = item.id.length > 8 ? item.id.substring(0, 8) : item.id;
+    final reference = item.reference;
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       clipBehavior: Clip.antiAlias,

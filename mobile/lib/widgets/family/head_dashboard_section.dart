@@ -249,6 +249,7 @@ class _Hero extends StatelessWidget {
 
                 // Subtitle: Family Code + Family-level care description
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (dashboard.familyCode != null)
                       Text(
@@ -272,8 +273,6 @@ class _Hero extends StatelessWidget {
                           height: 1.35,
                           color: Color(0xFFE0EDFE),
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],

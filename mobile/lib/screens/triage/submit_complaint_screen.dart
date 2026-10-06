@@ -10,6 +10,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+/// "1 day" / "2 days"; falls back to the raw text when it is not a number.
+String formatDurationDays(String raw) {
+  final days = int.tryParse(raw.trim());
+  if (days == null) return '$raw days';
+  return days == 1 ? '1 day' : '$days days';
+}
+
 class SubmitComplaintScreen extends ConsumerStatefulWidget {
   const SubmitComplaintScreen({super.key, this.replacementCase});
 
@@ -198,8 +205,15 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           for (int i = 0; i < 3; i++) ...[
-                            Flexible(
+                            Expanded(
+                              flex: 3,
                               child: TextButton(
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 4,
+                                  ),
+                                ),
                                 onPressed: i < _step
                                     ? () => setState(() => _step = i)
                                     : null,
@@ -226,10 +240,14 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
                                       ),
                                     ),
                                     const SizedBox(height: 4),
-                                    Text(
-                                      ['Symptoms', 'Details', 'Review'][i],
-                                      style: TextStyle(fontSize: 12),
-                                      overflow: TextOverflow.ellipsis,
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        ['Symptoms', 'Details', 'Review'][i],
+                                        style: const TextStyle(fontSize: 12),
+                                        maxLines: 1,
+                                        softWrap: false,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -253,6 +271,7 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
                       labelText: 'Who is this request for?',
                       helperText:
                           'Only members you are authorized to submit for appear here.',
+                      helperMaxLines: 3,
                     ),
                     items: members
                         .map(
@@ -410,25 +429,31 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
                           'Symptoms and description',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        Wrap(
-                          spacing: 4,
-                          children: [
-                            ..._selectedSymptoms.map(
-                              (s) => Chip(label: Text(s)),
+                        if (_selectedSymptoms.isNotEmpty)
+                          Wrap(
+                            spacing: 4,
+                            children: [
+                              for (final s in _selectedSymptoms)
+                                Chip(label: Text(s)),
+                            ],
+                          ),
+                        if (_typedSymptomsController.text.trim().isNotEmpty)
+                          Padding(
+                            padding: EdgeInsets.only(
+                              top: _selectedSymptoms.isNotEmpty ? 8 : 0,
                             ),
-                            ..._typedSymptomsController.text
-                                .split(',')
-                                .where((s) => s.trim().isNotEmpty)
-                                .map((s) => Chip(label: Text(s.trim()))),
-                          ],
-                        ),
+                            child: Text(
+                              _typedSymptomsController.text.trim(),
+                              key: const Key('review_description'),
+                            ),
+                          ),
                         const SizedBox(height: 12),
                         const Text(
                           'Further details',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          'Duration: ${_durationController.text} days · Severity: ${_severity == 3
+                          'Duration: ${formatDurationDays(_durationController.text)} · Severity: ${_severity == 3
                               ? 'Mild'
                               : _severity == 6
                               ? 'Moderate'
@@ -467,16 +492,35 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
                   ),
                 ),
               ],
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: _buildActionBar(context),
+    );
+  }
 
-              if (_error != null) ...[
-                const SizedBox(height: 16),
-                Text(
-                  _error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+  Widget _buildActionBar(BuildContext context) {
+    return Material(
+      elevation: 8,
+      color: Theme.of(context).colorScheme.surface,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_error != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    _error!,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
                 ),
-              ],
-
-              const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -541,7 +585,7 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 8),
               Text(
                 _step == 0
                     ? 'Step 1 of 3 · Select at least one symptom.'

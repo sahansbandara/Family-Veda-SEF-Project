@@ -4,11 +4,14 @@ import 'package:family_veda/models/app_notification.dart';
 import 'package:family_veda/models/member.dart';
 import 'package:family_veda/models/triage_case.dart';
 import 'package:family_veda/providers/active_member_provider.dart';
+import 'package:family_veda/providers/auth_provider.dart';
 import 'package:family_veda/providers/cases_provider.dart';
 import 'package:family_veda/providers/core_providers.dart';
 import 'package:family_veda/providers/members_provider.dart';
 import 'package:family_veda/providers/notifications_provider.dart';
+import 'package:family_veda/services/api/auth_api.dart';
 import 'package:family_veda/services/api/patient_api.dart';
+import 'package:family_veda/services/storage/secure_token_store.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -44,12 +47,49 @@ class _FakePatientApi implements PatientApi {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class _SignedInAuthApi extends Fake implements AuthApi {
+  @override
+  Future<AuthTokens> refresh(String refreshToken) async => const AuthTokens(
+    userId: 'user-1',
+    accessToken: 'access',
+    refreshToken: 'refresh-2',
+  );
+}
+
+class _SignedInTokenStore extends Fake implements TokenStore {
+  @override
+  Stream<void> get sessionExpirations => const Stream.empty();
+
+  @override
+  Future<bool> isCleanupPending() async => false;
+
+  @override
+  Future<String?> readRefreshToken() async => 'refresh-1';
+
+  @override
+  Future<void> writeTokens({
+    required String accessToken,
+    required String refreshToken,
+  }) async {}
+}
+
 void main() {
   test('patient list providers use API and active member scope', () async {
     final container = ProviderContainer(
-      overrides: [patientApiProvider.overrideWithValue(_FakePatientApi())],
+      overrides: [
+        patientApiProvider.overrideWithValue(_FakePatientApi()),
+        authProvider.overrideWith(
+          (_) => AuthController(
+            authApi: _SignedInAuthApi(),
+            tokenStore: _SignedInTokenStore(),
+          ),
+        ),
+      ],
     );
     addTearDown(container.dispose);
+    // Members load only once sign-in has finished.
+    container.read(authProvider);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
     container.read(activeMemberProvider.notifier).state = 'member-1';
 
     expect(
