@@ -1,0 +1,11 @@
+{
+  "caseId": "c5d100ec-860d-4130-baf4-6ac9d279a30a",
+  "caseNumber": 3,
+  "patientAccount": "demo-member@example.invalid",
+  "status": "Approved",
+  "latestDecisionAction": "Approve",
+  "latestDecisionReason": null,
+  "failureCodeStoredBeforeFix": "DOCTOR_RESPONSE_DELAY",
+  "privacyAssertion": "PASS: patient DTO carries no doctor note",
+  "note": "Same seeded case 0003 that exposed the note before the fix; API restarted on the fixed build (develop 982ab67). The stored DOCTOR_RESPONSE_DELAY marker predates the fix; the clients now ignore it once a decision exists."
+}

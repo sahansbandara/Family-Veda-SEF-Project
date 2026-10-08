@@ -45,13 +45,13 @@ The supplied DEF-001–DEF-008 identifiers are separate from retained D-001–D-
 
 ### QMSE-20261008-01 — Doctor-only internal note visible to patient
 
-Severity: **HIGH**. Status: Fixed in commit `bed063f` ([PR #176](https://github.com/sahansbandara/Family-Veda-SEF-Project/pull/176)); automated retest Passed; connected-client visual retest not yet repeated.
+Severity: **HIGH**. Status: Fixed in commit `bed063f` ([PR #176](https://github.com/sahansbandara/Family-Veda-SEF-Project/pull/176)); automated retest Passed; the same approved case was re-viewed on web and Flutter after the fix (document 09).
 
 Precondition: seeded Adult case0003 pending review in isolated DB. Web Doctor enters a harmless marker in Internal Clinical Notes (labelled doctor-only), approves with existing final-guidance template. Patient GET case returns the marker in latestDecisionReason; Flutter renders it under Doctor response. Expected: internal notes never enter patient DTO/UI. Actual: exact marker exposed. Source: Infrastructure/Component3_Triage/Triage/TriageService.cs:353 maps DoctorNotes to LatestDecisionReason; mobile/lib/screens/triage/case_status_screen.dart:98 and web/src/pages/triage/TriagePage.tsx:592 render it. Web patient rendering is source-confirmed, not independently UI-run in this session.
 
 ### QMSE-20261008-02 — Approved case retains delayed-review state and hides guidance button
 
-Severity: **HIGH** functional. Status: Fixed in commit `bed063f` ([PR #176](https://github.com/sahansbandara/Family-Veda-SEF-Project/pull/176)); automated retest Passed; connected-client visual retest not yet repeated.
+Severity: **HIGH** functional. Status: Fixed in commit `bed063f` ([PR #176](https://github.com/sahansbandara/Family-Veda-SEF-Project/pull/176)); automated retest Passed; the same approved case was re-viewed on web and Flutter after the fix (document 09).
 
 Same case became Approved; approved-guidance returned200 with the selected final text. failureCode remained DOCTOR_RESPONSE_DELAY. Flutter delayed branch displayed doctor-not-responded warning and suppressed View approved guidance. Expected: approval clears/reconciles obsolete delay and offers approved guidance. Actual: contradictory terminal/progress state. See mobile/lib/screens/triage/case_status_screen.dart:83–115 and current patient response/accessibility evidence.
 
