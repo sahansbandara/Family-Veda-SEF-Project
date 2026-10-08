@@ -70,3 +70,22 @@ Same case became Approved; approved-guidance returned200 with the selected final
 Fix summary: the patient case DTO no longer carries `Approval.DoctorNotes`; both clients stopped rendering `latestDecisionReason`; a final doctor decision clears `DOCTOR_RESPONSE_DELAY`, and the Flutter status screen ignores that marker once a decision exists. No migration. Consequence to note: patients now see only the fixed decision label for Request-information and Reject decisions, not free text.
 
 Rerun: `dotnet test backend/tests/IntegrationTests/FamilyVeda.IntegrationTests.csproj --filter "FullyQualifiedName~ApprovedCase_NeverReturnsInternalDoctorNotes"`.
+
+
+### QMSE-20261008-03 — Adult sees errors on Head-only family tabs (was OBS-IOS-01)
+
+Severity: **MEDIUM**. Status: Fixed; automated retest Passed; not re-run on a device.
+
+Cause: the Flutter Members screen showed Join Requests and Invitations to every user and loaded two providers whose endpoints are Head-only, so an Adult got "Something went wrong". Fix: those tabs and providers are used only for a Family Head; Adults keep Members, incoming invitations and Settings. The React app already hid these for Adults.
+
+| Step | Result | Evidence |
+|---|---|---|
+| Before fix, new widget test "hides Head-only tabs and never calls Head-only providers for an Adult" | Failed | [05-before-fix-flutter-adult-family.txt](evidence/2026-10-08-defect-retest/05-before-fix-flutter-adult-family.txt) |
+| After fix, `members_screen_test.dart` | 2 passed | [06-after-fix-flutter-adult-family.txt](evidence/2026-10-08-defect-retest/06-after-fix-flutter-adult-family.txt) |
+| Full Flutter suite and analyze | 258 passed; no issues | same run |
+
+### QMSE-20261008-04 — API journey script expected 404 for a private record list
+
+Severity: **LOW** (test defect, not a product defect). Status: Fixed.
+
+`scripts/e2e/synthetic_portal_journey.py` expected 404 when a Head lists an adult's records. The tested contract (`AdultReportSharingTests`) is an empty list with 200 for lists and 404 for single-record reads; no private data was returned. The script now asserts the empty list, and its doctor lookup no longer depends on a stale display name. The script has not been re-run end to end since this change.

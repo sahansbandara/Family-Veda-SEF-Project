@@ -92,3 +92,17 @@ Existing `scripts/e2e/synthetic_portal_journey.py` was executed on the same loca
 
 ![12-ios-case0003-approved-internal-notes-visible](evidence/2026-10-08-connected-e2e/12-ios-case0003-approved-internal-notes-visible.png)
 
+
+
+## Hosted-agent golden journey — 8 October (after the defect fix)
+
+The fresh case in the run above failed safe because the local API had no working provider configuration. The journey was repeated with the provider keys loaded, using `scripts/e2e/hosted_agent_golden_journey.py` against a disposable database and a local API (port 5095). The agents called the hosted Gemini model; all data is synthetic.
+
+| Variant | Case ID | Pipeline outcome | Checks |
+|---|---|---|---|
+| Seeded member with recorded vitals and labs | `942a0b6d-3293-4d3b-8cfe-6e85b3ce3eff` | PendingDoctorReview in 30.1 s; Context 0.90 and Analysis 0.88 confidence; draft advisory produced | 11 passed, 0 failed |
+| Newly registered member with no health data | `a36a0387-89ce-4444-8257-bf437e0f3b02` | LowConfidence in 20.2 s; agents report NoData; no draft advisory | 10 passed, 0 failed |
+
+Checks in each run: guidance returns 404 before any decision; a family user gets 403 on the doctor-only review; every completed agent step is schema-valid and uses only allow-listed tools (none denied); guidance is still 404 after the agents finish; the family progress view carries step metadata only; after the doctor approves, the family reads the approved guidance; the internal doctor note is absent from every patient response; no overdue-review marker remains.
+
+This is an API-driven run (no screens), so it complements the visual client run above rather than replacing it. Rerun: start a local API with the provider keys and `Seed__Enabled=true`, then `FV_TEST_PASSWORD=<private> FV_TEST_SEEDED_HEAD_EMAIL=demo-head@example.invalid python3 scripts/e2e/hosted_agent_golden_journey.py` (omit the e-mail variable for the new-member variant). Evidence: [seeded member](evidence/2026-10-08-hosted-golden/journey-seeded-member.txt) · [new member](evidence/2026-10-08-hosted-golden/journey-new-member-low-confidence.txt).

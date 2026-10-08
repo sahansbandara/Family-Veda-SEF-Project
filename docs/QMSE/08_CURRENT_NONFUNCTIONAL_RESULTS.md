@@ -84,3 +84,36 @@ Independent disposable database/API5061, OpenAPI scan with synthetic Head authen
 ## Environment observation
 
 Chrome rejects API port5060 with ERR_UNSAFE_PORT. Direct API/performance requests on5060 worked; connected browser E2E uses5080 and React5175 instead. This is a test-environment setup correction, not an application defect fix.
+
+
+## Doctor and Admin ZAP scans — 8 October
+
+Same method as the Head scan, each on a fresh disposable database and local API (port 5091), authenticated with the seeded synthetic Doctor and Admin accounts.
+
+| Role | PASS | FAIL | WARN | High | Medium | Low | Informational |
+|---|---|---|---|---|---|---|---|
+| Head | 117 | 0 | 2 | 0 | 0 | 2 types / 4 instances | 3 types |
+| Doctor | 117 | 0 | 2 | 0 | 0 | 2 types / 7 instances | 3 types (459 client-error responses) |
+| Admin | 117 | 0 | 2 | 0 | 0 | 2 types / 7 instances | 3 types (469 client-error responses) |
+
+Role-only routes answered 200 under the matching token (`/doctors/me`, `/doctors/me/cases`; `/admin/doctors`, `/admin/family-heads`). The two Low warning types (Cross-Origin-Resource-Policy header, unexpected Content-Type on Swagger) are the same for all roles and remain open. Evidence: [Doctor](evidence/2026-10-08-zap-doctor/SUMMARY.md) · [Admin](evidence/2026-10-08-zap-admin/SUMMARY.md).
+
+## Write-path and ramped load — 8 October
+
+Script `scripts/e2e/local_write_load_profile.py`, local API and disposable database, synthetic Family Head.
+
+| Write path | Requests | Result | p50 | p95 |
+|---|---|---|---|---|
+| Create symptom episode | 20 | 20 × 201 | 3.8 ms | 6.6 ms |
+| Submit triage case | 20 | 20 × 202 | 10.9 ms | 16.4 ms |
+
+Ramp on `GET /dashboard/family`, 2,000 requests per step, zero failed and zero non-2xx at every step:
+
+| Concurrency | Requests/s | p50 | p95 | p99 |
+|---|---|---|---|---|
+| 10 | 371 | 24 ms | 45 ms | 70 ms |
+| 25 | 432 | 53 ms | 90 ms | 113 ms |
+| 50 | 447 | 104 ms | 165 ms | 227 ms |
+| 100 | 437 | 208 ms | 367 ms | 407 ms |
+
+Interpretation: throughput levels off at about 430–450 requests/s from concurrency 25, after which extra load only adds latency. At 100 concurrent connections a separate `psql` session was refused with "too many clients", so the database connection limit is the first resource to saturate; the API itself returned no errors. No LLM keys were supplied in this run, so the 20 submitted cases ended `FailedSafe` / `AGENT_UNAVAILABLE` and agent latency is not part of these figures. Limits: one local machine, Debug build with SQL logging, one read endpoint, sequential writes. Evidence: [summary and rerun command](evidence/2026-10-08-nonfunctional/SUMMARY-write-ramp.md) · [raw output](evidence/2026-10-08-nonfunctional/write-and-ramp-load-profile.txt).
