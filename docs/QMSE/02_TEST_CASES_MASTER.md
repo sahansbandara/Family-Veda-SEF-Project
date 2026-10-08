@@ -56,52 +56,52 @@ Of the 41 cases, 39 are Pass (two with stated scope qualifications and two after
 
 
 
-## Supplied candidate scenarios — not verified executions
+## Candidate scenarios traced to automated tests
 
-The supplied file states 44 cases but contains 41 case rows. These are retained as planning candidates; their original PASS/actual claims are not accepted without a matching test method, command, revision and log. Endpoint names, response codes, bounds and safety expectations must be checked against current code before execution. The supplied example password is intentionally omitted.
+The trace was done on 8 October against the retained result files in `evidence/2026-10-08-tests/`; rows without an automated test remain not executed.
 
-| Candidate ID | Category | Layer | Scenario | Status |
+| Candidate ID | Category | Layer | Scenario | Automated test trace |
 |---|---|---|---|---|
-| TC-S1-001 | Normal | Backend API | User registration with valid synthetic credentials | Not verified; planned only |
-| TC-S1-002 | Invalid | Backend API | Register with invalid email format | Not verified; planned only |
-| TC-S1-003 | Boundary | Web (Vitest) | Password length boundary validation | Not verified; planned only |
-| TC-S1-004 | Failure | Backend API | Login with incorrect password | Not verified; planned only |
-| TC-S1-005 | Normal | Backend Unit | Consent State Machine grant transition | Not verified; planned only |
-| TC-S1-006 | Invalid | Backend Unit | Consent Revocation invalid transition | Not verified; planned only |
-| TC-S1-007 | Security | Backend API | RBAC unauthorized endpoint access | Not verified; planned only |
-| TC-S1-008 | Security | Backend Unit | Tool Dispatcher unauthorized tool denial | Not verified; planned only |
-| TC-S1-009 | Normal | Mobile (Flutter) | Login screen widget rendering and successful submission | Not verified; planned only |
-| TC-S1-010 | Boundary | Database | Unique constraint on User Email | Not verified; planned only |
-| TC-S2-001 | Normal | Backend API | Upsert manual health record with vitals | Not verified; planned only |
-| TC-S2-002 | Invalid | Backend API | Record vitals with negative numbers | Not verified; planned only |
-| TC-S2-003 | Boundary | Backend Unit | Lab extraction parser upper reference boundary | Not verified; planned only |
-| TC-S2-004 | Failure | Backend Unit | Lab report parser on unreadable / corrupted file | Not verified; planned only |
-| TC-S2-005 | Normal | Web (Vitest) | Recorded Range Visual component indicator | Not verified; planned only |
-| TC-S2-006 | Boundary | Web (Vitest) | Empty record list rendering | Not verified; planned only |
-| TC-S2-007 | Normal | Mobile (Flutter) | Lab report file picker and upload preview | Not verified; planned only |
-| TC-S2-008 | Database | Database | Foreign key cascade deletion rule | Not verified; planned only |
-| TC-S2-009 | Failure | Backend Unit | Lab extraction safety with synthetic clinical override | Not verified; planned only |
-| TC-S2-010 | Boundary | Database | JSONB LabValues serialization bounds | Not verified; planned only |
-| TC-S3-001 | Normal | Backend API | Submit symptom triage complaint | Not verified; planned only |
-| TC-S3-002 | Invalid | Backend API | Submit empty complaint description | Not verified; planned only |
-| TC-S3-003 | Boundary | Backend API | Maximum symptom character limit check | Not verified; planned only |
-| TC-S3-004 | Failure | AI Evaluation | LLM Provider Timeout & Fallback Execution | Not verified; planned only |
-| TC-S3-005 | Failure | AI Evaluation | All LLM Providers Offline (Safe Failure) | Not verified; planned only |
-| TC-S3-006 | Security | AI Evaluation | Prompt Injection & Jailbreak Defense | Not verified; planned only |
-| TC-S3-007 | Normal | Web (Vitest) | Triage Agent Pipeline visual stages | Not verified; planned only |
-| TC-S3-008 | Normal | Mobile (Flutter) | Submit complaint screen chip selector | Not verified; planned only |
-| TC-S3-009 | Performance | k6 Load Test | Triage API concurrency load test | Not verified; planned only |
-| TC-S3-010 | Normal | Backend Unit | Case SLA Background Processor | Not verified; planned only |
-| TC-S3-011 | Normal | Backend Unit | Structured JSON-Schema Output Validation | Not verified; planned only |
-| TC-S4-001 | Normal | Backend API | Verified Doctor reviews and approves case | Not verified; planned only |
-| TC-S4-002 | Security | Backend API | Doctor attempts to approve ungranted case | Not verified; planned only |
-| TC-S4-003 | Failure | Backend Unit | Clinical Safety Rule 1: Zero Diagnosis Language | Not verified; planned only |
-| TC-S4-004 | Failure | Backend Unit | Clinical Safety Rule 6: Prohibited Drug Dosing | Not verified; planned only |
-| TC-S4-005 | Normal | Backend Unit | Clinical Safety Rule 10: Chest Pain Emergency Bypass | Not verified; planned only |
-| TC-S4-006 | Normal | Backend Unit | Familial Risk Pedigree Screening Indication | Not verified; planned only |
-| TC-S4-007 | Normal | Web (Vitest) | Doctor Approvals Page card and decision buttons | Not verified; planned only |
-| TC-S4-008 | Boundary | Web (Vitest) | Doctor Approval Notes character boundary | Not verified; planned only |
-| TC-S4-009 | Normal | E2E Integration | Complete Cross-Platform Clinical Lifecycle Workflow | Not verified; planned only |
-| TC-S4-010 | Normal | Web (Vitest) | Safety Rules badge display check | Not verified; planned only |
+| TC-S1-001 | Normal | Backend API | User registration with valid synthetic credentials | Covered — backend/tests/IntegrationTests/Component1_Family/RegistrationFlowTests.cs::FamilyHead_RegistersAtomically_WithProfile_AndNeverStoresRawNic — Passed 8 Oct (backend-integration.trx) |
+| TC-S1-002 | Invalid | Backend API | Register with invalid email format | No automated test found — not executed (RegistrationValidatorTests has no email-format case) |
+| TC-S1-003 | Boundary | Web (Vitest) | Password length boundary validation | Partly covered — backend/tests/UnitTests/Component1_Family/RegistrationValidatorTests.cs::Password_RequiresMinimumLength — Passed 8 Oct (backend-unit.trx); backend validator rejects short passwords only; the exact accepted boundary and the Web (Vitest) form check are not covered |
+| TC-S1-004 | Failure | Backend API | Login with incorrect password | Partly covered — mobile/test/services/auth_api_error_test.dart::failed sign-in (403 from /auth/login) reads as bad credentials — suite passed: 256 tests, 0 failed (flutter-tests.txt); client error message mapping only, backend login rejection is not tested |
+| TC-S1-005 | Normal | Backend Unit | Consent State Machine grant transition | Covered — backend/tests/UnitTests/Component1_Family/ConsentStateMachineTests.cs::CanTransition_WhenAdultPersonallyReaffirms_AllowsGrantedState — Passed 8 Oct (backend-unit.trx) |
+| TC-S1-006 | Invalid | Backend Unit | Consent Revocation invalid transition | No automated test found — not executed (ConsentStateMachineTests asserts only allowed transitions) |
+| TC-S1-007 | Security | Backend API | RBAC unauthorized endpoint access | Covered — backend/tests/IntegrationTests/Component1_Family/AuthAndPatientFlowTests.cs::PendingDoctor_IsForbiddenFromEveryClinicalQueueAndDecisionSurface — Passed 8 Oct (backend-integration.trx) |
+| TC-S1-008 | Security | Backend Unit | Tool Dispatcher unauthorized tool denial | Covered — backend/tests/UnitTests/Component1_Family/ToolDispatcherTests.cs::DeniedTool_IsPersisted_AndThrowsHardError — Passed 8 Oct (backend-unit.trx) |
+| TC-S1-009 | Normal | Mobile (Flutter) | Login screen widget rendering and successful submission | Partly covered — mobile/test/screens/login_screen_test.dart::login screen renders web-aligned clinical workspace card and controls — suite passed: 256 tests, 0 failed (flutter-tests.txt); rendering of controls only, successful submission through the screen is not tested |
+| TC-S1-010 | Boundary | Database | Unique constraint on User Email | No automated test found — not executed (MigrationTests checks other unique indexes, not the user email) |
+| TC-S2-001 | Normal | Backend API | Upsert manual health record with vitals | Partly covered — backend/tests/IntegrationTests/Component1_Family/AuthAndPatientFlowTests.cs::FamilyUser_CanCompleteAuthenticatedRecordAndTriageFlow_ButCannotReadUnapprovedGuidance — Passed 8 Oct (backend-integration.trx); posts a Note record (201) only, vitals upsert is not exercised |
+| TC-S2-002 | Invalid | Backend API | Record vitals with negative numbers | No automated test found — not executed |
+| TC-S2-003 | Boundary | Backend Unit | Lab extraction parser upper reference boundary | Covered — backend/tests/UnitTests/Component4_Clinical/LabRangeClassifierTests.cs::Classify_UsesInclusivePrintedBounds — Passed 8 Oct (backend-unit.trx) (range classifier at the printed upper bound, not the OCR parser itself) |
+| TC-S2-004 | Failure | Backend Unit | Lab report parser on unreadable / corrupted file | Covered — backend/tests/UnitTests/Component2_Records/LabExtractionSafetyTests.cs::ExtractAsync_WhenRecognizedRowsAreZero_FailsWithoutWritingValuesOrFlags — Passed 8 Oct (backend-unit.trx); related: LabReportDurableStorageTests::Upload_RejectsPdfWithWrongSignatureOrMismatchedType |
+| TC-S2-005 | Normal | Web (Vitest) | Recorded Range Visual component indicator | Covered — web/src/components/records/RecordedRangeVisual.test.tsx::uses the confirmed value and source interval with its unit — suite passed: 57 files, 343 tests, 0 failed (web-tests.txt) |
+| TC-S2-006 | Boundary | Web (Vitest) | Empty record list rendering | Partly covered — web/src/components/shared/ViewState.test.tsx::explains empty state — suite passed: 57 files, 343 tests, 0 failed (web-tests.txt); generic EmptyState component only, the records list empty rendering is not tested |
+| TC-S2-007 | Normal | Mobile (Flutter) | Lab report file picker and upload preview | Partly covered — mobile/test/screens/records_screen_test.dart::lab upload screen is camera capture with no clinical advice — suite passed: 256 tests, 0 failed (flutter-tests.txt); checks the Take photo and Choose image controls only, file picking and upload preview are not tested |
+| TC-S2-008 | Database | Database | Foreign key cascade deletion rule | Partly covered — backend/tests/UnitTests/Component2_Records/LabReportTrashTests.cs::PermanentDelete_RequiresTrashFirst_ThenRemovesRowsAndKeepsConfirmedFlagAndAudit — Passed 8 Oct (backend-unit.trx); service-level removal of child rows, the PostgreSQL foreign-key cascade rule itself is not asserted |
+| TC-S2-009 | Failure | Backend Unit | Lab extraction safety with synthetic clinical override | Partly covered — backend/tests/UnitTests/Component2_Records/LabExtractionParserTests.cs::ParseValues_ExtractsStructuredRows_AndIgnoresFreeText — Passed 8 Oct (backend-unit.trx); free text is ignored, but no test feeds an explicit clinical-override instruction through extraction |
+| TC-S2-010 | Boundary | Database | JSONB LabValues serialization bounds | No automated test found — not executed |
+| TC-S3-001 | Normal | Backend API | Submit symptom triage complaint | Covered — backend/tests/IntegrationTests/Component1_Family/AuthAndPatientFlowTests.cs::FamilyUser_CanCompleteAuthenticatedRecordAndTriageFlow_ButCannotReadUnapprovedGuidance — Passed 8 Oct (backend-integration.trx) |
+| TC-S3-002 | Invalid | Backend API | Submit empty complaint description | Partly covered — web/src/pages/triage/TriageJourney.test.tsx::validates symptoms before continuing and keeps drafts when going back — suite passed: 57 files, 343 tests, 0 failed (web-tests.txt); client-side validation only (mobile equivalent: care_workflows_test.dart::symptoms validates before advancing and reviews before submission), backend API rejection is not tested |
+| TC-S3-003 | Boundary | Backend API | Maximum symptom character limit check | No automated test found — not executed |
+| TC-S3-004 | Failure | AI Evaluation | LLM Provider Timeout & Fallback Execution | Covered — backend/tests/UnitTests/LlmFallbackClientTests.cs::ProviderTimeout_CanFallBack — Passed 8 Oct (backend-unit.trx) |
+| TC-S3-005 | Failure | AI Evaluation | All LLM Providers Offline (Safe Failure) | Covered — backend/tests/UnitTests/LlmFallbackClientTests.cs::AllProvidersFail_ReturnsSafeFailure — Passed 8 Oct (backend-unit.trx) |
+| TC-S3-006 | Security | AI Evaluation | Prompt Injection & Jailbreak Defense | No automated test found — not executed (no prompt-injection test in the backend suites) |
+| TC-S3-007 | Normal | Web (Vitest) | Triage Agent Pipeline visual stages | Covered — web/src/pages/doctor/AgentOutputCard.test.tsx::shows the draft, the four agents and the trace together — suite passed: 57 files, 343 tests, 0 failed (web-tests.txt) |
+| TC-S3-008 | Normal | Mobile (Flutter) | Submit complaint screen chip selector | Partly covered — mobile/test/screens/care_workflows_test.dart::symptoms validates before advancing and reviews before submission — suite passed: 256 tests, 0 failed (flutter-tests.txt); validation and free-text entry only, chip selection is not tested |
+| TC-S3-009 | Performance | k6 Load Test | Triage API concurrency load test | No automated test found — not executed (no k6 script in the repository; scripts/e2e/local_write_load_profile.py is a separate sequential 20-case profile, not a concurrency test) |
+| TC-S3-010 | Normal | Backend Unit | Case SLA Background Processor | Covered — backend/tests/UnitTests/Component3_Triage/CaseSlaProcessorTests.cs::OverdueUnclaimedCase_GetsReferralMarker_AndRemainsAvailableForDoctorReview — Passed 8 Oct (backend-unit.trx) |
+| TC-S3-011 | Normal | Backend Unit | Structured JSON-Schema Output Validation | Covered — backend/tests/UnitTests/Component3_Triage/TriageOrchestratorSchemaTests.cs::InvalidAgentSchema_FailsSafe_AndStopsRemainingAgents — Passed 8 Oct (backend-unit.trx) |
+| TC-S4-001 | Normal | Backend API | Verified Doctor reviews and approves case | Covered — backend/tests/IntegrationTests/Shared/GoldenCaseFlowTests.cs::SyntheticGoldenCase_RequiresApprovalBeforeFamilyCanReadGuidance — Passed 8 Oct (backend-integration.trx) |
+| TC-S4-002 | Security | Backend API | Doctor attempts to approve ungranted case | Partly covered — backend/tests/UnitTests/Component3_Triage/TriageReviewReasonsTests.cs::GetCaseReview_WithoutAnActiveGrant_IsDenied — Passed 8 Oct (backend-unit.trx); review read is denied without a grant, the approve endpoint itself is not tested for an ungranted case |
+| TC-S4-003 | Failure | Backend Unit | Clinical Safety Rule 1: Zero Diagnosis Language | Covered — backend/tests/UnitTests/Component4_Clinical/SafetyValidationServiceTests.cs::Validate_WhenDraftContainsDiagnosisOrMedicationInstruction_BlocksContent — Passed 8 Oct (backend-unit.trx) |
+| TC-S4-004 | Failure | Backend Unit | Clinical Safety Rule 6: Prohibited Drug Dosing | Covered — backend/tests/UnitTests/Component4_Clinical/SafetyValidationServiceTests.cs::Validate_WhenDraftContainsDoseOrMalformedConcentration_BlocksDosing — Passed 8 Oct (backend-unit.trx) |
+| TC-S4-005 | Normal | Backend Unit | Clinical Safety Rule 10: Chest Pain Emergency Bypass | Covered — backend/tests/UnitTests/Component3_Triage/TriageOrchestratorEmergencyTests.cs::EmergencyGate_RunsBeforeEveryLlmAgent_AndLeavesNoDraft — Passed 8 Oct (backend-unit.trx) (includes the severe chest pain case) |
+| TC-S4-006 | Normal | Backend Unit | Familial Risk Pedigree Screening Indication | Covered — backend/tests/UnitTests/Component4_Clinical/FamilialRiskAgentTests.cs::RunAsync_ReconcilesUnknownRelativesFromFilteredFacts — Passed 8 Oct (backend-unit.trx) |
+| TC-S4-007 | Normal | Web (Vitest) | Doctor Approvals Page card and decision buttons | Covered — web/src/pages/doctor/ApprovalsPage.test.tsx::keeps decisions disabled until the current review is ready and saves only after confirmation — suite passed: 57 files, 343 tests, 0 failed (web-tests.txt) |
+| TC-S4-008 | Boundary | Web (Vitest) | Doctor Approval Notes character boundary | No automated test found — not executed |
+| TC-S4-009 | Normal | E2E Integration | Complete Cross-Platform Clinical Lifecycle Workflow | Partly covered — backend/tests/IntegrationTests/Shared/GoldenCaseFlowTests.cs::SyntheticGoldenCase_RequiresApprovalBeforeFamilyCanReadGuidance — Passed 8 Oct (backend-integration.trx); backend API lifecycle only, no automated web or Flutter end-to-end test |
+| TC-S4-010 | Normal | Web (Vitest) | Safety Rules badge display check | Partly covered — web/src/pages/doctor/safetyRules.test.ts::passes every check for a clean pipeline — suite passed: 57 files, 343 tests, 0 failed (web-tests.txt); tests the safety-check logic, badge rendering is not tested |
 
 For execution, use the full preconditions/steps/expected/actual/status/evidence template in the [complete pack](ASSIGNMENT_2_COMPLETE_PACK.md). Do not reuse guessed `/api/...` routes where the implementation uses `/api/v1/...`. Classify parser extraction against report-printed reference ranges; do not add patient diagnosis, dosing or automatic clinical advice.

@@ -23,7 +23,7 @@ Reviewed 8 October 2026. Documents supplied by the user are reference drafts, no
 - [x] Fix/retest High internal-note exposure and stale-delay approved-guidance defects: PR #176, automated before/after evidence in 03_DEFECT_LOG.md. Connected visual retest still to repeat.
 - [x] Rechecked PDF pp.1–2: other appropriate tools permitted. Current justified ApacheBench local baseline executed; hosted/write/ramped latency remains outside scope.
 - [x] New isolated ZAP scan and token-free reproduction instructions retained, with two Low warnings and scope limits.
-- [ ] Map candidate scenarios to actual implementation/tests; record actual results only after execution.
+- [x] Candidate scenarios traced to automated tests (document 02): 19 covered, 13 partly covered, 9 with no automated test and therefore not executed.
 - [x] Adult family-tab errors: cause found and fixed with before/after tests (document 03, QMSE-20261008-03). Not re-run on a device.
 - [ ] Each student confirms their contribution, test files, own Git commits and CLEAR declaration in their own words.
 - [ ] Reconcile all placeholders and stale statements in the main report against final dated evidence.
