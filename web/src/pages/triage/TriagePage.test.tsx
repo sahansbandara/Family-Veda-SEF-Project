@@ -75,6 +75,14 @@ describe('TriagePage', () => {
     expect(screen.queryByText('Doctor-approved guidance')).not.toBeInTheDocument()
   })
 
+  it('never renders internal doctor notes in the patient doctor-response card', async () => {
+    routeGet({ id: 'case-1', status: 'Rejected', priority: 'Routine' }, undefined, cases.map((item) => ({ ...item, latestDecisionAction: 'Reject', latestDecisionReason: 'SYNTHETIC-INTERNAL-NOTE-MARKER' })))
+    page()
+    fireEvent.click(await screen.findByRole('button', { name: /Synthetic Member.*Case/ }))
+    expect(await screen.findByText('Doctor response')).toBeInTheDocument()
+    expect(screen.queryByText(/SYNTHETIC-INTERNAL-NOTE-MARKER/)).not.toBeInTheDocument()
+  })
+
   it('requests approved guidance only for exact approval statuses and never fetches patient traces', async () => {
     routeGet(
       { id: 'case-1', status: 'ApprovedRevised', priority: 'Routine' },

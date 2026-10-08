@@ -78,4 +78,16 @@ void main() {
     expect(find.textContaining('has not responded within the expected review window'), findsOneWidget);
     expect(find.textContaining('arrange an in-person clinical review'), findsOneWidget);
   });
+
+  testWidgets('approved case hides a stale delay marker and never shows internal doctor notes', (tester) async {
+    final router = GoRouter(initialLocation: '/case/synthetic-case-04', routes: [GoRoute(path: '/case/:id', builder: (_, state) => CaseStatusScreen(caseId: state.pathParameters['id']!))]);
+    await tester.pumpWidget(ProviderScope(overrides: [caseStatusProvider('synthetic-case-04').overrideWith((ref) => Stream.value(TriageCase(id: 'synthetic-case-04', status: 'APPROVED', failureCode: 'DOCTOR_RESPONSE_DELAY', latestDecisionAction: 'Approve', latestDecisionReason: 'SYNTHETIC-INTERNAL-NOTE-MARKER', submittedAt: DateTime.utc(2026, 8, 4))))], child: MaterialApp.router(routerConfig: router)));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).first, const Offset(0, -400));
+    await tester.pumpAndSettle();
+
+    expect(find.text('View approved guidance'), findsOneWidget);
+    expect(find.textContaining('has not responded within the expected review window'), findsNothing);
+    expect(find.textContaining('SYNTHETIC-INTERNAL-NOTE-MARKER'), findsNothing);
+  });
 }

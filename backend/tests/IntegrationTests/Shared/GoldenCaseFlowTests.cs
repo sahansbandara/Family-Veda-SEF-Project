@@ -98,6 +98,43 @@ public sealed class GoldenCaseFlowTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ApprovedCase_NeverReturnsInternalDoctorNotes_AndClearsStaleDelayMarker()
+    {
+        const string marker = "SYNTHETIC-INTERNAL-NOTE-MARKER-7391";
+        var patient = _factory!.CreateClient();
+        var doctor = _factory.CreateClient();
+        var (_, familyId, memberId) = await RegisterFamilyAsync(patient, "note-privacy-head");
+        await RegisterVerifiedAssignedDoctorAsync(doctor, familyId, "note-privacy-doctor");
+        var caseId = await CreateAndSubmitCaseAsync(patient, memberId, "synthetic routine signal");
+        await RunOrchestratorAsync(caseId);
+
+        // The review window elapsed before the doctor decided, as the SLA processor would record it.
+        await using (var scope = _factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var triageCase = await db.TriageCases.SingleAsync(x => x.Id == caseId);
+            triageCase.FailureCode = "DOCTOR_RESPONSE_DELAY";
+            await db.SaveChangesAsync();
+        }
+
+        var approval = await doctor.PostAsJsonAsync($"/api/v1/triage-cases/{caseId}/approve", new
+        {
+            doctorNotes = marker,
+            finalAdvisory = "Please arrange an in-person clinical review."
+        });
+        approval.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var patientCase = await patient.GetAsync($"/api/v1/triage-cases/{caseId}");
+        patientCase.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await patientCase.Content.ReadAsStringAsync();
+        body.Should().NotContain(marker);
+        body.Should().NotContain("DOCTOR_RESPONSE_DELAY");
+        var patientList = await patient.GetAsync($"/api/v1/members/{memberId}/triage-cases");
+        (await patientList.Content.ReadAsStringAsync()).Should().NotContain(marker);
+        (await (await patient.GetAsync($"/api/v1/triage-cases/{caseId}/approved-guidance")).Content.ReadAsStringAsync()).Should().NotContain(marker);
+    }
+
+    [Fact]
     public async Task PatientWithdrawal_RacesFullDoctorReview_ExactlyOneCanWin()
     {
         var patient = _factory!.CreateClient();
