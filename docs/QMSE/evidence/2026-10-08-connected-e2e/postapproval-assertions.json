@@ -1,0 +1,11 @@
+{
+  "caseId": "c5d100ec-860d-4130-baf4-6ac9d279a30a",
+  "caseNumber": 3,
+  "status": "Approved",
+  "guidanceHttp": 200,
+  "finalAdvisoryMatchesSelectedTemplate": true,
+  "privacyAssertion": "FAIL: patient DTO exposes doctor-only internal note",
+  "staleDelayAssertion": "FAIL: approved case retains DOCTOR_RESPONSE_DELAY",
+  "expectedInternalNoteVisible": false,
+  "actualInternalNoteVisible": true
+}

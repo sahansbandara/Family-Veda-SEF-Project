@@ -1,0 +1,56 @@
+{
+  "case": {
+    "http": 200,
+    "body": {
+      "id": "c5d100ec-860d-4130-baf4-6ac9d279a30a",
+      "episodeId": "df99101f-39e3-4fe7-9132-8396fd842eb1",
+      "memberId": "32ff796d-e2ab-40f4-aa17-48cb50e9f0fc",
+      "status": "Approved",
+      "priority": "Routine",
+      "createdAt": "2026-10-07T13:03:33.192329+00:00",
+      "caseNumber": 3,
+      "memberDisplayName": null,
+      "familyName": null,
+      "referralClosed": false,
+      "submittedAt": "2026-10-07T13:03:33.192329+00:00",
+      "doctorReceivedAt": null,
+      "doctorReviewStartedAt": "2026-10-08T09:17:22.717378+00:00",
+      "canEdit": false,
+      "canWithdraw": false,
+      "submittedEpisode": {
+        "id": "df99101f-39e3-4fe7-9132-8396fd842eb1",
+        "memberId": "32ff796d-e2ab-40f4-aa17-48cb50e9f0fc",
+        "symptoms": [
+          "Fatigue",
+          "Mild headache"
+        ],
+        "durationDays": 2,
+        "severity": 4,
+        "notes": null,
+        "createdAt": "2026-10-07T13:03:33.192329+00:00"
+      },
+      "latestDecisionAction": "Approve",
+      "latestDecisionReason": "Synthetic QMSE test: verify seeded case approval gate and connected client refresh. No real patient decision.",
+      "failureCode": "DOCTOR_RESPONSE_DELAY"
+    }
+  },
+  "/status": {
+    "http": 200,
+    "body": {
+      "id": "c5d100ec-860d-4130-baf4-6ac9d279a30a",
+      "status": "Approved",
+      "priority": "Routine",
+      "failureCode": "DOCTOR_RESPONSE_DELAY"
+    }
+  },
+  "/approved-guidance": {
+    "http": 200,
+    "body": {
+      "caseId": "c5d100ec-860d-4130-baf4-6ac9d279a30a",
+      "status": "Approved",
+      "finalAdvisory": "Please arrange an in-person clinical review.",
+      "approvedAt": "2026-10-08T09:18:11.931678+00:00",
+      "disclaimer": "This clinical decision-support tool does not provide a diagnosis. Guidance is shown only after licensed-doctor approval. In an emergency, seek immediate in-person care."
+    }
+  }
+}

@@ -1,0 +1,754 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for pages/family/MyDoctorPage.tsx</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">pages/family</a> MyDoctorPage.tsx</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">85.81% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>121/141</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">79.33% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>96/121</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">76.08% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>35/46</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">91.5% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>97/106</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line high'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a>
+<a name='L152'></a><a href='#L152'>152</a>
+<a name='L153'></a><a href='#L153'>153</a>
+<a name='L154'></a><a href='#L154'>154</a>
+<a name='L155'></a><a href='#L155'>155</a>
+<a name='L156'></a><a href='#L156'>156</a>
+<a name='L157'></a><a href='#L157'>157</a>
+<a name='L158'></a><a href='#L158'>158</a>
+<a name='L159'></a><a href='#L159'>159</a>
+<a name='L160'></a><a href='#L160'>160</a>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a>
+<a name='L163'></a><a href='#L163'>163</a>
+<a name='L164'></a><a href='#L164'>164</a>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a>
+<a name='L174'></a><a href='#L174'>174</a>
+<a name='L175'></a><a href='#L175'>175</a>
+<a name='L176'></a><a href='#L176'>176</a>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a>
+<a name='L182'></a><a href='#L182'>182</a>
+<a name='L183'></a><a href='#L183'>183</a>
+<a name='L184'></a><a href='#L184'>184</a>
+<a name='L185'></a><a href='#L185'>185</a>
+<a name='L186'></a><a href='#L186'>186</a>
+<a name='L187'></a><a href='#L187'>187</a>
+<a name='L188'></a><a href='#L188'>188</a>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a>
+<a name='L191'></a><a href='#L191'>191</a>
+<a name='L192'></a><a href='#L192'>192</a>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a>
+<a name='L211'></a><a href='#L211'>211</a>
+<a name='L212'></a><a href='#L212'>212</a>
+<a name='L213'></a><a href='#L213'>213</a>
+<a name='L214'></a><a href='#L214'>214</a>
+<a name='L215'></a><a href='#L215'>215</a>
+<a name='L216'></a><a href='#L216'>216</a>
+<a name='L217'></a><a href='#L217'>217</a>
+<a name='L218'></a><a href='#L218'>218</a>
+<a name='L219'></a><a href='#L219'>219</a>
+<a name='L220'></a><a href='#L220'>220</a>
+<a name='L221'></a><a href='#L221'>221</a>
+<a name='L222'></a><a href='#L222'>222</a>
+<a name='L223'></a><a href='#L223'>223</a>
+<a name='L224'></a><a href='#L224'>224</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">215x</span>
+<span class="cline-any cline-yes">215x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">154x</span>
+<span class="cline-any cline-yes">616x</span>
+<span class="cline-any cline-yes">154x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">21x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-yes">43x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">43x</span>
+<span class="cline-any cline-yes">215x</span>
+<span class="cline-any cline-yes">43x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">140x</span>
+<span class="cline-any cline-yes">140x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// Owner: S4 · Familial Risk &amp; Clinical Approval — W.M.S.S.B. Wasala (IT24100559)
+// Approved care-workspace redesign; whole-project ownership waiver applies.
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { ErrorState, LoadingState } from '../../components/shared/ViewState'
+import { useAppSelector } from '../../store/hooks'
+import { apiClient, threePortalApi, doctorWorkspaceApi, type DoctorRequestDto, type DoctorSlotsDto, type DoctorSummaryDto, type FamilyDto } from '../../services/apiClient'
+import { doctorInitials, doctorPlace, extractErrorMessage } from './threePortalUtils'
+import { ConfirmDialog, DoctorDirectory, DoctorProfileDetails, Icon } from './myDoctorParts'
+import '../../styles/my-doctor.css'
+&nbsp;
+const QUICK_DATE_COUNT = 5
+&nbsp;
+function clinicToday() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Colombo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
+}
+function clinicTime(value: string) {
+  return new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Colombo', hour: 'numeric', minute: '2-digit' }).format(new Date(value))
+}
+function addDays(isoDate: string, days: number) {
+  const [year, month, day] = isoDate.split('-').map(Number)
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10)
+}
+/** Calendar-date labels; the ISO date is already a Sri Lanka calendar day, so it is formatted as UTC. */
+function dateParts(isoDate: string) {
+  const date = new Date(`${isoDate}T00:00:00Z`)
+  const format = (options: Intl.DateTimeFormatOptions) =&gt; new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', ...options }).format(date)
+  return { weekday: format({ weekday: 'short' }), day: format({ day: '2-digit' }), month: format({ month: 'short' }), label: format({ weekday: 'short', month: 'short', day: 'numeric' }) }
+}
+&nbsp;
+type DialogState =
+  | { kind: 'profile'; doctor: DoctorSummaryDto }
+  | { kind: 'request'; doctor: DoctorSummaryDto }
+  | { kind: 'cancel'; request: DoctorRequestDto }
+&nbsp;
+export function MyDoctorPage() {
+  const user = useAppSelector((state) =&gt; state.auth.user)
+  const isHead = user?.role === 'FAMILY_HEAD'
+  const [familyId, setFamilyId] = useState&lt;string | null&gt;(null)
+  const [current, setCurrent] = useState&lt;DoctorSummaryDto | null&gt;(null)
+  const [pending, setPending] = useState&lt;DoctorRequestDto | null&gt;(null)
+  const [status, setStatus] = useState&lt;'loading' | 'ready' | 'error'&gt;('loading')
+  const [toast, setToast] = useState&lt;{ text: string; tone: 'success' | 'error' } | null&gt;(null)
+  const [directory, setDirectory] = useState&lt;DoctorSummaryDto[]&gt;([])
+  const [directoryStatus, setDirectoryStatus] = useState&lt;'idle' | 'loading' | 'ready' | 'error'&gt;('idle')
+  const [directoryOpen, setDirectoryOpen] = useState(false)
+  const [dialog, setDialog] = useState&lt;DialogState | null&gt;(null)
+  const [busy, setBusy] = useState(false)
+  const [date, setDate] = useState(clinicToday)
+  const [slots, setSlots] = useState&lt;DoctorSlotsDto | null&gt;(null)
+  const [slotStatus, setSlotStatus] = useState&lt;'loading' | 'ready' | 'error'&gt;('loading')
+  const [selectedSlot, setSelectedSlot] = useState&lt;string | null&gt;(null)
+  const [consultMinutes, setConsultMinutes] = useState&lt;number | null&gt;(null)
+  const [retry, setRetry] = useState(0)
+  const loadSequence = useRef(0)
+  const load = useCallback(async () =&gt; {
+    const sequence = ++loadSequence.current
+    setStatus('loading')
+    try {
+      const { data: family } = await apiClient.get&lt;FamilyDto&gt;('/families/me')
+      const [{ data: doctor }, { data: request }] = await Promise.all([
+        threePortalApi.getFamilyDoctor(family.id),
+        threePortalApi.getPendingFamilyDoctorRequest(family.id),
+      ])
+      <span class="missing-if-branch" title="if path not taken" >I</span>if (sequence !== loadSequence.current) <span class="cstat-no" title="statement not covered" >return</span>
+      setFamilyId(family.id)
+      // 204 No Content arrives as an empty body.
+      setCurrent(doctor || null)
+      setPending(request || null)
+      setStatus('ready')
+    } catch { <span class="cstat-no" title="statement not covered" >if (sequence === loadSequence.current) <span class="cstat-no" title="statement not covered" >setStatus('error') }</span></span>
+  }, [])
+  useEffect(() =&gt; { const lifecycle = loadSequence; void load(); return () =&gt; { lifecycle.current++ } }, [load])
+  useEffect(() =&gt; {
+    if (!familyId || !current || !date) return
+    let active = true
+    setSlots(null)
+    setSelectedSlot(null)
+    setSlotStatus('loading')
+    void doctorWorkspaceApi.getFamilyDoctorSlots(familyId, date).then(({ data }) =&gt; {
+      if (!active) return
+      setSlots(data)
+      setSlotStatus('ready')
+      if (data.availabilityConfigured) setConsultMinutes(data.slotMinutes)
+    }).catch(() =&gt; { <span class="missing-if-branch" title="else path not taken" >E</span>if (active) setSlotStatus('error') })
+    return () =&gt; { active = false }
+  }, [familyId, current, date, retry])
+  const directoryWanted = isHead &amp;&amp; status === 'ready' &amp;&amp; (current ? directoryOpen : !pending)
+  useEffect(() =&gt; {
+    if (!directoryWanted || directoryStatus !== 'idle') return
+    setDirectoryStatus('loading')
+    threePortalApi.getDoctorDirectory().then(({ data }) =&gt; { setDirectory(data); setDirectoryStatus('ready') }).<span class="fstat-no" title="function not covered" >catch(() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etDirectoryStatus('error'))</span>
+  }, [directoryWanted, directoryStatus])
+  function chooseDate(value: string) {
+    setDate(value)
+    setSlots(null)
+    setSelectedSlot(null)
+    setSlotStatus('loading')
+  }
+  useEffect(() =&gt; {
+    if (!toast) return
+    const timer = window.<span class="fstat-no" title="function not covered" >setTimeout(() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etToast(null), 5</span>000)
+    return () =&gt; window.clearTimeout(timer)
+  }, [toast])
+&nbsp;
+  async function sendRequest(doctor: DoctorSummaryDto) {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (!familyId || busy) <span class="cstat-no" title="statement not covered" >return</span>
+    setBusy(true)
+    try {
+      const { data } = await threePortalApi.requestFamilyDoctor(familyId, { doctorId: doctor.id })
+      setPending(data)
+      setDirectoryOpen(false)
+      setToast({ text: current ? <span class="branch-0 cbranch-no" title="branch not covered" >'Change request sent. Your existing doctor stays assigned.' : '</span>Family doctor request sent.', tone: 'success' })
+    } catch (error) { <span class="cstat-no" title="statement not covered" >setToast({ text: extractErrorMessage(error, 'Could not send the request.'), tone: 'error' }) }</span>
+    finally { setBusy(false); setDialog(null) }
+  }
+  async function cancelRequest(request: DoctorRequestDto) {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (!familyId || busy) <span class="cstat-no" title="statement not covered" >return</span>
+    setBusy(true)
+    try {
+      await threePortalApi.cancelFamilyDoctorRequest(familyId, request.id)
+      setPending(null)
+      setToast({ text: current ? <span class="branch-0 cbranch-no" title="branch not covered" >'Change request withdrawn.' : '</span>Request cancelled.', tone: 'success' })
+    } catch (error) {
+<span class="cstat-no" title="statement not covered" >      setToast({ text: extractErrorMessage(error, 'Could not cancel the request.'), tone: 'error' })</span>
+      // The doctor may have answered in the meantime; show what is true now.
+<span class="cstat-no" title="statement not covered" >      void load()</span>
+    }
+    finally { setBusy(false); setDialog(null) }
+  }
+&nbsp;
+  if (status === 'loading') return &lt;LoadingState label="Loading your doctor…" /&gt;
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (status === 'error') <span class="cstat-no" title="statement not covered" >return &lt;ErrorState message="Could not load your doctor." <span class="fstat-no" title="function not covered" >onRetry={() =&gt; <span class="cstat-no" title="statement not covered" >v</span>oid load()} /&gt;</span></span>
+&nbsp;
+  const today = clinicToday()
+  const quickDates = Array.from({ length: QUICK_DATE_COUNT }, (_, index) =&gt; addDays(today, index))
+  const directoryProps = {
+    doctors: directory,
+    status: directoryStatus,
+    currentDoctorId: current?.id,
+    requestDisabled: busy || pending !== null,
+<span class="fstat-no" title="function not covered" >    onRetry: () =&gt; <span class="cstat-no" title="statement not covered" >s</span>etDirectoryStatus('idle'),</span>
+<span class="fstat-no" title="function not covered" >    onView: (d</span>octor: DoctorSummaryDto) =&gt; <span class="cstat-no" title="statement not covered" >setDialog({ kind: 'profile', doctor }),</span>
+    onRequest: (doctor: DoctorSummaryDto) =&gt; setDialog({ kind: 'request', doctor }),
+  }
+  const privacyNote = (title: string, text: string) =&gt; &lt;div className="my-doctor-note"&gt;&lt;Icon name="shield" /&gt;&lt;div&gt;&lt;strong&gt;{title}&lt;/strong&gt;&lt;p&gt;{text}&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;
+&nbsp;
+  return &lt;div className="page-stack care-workspace my-doctor"&gt;
+    &lt;header className="care-header"&gt;&lt;div&gt;&lt;p className="care-eyebrow"&gt;Your long-term care relationship&lt;/p&gt;&lt;h1&gt;My Doctor&lt;/h1&gt;&lt;p className="care-description"&gt;One trusted family doctor, with appointments and care in one place.&lt;/p&gt;&lt;/div&gt;&lt;Link className="button button--secondary my-doctor-header-link" to="/appointments"&gt;&lt;Icon name="calendar" /&gt; My appointments&lt;/Link&gt;&lt;/header&gt;
+&nbsp;
+    {current ? &lt;&gt;
+      &lt;div className="my-doctor-grid"&gt;
+        &lt;section className="care-panel my-doctor-profile" aria-label="Your family doctor"&gt;
+          &lt;div className="my-doctor-section-head"&gt;&lt;div&gt;&lt;p className="care-eyebrow"&gt;Primary family doctor&lt;/p&gt;&lt;h2&gt;Your doctor&lt;/h2&gt;&lt;/div&gt;&lt;span className="my-doctor-tag my-doctor-tag--green"&gt;&lt;i className="my-doctor-dot" aria-hidden="true" /&gt; Connected&lt;/span&gt;&lt;/div&gt;
+          &lt;div className="my-doctor-identity"&gt;
+            &lt;span className="my-doctor-portrait" aria-hidden="true"&gt;{doctorInitials(current.displayName)}&lt;i className="my-doctor-portrait__online" /&gt;&lt;/span&gt;
+            &lt;div&gt;&lt;h3&gt;{current.displayName}&lt;/h3&gt;&lt;p&gt;{[current.specialty, current.clinic].filter(Boolean).join(' · ') || <span class="branch-1 cbranch-no" title="branch not covered" >'Practice details not provided'}&lt;/p&gt;</span>&lt;span className="my-doctor-tag"&gt;&lt;Icon name="shield" /&gt; Verified practitioner&lt;/span&gt;&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;dl className="my-doctor-facts"&gt;
+            &lt;div&gt;&lt;Icon name="brief" /&gt;&lt;div&gt;&lt;dt&gt;Specialty&lt;/dt&gt;&lt;dd&gt;{current.specialty || <span class="branch-1 cbranch-no" title="branch not covered" >'Not provided'}&lt;/dd&gt;</span>&lt;/div&gt;&lt;/div&gt;
+            &lt;div&gt;&lt;Icon name="location" /&gt;&lt;div&gt;&lt;dt&gt;Clinic location&lt;/dt&gt;&lt;dd&gt;{doctorPlace(current) || 'Not provided'}&lt;/dd&gt;&lt;/div&gt;&lt;/div&gt;
+            &lt;div&gt;&lt;Icon name="globe" /&gt;&lt;div&gt;&lt;dt&gt;Languages&lt;/dt&gt;&lt;dd&gt;{current.languages || 'Not provided'}&lt;/dd&gt;&lt;/div&gt;&lt;/div&gt;
+            &lt;div&gt;&lt;Icon name="clock" /&gt;&lt;div&gt;&lt;dt&gt;Consultation length&lt;/dt&gt;&lt;dd&gt;{consultMinutes ? `${consultMinutes} minutes` : 'Not set yet'}&lt;/dd&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;/dl&gt;
+          {privacyNote('Personal information stays protected', 'A long-term doctor relationship does not automatically grant access to your medical records. Sharing requires consent and a valid clinical access grant.')}
+          &lt;div className="my-doctor-strip"&gt;&lt;div&gt;&lt;small&gt;Your care relationship&lt;/small&gt;&lt;strong&gt;Primary family doctor&lt;/strong&gt;&lt;/div&gt;&lt;button type="button" className="button button--secondary" <span class="fstat-no" title="function not covered" >onClick={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etDialog({ kind: 'profile', doctor: current })}&gt;V</span>iew profile &lt;Icon name="chevron" /&gt;&lt;/button&gt;&lt;/div&gt;
+        &lt;/section&gt;
+&nbsp;
+        &lt;section className="care-panel my-doctor-booking" aria-labelledby="available-times-title"&gt;
+          &lt;div className="my-doctor-section-head"&gt;&lt;div&gt;&lt;p className="care-eyebrow"&gt;Plan your next visit&lt;/p&gt;&lt;h2 id="available-times-title"&gt;Book an appointment&lt;/h2&gt;&lt;p className="care-caption"&gt;Select a date and an available time. Your doctor will confirm the request.&lt;/p&gt;&lt;/div&gt;&lt;span className="my-doctor-tag"&gt;&lt;Icon name="clock" /&gt; Sri Lanka time&lt;/span&gt;&lt;/div&gt;
+          &lt;div className="my-doctor-row-head"&gt;&lt;strong&gt;Choose a date&lt;/strong&gt;&lt;label className="field my-doctor-date-field"&gt;&lt;span&gt;Appointment date&lt;/span&gt;&lt;input type="date" min={today} value={date} onChange={(event) =&gt; chooseDate(event.target.value)} /&gt;&lt;/label&gt;&lt;/div&gt;
+          &lt;div className="my-doctor-dates" role="group" aria-label="Upcoming days"&gt;{quickDates.map((value) =&gt; {
+            const parts = dateParts(value)
+            return &lt;button key={value} type="button" className="my-doctor-date" aria-pressed={date === value} aria-label={parts.label} <span class="fstat-no" title="function not covered" >onClick={() =&gt; <span class="cstat-no" title="statement not covered" >c</span>hooseDate(value)}&gt;&lt;</span>span&gt;{parts.weekday}&lt;/span&gt;&lt;strong&gt;{parts.day}&lt;/strong&gt;&lt;span&gt;{parts.month}&lt;/span&gt;&lt;/button&gt;
+          })}&lt;/div&gt;
+          &lt;div className="my-doctor-row-head"&gt;&lt;strong&gt;Available time slots&lt;/strong&gt;{date &amp;&amp; slotStatus === 'ready' &amp;&amp; slots?.availabilityConfigured &amp;&amp; &lt;span className="care-caption"&gt;{dateParts(date).label} · {slots.slotMinutes} min appointments&lt;/span&gt;}&lt;/div&gt;
+          {!date ? <span class="branch-0 cbranch-no" title="branch not covered" >&lt;p className="my-doctor-inline"&gt;Choose a date to see available times.&lt;/p&gt;</span>
+            : slotStatus === 'loading' ? &lt;p role="status" className="my-doctor-inline"&gt;Checking available times…&lt;/p&gt;
+            : slotStatus === 'error' ? &lt;div className="my-doctor-inline" role="alert"&gt;&lt;p&gt;Could not load available times.&lt;/p&gt;&lt;button type="button" className="button button--secondary" onClick={() =&gt; setRetry((value) =&gt; value + 1)}&gt;Retry availability&lt;/button&gt;&lt;/div&gt;
+            : !slots?.availabilityConfigured ? &lt;div className="my-doctor-inline"&gt;&lt;h3&gt;Availability is not configured yet&lt;/h3&gt;&lt;p&gt;The doctor has not set availability. You can request an appointment from the appointments page.&lt;/p&gt;&lt;Link className="button button--secondary" to="/appointments"&gt;Request an appointment&lt;/Link&gt;&lt;/div&gt;
+            : slots.slots.length === 0 ? &lt;div className="my-doctor-inline"&gt;&lt;h3&gt;No available times on this date&lt;/h3&gt;&lt;p&gt;Try another date. This does not mean the doctor is unavailable on other days.&lt;/p&gt;&lt;/div&gt;
+            : &lt;div className="my-doctor-slots"&gt;{slots.slots.map((slot) =&gt; &lt;button key={slot} type="button" className="my-doctor-slot" aria-pressed={selectedSlot === slot} onClick={() =&gt; setSelectedSlot(selectedSlot === slot ? <span class="branch-0 cbranch-no" title="branch not covered" >null : s</span>lot)}&gt;{clinicTime(slot)}&lt;/button&gt;)}&lt;/div&gt;}
+          &lt;div className="my-doctor-booking__footer"&gt;
+            &lt;div&gt;&lt;small&gt;Selected appointment&lt;/small&gt;&lt;strong aria-live="polite"&gt;{selectedSlot ? `${dateParts(date).label} at ${clinicTime(selectedSlot)}` : 'Choose a date &amp; time'}&lt;/strong&gt;&lt;small&gt;Requests are not confirmed automatically. Availability can change before you book.&lt;/small&gt;&lt;/div&gt;
+            {selectedSlot
+              ? &lt;Link className="button button--primary" to={`/appointments?date=${encodeURIComponent(date)}&amp;slot=${encodeURIComponent(selectedSlot)}`}&gt;&lt;Icon name="calendar" /&gt; Request appointment&lt;/Link&gt;
+              : &lt;button type="button" className="button button--primary" disabled&gt;&lt;Icon name="calendar" /&gt; Request appointment&lt;/button&gt;}
+          &lt;/div&gt;
+        &lt;/section&gt;
+      &lt;/div&gt;
+&nbsp;
+      &lt;section className="care-panel my-doctor-privacy"&gt;&lt;Icon name="lock" /&gt;&lt;div&gt;&lt;h3&gt;Your health data, your choice&lt;/h3&gt;&lt;p&gt;You control who can access your records. Adult members manage their own privacy; Family Head permissions do not override their choices.&lt;/p&gt;&lt;Link to="/privacy"&gt;Understand access permissions →&lt;/Link&gt;&lt;/div&gt;&lt;/section&gt;
+&nbsp;
+      {pending &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >&lt;div className="my-doctor-note my-doctor-note--pending" role="status"&gt;&lt;Icon name="clock" /&gt;&lt;div&gt;&lt;strong&gt;Change request pending: {pending.doctor.displayName}&lt;/strong&gt;&lt;p&gt;Your current doctor remains connected until the new doctor accepts the request.&lt;/p&gt;{isHead &amp;&amp; &lt;button type="button" className="button button--secondary" <span class="fstat-no" title="function not covered" >onClick={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etDialog({ kind: 'cancel', request: pending })}&gt;W</span>ithdraw request&lt;/button&gt;}&lt;/div&gt;&lt;/div&gt;}</span>
+&nbsp;
+      {isHead &amp;&amp; &lt;section className="my-doctor-discovery" aria-label="Find another family doctor"&gt;
+        &lt;div className="my-doctor-discovery__top"&gt;&lt;div className="my-doctor-discovery__title"&gt;&lt;Icon name="search" /&gt;&lt;div&gt;&lt;h3&gt;Find another family doctor&lt;/h3&gt;&lt;p&gt;Optional — this directory stays collapsed when you already have a doctor.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;&lt;button type="button" className="button button--secondary" aria-expanded={directoryOpen} aria-controls="my-doctor-directory" disabled={pending !== null} onClick={() =&gt; setDirectoryOpen((open) =&gt; !open)}&gt;{directoryOpen ? 'Hide directory' : 'Explore directory'} &lt;Icon name="chevronDown" /&gt;&lt;/button&gt;&lt;/div&gt;
+        {directoryOpen &amp;&amp; !pending &amp;&amp; &lt;div id="my-doctor-directory" className="my-doctor-discovery__content"&gt;
+          &lt;div className="my-doctor-note"&gt;&lt;Icon name="info" /&gt;&lt;div&gt;&lt;strong&gt;Your current doctor remains assigned&lt;/strong&gt;&lt;p&gt;Sending a change request will not remove {current.displayName}. The new doctor must accept the request before the relationship changes.&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;DoctorDirectory mode="assigned" {...directoryProps} /&gt;
+        &lt;/div&gt;}
+      &lt;/section&gt;}
+    &lt;/&gt; : pending ? &lt;section className="care-panel my-doctor-state"&gt;
+      &lt;div className="my-doctor-hero"&gt;&lt;span className="my-doctor-hero__icon my-doctor-hero__icon--pending"&gt;&lt;Icon name="clock" /&gt;&lt;/span&gt;&lt;span className="my-doctor-tag my-doctor-tag--yellow"&gt;Awaiting doctor response&lt;/span&gt;&lt;h2&gt;Your request is on its way.&lt;/h2&gt;&lt;p&gt;Your family doctor request has been submitted. The practitioner can accept or decline it. No health information is shared before acceptance.&lt;/p&gt;&lt;/div&gt;
+      &lt;div className="my-doctor-pending"&gt;
+        &lt;div className="my-doctor-mini"&gt;&lt;span className="my-doctor-mini__avatar" aria-hidden="true"&gt;{doctorInitials(pending.doctor.displayName)}&lt;/span&gt;&lt;div&gt;&lt;h3&gt;{pending.doctor.displayName}&lt;/h3&gt;&lt;p&gt;{[pending.doctor.specialty, doctorPlace(pending.doctor)].filter(Boolean).join(' · ') || <span class="branch-1 cbranch-no" title="branch not covered" >'Practice details not provided'}&lt;/p&gt;</span>&lt;span className="my-doctor-tag my-doctor-tag--yellow"&gt;&lt;i className="my-doctor-dot" aria-hidden="true" /&gt; Request pending&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+        {isHead &amp;&amp; &lt;button type="button" className="button button--secondary my-doctor-warn" onClick={() =&gt; setDialog({ kind: 'cancel', request: pending })}&gt;Cancel request&lt;/button&gt;}
+      &lt;/div&gt;
+      {privacyNote('Private until connection is accepted', 'Doctors see only the information needed to respond to a relationship request. Consent and member-specific grants are handled separately.')}
+    &lt;/section&gt; : &lt;section className="care-panel my-doctor-state"&gt;
+      &lt;div className="my-doctor-hero"&gt;&lt;span className="my-doctor-hero__icon"&gt;&lt;Icon name="heart" /&gt;&lt;/span&gt;&lt;span className="my-doctor-tag my-doctor-tag--gray"&gt;No doctor connected yet&lt;/span&gt;&lt;h2&gt;Find a doctor your family can rely on.&lt;/h2&gt;&lt;p&gt;{isHead ? 'Browse verified practitioners, compare practice details, and send a long-term family doctor request. Your family selects the doctor.' : <span class="branch-1 cbranch-no" title="branch not covered" >'Your family head can choose and request a doctor for the family. The doctor will appear here after they accept.'}&lt;/p&gt;</span>&lt;/div&gt;
+      {isHead &amp;&amp; &lt;div className="my-doctor-state__directory"&gt;
+        &lt;div className="my-doctor-discovery__top"&gt;&lt;div&gt;&lt;h3&gt;Explore verified family doctors&lt;/h3&gt;&lt;p&gt;Search by name, specialty, district or language.&lt;/p&gt;&lt;/div&gt;&lt;span className="my-doctor-tag"&gt;&lt;Icon name="shield" /&gt; Verified profiles only&lt;/span&gt;&lt;/div&gt;
+        &lt;DoctorDirectory mode="none" {...directoryProps} /&gt;
+      &lt;/div&gt;}
+    &lt;/section&gt;}
+&nbsp;
+    {dialog?.kind === 'profile' &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >&lt;ConfirmDialog title={dialog.doctor.displayName} text="Verified practice information from the doctor directory." <span class="fstat-no" title="function not covered" >onClose={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etDialog(null)}&gt;&lt;</span>DoctorProfileDetails doctor={dialog.doctor} /&gt;&lt;/ConfirmDialog&gt;}</span>
+    {dialog?.kind === 'request' &amp;&amp; &lt;ConfirmDialog busy={busy} title={current ? <span class="branch-0 cbranch-no" title="branch not covered" >'Request a change of family doctor?' : '</span>Send family doctor request?'} text={current ? <span class="branch-0 cbranch-no" title="branch not covered" >'Your current doctor stays linked while the new request is pending. No clinical access transfers automatically.' : '</span>This request does not share health records or grant clinical access.'} confirmLabel="Send request" onConfirm={() =&gt; void sendRequest(dialog.doctor)} <span class="fstat-no" title="function not covered" >onClose={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etDialog(null)}&gt;&lt;</span>DoctorProfileDetails doctor={dialog.doctor} /&gt;&lt;/ConfirmDialog&gt;}
+    {dialog?.kind === 'cancel' &amp;&amp; &lt;ConfirmDialog busy={busy} title={current ? <span class="branch-0 cbranch-no" title="branch not covered" >'Withdraw doctor change?' : '</span>Cancel this request?'} text={current ? <span class="branch-0 cbranch-no" title="branch not covered" >'Your current family doctor remains unchanged.' : '</span>You can browse and request another verified family doctor afterward.'} confirmLabel={current ? <span class="branch-0 cbranch-no" title="branch not covered" >'Withdraw request' : '</span>Cancel request'} cancelLabel="Keep request" onConfirm={() =&gt; void cancelRequest(dialog.request)} <span class="fstat-no" title="function not covered" >onClose={() =&gt; <span class="cstat-no" title="statement not covered" >s</span>etDialog(null)}&gt;&lt;</span>div className="my-doctor-dialog__details"&gt;&lt;strong&gt;Pending request: {dialog.request.doctor.displayName}&lt;/strong&gt;&lt;/div&gt;&lt;/ConfirmDialog&gt;}
+    {toast &amp;&amp; &lt;p className={`my-doctor-toast my-doctor-toast--${toast.tone}`} role={toast.tone === 'error' ? <span class="branch-0 cbranch-no" title="branch not covered" >'alert' : '</span>status'}&gt;{toast.text}&lt;/p&gt;}
+  &lt;/div&gt;
+}
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-10-08T09:03:48.852Z
+            </div>
+        <script src="../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../sorter.js"></script>
+        <script src="../../block-navigation.js"></script>
+    </body>
+</html>
+    

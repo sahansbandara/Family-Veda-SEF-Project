@@ -1,0 +1,26 @@
+npm verbose cli /Users/sahansandaruwan/.hermes/node/bin/node /Users/sahansandaruwan/.hermes/node/lib/node_modules/npm/bin/npm-cli.js
+npm info using npm@10.9.8
+npm info using node@v22.23.2
+npm verbose title npm exec vitest run --maxWorkers=2
+npm verbose argv "exec" "--" "vitest" "run" "--maxWorkers=2"
+npm verbose logfile logs-max:10 dir:/Users/sahansandaruwan/.npm/_logs/2026-10-08T08_53_37_168Z-
+npm verbose logfile /Users/sahansandaruwan/.npm/_logs/2026-10-08T08_53_37_168Z-debug-0.log
+
+ RUN  v5.0.3 /Users/sahansandaruwan/Github/SLIIT/Family-Veda/web
+
+
+ Test Files  57 passed (57)
+      Tests  343 passed (343)
+   Start at  14:23:37
+   Duration  25.73s (environment 41%, tests 36%, import 17%, transform 4%, worker 1%)
+
+Environment  jsdom was created 57 times · 18.64s total, 41% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments
+
+npm verbose cwd /Users/sahansandaruwan/Github/SLIIT/Family-Veda/web
+npm verbose os Darwin 27.0.0
+npm verbose node v22.23.2
+npm verbose npm  v10.9.8
+npm verbose exit 0
+npm info ok

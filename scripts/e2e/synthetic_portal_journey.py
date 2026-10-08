@@ -60,10 +60,13 @@ record = call("POST", f"/members/{adult_member['id']}/records", {
     "recordType": "Note", "title": "Synthetic private note", "summary": "Demonstration only.",
     "occurredOn": "2026-09-28",
 }, adult_token, (201,))
-call("GET", f"/members/{adult_member['id']}/records", token=head_token, expected=(404,))
+# Private by default: the Head's list of an adult's records is empty (single-record reads return 404).
+head_view = call("GET", f"/members/{adult_member['id']}/records", token=head_token)
+if head_view["items"]:
+    raise AssertionError("Head can see an adult's unshared private record")
 call("GET", f"/members/{adult_member['id']}/records", token=adult_token)
 directory = call("GET", "/doctors/directory", token=head_token)
-doctor_profile = next(item for item in directory if item["displayName"] == "Synthetic Verified Doctor")
+doctor_profile = next(item for item in directory if item["displayName"] == doctor["displayName"])
 request = call("POST", f"/families/{family_id}/doctor-requests", {
     "doctorId": doctor_profile["id"], "message": "Synthetic test",
 }, head_token, (201,))

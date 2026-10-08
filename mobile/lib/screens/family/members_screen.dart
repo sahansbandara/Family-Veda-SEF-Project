@@ -290,6 +290,8 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
     final familyName = dashboard?.familyName ?? 'My Family';
     final familyCode = dashboard?.familyCode;
     final pendingRequestsCount = dashboard?.pendingJoinRequests ?? 0;
+    // Join Requests (1) and sent Invitations (2) are Head-only; fall back to Members.
+    final activeTab = !isHead && (_activeTab == 1 || _activeTab == 2) ? 0 : _activeTab;
 
     if (_familyNameController.text.isEmpty && dashboard?.familyName != null) {
       _familyNameController.text = dashboard!.familyName!;
@@ -302,7 +304,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
           onRefresh: () async {
             ref.invalidate(membersProvider);
             ref.invalidate(familyDashboardProvider);
-            if (familyId.isNotEmpty) {
+            if (familyId.isNotEmpty && isHead) {
               ref.invalidate(pendingJoinRequestsProvider(familyId));
               ref.invalidate(familySentInvitationsProvider(familyId));
             }
@@ -440,22 +442,25 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
               _buildSubTabBar(
                 isDark: isDark,
                 pendingRequestsCount: pendingRequestsCount,
+                isHead: isHead,
+                activeTab: activeTab,
               ),
               const SizedBox(height: 16),
 
               // 3. Tab Content Switcher
-              if (_activeTab == 0)
+              if (activeTab == 0)
                 _buildMembersTab(
                   membersAsync: membersAsync,
                   activeId: activeId,
                   isDark: isDark,
+                  isHead: isHead,
                 )
-              else if (_activeTab == 1)
+              else if (activeTab == 1)
                 _buildJoinRequestsTab(
                   familyId: familyId,
                   isDark: isDark,
                 )
-              else if (_activeTab == 2)
+              else if (activeTab == 2)
                 _buildInvitationsTab(
                   familyId: familyId,
                   isDark: isDark,
@@ -480,12 +485,15 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
   Widget _buildSubTabBar({
     required bool isDark,
     required int pendingRequestsCount,
+    required bool isHead,
+    required int activeTab,
   }) {
+    // `index` keeps the logical tab id (0-3) even when Head-only tabs are hidden.
     final tabs = [
-      {'title': 'Members', 'count': 0},
-      {'title': 'Join Requests', 'count': pendingRequestsCount},
-      {'title': 'Invitations', 'count': 0},
-      {'title': 'Family Settings', 'count': 0},
+      {'index': 0, 'title': 'Members', 'count': 0},
+      if (isHead) {'index': 1, 'title': 'Join Requests', 'count': pendingRequestsCount},
+      if (isHead) {'index': 2, 'title': 'Invitations', 'count': 0},
+      {'index': 3, 'title': 'Family Settings', 'count': 0},
     ];
 
     return Container(
@@ -509,12 +517,13 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
         child: Row(
           children: List.generate(tabs.length, (index) {
             final tab = tabs[index];
+            final tabIndex = tab['index'] as int;
             final title = tab['title'] as String;
             final count = tab['count'] as int;
-            final isSelected = _activeTab == index;
+            final isSelected = activeTab == tabIndex;
 
             return InkWell(
-              onTap: () => setState(() => _activeTab = index),
+              onTap: () => setState(() => _activeTab = tabIndex),
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -572,6 +581,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
     required AsyncValue<List<Member>> membersAsync,
     required String? activeId,
     required bool isDark,
+    required bool isHead,
   }) {
     final dashboard = ref.watch(familyDashboardProvider).valueOrNull;
     final fallbackMembers = (dashboard?.members ?? const [])
@@ -582,7 +592,7 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
             ))
         .toList();
 
-    return membersAsync.when(
+    final roster = membersAsync.when(
       loading: () => fallbackMembers.isNotEmpty
           ? _renderRoster(fallbackMembers, activeId, isDark)
           : const LoadingStateView(label: 'Loading members'),
@@ -612,6 +622,17 @@ class _MembersScreenState extends ConsumerState<MembersScreen> {
 
         return _renderRoster(displayItems, activeId, isDark);
       },
+    );
+
+    // Non-Heads have no Join Requests tab, so incoming invitations live here.
+    if (isHead) return roster;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const IncomingInvitationsSection(),
+        const SizedBox(height: 12),
+        roster,
+      ],
     );
   }
 

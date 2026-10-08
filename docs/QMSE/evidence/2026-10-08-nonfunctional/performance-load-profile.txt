@@ -1,0 +1,20 @@
+# ApacheBench load profile: 1000 requests per endpoint at concurrency 25
+# target: http://127.0.0.1:5060/api/v1
+
+Endpoint                      done  fail  non2xx     req/s   mean ms   p50   p95   p99    max
+Health check (anonymous)      1000     0       0  24779.46     1.009     1     1     1      2
+Family: own family            1000     0       0   4610.95     5.422     4     7    30     36
+Family: dashboard             1000     0       0    394.92    63.304    57   119   157    166
+Family: notifications         1000     0       0   2306.99    10.837    10    17    22     32
+Family: appointments          1000     0       0    706.79    35.371    32    52    62     73
+Family: health records        1000     0       0   1096.06    22.809    20    35    39     50
+Family: vitals                1000     0       0   2313.45    10.806    10    17    19     22
+Family: lab reports           1000     0       0    749.29    33.365    25    62   231    250
+Family: triage cases          1000     0       0    277.90    89.960    66   220   331    347
+Family: doctor directory      1000     0       0   2244.64    11.138     9    20    25     35
+Doctor: dashboard             1000     0       0    483.43    51.713    40    73   294    313
+Doctor: my cases              1000     0       0    789.67    31.659    29    43    48     73
+Doctor: case pool             1000     0       0    819.85    30.493    28    47    56     93
+Doctor: appointments          1000     0       0   1334.73    18.730    17    29    34     37
+
+All 14 endpoints completed 1000 requests with zero failed and zero non-2xx responses.
