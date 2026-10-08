@@ -1,0 +1,36 @@
+00:00 +0: loading /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/members_screen_test.dart
+00:00 +0: MembersScreen renders hero banner, 4 sub-tabs, and switches tabs
+00:00 +1: MembersScreen hides Head-only tabs and never calls Head-only providers for an Adult
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: no matching candidates
+  Actual: _TextWidgetFinder:<Found 1 widget with text "Join Requests": [
+            Text("Join Requests", inherit: true, color: Color(alpha: 1.0000, red: 0.3922, green:
+0.4549, blue: 0.5451, colorSpace: ColorSpace.sRGB), size: 13.5, weight: 600, dependencies:
+[DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+          ]>
+   Which: means one was found but none were expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/members_screen_test.dart:136:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/members_screen_test.dart line 136
+The test description was:
+  MembersScreen hides Head-only tabs and never calls Head-only providers for an Adult
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:00 +1 -1: MembersScreen hides Head-only tabs and never calls Head-only providers for an Adult [E]
+  Test failed. See exception logs above.
+  The test description was: MembersScreen hides Head-only tabs and never calls Head-only providers for an Adult
+  
+00:00 +1 -1: Some tests failed.
+
+Failing tests:
+  /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/members_screen_test.dart: MembersScreen hides Head-only tabs and never calls Head-only providers for an Adult

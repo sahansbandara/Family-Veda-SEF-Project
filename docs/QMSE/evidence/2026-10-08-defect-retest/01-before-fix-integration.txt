@@ -1,0 +1,25 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  FamilyVeda.Domain -> /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/src/Domain/bin/Debug/net8.0/FamilyVeda.Domain.dll
+  FamilyVeda.Application -> /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/src/Application/bin/Debug/net8.0/FamilyVeda.Application.dll
+  FamilyVeda.Infrastructure -> /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/src/Infrastructure/bin/Debug/net8.0/FamilyVeda.Infrastructure.dll
+  FamilyVeda.Api -> /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/src/Api/bin/Debug/net8.0/FamilyVeda.Api.dll
+  FamilyVeda.IntegrationTests -> /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/tests/IntegrationTests/bin/Debug/net8.0/FamilyVeda.IntegrationTests.dll
+Test run for /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/tests/IntegrationTests/bin/Debug/net8.0/FamilyVeda.IntegrationTests.dll (.NETCoreApp,Version=v8.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:05.31]     FamilyVeda.IntegrationTests.GoldenCaseFlowTests.ApprovedCase_NeverReturnsInternalDoctorNotes_AndClearsStaleDelayMarker [FAIL]
+  Failed FamilyVeda.IntegrationTests.GoldenCaseFlowTests.ApprovedCase_NeverReturnsInternalDoctorNotes_AndClearsStaleDelayMarker [2 s]
+  Error Message:
+   Did not expect body "{"id":"6d40022f-ef9c-4912-8073-88a62d485a31","episodeId":"35b3a54b-fda4-4d85-b47b-36a985e86987","memberId":"358565f9-d81d-4b4d-92f1-ea3192188366","status":"Approved","priority":"Routine","createdAt":"2026-10-08T09:41:28.757755+00:00","caseNumber":1,"memberDisplayName":null,"familyName":null,"referralClosed":false,"submittedAt":"2026-10-08T09:41:28.737658+00:00","doctorReceivedAt":"2026-10-08T09:41:28.757755+00:00","doctorReviewStartedAt":"2026-10-08T09:41:28.960822+00:00","canEdit":false,"canWithdraw":false,"submittedEpisode":{"id":"35b3a54b-fda4-4d85-b47b-36a985e86987","memberId":"358565f9-d81d-4b4d-92f1-ea3192188366","symptoms":["synthetic routine signal"],"durationDays":1,"severity":2,"notes":"Synthetic integration evidence only.","createdAt":"2026-10-08T09:41:28.715941+00:00"},"latestDecisionAction":"Approve","latestDecisionReason":"SYNTHETIC-INTERNAL-NOTE-MARKER-7391","failureCode":"DOCTOR_RESPONSE_DELAY"}" to contain "SYNTHETIC-INTERNAL-NOTE-MARKER-7391".
+  Stack Trace:
+     at FluentAssertions.Execution.XUnit2TestFramework.Throw(String message)
+   at FluentAssertions.Execution.TestFrameworkProvider.Throw(String message)
+   at FluentAssertions.Execution.DefaultAssertionStrategy.HandleFailure(String message)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(Func`1 failReasonFunc)
+   at FluentAssertions.Execution.AssertionScope.FailWith(String message, Object[] args)
+   at FluentAssertions.Primitives.StringAssertions`1.NotContain(String unexpected, String because, Object[] becauseArgs)
+   at FamilyVeda.IntegrationTests.GoldenCaseFlowTests.ApprovedCase_NeverReturnsInternalDoctorNotes_AndClearsStaleDelayMarker() in /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/tests/IntegrationTests/Shared/GoldenCaseFlowTests.cs:line 130
+--- End of stack trace from previous location ---
+
+Failed!  - Failed:     1, Passed:     0, Skipped:     0, Total:     1, Duration: 2 s - FamilyVeda.IntegrationTests.dll (net8.0)

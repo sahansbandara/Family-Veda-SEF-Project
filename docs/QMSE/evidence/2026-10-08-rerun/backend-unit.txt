@@ -1,0 +1,13 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  FamilyVeda.Domain -> /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/src/Domain/bin/Debug/net8.0/FamilyVeda.Domain.dll
+  FamilyVeda.Application -> /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/src/Application/bin/Debug/net8.0/FamilyVeda.Application.dll
+  FamilyVeda.Infrastructure -> /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/src/Infrastructure/bin/Debug/net8.0/FamilyVeda.Infrastructure.dll
+  FamilyVeda.Api -> /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/src/Api/bin/Debug/net8.0/FamilyVeda.Api.dll
+/Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/tests/UnitTests/Component2_Records/PdfReportLimitTests.cs(66,9): warning CA1416: This call site is reachable on all platforms. 'File.SetUnixFileMode(string, UnixFileMode)' is unsupported on: 'windows'. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1416) [/Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/tests/UnitTests/FamilyVeda.UnitTests.csproj]
+  FamilyVeda.UnitTests -> /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/tests/UnitTests/bin/Debug/net8.0/FamilyVeda.UnitTests.dll
+Test run for /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/tests/UnitTests/bin/Debug/net8.0/FamilyVeda.UnitTests.dll (.NETCoreApp,Version=v8.0)
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:   430, Skipped:     0, Total:   430, Duration: 25 s - FamilyVeda.UnitTests.dll (net8.0)
+exit=0

@@ -1,0 +1,8 @@
+{
+  "caseId": "b76cf4c5-aac1-414d-b231-a1bf59aaa1bc",
+  "caseNumber": 21,
+  "expectedHttp": 404,
+  "actualHttp": 404,
+  "assertion": "PASS: no patient guidance before approval",
+  "observedUtc": "2026-10-08T09:15:23.775325+00:00"
+}

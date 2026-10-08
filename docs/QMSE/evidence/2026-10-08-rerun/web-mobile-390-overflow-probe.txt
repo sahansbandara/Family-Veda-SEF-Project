@@ -1,0 +1,8 @@
+demo-head /dashboard 0 div.ambient-mesh:468 span.:533 a.:521 span.nav-label:521
+demo-head /triage 65 div.ambient-mesh:546 span.:619 div.header-actions:455 div.profile-menu:455
+demo-head /family 65 div.ambient-mesh:546 span.:619 div.header-actions:455 div.profile-menu:455
+demo-admin /dashboard 104 div.ambient-mesh:593 span.:657 div.header-actions:494 div.profile-menu:494
+demo-admin /doctor-verification 721 div.ambient-mesh:1333 span.:1477 div.header-actions:494 div.profile-menu:494
+demo-admin /users 388 div.ambient-mesh:934 span.:1041 div.header-actions:494 div.profile-menu:494
+demo-doctor /approvals 0 div.ambient-mesh:468 span.:521 a.:440 span.nav-label:440
+demo-doctor /families 43 div.ambient-mesh:520 span.:579 div.header-actions:433 div.profile-menu:433
