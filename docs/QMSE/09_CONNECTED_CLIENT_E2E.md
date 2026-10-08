@@ -106,3 +106,14 @@ The fresh case in the run above failed safe because the local API had no working
 Checks in each run: guidance returns 404 before any decision; a family user gets 403 on the doctor-only review; every completed agent step is schema-valid and uses only allow-listed tools (none denied); guidance is still 404 after the agents finish; the family progress view carries step metadata only; after the doctor approves, the family reads the approved guidance; the internal doctor note is absent from every patient response; no overdue-review marker remains.
 
 This is an API-driven run (no screens), so it complements the visual client run above rather than replacing it. Rerun: start a local API with the provider keys and `Seed__Enabled=true`, then `FV_TEST_PASSWORD=<private> FV_TEST_SEEDED_HEAD_EMAIL=demo-head@example.invalid python3 scripts/e2e/hosted_agent_golden_journey.py` (omit the e-mail variable for the new-member variant). Evidence: [seeded member](evidence/2026-10-08-hosted-golden/journey-seeded-member.txt) · [new member](evidence/2026-10-08-hosted-golden/journey-new-member-low-confidence.txt).
+
+
+## After-fix view of the same approved case — 8 October
+
+The local API was restarted on the fixed build and the Flutter app rebuilt, then seeded case 0003 (the case that exposed both High defects) was reopened as the synthetic patient on both clients. The patient response carries no doctor note ([assertion](evidence/2026-10-08-connected-e2e/after-fix-patient-case-assertion.json)); the web view shows the doctor response and the approved guidance only; Flutter shows "View approved guidance" and no delay warning. Only this case was re-viewed; the whole journey from a new submission was not repeated on screen.
+
+![Web patient view of case 0003 after the fix](evidence/2026-10-08-connected-e2e/13-web-case0003-after-fix-no-internal-note.jpg)
+
+![Flutter patient view of case 0003 after the fix](evidence/2026-10-08-connected-e2e/14-ios-case0003-after-fix-guidance-button.jpg)
+
+Full React suite after the fix: 57 files, 344 tests passed ([log](evidence/2026-10-08-defect-retest/08-after-fix-web-full-suite.txt)).
