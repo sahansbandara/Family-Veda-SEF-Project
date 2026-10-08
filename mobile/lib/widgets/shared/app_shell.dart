@@ -131,7 +131,7 @@ class AppShell extends StatelessWidget {
               labelTextStyle: WidgetStateProperty.resolveWith((states) {
                 final isSelected = states.contains(WidgetState.selected);
                 return TextStyle(
-                  fontSize: 11.5,
+                  fontSize: 10,
                   fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                   color: isSelected
                       ? (isDark ? AppColors.primaryLumDark : AppColors.primary)
@@ -154,6 +154,7 @@ class AppShell extends StatelessWidget {
                   _onDestinationSelected(context, bottomTabs[index].$1),
               elevation: 0,
               labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+              labelPadding: EdgeInsets.zero,
               destinations: bottomTabs.map((tab) {
                 final (_, unselectedIcon, selectedIcon, label) = tab;
                 return NavigationDestination(

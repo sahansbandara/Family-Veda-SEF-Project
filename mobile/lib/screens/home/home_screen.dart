@@ -341,7 +341,7 @@ class HomeScreen extends ConsumerWidget {
         if (items != null &&
             items.isNotEmpty &&
             ref.read(activeMemberProvider) == null) {
-          final firstId = items.first.id;
+          final firstId = preferredMember(items)!.id;
           ref.read(activeMemberProvider.notifier).state = firstId;
           final userId = ref.read(authProvider).userId;
           if (userId != null) {
@@ -355,7 +355,7 @@ class HomeScreen extends ConsumerWidget {
       if (activeId == null && members.isNotEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (ref.read(activeMemberProvider) == null) {
-            final firstId = members.first.id;
+            final firstId = preferredMember(members)!.id;
             ref.read(activeMemberProvider.notifier).state = firstId;
             final userId = ref.read(authProvider).userId;
             if (userId != null) {

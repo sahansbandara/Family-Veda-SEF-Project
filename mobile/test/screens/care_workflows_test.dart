@@ -6,7 +6,18 @@ import 'package:family_veda/providers/records_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+void _tallScreen(WidgetTester tester) {
+  tester.view.physicalSize = const Size(800, 1400);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+}
+
 void main() {
+  test('formatDurationDays uses singular and plural', () {
+    expect(formatDurationDays('1'), '1 day');
+    expect(formatDurationDays('2'), '2 days');
+    expect(formatDurationDays('0'), '0 days');
+  });
   testWidgets('upload starts private with explicit visibility choice', (
     tester,
   ) async {
@@ -26,6 +37,7 @@ void main() {
   testWidgets(
     'symptoms validates before advancing and reviews before submission',
     (tester) async {
+      _tallScreen(tester);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -47,7 +59,7 @@ void main() {
       expect(find.textContaining('Choose a symptom'), findsOneWidget);
       await tester.enterText(
         find.byKey(const Key('chief_complaint_field')),
-        'Synthetic cough',
+        'Synthetic cough, mild headache and tired for two days',
       );
       await tester.tap(find.byKey(const Key('submit_complaint_button')));
       await tester.pumpAndSettle();
@@ -63,13 +75,20 @@ void main() {
         find.textContaining('Check your request before submitting'),
         findsOneWidget,
       );
-      expect(find.text('Synthetic cough'), findsOneWidget);
+      // Description is shown whole as ordinary text, not split into chips.
+      expect(
+        find.text('Synthetic cough, mild headache and tired for two days'),
+        findsOneWidget,
+      );
+      expect(find.byType(Chip), findsNothing);
+      expect(find.textContaining('Duration: 2 days'), findsOneWidget);
       expect(find.textContaining('Submit for doctor review'), findsOneWidget);
     },
   );
   testWidgets(
     'switching active profile clears symptom draft and returns to first step',
     (tester) async {
+      _tallScreen(tester);
       final container = ProviderContainer(
         overrides: [
           activeMemberProvider.overrideWith((ref) => 'synthetic-self'),

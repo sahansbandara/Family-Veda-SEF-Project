@@ -6,6 +6,7 @@ class TriageCase {
     required this.id,
     required this.status,
     required this.submittedAt,
+    this.caseNumber = 0,
     this.failureCode,
     this.canEdit = false,
     this.canWithdraw = false,
@@ -21,7 +22,8 @@ class TriageCase {
     status: _statusName(json['status'] as String),
     submittedAt: DateTime.parse(
       (json['submittedAt'] ?? json['createdAt']) as String,
-    ),
+    ).toLocal(),
+    caseNumber: (json['caseNumber'] as num?)?.toInt() ?? 0,
     failureCode: json['failureCode'] as String?,
     canEdit: json['canEdit'] == true,
     canWithdraw: json['canWithdraw'] == true,
@@ -39,6 +41,7 @@ class TriageCase {
   final String id;
   final String status;
   final DateTime submittedAt;
+  final int caseNumber;
   final String? failureCode;
   final bool canEdit;
   final bool canWithdraw;
@@ -52,6 +55,7 @@ class TriageCase {
     id: id,
     status: _statusName(json['status'] as String? ?? status),
     submittedAt: submittedAt,
+    caseNumber: caseNumber,
     failureCode: json['failureCode'] as String?,
     canEdit: canEdit,
     canWithdraw: canWithdraw,
@@ -61,6 +65,11 @@ class TriageCase {
     latestDecisionAction: latestDecisionAction,
     latestDecisionReason: latestDecisionReason,
   );
+
+  /// Human case reference, same format as web: "0040"; falls back to the id prefix.
+  String get reference => caseNumber > 0
+      ? caseNumber.toString().padLeft(4, '0')
+      : (id.length > 8 ? id.substring(0, 8) : id);
 
   bool get hasApprovedGuidance => const {
     'APPROVED',

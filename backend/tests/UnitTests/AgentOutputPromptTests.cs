@@ -21,7 +21,8 @@ public sealed class AgentOutputPromptTests
             .And.Contain("\"recentVitals\":[\"summary of supplied observation\"]")
             .And.Contain("\"additionalProperties\":false")
             .And.Contain("Do not copy nested input objects")
-            .And.Contain("Do not invent missing facts");
+            .And.Contain("Do not invent missing facts")
+            .And.Contain("Never use the words take, start, stop, continue, increase, decrease");
     }
 
     [Theory]

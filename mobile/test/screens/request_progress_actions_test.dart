@@ -90,6 +90,9 @@ void main() {
           'notes': 'Synthetic context',
         },
       );
+      tester.view.physicalSize = const Size(800, 1400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
