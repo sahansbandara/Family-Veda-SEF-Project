@@ -90,4 +90,57 @@ void main() {
     expect(find.text('Save name'), findsOneWidget);
     expect(find.text('Copy code'), findsOneWidget);
   });
+
+  testWidgets('MembersScreen hides Head-only tabs and never calls Head-only providers for an Adult', (
+    tester,
+  ) async {
+    final headOnlyCalls = <String>[];
+    const dashboard = FamilyDashboard(
+      role: 'Adult',
+      familyId: 'fam-1',
+      familyName: 'Perera Family',
+      familyCode: 'LK-PERERA-9082',
+      memberCount: 2,
+      minorCount: 0,
+      openCases: 0,
+      approvedGuidanceCount: 0,
+      unreadNotifications: 0,
+      pendingJoinRequests: 0,
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          membersProvider.overrideWith((ref) => [
+                const Member(id: 'mem-1', displayName: 'John Doe', relationshipLabel: 'Head'),
+                const Member(id: 'mem-2', displayName: 'Jane Doe', relationshipLabel: 'Spouse'),
+              ]),
+          familyDashboardProvider.overrideWith((ref) => Future.value(dashboard)),
+          pendingJoinRequestsProvider('fam-1').overrideWith((ref) {
+            headOnlyCalls.add('pendingJoinRequests');
+            throw StateError('Head-only endpoint called');
+          }),
+          incomingInvitationsProvider.overrideWith((ref) => Future.value([])),
+          familySentInvitationsProvider('fam-1').overrideWith((ref) {
+            headOnlyCalls.add('familySentInvitations');
+            throw StateError('Head-only endpoint called');
+          }),
+        ],
+        child: const MaterialApp(home: MembersScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Members'), findsOneWidget);
+    expect(find.text('Family Settings'), findsOneWidget);
+    expect(find.text('Join Requests'), findsNothing);
+    expect(find.text('Invitations'), findsNothing);
+    expect(find.text('John Doe'), findsOneWidget);
+    expect(find.text('Something went wrong'), findsNothing);
+
+    await tester.tap(find.text('Family Settings'));
+    await tester.pumpAndSettle();
+    expect(find.text('Something went wrong'), findsNothing);
+    expect(headOnlyCalls, isEmpty);
+  });
 }
