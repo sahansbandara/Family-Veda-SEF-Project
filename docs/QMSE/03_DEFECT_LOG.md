@@ -88,4 +88,4 @@ Cause: the Flutter Members screen showed Join Requests and Invitations to every 
 
 Severity: **LOW** (test defect, not a product defect). Status: Fixed.
 
-`scripts/e2e/synthetic_portal_journey.py` expected 404 when a Head lists an adult's records. The tested contract (`AdultReportSharingTests`) is an empty list with 200 for lists and 404 for single-record reads; no private data was returned. The script now asserts the empty list, and its doctor lookup no longer depends on a stale display name. The script has not been re-run end to end since this change.
+`scripts/e2e/synthetic_portal_journey.py` expected 404 when a Head lists an adult's records. The tested contract (`AdultReportSharingTests`) is an empty list with 200 for lists and 404 for single-record reads; no private data was returned. The script now asserts the empty list, and its doctor lookup no longer depends on a stale display name. Retest: the full journey passed on a fresh disposable database ([07-after-fix-api-journey.txt](evidence/2026-10-08-defect-retest/07-after-fix-api-journey.txt)).

@@ -1,0 +1,21 @@
+POST /auth/register: 201
+POST /auth/register: 201
+POST /auth/login: 200
+POST /families: 201
+POST /families/5ae7f98c-74e4-45c0-bfaf-abe19254d89c/members: 201
+POST /families/join-requests: 201
+POST /families/join-requests/23cb5edc-03b3-4205-8d7d-b6e211a14a38/accept: 200
+GET /families/5ae7f98c-74e4-45c0-bfaf-abe19254d89c/members: 200
+GET /members/me: 200
+POST /members/50c37fd0-a81f-43dc-8d64-79a02c9e595c/records: 201
+GET /members/50c37fd0-a81f-43dc-8d64-79a02c9e595c/records: 200
+GET /members/50c37fd0-a81f-43dc-8d64-79a02c9e595c/records: 200
+GET /doctors/directory: 200
+POST /families/5ae7f98c-74e4-45c0-bfaf-abe19254d89c/doctor-requests: 201
+POST /doctors/me/family-requests/f5f07561-3d93-41c1-9195-1b99e528e7f0/accept: 200
+POST /appointments: 201
+POST /doctors/me/appointments/efa75502-e982-46b9-8326-d0ea66bd5fd3/confirm: 200
+GET /dashboard/family: 200
+GET /dashboard/doctor: 200
+GET /notifications: 200
+Synthetic local API journey passed
