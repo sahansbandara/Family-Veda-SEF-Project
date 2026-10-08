@@ -690,6 +690,8 @@ public sealed class ClinicalService(
                 .Where(x => x.TriageCaseId == caseId && x.RevokedAt == null)
                 .ToListAsync(cancellationToken);
             foreach (var activeGrant in activeGrants) activeGrant.RevokedAt = approval.DecidedAt;
+            // The doctor has now decided, so an earlier overdue-review marker no longer describes this case.
+            if (triageCase.FailureCode == "DOCTOR_RESPONSE_DELAY") triageCase.FailureCode = null;
         }
         await CaseLifecycle.MarkReviewAsync(dbContext, caseId, triageCase.MemberId, currentUser.UserId, cancellationToken);
         await WriteAuditAsync("CASE_DECISION", "TriageCase", caseId, "SUCCESS", cancellationToken, triageCase.MemberId);

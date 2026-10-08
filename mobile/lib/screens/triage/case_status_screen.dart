@@ -83,7 +83,11 @@ class CaseStatusScreen extends ConsumerWidget {
                   ),
                 );
               }
-              final delayed = item.failureCode == 'DOCTOR_RESPONSE_DELAY';
+              // A decided case is no longer overdue, even if an older delay marker is still present.
+              final delayed =
+                  item.failureCode == 'DOCTOR_RESPONSE_DELAY' &&
+                  item.latestDecisionAction == null &&
+                  !item.hasApprovedGuidance;
               return ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
@@ -94,9 +98,7 @@ class CaseStatusScreen extends ConsumerWidget {
                       icon: Icons.message_outlined,
                       color: Theme.of(context).colorScheme.primary,
                       title: 'Doctor response',
-                      message:
-                          item.latestDecisionReason ??
-                          'Your doctor has responded to this request.',
+                      message: 'Your doctor has responded to this request.',
                     ),
                   const SizedBox(height: 12),
                   if (delayed)

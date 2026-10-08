@@ -589,7 +589,7 @@ export function TriagePage() {
                 </div>
 
                 <p className="sub">{caseView.details.doctorReceivedAt ? 'Added to your assigned doctor’s queue.' : 'Request received by the service; awaiting doctor assignment.'} Queue receipt does not mean the doctor has read it.</p>
-                {caseView.details.latestDecisionAction && <div className="current-call"><strong>Doctor response</strong><p>{decisionLabels[caseView.details.latestDecisionAction] ?? 'Your doctor recorded a response to this request.'}</p>{caseView.details.latestDecisionReason && <p>{caseView.details.latestDecisionReason}</p>}</div>}
+                {caseView.details.latestDecisionAction && <div className="current-call"><strong>Doctor response</strong><p>{decisionLabels[caseView.details.latestDecisionAction] ?? 'Your doctor recorded a response to this request.'}</p></div>}
                 {caseView.details.submittedEpisode && !editing && <div className="review-box"><strong>Your submitted symptoms</strong><p>{caseView.details.submittedEpisode.symptoms.join(', ')}</p><p>Duration: {caseView.details.submittedEpisode.durationDays} days · Severity: {caseView.details.submittedEpisode.severity}/10</p>{caseView.details.submittedEpisode.notes && <p>{caseView.details.submittedEpisode.notes}</p>}</div>}
                 {actionError && <p role="alert" className="error">{actionError}</p>}
                 {editing && caseView.details.canEdit && caseView.details.submittedEpisode ? (
