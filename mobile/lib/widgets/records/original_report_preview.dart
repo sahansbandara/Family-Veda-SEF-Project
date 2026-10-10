@@ -330,7 +330,12 @@ class _OriginalReportContentState extends State<OriginalReportContent> {
     ),
   ]);
 
+  static bool _compactToolbar(BuildContext context) =>
+      MediaQuery.sizeOf(context).width < 400;
+
   void _more() => _sheet([
+    if (_compactToolbar(context))
+      _action(Icons.info_outline, 'Document details', _details),
     _action(Icons.fit_screen, 'Fit whole page', _ready ? () => _fit() : null),
     _action(
       Icons.width_normal_outlined,
@@ -543,10 +548,9 @@ class _OriginalReportContentState extends State<OriginalReportContent> {
                   ),
                 ],
               ),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+            Builder(
+              builder: (context) => Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   IconButton(
                     tooltip: 'Save original report',
@@ -577,11 +581,13 @@ class _OriginalReportContentState extends State<OriginalReportContent> {
                     onPressed: _ready ? () => _fit() : null,
                     icon: const Icon(Icons.fit_screen),
                   ),
-                  IconButton(
-                    tooltip: 'Document details',
-                    onPressed: _details,
-                    icon: const Icon(Icons.info_outline),
-                  ),
+                  // Narrow phones move details into More so every target keeps 48px.
+                  if (!_compactToolbar(context))
+                    IconButton(
+                      tooltip: 'Document details',
+                      onPressed: _details,
+                      icon: const Icon(Icons.info_outline),
+                    ),
                   IconButton(
                     tooltip: 'More actions',
                     onPressed: _more,
