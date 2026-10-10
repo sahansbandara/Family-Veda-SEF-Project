@@ -126,7 +126,10 @@ class _FakeApi implements DoctorFamiliesApi {
   }
 
   @override
-  Future<Uint8List> getMemberLabReportFile(String memberId, String reportId) async {
+  Future<Uint8List> getMemberLabReportFile(
+    String memberId,
+    String reportId,
+  ) async {
     originalReportRequested = '$memberId/$reportId';
     return Uint8List(0);
   }
@@ -359,10 +362,10 @@ void main() {
     await tester.pumpAndSettle();
     await _tap(tester, find.widgetWithText(Tab, 'Labs'));
     await _tap(tester, find.text('View original report'));
-    expect(find.text('Original report'), findsOneWidget);
+    expect(find.byTooltip('Fit whole page'), findsOneWidget);
     await tester.pumpWidget(app('m-2'));
     await tester.pumpAndSettle();
-    expect(find.text('Original report'), findsNothing);
+    expect(find.byTooltip('Fit whole page'), findsNothing);
   });
 
   testWidgets(
@@ -402,7 +405,7 @@ void main() {
       await _tap(tester, find.text('View original report'));
       expect(api.originalReportRequested, 'm-1/lab-1');
       expect(find.text('Original report could not be loaded.'), findsOneWidget);
-      await _tap(tester, find.widgetWithText(TextButton, 'Close'));
+      await _tap(tester, find.byTooltip('Close'));
       await _tap(tester, find.widgetWithText(Tab, 'Vitals'));
       expect(find.text('Vitals restricted'), findsOneWidget);
     },
