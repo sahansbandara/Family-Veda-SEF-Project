@@ -4,7 +4,7 @@ import { useId, useState, type ReactNode } from 'react'
 
 import type { AgentTraceDto } from '../../services/apiClient'
 import { formatJson, statusLabel, structuredEntries } from './approvalReview'
-import { isNoDataTrace, NO_DATA_LABEL } from './safetyRules'
+import { isNoDataTrace, isSyntheticTrace, NO_DATA_LABEL, traceConfidence } from './safetyRules'
 
 type View = 'plain' | 'json'
 
@@ -36,23 +36,26 @@ export function AgentOutputCard({ title, raw, empty, icon, tag, caption, trace, 
   const entries = plain ? [] : structuredEntries(raw)
   const className = `care-panel approval-tile approval-agent${wide ? ' approval-tile--wide' : ''}${draft ? ' approval-tile--draft' : ''}`
 
+  const missing = !plain && entries.length === 0
+  const outputLabel = trace && isSyntheticTrace(trace) ? 'Synthetic demonstration — no executed agent result' : trace && isNoDataTrace(trace) ? NO_DATA_LABEL : trace?.hasOutput === false ? 'Output unavailable' : trace ? statusLabel(trace.status) : null
+
   return (
-    <article className={className} aria-labelledby={headingId}>
+    <article className={`${className}${missing ? ' approval-agent--unavailable' : ''}`} aria-labelledby={headingId}>
       <div className="approval-agent__head">
         <h3 id={headingId}>{icon} {title}</h3>
-        <div className="approval-toggle" role="group" aria-label={`${title} view`}>
+        {!missing && <div className="approval-toggle" role="group" aria-label={`${title} view`}>
           <button type="button" aria-pressed={view === 'plain'} onClick={() => setView('plain')}>
             Plain language
           </button>
           <button type="button" aria-pressed={view === 'json'} onClick={() => setView('json')}>
             JSON
           </button>
-        </div>
+        </div>}
       </div>
       {tag && <p className="approval-tag">{tag}</p>}
       {trace && (
         <p className="care-caption">
-          {isNoDataTrace(trace) ? NO_DATA_LABEL : statusLabel(trace.status)} · Confidence {Math.round(trace.confidence * 100)}% · {trace.latencyMilliseconds} ms
+          {outputLabel}{!missing && !isSyntheticTrace(trace) && trace.hasOutput !== false && <> · {traceConfidence(trace)} · {trace.latencyMilliseconds} ms</>}
         </p>
       )}
 

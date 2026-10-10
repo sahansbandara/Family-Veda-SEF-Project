@@ -62,6 +62,21 @@ describe('AI analysis tab', () => {
     expect(screen.getByText(/every agent output matched its json schema/i)).toBeInTheDocument()
   })
 
+  it('shows missing demo outputs compactly without fake confidence or JSON toggles', () => {
+    const missing: CaseReviewDto = { ...review, contextJson: undefined, analysisJson: undefined, familialRiskJson: undefined,
+      traces: review.traces.map((item) => ({ ...item, hasOutput: false, modelName: 'synthetic-demo', confidence: 0.41 })) }
+    render(<ApprovalEvidenceTabs review={missing} />)
+    fireEvent.click(screen.getByRole('tab', { name: 'AI analysis' }))
+    const card = screen.getByRole('heading', { name: 'Context agent' }).closest('article')!
+    expect(card).toHaveClass('approval-agent--unavailable')
+    expect(within(card).queryByRole('button', { name: 'JSON' })).not.toBeInTheDocument()
+    expect(within(card).getByText('Synthetic demonstration — no executed agent result')).toBeInTheDocument()
+    expect(within(card).queryByText(/41%/)).not.toBeInTheDocument()
+    const safety = screen.getByRole('heading', { name: 'Safety validation agent' }).closest('article')!
+    expect(within(safety).queryByText(/Confidence 41%/)).not.toBeInTheDocument()
+    expect(screen.getByText('View recorded audit steps')).toBeInTheDocument()
+  })
+
   it('switches one agent between plain language and JSON without affecting the others', () => {
     render(<ApprovalEvidenceTabs review={review} />)
     fireEvent.click(screen.getByRole('tab', { name: 'AI analysis' }))

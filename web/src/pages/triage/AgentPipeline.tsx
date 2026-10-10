@@ -7,6 +7,7 @@ type StageState = 'done' | 'failed' | 'running' | 'waiting'
 
 function stageState(trace: AgentTraceDto | undefined, index: number, traces: AgentTraceDto[], caseStatus: string): StageState {
   if (trace) {
+    if (trace.modelName === 'synthetic-demo' || trace.hasOutput === false) return 'failed'
     if (trace.status === 'Completed') return 'done'
     if (trace.status === 'Started') return 'running'
     return 'failed' // Failed, ToolDenied, SafeFailure
@@ -29,12 +30,16 @@ export function AgentPipeline({ traces, caseStatus }: AgentPipelineProps) {
     <ol className="agent-pipeline" aria-label="Agent pipeline progress">
       {pipelineStages.map((stage, index) => {
         const trace = traces.find((item) => item.agent === stage.agent)
-        const state = stageState(trace, index, traces, caseStatus)
+        const optionalNoData = trace?.agent === 'FamilialRisk' && trace.status === 'NoData'
+        const unavailable = trace?.modelName === 'synthetic-demo' || trace?.hasOutput === false
+        const state = optionalNoData ? 'waiting' : stageState(trace, index, traces, caseStatus)
+        const label = optionalNoData ? 'Not applicable — no family-history data' : unavailable ? 'Output unavailable' : stateLabel[state]
+        const confidence = trace?.agent === 'SafetyValidation' ? 'Deterministic — not applicable' : optionalNoData || unavailable || trace?.agent === 'Coordinator' ? 'Not applicable' : `${Math.round((trace?.confidence ?? 0) * 100)}%`
         return (
           <li key={stage.agent} className={`agent-pipeline__step agent-pipeline__step--${state}`}>
             <div className="agent-pipeline__head">
               <strong>{index + 1}. {stage.label} agent</strong>
-              <span className={`status-badge status-badge--${stateTone[state]}`}>{stateLabel[state]}</span>
+              <span className={`status-badge status-badge--${stateTone[state]}`}>{label}</span>
             </div>
             <p className="muted">{stage.purpose}</p>
             {trace && (
@@ -42,8 +47,8 @@ export function AgentPipeline({ traces, caseStatus }: AgentPipelineProps) {
                 <div><dt>Tools allowed</dt><dd>{trace.toolsAllowed.join(', ') || 'None'}</dd></div>
                 <div><dt>Tools denied</dt><dd>{trace.toolsDenied.length ? trace.toolsDenied.join(', ') : 'None'}</dd></div>
                 <div><dt>Schema valid</dt><dd>{trace.outputSchemaValid ? 'Yes' : 'No'}</dd></div>
-                <div><dt>Confidence</dt><dd>{Math.round(trace.confidence * 100)}%</dd></div>
-                <div><dt>Latency</dt><dd>{trace.latencyMilliseconds} ms</dd></div>
+                <div><dt>Confidence</dt><dd>{confidence}</dd></div>
+                <div><dt>Latency</dt><dd>{unavailable ? 'Unavailable' : `${trace.latencyMilliseconds} ms`}</dd></div>
               </dl>
             )}
           </li>

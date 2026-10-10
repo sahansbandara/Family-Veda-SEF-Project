@@ -3,6 +3,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using FamilyVeda.Application.Agents;
 using FamilyVeda.Application.Clinical;
 using FamilyVeda.Application.Common;
 using FamilyVeda.Application.Triage;
@@ -660,6 +661,21 @@ public sealed class ClinicalService(
 
         if (approving)
         {
+            var requiredTraces = await dbContext.AgentTraces.AsNoTracking()
+                .Where(x => x.TriageCaseId == caseId && (x.Agent == AgentKind.Context || x.Agent == AgentKind.Analysis))
+                .OrderByDescending(x => x.StepNumber).ToListAsync(cancellationToken);
+            var missingRequiredTrace = new[] { AgentKind.Context, AgentKind.Analysis }.Any(agent =>
+            {
+                var trace = requiredTraces.FirstOrDefault(x => x.Agent == agent);
+                return trace is null || trace.Status != AgentStepStatus.Completed || !trace.OutputSchemaValid ||
+                    trace.ModelName == "synthetic-demo" || !RequiredAgentEvidence.HasOutput(trace.OutputJson);
+            });
+            if (missingRequiredTrace || !RequiredAgentEvidence.IsComplete(triageCase.ContextOutputJson, triageCase.AnalysisOutputJson) ||
+                !RequiredAgentEvidence.IsComplete(requiredTraces.FirstOrDefault(x => x.Agent == AgentKind.Context)?.OutputJson,
+                    requiredTraces.FirstOrDefault(x => x.Agent == AgentKind.Analysis)?.OutputJson))
+            {
+                throw new ValidationException(new Dictionary<string, string[]> { ["agentEvidence"] = ["Required Context and Analysis outputs are missing or invalid. Request information or rerun triage before approval."] });
+            }
             if (!SafetyValidationService.IsApprovedPatientGuidance(request.FinalAdvisory!))
             {
                 throw new ValidationException(new Dictionary<string, string[]> { ["finalAdvisory"] = ["Select an approved non-diagnostic guidance statement."] });

@@ -113,6 +113,18 @@ public sealed class TriageOrchestrator(
                 if (!await SaveCheckpointAsync(caseId, cancellationToken)) return;
             }
 
+            if (!RequiredAgentEvidence.IsComplete(triageCase.ContextOutputJson, triageCase.AnalysisOutputJson) ||
+                outputs.Any(x => x.Agent is AgentKind.Context or AgentKind.Analysis && !x.HasData))
+            {
+                SetSafeFailure(triageCase, "MISSING_REQUIRED_AGENT_EVIDENCE");
+                dbContext.AgentTraces.Add(NewTrace(caseId, step, AgentKind.SafetyValidation, inputHash, [], [], [],
+                    "{\"canContinue\":false,\"violations\":[\"MISSING_REQUIRED_AGENT_EVIDENCE\"]}", 0m,
+                    status: AgentStepStatus.SafeFailure, errorCode: "MISSING_REQUIRED_AGENT_EVIDENCE"));
+                if (!await SaveCheckpointAsync(caseId, cancellationToken)) return;
+                await notificationService.SendCaseStatusAsync(caseId, triageCase.Status, cancellationToken);
+                return;
+            }
+
             // Only agents that had input data are counted. If none had data the minimum is 0,
             // so LOW_CONFIDENCE fires and the case defers to the doctor (RULE 9).
             var counted = outputs.Where(x => x.HasData).ToList();

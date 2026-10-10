@@ -336,7 +336,12 @@ public sealed class GoldenCaseFlowTests : IAsyncLifetime
         public Task<AgentRunResult> RunAsync(AgentRunContext context, CancellationToken cancellationToken)
         {
             Calls++;
-            return Task.FromResult(new AgentRunResult(kind, "{\"synthetic\":true}", 0.9m, [], [], [], schemaValid));
+            return Task.FromResult(new AgentRunResult(kind, JsonSerializer.Serialize<object>(kind switch
+            {
+                AgentKind.Context => new MemberContextOutput("Synthetic context", [], [], [], 0.9m),
+                AgentKind.Analysis => new AnalysisFindingsOutput([], [], 0.9m),
+                _ => new FamilialRiskSignalOutput([], [], "none", 0.9m)
+            }), 0.9m, [], [], [], schemaValid));
         }
     }
 }

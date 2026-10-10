@@ -32,14 +32,28 @@ public sealed class TriageOrchestratorNoDataTests
     }
 
     [Fact]
-    public async Task AllAgentsNoData_DoesNotPassSilently_StaysLowConfidence()
+    public async Task AllAgentsNoData_FailsRequiredEvidence()
     {
         var (db, triageCase) = await SeedAsync();
         await Run(db, triageCase, (AgentKind.Context, 0m, false), (AgentKind.Analysis, 0m, false), (AgentKind.FamilialRisk, 0m, false));
 
-        triageCase.Status.Should().Be(TriageStatus.LowConfidence);
-        triageCase.FailureCode.Should().Be("LOW_CONFIDENCE");
+        triageCase.Status.Should().Be(TriageStatus.FailedSafe);
+        triageCase.FailureCode.Should().Be("MISSING_REQUIRED_AGENT_EVIDENCE");
         triageCase.DraftAdvisoryJson.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(AgentKind.Context)]
+    [InlineData(AgentKind.Analysis)]
+    public async Task RequiredNoData_WithValidOutput_FailsEvidence(AgentKind missing)
+    {
+        var (db, triageCase) = await SeedAsync();
+        await Run(db, triageCase, (AgentKind.Context, 0.8m, missing != AgentKind.Context), (AgentKind.Analysis, 0.9m, missing != AgentKind.Analysis), (AgentKind.FamilialRisk, 0m, false));
+
+        triageCase.Status.Should().Be(TriageStatus.FailedSafe);
+        triageCase.FailureCode.Should().Be("MISSING_REQUIRED_AGENT_EVIDENCE");
+        triageCase.DraftAdvisoryJson.Should().BeNull();
+        (await db.AgentTraces.SingleAsync(x => x.Agent == AgentKind.SafetyValidation)).Status.Should().Be(AgentStepStatus.SafeFailure);
     }
 
     [Fact]
@@ -88,7 +102,12 @@ public sealed class TriageOrchestratorNoDataTests
     {
         public AgentKind Kind => kind;
         public Task<AgentRunResult> RunAsync(AgentRunContext context, CancellationToken cancellationToken) =>
-            Task.FromResult(new AgentRunResult(kind, "{}", confidence, [], [], [], true, HasData: hasData));
+            Task.FromResult(new AgentRunResult(kind, JsonSerializer.Serialize<object>(kind switch
+            {
+                AgentKind.Context => new MemberContextOutput("Synthetic context", [], [], [], confidence),
+                AgentKind.Analysis => new AnalysisFindingsOutput([], [], confidence),
+                _ => new FamilialRiskSignalOutput([], [], "none", confidence)
+            }), confidence, [], [], [], true, HasData: hasData));
     }
 
     private sealed class StubNotifications : INotificationService

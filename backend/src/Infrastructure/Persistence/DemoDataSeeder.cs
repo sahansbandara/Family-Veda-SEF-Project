@@ -188,7 +188,7 @@ public static class DemoDataSeeder
             db.TriageCases.Add(triageCase);
             var step = 1;
             foreach (var agent in new[] { AgentKind.Coordinator, AgentKind.Context, AgentKind.Analysis, AgentKind.FamilialRisk, AgentKind.SafetyValidation })
-                db.AgentTraces.Add(new AgentTrace { TriageCase = triageCase, StepNumber = step++, Agent = agent, Status = AgentStepStatus.Completed, InputHash = "SYNTHETIC", ToolsRequestedJson = "[]", ToolsAllowedJson = "[]", ToolsDeniedJson = "[]", OutputSchemaValid = true, Confidence = 0.82m, LatencyMilliseconds = 400 + step * 90, ModelName = "synthetic-demo" });
+                db.AgentTraces.Add(new AgentTrace { TriageCase = triageCase, StepNumber = step++, Agent = agent, Status = AgentStepStatus.SafeFailure, ErrorCode = "SYNTHETIC_DEMO_NO_OUTPUT", InputHash = "SYNTHETIC", ToolsRequestedJson = "[]", ToolsAllowedJson = "[]", ToolsDeniedJson = "[]", OutputSchemaValid = false, Confidence = 0m, LatencyMilliseconds = 400 + step * 90, ModelName = "synthetic-demo" });
             if (grant)
                 db.CaseAccessGrants.Add(new CaseAccessGrant { TriageCase = triageCase, DoctorId = doctor.Id, ExpiresAt = now.AddDays(7), Reason = "PRIMARY_DOCTOR_ASSIGNMENT" });
             return triageCase;

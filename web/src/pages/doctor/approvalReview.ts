@@ -149,7 +149,7 @@ export function structuredEntries(raw?: string | null): EvidenceEntry[] {
 
 /** Deterministic, non-clinical reasons this request is sitting in the doctor's queue. */
 export function reviewReasons(review: CaseReviewDto): string[] {
-  const failed = buildSafetyChecks(review.traces).filter((check) => !check.passed).length
+  const failed = buildSafetyChecks(review.traces, review).filter((check) => !check.passed).length
   const reasons: string[] = []
   const episode = review.submittedEpisode
   if (episode?.memberId === review.memberId && episode.symptoms.length > 0) {

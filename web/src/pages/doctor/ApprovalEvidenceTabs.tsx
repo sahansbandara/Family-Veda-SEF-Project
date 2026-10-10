@@ -7,7 +7,7 @@ import type { CaseReviewDto, MemberWorkspaceDto } from '../../services/apiClient
 import { AgentOutputCard } from './AgentOutputCard'
 import { IconBrain, IconDna, IconStethoscope } from './ApprovalIcons'
 import { findTrace, reviewReasons, statusLabel } from './approvalReview'
-import { isNoDataTrace, NO_DATA_LABEL } from './safetyRules'
+import { isNoDataTrace, isSyntheticTrace, NO_DATA_LABEL, traceConfidence } from './safetyRules'
 import { ApprovalSupportingEvidence } from './ApprovalSupportingEvidence'
 import { SafetyChecks } from './SafetyChecks'
 
@@ -93,7 +93,7 @@ export function ApprovalEvidenceTabs({ review, onWorkspace }: { review: CaseRevi
               trace={safetyTrace}
               raw={safetyTrace ? JSON.stringify(safetyTrace) : null}
               empty="The safety validation step did not record a trace."
-              plain={<SafetyChecks traces={review.traces} />}
+              plain={<SafetyChecks traces={review.traces} review={review} />}
             />
 
             <article className="care-panel approval-tile approval-tile--wide">
@@ -105,7 +105,7 @@ export function ApprovalEvidenceTabs({ review, onWorkspace }: { review: CaseRevi
                 {statusLabel(review.status)}
               </p>
               {review.traces.length > 0 && (
-                <div className="table-scroll">
+                <details><summary>View recorded audit steps</summary><div className="table-scroll">
                   <table>
                     <thead>
                       <tr>
@@ -122,15 +122,15 @@ export function ApprovalEvidenceTabs({ review, onWorkspace }: { review: CaseRevi
                         <tr key={trace.stepNumber}>
                           <td>{trace.stepNumber}</td>
                           <td>{statusLabel(trace.agent)}</td>
-                          <td>{isNoDataTrace(trace) ? NO_DATA_LABEL : statusLabel(trace.status)}</td>
-                          <td>{Math.round(trace.confidence * 100)}%</td>
+                          <td>{isSyntheticTrace(trace) ? `Synthetic demo · recorded ${statusLabel(trace.status)} · output unavailable` : isNoDataTrace(trace) ? NO_DATA_LABEL : trace.hasOutput === false ? `Output unavailable · recorded ${statusLabel(trace.status)}` : statusLabel(trace.status)}</td>
+                          <td>{traceConfidence(trace)}</td>
                           <td>{trace.latencyMilliseconds} ms</td>
                           <td>{trace.toolsDenied.length}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </div></details>
               )}
             </article>
           </div>

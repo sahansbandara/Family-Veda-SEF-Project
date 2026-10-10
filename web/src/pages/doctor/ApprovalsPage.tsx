@@ -115,7 +115,7 @@ export function ApprovalsPage() {
   )[0]
   const visible = filterQueue(cases, filter, search)
   const selectedCase = cases.find((item) => item.id === selectedId)
-  const failedChecks = review ? buildSafetyChecks(review.traces).filter((check) => !check.passed).length : 0
+  const failedChecks = review ? buildSafetyChecks(review.traces, review).filter((check) => !check.passed).length : 0
   const countFor = (id: QueueFilter) =>
     id === 'all' ? cases.length : cases.filter((item) => queueBucket(item) === id).length
 

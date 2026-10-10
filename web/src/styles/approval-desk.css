@@ -717,3 +717,11 @@ button.approval-vital strong small { font-size: 0.75rem; font-weight: 500; }
 @media (max-width: 600px) {
   .approval-toast { flex-wrap: wrap; bottom: 12px; }
 }
+
+/* Missing results stay compact; recorded audit steps remain in the expandable trace. */
+.approval-agent--unavailable {
+  padding: 12px 16px;
+  min-height: 0;
+}
+.approval-agent--unavailable .approval-agent__head { margin-bottom: 4px; }
+.approval-agent--unavailable p { margin: 4px 0; }

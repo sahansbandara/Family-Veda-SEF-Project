@@ -139,7 +139,7 @@ public static class DashboardCoverageSeeder
             db.TriageCases.Add(At(c, now.AddHours(-hoursAgo)));
             var step = 1;
             foreach (var agent in new[] { AgentKind.Coordinator, AgentKind.Context, AgentKind.Analysis, AgentKind.FamilialRisk, AgentKind.SafetyValidation })
-                db.AgentTraces.Add(new AgentTrace { TriageCase = c, StepNumber = step++, Agent = agent, Status = AgentStepStatus.Completed, InputHash = "SYNTHETIC", ToolsRequestedJson = "[]", ToolsAllowedJson = "[]", ToolsDeniedJson = "[]", OutputSchemaValid = true, Confidence = status == TriageStatus.LowConfidence ? 0.41m : 0.8m, LatencyMilliseconds = 380 + step * 85, ModelName = "synthetic-demo" });
+                db.AgentTraces.Add(new AgentTrace { TriageCase = c, StepNumber = step++, Agent = agent, Status = AgentStepStatus.SafeFailure, ErrorCode = "SYNTHETIC_DEMO_NO_OUTPUT", InputHash = "SYNTHETIC", ToolsRequestedJson = "[]", ToolsAllowedJson = "[]", ToolsDeniedJson = "[]", OutputSchemaValid = false, Confidence = 0m, LatencyMilliseconds = 380 + step * 85, ModelName = "synthetic-demo" });
             if (grant)
                 db.CaseAccessGrants.Add(new CaseAccessGrant { TriageCase = c, DoctorId = doctor.Id, ExpiresAt = now.AddDays(7), Reason = "PRIMARY_DOCTOR_ASSIGNMENT" });
             return c;

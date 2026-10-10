@@ -1,5 +1,9 @@
 # Memory — Family Veda
 
+## 2026-10-11 — Empty and synthetic agent evidence
+
+Legacy Case 0011 traces were synthetic-demo placeholders with confidence 0.41, Completed/schema-valid flags but null outputs. Preserve stored audit rows; API now reports output presence/model metadata and invalid schema evidence when output absent. UI compact unavailable cards and audit labels distinguish synthetic placeholders and optional FamilialRisk NoData; deterministic SafetyValidation has no confidence percentage. Required Context/Analysis missing, semantically invalid or NoData evidence fails the pipeline safety checkpoint and patient-release approval guard. Genuine low-confidence valid outputs remain doctor-reviewable. Future demo trace source records use unavailable/safe-failure metadata instead of fabricated success. No production backfill or migration. Flutter has no existing agent review/approval screen; queue and clinical member screens remain unaffected. Device/viewport screenshots and live deployment validation remain pending.
+
 ## 2026-10-11 — Extraction is separate from member confirmation
 
 `0 confirmed values` does not imply OCR failed. The synthetic current PNG has three accurate draft lab values while its matching PDF has three confirmed rows. Doctor workspace contracts now include optional OCR status and unconfirmed-value count; actual values remain confirmed-only behind existing grants/consent. Web and Flutter show the difference and direct members to Health records. Member "Check report again" reuses existing protected extraction, preserves confirmed data and blocks unsaved edits. Scanned PDF pages now get one enhanced fallback when the first read lacks structured values; unsuccessful enhancement retains the first text. Conversion temp files are cleaned on cancellation/failure. No schema/deployment changes or production report backfill. UI device/screenshots and live recheck remain pending after deployment.
