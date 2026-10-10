@@ -1,0 +1,361 @@
+Waiting for another flutter command to release the startup lock...
+00:00 +0: loading /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/guidance_provider_test.dart
+00:00 +0: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/guidance_provider_test.dart: member switch invalidates approved guidance
+00:00 +1: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/patient_providers_test.dart: patient list providers use API and active member scope
+00:00 +2: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/patient_providers_test.dart: patient list providers use API and active member scope
+00:00 +3: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/patient_providers_test.dart: patient list providers use API and active member scope
+00:00 +4: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/members_provider_test.dart: members are not requested before sign-in finishes, then load and default to the signed-in user
+00:00 +5: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/members_provider_test.dart: members are not requested before sign-in finishes, then load and default to the signed-in user
+00:00 +6: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/members_provider_test.dart: members are not requested before sign-in finishes, then load and default to the signed-in user
+00:00 +7: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/members_provider_test.dart: members are not requested before sign-in finishes, then load and default to the signed-in user
+00:00 +8: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/members_provider_test.dart: members are not requested before sign-in finishes, then load and default to the signed-in user
+00:00 +9: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/active_member_provider_test.dart: active member switch invalidates member-scoped records
+00:00 +10: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/active_member_provider_test.dart: active member switch invalidates member-scoped records
+00:00 +11: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/active_member_provider_test.dart: active member switch invalidates member-scoped records
+00:00 +12: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/active_member_provider_test.dart: active member switch invalidates member-scoped records
+00:00 +13: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/auth_provider_test.dart: combined logout failures lock session pending cleanup
+00:00 +14: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/auth_provider_test.dart: pending logout cleanup blocks session restore after restart
+00:00 +15: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/auth_provider_test.dart: failed tombstone removal keeps session locked
+00:00 +16: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/auth_provider_test.dart: direct account replacement requires logout first
+00:00 +17: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/auth_provider_test.dart: session expiration clears previous account member scope
+00:00 +18: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/auth_provider_test.dart: member preference cleanup failure does not escape lifecycle
+00:00 +19: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/auth_provider_test.dart: failed account cleanup cannot restore member into next account
+00:00 +20: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/auth_provider_test.dart: registration stores tokens only after a successful API response
+00:00 +21: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/providers/auth_provider_test.dart: registration validation failure keeps tokens cleared and exposes fields
+00:01 +22: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/app_notification_test.dart: parses the new NotificationDto fields (type/title/body/linkPath)
+00:01 +23: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/app_notification_test.dart: derives isRead from readAt when isRead is absent
+00:01 +24: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/app_notification_test.dart: treats legacy case-status history as already read
+00:01 +25: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/vital_test.dart: recognises seeded snake_case and free-text vital names
+00:01 +26: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/vital_test.dart: pairs systolic and diastolic readings that share a timestamp
+00:01 +27: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/vital_test.dart: orders newest first and reports only the arithmetic change
+00:01 +28: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/approved_guidance_test.dart: patient parser rejects final advisory in unapproved state
+00:01 +29: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/approved_guidance_test.dart: patient parser accepts final advisory in approved state
+00:01 +30: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/family_dashboard_test.dart: parses Head dashboard with family code and pending join requests
+00:01 +31: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/family_dashboard_test.dart: parses Adult dashboard without Head-only fields
+00:01 +32: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/family_dashboard_test.dart: parses nested nextAppointment and familyDoctor
+00:01 +33: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/family_dashboard_test.dart: Head with pending requests sees the join-requests card
+00:01 +34: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/family_dashboard_test.dart: Adult never sees the join-requests card
+00:01 +35: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/family_dashboard_test.dart: Head with zero pending requests does not see the card
+00:01 +36: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/family_dashboard_test.dart: parses mockup fields: members, activity and counts
+00:01 +37: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/record_summary_meta_test.dart: round-trips status, severity, doctor and free text
+00:01 +38: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/record_summary_meta_test.dart: writes no metadata line when nothing is chosen
+00:01 +39: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/record_summary_meta_test.dart: does not invent metadata for plain or label-mentioning text
+00:01 +40: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/record_summary_meta_test.dart: HealthRecord keeps the summary returned by the API
+00:02 +41: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/triage_case_test.dart: submittedAt is converted to device-local time
+00:02 +42: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/triage_case_test.dart: reference shows zero-padded case number, else id prefix
+00:02 +43: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/appointment_test.dart: parses an appointment and its embedded doctor
+00:02 +44: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/appointment_test.dart: friendly status labels are patient-facing, not raw enum names
+00:02 +45: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/appointment_test.dart: maps unknown API status strings to unknown, not a crash
+00:02 +46: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/appointment_test.dart: only Requested and Confirmed appointments are cancellable
+00:02 +47: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/appointment_test.dart: missing optional fields default safely
+00:02 +48: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/doctor_queue_case_reference_test.dart: granted case shows the four-digit case number and released identity
+00:02 +49: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/doctor_queue_case_reference_test.dart: pooled case never carries identity even if the payload includes it
+00:02 +50: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/doctor_queue_case_reference_test.dart: falls back to the id prefix when an older API sends no case number
+00:02 +51: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/lab_report_test.dart: lab report parses sharing, file state and range counts
+00:02 +52: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/models/lab_report_test.dart: items default to private and sex defaults to not specified
+00:03 +53: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/book_appointment_screen_test.dart: BookAppointmentScreen shows Family Head guidance and Choose Doctor button when no doctor
+00:04 +54: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/book_appointment_screen_test.dart: BookAppointmentScreen shows Family Head guidance and Choose Doctor button when no doctor
+00:04 +55: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/book_appointment_screen_test.dart: BookAppointmentScreen shows Family Head guidance and Choose Doctor button when no doctor
+00:05 +56: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/home_screen_test.dart: tapping actions without an active member prompts user to select a member
+00:05 +57: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/home_screen_test.dart: tapping actions without an active member prompts user to select a member
+00:05 +58: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/home_screen_test.dart: tapping actions without an active member prompts user to select a member
+00:05 +59: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/home_screen_test.dart: tapping actions without an active member prompts user to select a member
+00:05 +60: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/home_screen_test.dart: tapping actions without an active member prompts user to select a member
+00:05 +61: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/home_screen_test.dart: tapping actions without an active member prompts user to select a member
+00:05 +62: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_triage_cases_screen_test.dart: shows real counts and only claimable cases under Available
+00:06 +63: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/care_workflows_test.dart: symptoms validates before advancing and reviews before submission
+00:06 +64: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/care_workflows_test.dart: symptoms validates before advancing and reviews before submission
+00:06 +65: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/care_workflows_test.dart: symptoms validates before advancing and reviews before submission
+00:06 +66: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/care_workflows_test.dart: symptoms validates before advancing and reviews before submission
+00:06 +67: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/care_workflows_test.dart: symptoms validates before advancing and reviews before submission
+00:06 +68: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/care_workflows_test.dart: symptoms validates before advancing and reviews before submission
+00:06 +69: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/care_workflows_test.dart: symptoms validates before advancing and reviews before submission
+00:06 +70: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/request_progress_actions_test.dart: withdraw sends backend command only after confirmation
+00:06 +71: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/my_doctor_screen_test.dart: assigned: shows the doctor, live slots and a collapsed directory
+00:06 +72: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/my_doctor_screen_test.dart: assigned: shows the doctor, live slots and a collapsed directory
+00:06 +73: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/my_doctor_screen_test.dart: assigned: shows the doctor, live slots and a collapsed directory
+00:07 +74: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/my_doctor_screen_test.dart: assigned: shows the doctor, live slots and a collapsed directory
+00:07 +75: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/my_doctor_screen_test.dart: assigned: shows the doctor, live slots and a collapsed directory
+00:07 +76: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/my_doctor_screen_test.dart: assigned: shows the doctor, live slots and a collapsed directory
+00:07 +77: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/my_doctor_screen_test.dart: assigned: shows the doctor, live slots and a collapsed directory
+00:07 +78: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/my_doctor_screen_test.dart: assigned: shows the doctor, live slots and a collapsed directory
+00:07 +79: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/my_doctor_screen_test.dart: assigned: shows the doctor, live slots and a collapsed directory
+00:07 +80: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/my_doctor_screen_test.dart: assigned: shows the doctor, live slots and a collapsed directory
+00:07 +81: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/my_doctor_screen_test.dart: assigned: shows the doctor, live slots and a collapsed directory
+00:07 +82: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/my_doctor_screen_test.dart: assigned: shows the doctor, live slots and a collapsed directory
+00:08 +83: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_triage_cases_screen_test.dart: an acknowledged referral can be closed after confirmation
+00:08 +84: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_calendar_screen_test.dart: shows metrics, the date strip and today's agenda from the API
+00:08 +85: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_calendar_screen_test.dart: shows metrics, the date strip and today's agenda from the API
+00:08 +86: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_calendar_screen_test.dart: shows metrics, the date strip and today's agenda from the API
+00:09 +87: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_calendar_screen_test.dart: shows metrics, the date strip and today's agenda from the API
+00:09 +88: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/public_information_screen_test.dart: each public route shows its own title
+00:09 +89: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/public_information_screen_test.dart: each public route shows its own title
+00:09 +90: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/public_information_screen_test.dart: each public route shows its own title
+00:09 +91: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/public_information_screen_test.dart: each public route shows its own title
+00:09 +92: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_triage_cases_screen_test.dart: a follow-up appointment needs a time before it is booked
+00:09 +93: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_triage_cases_screen_test.dart: a follow-up appointment needs a time before it is booked
+00:09 +94: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_triage_cases_screen_test.dart: a follow-up appointment needs a time before it is booked
+00:09 +95: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_triage_cases_screen_test.dart: a follow-up appointment needs a time before it is booked
+00:10 +96: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_triage_cases_screen_test.dart: a follow-up appointment needs a time before it is booked
+00:10 +97: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/public_information_screen_test.dart: footer links move between the public pages
+00:10 +98: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/case_status_screen_test.dart: approved case hides a stale delay marker and never shows internal doctor notes
+00:10 +99: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_calendar_screen_test.dart: week and month views are available
+00:10 +100: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_calendar_screen_test.dart: week and month views are available
+00:10 +101: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_calendar_screen_test.dart: week and month views are available
+00:10 +102: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_calendar_screen_test.dart: week and month views are available
+00:10 +103: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_calendar_screen_test.dart: week and month views are available
+00:10 +104: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_calendar_screen_test.dart: week and month views are available
+00:10 +105: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_calendar_screen_test.dart: week and month views are available
+00:10 +106: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_triage_cases_screen_test.dart: fits a small phone and a tablet without overflow
+00:10 +107: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_calendar_screen_test.dart: a requested appointment offers confirm, reschedule and cancel only
+00:11 +108: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_calendar_screen_test.dart: a completed appointment is read-only
+00:11 +109: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/privacy_screen_test.dart: Family Head toggles a minor consent; adults show no switches
+00:11 +110: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/privacy_screen_test.dart: Family Head toggles a minor consent; adults show no switches
+00:11 +111: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/privacy_screen_test.dart: Family Head toggles a minor consent; adults show no switches
+00:11 +112: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/privacy_screen_test.dart: Family Head toggles a minor consent; adults show no switches
+00:12 +113: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/privacy_screen_test.dart: Family Head toggles a minor consent; adults show no switches
+00:13 +114: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/privacy_screen_test.dart: Family Head toggles a minor consent; adults show no switches
+00:13 +115: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/records_screen_test.dart: records screen filters and sorts synthetic history
+00:13 +116: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/records_screen_test.dart: records screen filters and sorts synthetic history
+00:14 +117: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/records_screen_test.dart: records screen filters and sorts synthetic history
+00:14 +118: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart: adds a range, saves the whole week and keeps server truth
+00:14 +119: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/async_state_views_test.dart: error state exposes working retry action
+00:14 +120: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/async_state_views_test.dart: error state exposes working retry action
+00:14 +121: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart: removes a range from the menu and reports a failed save
+00:15 +122: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/report_trash_test.dart: deleting a report asks first and never purges
+00:15 +122: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart: saves the practice profile through the API
+
+Warning: A call to tap() with finder "Found 1 widget with text "Specialty": [
+  Text("Specialty", overflow: ellipsis, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery, _ScrollableScope]),
+]" derived an Offset (Offset(71.7, 62.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#94619 relayoutBoundary=up15
+The hit test result at that offset is: HitTestResult(_RenderDecoration#fda66@Offset(55.7, 14.0), RenderSemanticsAnnotations#1f9ec@Offset(55.7, 14.0), RenderPointerListener#a835c@Offset(55.7, 14.0), RenderSemanticsAnnotations#8a2bd@Offset(55.7, 14.0), RenderMouseRegion#5d1de@Offset(55.7, 14.0), RenderSemanticsAnnotations#73008@Offset(55.7, 14.0), RenderSemanticsAnnotations#3d324@Offset(55.7, 14.0), RenderFlex#bcea2@Offset(55.7, 297.0), RenderRepaintBoundary#e95d9@Offset(55.7, 297.0), RenderIndexedSemantics#a973f@Offset(55.7, 297.0), RenderSliverList@(mainAxis: 6.0, crossAxis: 55.6875), RenderSliverPadding@(mainAxis: 6.0, crossAxis: 71.6875), RenderViewport#d274a@Offset(71.7, 6.0), RenderIgnorePointer#e9a0c@Offset(71.7, 6.0), RenderSemanticsAnnotations#2b03f@Offset(71.7, 6.0), RenderPointerListener#2d902@Offset(71.7, 6.0), RenderSemanticsGestureHandler#5746e@Offset(71.7, 6.0), RenderPointerListener#a2ff6@Offset(71.7, 6.0), _RenderScrollSemantics#38200@Offset(71.7, 6.0), RenderClipRect#83a86@Offset(71.7, 6.0), RenderStack#5dc63@Offset(71.7, 6.0), RenderPadding#25447@Offset(71.7, 6.0), RenderCustomMultiChildLayoutBox#caca8@Offset(71.7, 62.0), _RenderInkFeatures#912bf@Offset(71.7, 62.0), RenderPhysicalModel#04cb2@Offset(71.7, 62.0), RenderSemanticsAnnotations#16934@Offset(71.7, 62.0), RenderRepaintBoundary#c7613@Offset(71.7, 62.0), RenderIgnorePointer#56c16@Offset(71.7, 62.0), RenderAnimatedOpacity#cda81@Offset(71.7, 62.0), RenderAnimatedOpacity#cbd26@Offset(71.7, 62.0), _RenderColoredBox#84685@Offset(71.7, 62.0), RenderAnimatedOpacity#a486a@Offset(71.7, 62.0), RenderIgnorePointer#8562b@Offset(71.7, 62.0), RenderAnimatedOpacity#1556b@Offset(71.7, 62.0), RenderRepaintBoundary#513a0@Offset(71.7, 62.0), RenderSemanticsAnnotations#7962c@Offset(71.7, 62.0), RenderOffstage#19450@Offset(71.7, 62.0), RenderSemanticsAnnotations#262d0@Offset(71.7, 62.0), _RenderTheater#eab30@Offset(71.7, 62.0), RenderAbsorbPointer#970ac@Offset(71.7, 62.0), RenderPointerListener#93ba8@Offset(71.7, 62.0), RenderSemanticsAnnotations#3b7f9@Offset(71.7, 62.0), RenderCustomPaint#3d967@Offset(71.7, 62.0), RenderSemanticsAnnotations#970a4@Offset(71.7, 62.0), RenderSemanticsAnnotations#be09d@Offset(71.7, 62.0), RenderSemanticsAnnotations#42815@Offset(71.7, 62.0), RenderTapRegionSurface#cca0e@Offset(71.7, 62.0), RenderSemanticsAnnotations#4c6fe@Offset(71.7, 62.0), RenderSemanticsAnnotations#b4e08@Offset(71.7, 62.0), HitTestEntry<HitTestTarget>#1ccb4(_ReusableRenderView#29a46), HitTestEntry<HitTestTarget>#f3122(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      _tap (file:///Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart:126:16)
+<asynchronous suspension>
+#4      _pick (file:///Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart:137:3)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart:267:5)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#8      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+00:16 +123: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/report_trash_test.dart: deleting a report asks first and never purges
+00:16 +124: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/report_trash_test.dart: deleting a report asks first and never purges
+00:17 +125: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/report_trash_test.dart: deleting a report asks first and never purges
+00:17 +126: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/report_library_workflow_test.dart: library refresh after saving keeps the review open until explicit close
+00:18 +127: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/report_library_workflow_test.dart: library refresh after saving keeps the review open until explicit close
+00:18 +128: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/report_library_workflow_test.dart: library refresh after saving keeps the review open until explicit close
+00:18 +128: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart: clears the city when the district changes
+
+Warning: A call to tap() with finder "Found 1 widget with text "District": [
+  Text("District", overflow: ellipsis, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery, _ScrollableScope]),
+]" derived an Offset (Offset(65.5, 96.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#2f304 relayoutBoundary=up15
+The hit test result at that offset is: HitTestResult(_RenderDecoration#de9e5@Offset(49.5, 14.0), RenderSemanticsAnnotations#5ba55@Offset(49.5, 14.0), RenderPointerListener#df2d2@Offset(49.5, 14.0), RenderSemanticsAnnotations#ef134@Offset(49.5, 14.0), RenderMouseRegion#1ca27@Offset(49.5, 14.0), RenderSemanticsAnnotations#bdc2c@Offset(49.5, 14.0), RenderSemanticsAnnotations#ce76f@Offset(49.5, 14.0), RenderFlex#7051a@Offset(49.5, 505.0), RenderRepaintBoundary#bf10f@Offset(49.5, 505.0), RenderIndexedSemantics#7f3b3@Offset(49.5, 505.0), RenderSliverList@(mainAxis: 40.0, crossAxis: 49.5), RenderSliverPadding@(mainAxis: 40.0, crossAxis: 65.5), RenderViewport#87c65@Offset(65.5, 40.0), RenderIgnorePointer#1336c@Offset(65.5, 40.0), RenderSemanticsAnnotations#61015@Offset(65.5, 40.0), RenderPointerListener#8bbfd@Offset(65.5, 40.0), RenderSemanticsGestureHandler#0c5c8@Offset(65.5, 40.0), RenderPointerListener#98dc7@Offset(65.5, 40.0), _RenderScrollSemantics#2f7b4@Offset(65.5, 40.0), RenderClipRect#cc2fd@Offset(65.5, 40.0), RenderStack#abf6f@Offset(65.5, 40.0), RenderPadding#b64d4@Offset(65.5, 40.0), RenderCustomMultiChildLayoutBox#e74cd@Offset(65.5, 96.0), _RenderInkFeatures#ba8bf@Offset(65.5, 96.0), RenderPhysicalModel#5c64b@Offset(65.5, 96.0), RenderSemanticsAnnotations#e7490@Offset(65.5, 96.0), RenderRepaintBoundary#97c8b@Offset(65.5, 96.0), RenderIgnorePointer#b237a@Offset(65.5, 96.0), RenderAnimatedOpacity#ef7a1@Offset(65.5, 96.0), RenderAnimatedOpacity#1ee37@Offset(65.5, 96.0), _RenderColoredBox#76bfe@Offset(65.5, 96.0), RenderAnimatedOpacity#da081@Offset(65.5, 96.0), RenderIgnorePointer#840db@Offset(65.5, 96.0), RenderAnimatedOpacity#3c3e4@Offset(65.5, 96.0), RenderRepaintBoundary#123e5@Offset(65.5, 96.0), RenderSemanticsAnnotations#d1320@Offset(65.5, 96.0), RenderOffstage#fd16c@Offset(65.5, 96.0), RenderSemanticsAnnotations#34bcc@Offset(65.5, 96.0), _RenderTheater#91f99@Offset(65.5, 96.0), RenderAbsorbPointer#4c6d5@Offset(65.5, 96.0), RenderPointerListener#88bbe@Offset(65.5, 96.0), RenderSemanticsAnnotations#6f6e4@Offset(65.5, 96.0), RenderCustomPaint#74ce3@Offset(65.5, 96.0), RenderSemanticsAnnotations#a1312@Offset(65.5, 96.0), RenderSemanticsAnnotations#996d5@Offset(65.5, 96.0), RenderSemanticsAnnotations#2aa58@Offset(65.5, 96.0), RenderTapRegionSurface#5419c@Offset(65.5, 96.0), RenderSemanticsAnnotations#c1b92@Offset(65.5, 96.0), RenderSemanticsAnnotations#d50db@Offset(65.5, 96.0), HitTestEntry<HitTestTarget>#7aa86(_ReusableRenderView#29a46), HitTestEntry<HitTestTarget>#459c8(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      _tap (file:///Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart:126:16)
+<asynchronous suspension>
+#4      _pick (file:///Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart:137:3)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart:303:5)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#8      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+00:18 +129: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/report_library_workflow_test.dart: library refresh after saving keeps the review open until explicit close
+00:18 +130: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/report_library_workflow_test.dart: library refresh after saving keeps the review open until explicit close
+00:19 +131: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/report_library_workflow_test.dart: library refresh after saving keeps the review open until explicit close
+00:19 +132: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/report_library_workflow_test.dart: library refresh after saving keeps the review open until explicit close
+00:19 +133: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/report_library_workflow_test.dart: library refresh after saving keeps the review open until explicit close
+00:20 +134: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/members_screen_test.dart: MembersScreen renders hero banner, 4 sub-tabs, and switches tabs
+00:20 +134: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart: accepts an unlisted clinic and keeps a saved unsupported mode until removed
+
+Warning: A call to tap() with finder "Found 1 widget with text "Consultation modes": [
+  Text("Consultation modes", overflow: ellipsis, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery, _ScrollableScope]),
+]" derived an Offset (Offset(127.4, 210.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#5d19a relayoutBoundary=up16
+The hit test result at that offset is: HitTestResult(_RenderDecoration#ec987@Offset(111.4, 14.0), RenderSemanticsAnnotations#81477@Offset(111.4, 14.0), RenderPointerListener#a377c@Offset(111.4, 14.0), RenderSemanticsAnnotations#93304@Offset(111.4, 14.0), RenderMouseRegion#a166a@Offset(111.4, 14.0), RenderSemanticsAnnotations#3f7fa@Offset(111.4, 14.0), RenderSemanticsAnnotations#c4008@Offset(111.4, 14.0), RenderFlex#c2f00@Offset(111.4, 14.0), RenderFlex#4745f@Offset(111.4, 721.0), RenderRepaintBoundary#105c2@Offset(111.4, 721.0), RenderIndexedSemantics#ac7f8@Offset(111.4, 721.0), RenderSliverList@(mainAxis: 154.0, crossAxis: 111.375), RenderSliverPadding@(mainAxis: 154.0, crossAxis: 127.375), RenderViewport#f6f0e@Offset(127.4, 154.0), RenderIgnorePointer#adb67@Offset(127.4, 154.0), RenderSemanticsAnnotations#3a47a@Offset(127.4, 154.0), RenderPointerListener#fc3a4@Offset(127.4, 154.0), RenderSemanticsGestureHandler#4ecc9@Offset(127.4, 154.0), RenderPointerListener#7e442@Offset(127.4, 154.0), _RenderScrollSemantics#1ea96@Offset(127.4, 154.0), RenderClipRect#fa9c1@Offset(127.4, 154.0), RenderStack#468d1@Offset(127.4, 154.0), RenderPadding#2323c@Offset(127.4, 154.0), RenderCustomMultiChildLayoutBox#f4749@Offset(127.4, 210.0), _RenderInkFeatures#d75a3@Offset(127.4, 210.0), RenderPhysicalModel#c887b@Offset(127.4, 210.0), RenderSemanticsAnnotations#be41a@Offset(127.4, 210.0), RenderRepaintBoundary#01918@Offset(127.4, 210.0), RenderIgnorePointer#1f686@Offset(127.4, 210.0), RenderAnimatedOpacity#a3838@Offset(127.4, 210.0), RenderAnimatedOpacity#c6704@Offset(127.4, 210.0), _RenderColoredBox#cb32c@Offset(127.4, 210.0), RenderAnimatedOpacity#9908c@Offset(127.4, 210.0), RenderIgnorePointer#e6110@Offset(127.4, 210.0), RenderAnimatedOpacity#4f633@Offset(127.4, 210.0), RenderRepaintBoundary#ee59f@Offset(127.4, 210.0), RenderSemanticsAnnotations#9013f@Offset(127.4, 210.0), RenderOffstage#c0719@Offset(127.4, 210.0), RenderSemanticsAnnotations#06513@Offset(127.4, 210.0), _RenderTheater#2f77f@Offset(127.4, 210.0), RenderAbsorbPointer#dd302@Offset(127.4, 210.0), RenderPointerListener#9bfe1@Offset(127.4, 210.0), RenderSemanticsAnnotations#61fb3@Offset(127.4, 210.0), RenderCustomPaint#7be28@Offset(127.4, 210.0), RenderSemanticsAnnotations#fa388@Offset(127.4, 210.0), RenderSemanticsAnnotations#3970b@Offset(127.4, 210.0), RenderSemanticsAnnotations#677b5@Offset(127.4, 210.0), RenderTapRegionSurface#67fe8@Offset(127.4, 210.0), RenderSemanticsAnnotations#6cdc7@Offset(127.4, 210.0), RenderSemanticsAnnotations#97748@Offset(127.4, 210.0), HitTestEntry<HitTestTarget>#defcd(_ReusableRenderView#29a46), HitTestEntry<HitTestTarget>#cd29c(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      _tap (file:///Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart:126:16)
+<asynchronous suspension>
+#4      main.<anonymous closure> (file:///Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart:333:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#7      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+00:20 +135: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart: accepts an unlisted clinic and keeps a saved unsupported mode until removed
+00:20 +136: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart: accepts an unlisted clinic and keeps a saved unsupported mode until removed
+00:20 +137: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/vitals_tab_test.dart: vitals tab shows latest readings and history without interpretation
+00:20 +138: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/vitals_tab_test.dart: vitals tab shows latest readings and history without interpretation
+00:21 +138: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart: blocks an invalid phone number before calling the API
+
+Warning: A call to tap() with finder "Found 1 widget with text "Professional phone": [
+  Text("Professional phone", textAlign: start, overflow: ellipsis, dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery, _ScrollableScope]),
+]" derived an Offset (Offset(164.5, 474.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#7ad7e relayoutBoundary=up15
+The hit test result at that offset is: HitTestResult(RenderEditable#4b6a5@Offset(148.5, 4.0), _RenderSizeChangedWithCallback#993ef@Offset(148.5, 4.0), RenderSemanticsAnnotations#56b17@Offset(148.5, 4.0), RenderLeaderLayer#f0362@Offset(148.5, 4.0), RenderIgnorePointer#5bcf1@Offset(148.5, 4.0), RenderSemanticsAnnotations#e3d8e@Offset(148.5, 4.0), RenderPointerListener#7632f@Offset(148.5, 4.0), RenderPointerListener#01901@Offset(148.5, 4.0), RenderMouseRegion#071d2@Offset(148.5, 4.0), RenderTapRegion#ffe9b@Offset(148.5, 4.0), _RenderCompositionCallback#fbcd7@Offset(148.5, 4.0), RenderRepaintBoundary#09a36@Offset(148.5, 4.0), _RenderDecoration#8fef9@Offset(148.5, 28.0), RenderSemanticsAnnotations#3084f@Offset(148.5, 28.0), RenderPointerListener#dd6e1@Offset(148.5, 28.0), RenderSemanticsAnnotations#d2790@Offset(148.5, 28.0), RenderIgnorePointer#48a2b@Offset(148.5, 28.0), RenderTapRegion#74ca1@Offset(148.5, 28.0), RenderMouseRegion#07c5b@Offset(148.5, 28.0), RenderFlex#0742b@Offset(148.5, 875.0), RenderRepaintBoundary#a1099@Offset(148.5, 875.0), RenderIndexedSemantics#7597b@Offset(148.5, 875.0), RenderSliverList@(mainAxis: 418.0, crossAxis: 148.5), RenderSliverPadding@(mainAxis: 418.0, crossAxis: 164.5), RenderViewport#25147@Offset(164.5, 418.0), RenderIgnorePointer#31223@Offset(164.5, 418.0), RenderSemanticsAnnotations#9c7ef@Offset(164.5, 418.0), RenderPointerListener#72917@Offset(164.5, 418.0), RenderSemanticsGestureHandler#ed42b@Offset(164.5, 418.0), RenderPointerListener#728c5@Offset(164.5, 418.0), _RenderScrollSemantics#38650@Offset(164.5, 418.0), RenderClipRect#0b56f@Offset(164.5, 418.0), RenderStack#e69c0@Offset(164.5, 418.0), RenderPadding#622b2@Offset(164.5, 418.0), RenderCustomMultiChildLayoutBox#bcad3@Offset(164.5, 474.0), _RenderInkFeatures#7c5bb@Offset(164.5, 474.0), RenderPhysicalModel#b7a10@Offset(164.5, 474.0), RenderSemanticsAnnotations#e603e@Offset(164.5, 474.0), RenderRepaintBoundary#e1d43@Offset(164.5, 474.0), RenderIgnorePointer#6f6a9@Offset(164.5, 474.0), RenderAnimatedOpacity#91aea@Offset(164.5, 474.0), RenderAnimatedOpacity#aa47e@Offset(164.5, 474.0), _RenderColoredBox#c382f@Offset(164.5, 474.0), RenderAnimatedOpacity#f502d@Offset(164.5, 474.0), RenderIgnorePointer#ff77a@Offset(164.5, 474.0), RenderAnimatedOpacity#d36a3@Offset(164.5, 474.0), RenderRepaintBoundary#3d22e@Offset(164.5, 474.0), RenderSemanticsAnnotations#4e951@Offset(164.5, 474.0), RenderOffstage#288ca@Offset(164.5, 474.0), RenderSemanticsAnnotations#d218e@Offset(164.5, 474.0), _RenderTheater#07333@Offset(164.5, 474.0), RenderAbsorbPointer#63558@Offset(164.5, 474.0), RenderPointerListener#f5e5d@Offset(164.5, 474.0), RenderSemanticsAnnotations#f77f6@Offset(164.5, 474.0), RenderCustomPaint#44803@Offset(164.5, 474.0), RenderSemanticsAnnotations#54359@Offset(164.5, 474.0), RenderSemanticsAnnotations#d20c1@Offset(164.5, 474.0), RenderSemanticsAnnotations#5b206@Offset(164.5, 474.0), RenderTapRegionSurface#416c6@Offset(164.5, 474.0), RenderSemanticsAnnotations#23872@Offset(164.5, 474.0), RenderSemanticsAnnotations#225e9@Offset(164.5, 474.0), HitTestEntry<HitTestTarget>#d6aae(_ReusableRenderView#29a46), HitTestEntry<HitTestTarget>#d6b62(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      _tap (file:///Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart:126:16)
+<asynchronous suspension>
+#4      main.<anonymous closure> (file:///Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart:352:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#7      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+00:21 +139: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/vitals_tab_test.dart: vitals tab shows latest readings and history without interpretation
+00:21 +140: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/vitals_tab_test.dart: vitals tab shows latest readings and history without interpretation
+00:21 +141: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/vitals_tab_test.dart: vitals tab shows latest readings and history without interpretation
+00:21 +142: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/vitals_tab_test.dart: vitals tab shows latest readings and history without interpretation
+00:22 +143: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/vitals_tab_test.dart: vitals tab shows latest readings and history without interpretation
+00:22 +144: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/vitals_tab_test.dart: vitals tab shows latest readings and history without interpretation
+00:22 +145: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/vitals_tab_test.dart: vitals tab shows latest readings and history without interpretation
+00:23 +146: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/vitals_tab_test.dart: vitals tab shows latest readings and history without interpretation
+00:23 +147: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/family_doctor_availability_test.dart: empty availability distinguishes configured=false
+00:23 +148: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart: fits a small phone without overflow
+00:23 +149: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart: fits a small phone without overflow
+00:24 +150: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_profile_screen_test.dart: fits a small phone without overflow
+00:24 +151: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/vitals_tab_test.dart: blood pressure is saved as a systolic and diastolic pair
+00:24 +152: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:25 +153: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:25 +154: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:25 +155: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:25 +156: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:25 +157: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/login_screen_test.dart: login screen renders web-aligned clinical workspace card and controls
+00:25 +158: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_families_flow_test.dart: lists assigned families with API-derived summary and search
+00:25 +159: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_families_flow_test.dart: lists assigned families with API-derived summary and search
+00:26 +160: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_families_flow_test.dart: lists assigned families with API-derived summary and search
+00:26 +161: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_families_flow_test.dart: lists assigned families with API-derived summary and search
+00:26 +162: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_families_flow_test.dart: lists assigned families with API-derived summary and search
+00:26 +163: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_families_flow_test.dart: lists assigned families with API-derived summary and search
+00:26 +164: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_families_flow_test.dart: lists assigned families with API-derived summary and search
+00:26 +165: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_families_flow_test.dart: lists assigned families with API-derived summary and search
+00:26 +166: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:27 +167: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:27 +168: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:27 +169: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:28 +170: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:28 +171: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +172: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +173: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +174: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +175: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +176: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +177: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +178: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +179: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +180: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +181: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +182: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +183: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +184: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +185: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +186: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +187: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +188: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +189: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +190: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +191: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +192: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +193: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +194: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +195: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +196: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +197: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +198: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +199: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +200: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +201: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:29 +202: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: registration requires choosing a district instead of defaulting one
+00:30 +203: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/main_test.dart: late account restore cannot overwrite current member scope
+00:30 +204: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/main_test.dart: late account restore cannot overwrite current member scope
+00:30 +205: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: shows calendar picker button on date of birth field
+00:30 +206: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: shows calendar picker button on date of birth field
+00:31 +207: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/register_screen_test.dart: shows calendar picker button on date of birth field
+00:31 +208: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/report_library_card_test.dart: original export saved uses protected bytes without closing
+00:31 +209: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/report_library_card_test.dart: original export saved uses protected bytes without closing
+00:31 +210: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/report_library_card_test.dart: original export saved uses protected bytes without closing
+00:32 +211: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/report_library_card_test.dart: original export saved uses protected bytes without closing
+00:32 +212: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/report_library_card_test.dart: original export saved uses protected bytes without closing
+00:32 +213: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/app_shell_test.dart: AppShell renders all 7 web-aligned subnav tabs and bottom navigation
+00:32 +214: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/app_shell_test.dart: AppShell renders all 7 web-aligned subnav tabs and bottom navigation
+00:32 +215: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/app_shell_test.dart: AppShell renders all 7 web-aligned subnav tabs and bottom navigation
+00:32 +216: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/app_shell_test.dart: AppShell renders all 7 web-aligned subnav tabs and bottom navigation
+00:32 +217: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/app_shell_test.dart: AppShell renders all 7 web-aligned subnav tabs and bottom navigation
+00:32 +218: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/app_shell_test.dart: AppShell renders all 7 web-aligned subnav tabs and bottom navigation
+00:32 +219: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/app_shell_test.dart: AppShell renders all 7 web-aligned subnav tabs and bottom navigation
+00:32 +220: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/app_shell_test.dart: AppShell renders all 7 web-aligned subnav tabs and bottom navigation
+00:33 +221: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/app_shell_test.dart: AppShell renders all 7 web-aligned subnav tabs and bottom navigation
+00:33 +222: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/app_shell_test.dart: AppShell renders all 7 web-aligned subnav tabs and bottom navigation
+00:33 +223: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/head_dashboard_section_test.dart: shows family code, metrics, members and shared activity
+00:33 +224: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/head_dashboard_section_test.dart: shows family code, metrics, members and shared activity
+00:33 +225: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/head_dashboard_section_test.dart: shows family code, metrics, members and shared activity
+00:33 +226: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/head_dashboard_section_test.dart: shows family code, metrics, members and shared activity
+00:34 +227: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/head_dashboard_section_test.dart: shows family code, metrics, members and shared activity
+00:34 +228: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/head_dashboard_section_test.dart: shows family code, metrics, members and shared activity
+00:34 +229: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_families_flow_test.dart: fits a small phone with large text without overflow
+00:34 +230: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_families_flow_test.dart: fits a small phone with large text without overflow
+00:34 +231: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_families_flow_test.dart: fits a small phone with large text without overflow
+00:34 +232: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_families_flow_test.dart: fits a small phone with large text without overflow
+00:34 +233: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_families_flow_test.dart: fits a small phone with large text without overflow
+00:34 +234: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_families_flow_test.dart: fits a small phone with large text without overflow
+00:34 +235: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_families_flow_test.dart: fits a small phone with large text without overflow
+00:34 +236: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/doctor_families_flow_test.dart: fits a small phone with large text without overflow
+00:34 +237: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/report_review_workspace_test.dart: review fits width 375.0 and rejects reversed references
+00:34 +238: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/report_review_workspace_test.dart: review fits width 375.0 and rejects reversed references
+00:34 +239: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/report_review_workspace_test.dart: review fits width 375.0 and rejects reversed references
+00:34 +240: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/report_review_workspace_test.dart: review fits width 375.0 and rejects reversed references
+00:34 +241: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/report_review_workspace_test.dart: review fits width 375.0 and rejects reversed references
+00:34 +242: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/report_review_workspace_test.dart: review fits width 375.0 and rejects reversed references
+00:34 +243: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/report_review_workspace_test.dart: review fits width 375.0 and rejects reversed references
+00:34 +244: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/report_review_workspace_test.dart: review fits width 375.0 and rejects reversed references
+00:34 +245: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/report_review_workspace_test.dart: review fits width 375.0 and rejects reversed references
+00:34 +246: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/report_review_workspace_test.dart: review fits width 375.0 and rejects reversed references
+00:34 +247: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/report_review_workspace_test.dart: review fits width 375.0 and rejects reversed references
+00:35 +248: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/widgets/report_review_workspace_test.dart: review fits width 375.0 and rejects reversed references
+00:35 +249: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/router/doctor_shell_after_login_test.dart: a doctor signing in after an expired session gets the clinician menu
+00:35 +250: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/router/doctor_shell_after_login_test.dart: a doctor signing in after an expired session gets the clinician menu
+00:36 +251: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/router/doctor_shell_after_login_test.dart: a doctor signing in after an expired session gets the clinician menu
+00:36 +252: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/router/doctor_shell_after_login_test.dart: a doctor signing in after an expired session gets the clinician menu
+00:36 +253: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/router/doctor_shell_after_login_test.dart: a doctor signing in after an expired session gets the clinician menu
+00:36 +254: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/router/doctor_shell_after_login_test.dart: a doctor signing in after an expired session gets the clinician menu
+00:36 +255: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/router/doctor_shell_after_login_test.dart: a doctor signing in after an expired session gets the clinician menu
+00:36 +256: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/router/doctor_shell_after_login_test.dart: a doctor signing in after an expired session gets the clinician menu
+00:36 +257: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/router/doctor_shell_after_login_test.dart: a family user signing in keeps the family menu
+00:37 +258: All tests passed!

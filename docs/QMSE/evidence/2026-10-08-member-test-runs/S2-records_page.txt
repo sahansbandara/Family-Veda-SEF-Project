@@ -1,0 +1,32 @@
+Executor: Codex on current machine; member execution is not established
+Component allocation: S2
+Revision: 195c0d3f50243d136fe900935a04545dcdc6b32c
+Started UTC: 2026-10-08T16:05:11.355577+00:00
+Working directory: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/web
+Command: npx --no-install vitest run src/pages/records/RecordsPage.test.tsx
+
+npm verbose cli /Users/sahansandaruwan/.hermes/node/bin/node /Users/sahansandaruwan/.hermes/node/lib/node_modules/npm/bin/npm-cli.js
+npm info using npm@10.9.8
+npm info using node@v22.23.2
+npm verbose title npm exec vitest run src/pages/records/RecordsPage.test.tsx
+npm verbose argv "exec" "--yes" "false" "--" "vitest" "run" "src/pages/records/RecordsPage.test.tsx"
+npm verbose logfile logs-max:10 dir:/Users/sahansandaruwan/.npm/_logs/2026-10-08T16_05_11_412Z-
+npm verbose logfile /Users/sahansandaruwan/.npm/_logs/2026-10-08T16_05_11_412Z-debug-0.log
+
+ RUN  v5.0.3 /Users/sahansandaruwan/Github/SLIIT/Family-Veda/web
+
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+   Start at  21:35:11
+   Duration  1.08s (tests 51%, environment 21%, transform 15%, import 13%)
+
+npm verbose cwd /Users/sahansandaruwan/Github/SLIIT/Family-Veda/web
+npm verbose os Darwin 27.0.0
+npm verbose node v22.23.2
+npm verbose npm  v10.9.8
+npm verbose exit 0
+npm info ok
+
+Exit code: 0
+Finished UTC: 2026-10-08T16:05:12.940255+00:00
