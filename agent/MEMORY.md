@@ -1,5 +1,9 @@
 # Memory — Family Veda
 
+## 2026-10-11 — Web PDF preview resize loop
+
+Live synthetic report preview alternated between loading and rendered states, with container widths 557/581 px and dialog widths 631/655 px. `PdfReportCanvas` hid its canvas with the HTML `hidden` attribute during rendering, collapsing intrinsic dialog layout and retriggering `ResizeObserver`. Preserve canvas layout using CSS visibility and `aria-hidden`, reuse existing `care-report-dialog` styling, and include padding in the PDF container width with border-box sizing. Focused web tests passed (3 files, 16 tests), build and lint passed; code review found no blockers. Production deployment and post-fix browser/device verification remain pending.
+
 ## 2026-10-01 — AI workflow documentation
 
 `docs/AI_FLOW.md` explains the inspected report/OCR and symptom/AI/doctor-approval workflows with six Mermaid diagrams, dashboard refresh/navigation behavior, source references and implementation limits. Report-value confirmation and clinical guidance approval are distinct; request-information decisions currently save internal notes without opening a patient follow-up questionnaire. This is code-based documentation, not live AI or university compliance evidence. The referenced original university PDF timed out when reread during this documentation task.

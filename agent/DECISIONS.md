@@ -1,5 +1,11 @@
 # Decisions — Family Veda
 
+## 2026-10-11 — Stabilize PDF preview layout during rendering
+
+**Decision:** Retain canvas layout during PDF rerendering, mark the unfinished canvas inaccessible, apply existing report dialog styles, and include PDF container padding in its width.
+
+**Reason:** Live measurements confirmed a loading/rendered width feedback loop. Removing the resize observer was rejected because responsive sizing must continue to work; disabling loading feedback was rejected because unfinished rendering must be communicated. This is a React renderer repair, with no API or Flutter renderer changes. Deployment and browser verification of the resulting build remain pending.
+
 ## 2026-09-28 — Use the current CourseWeb due field and release the doctor constraints
 
 **Decision:** Plan Assignment 1 submission for 6 October 2026 at 11:00 AM (Asia/Colombo), the authenticated CourseWeb submission item's due field. Use a Neon data-and-schema recovery branch before applying the reviewed doctor-constraint migration. Prioritize CORE features and submission evidence; treat the portal blueprint's FUTURE list as work after the submission package.

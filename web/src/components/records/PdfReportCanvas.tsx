@@ -53,7 +53,7 @@ export function PdfReportCanvas({ url, label, thumbnail = false, zoom = 1, rotat
   return <div ref={container} className={thumbnail ? 'pdf-canvas pdf-canvas--thumbnail' : 'pdf-canvas'}>
     {state === 'loading' && <span role="status">Loading PDF preview…</span>}
     {state === 'error' && <span role="status">Preview unavailable. Open or download the report to view it.</span>}
-    <canvas ref={canvas} aria-label={label} role="img" hidden={state !== 'ready'} />
+    <canvas ref={canvas} aria-label={label} role="img" aria-hidden={state !== 'ready'} style={{ visibility: state === 'ready' ? 'visible' : 'hidden' }} />
     {!thumbnail && pdf && <nav className="pdf-canvas__pages" aria-label="PDF pages"><button type="button" className="button button--secondary button--sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous page</button><span>Page {page} of {pdf.numPages}</span><button type="button" className="button button--secondary button--sm" disabled={page >= pdf.numPages} onClick={() => setPage(page + 1)}>Next page</button></nav>}
   </div>
 }

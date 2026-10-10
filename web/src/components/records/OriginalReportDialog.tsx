@@ -29,11 +29,11 @@ export function OriginalReportDialog({ reportId, originalFileName, fileUrl, onCl
   }, [])
 
   return (
-    <dialog ref={dialog} className="original-report-dialog" aria-label="Original report preview"
+    <dialog ref={dialog} className="original-report-dialog care-report-dialog" aria-label="Original report preview"
       onCancel={(event) => { event.preventDefault(); onClose() }}
       onClose={onClose}
       onClick={(event) => { if (event.target === event.currentTarget) onClose() }}>
-      <div className="original-report-dialog__content">
+      <div className="original-report-dialog__content care-report-dialog__content">
         <button ref={closeButton} type="button" className="button button--secondary button--sm original-report-dialog__close" onClick={onClose}>Close preview</button>
         <OriginalReportPreview reportId={reportId} originalFileName={originalFileName} hasOriginalFile fileUrl={fileUrl} />
       </div>

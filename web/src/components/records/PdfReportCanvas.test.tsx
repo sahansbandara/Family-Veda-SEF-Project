@@ -40,6 +40,30 @@ describe('PdfReportCanvas lifecycle', () => {
     expect(mocks.destroy).toHaveBeenCalledTimes(1)
   })
 
+  it('reserves the canvas layout while resizing instead of collapsing the preview', async () => {
+    let notifyResize!: ResizeObserverCallback
+    vi.stubGlobal('ResizeObserver', class {
+      constructor(callback: ResizeObserverCallback) { notifyResize = callback }
+      observe() {}
+      disconnect() {}
+    })
+    const view = render(<PdfReportCanvas url="blob:synthetic-pdf" label="Synthetic report" />)
+    try {
+      const canvas = await screen.findByRole('img', { name: 'Synthetic report' })
+      mocks.render.mockReturnValue({ promise: new Promise(() => {}), cancel: mocks.cancel })
+      Object.defineProperty(view.container.firstChild, 'clientWidth', { value: 400 })
+      act(() => notifyResize([], {} as ResizeObserver))
+      await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Loading PDF preview'))
+      expect(canvas).not.toHaveAttribute('hidden')
+      expect(canvas).toHaveAttribute('aria-hidden', 'true')
+      expect(canvas).toHaveStyle({ visibility: 'hidden' })
+      expect(canvas.style.width).not.toBe('')
+    } finally {
+      view.unmount()
+      vi.unstubAllGlobals()
+    }
+  })
+
   it('ignores a document loaded after its protected URL was replaced', async () => {
     let finishOld!: (document: object) => void
     const staleGetPage = vi.fn()

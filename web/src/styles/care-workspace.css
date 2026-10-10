@@ -1343,7 +1343,7 @@
 @media (max-width: 1000px) { .report-library__files--list .report-card { grid-template-columns: minmax(160px, 1fr) minmax(180px, 1fr); } .report-library__files--list .report-card .care-actions { grid-column: 1/-1; } }
 @media (max-width: 520px) { .report-library__files--list .report-card { grid-template-columns: 1fr; } .report-library__files--list .report-card__more { grid-column: auto; grid-row: auto; } }
 
-.pdf-canvas { width: 100%; min-height: 140px; background: #f1f5f9; padding: 12px; overflow: hidden; }
+.pdf-canvas { width: 100%; box-sizing: border-box; min-height: 140px; background: #f1f5f9; padding: 12px; overflow: hidden; }
 .pdf-canvas canvas { display: block; max-width: 100%; height: auto; margin: auto; background: white; box-shadow: 0 3px 18px #172d4520; }
 .pdf-canvas--thumbnail { height: 100%; padding: 10px; pointer-events: none; }
 .pdf-canvas__pages { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 12px; padding: 14px 0 2px; }
