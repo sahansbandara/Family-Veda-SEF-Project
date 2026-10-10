@@ -158,3 +158,5 @@ Android release build failed: required ANDROID_KEYSTORE_* signing credentials ar
 Railway environment status confirmed one running replica, zero crashed replicas and no current warnings/critical issues; the recent failure is the historical missing-JWT deployment. Reused image build logs include Tesseract, ImageMagick and Poppler installation evidence. Direct runtime SSH check was unavailable because no SSH key is registered; no access permissions were expanded.
 
 Android debug demo APK build PASSED (assembleDebug 516.6s): mobile/build/app/outputs/flutter-apk/app-debug.apk. Compiled kernel verified contains exact Railway /api/v1 URL. No Android device or iOS runtime verification performed; signed release still requires existing signing credentials.
+
+- 2026-10-11: Premium report viewer prototype is stored in docs/mockups/document-viewer/index.html with implementation notes in README.md. Includes synthetic retry/review role scenarios and light/dark toggle. This is a design artifact; production integration and native verification remain pending.
