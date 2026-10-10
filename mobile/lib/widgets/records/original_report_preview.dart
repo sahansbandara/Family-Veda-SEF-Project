@@ -331,7 +331,7 @@ class _OriginalReportContentState extends State<OriginalReportContent> {
   ]);
 
   void _more() => _sheet([
-    _action(Icons.fit_screen, 'Fit page', _ready ? () => _fit() : null),
+    _action(Icons.fit_screen, 'Fit whole page', _ready ? () => _fit() : null),
     _action(
       Icons.width_normal_outlined,
       'Fit width',
@@ -543,44 +543,52 @@ class _OriginalReportContentState extends State<OriginalReportContent> {
                   ),
                 ],
               ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  tooltip: 'Save original report',
-                  onPressed: _ready && !_exporting ? _export : null,
-                  icon: const Icon(Icons.download_outlined),
-                ),
-                IconButton(
-                  tooltip: 'Zoom out',
-                  onPressed: _ready ? () => _zoom(false) : null,
-                  icon: const Icon(Icons.remove),
-                ),
-                SizedBox(
-                  width: 44,
-                  child: Center(
-                    child: Text(
-                      '${(_zoomLevel * 100).round()}%',
-                      style: const TextStyle(fontSize: 12),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: 'Save original report',
+                    onPressed: _ready && !_exporting ? _export : null,
+                    icon: const Icon(Icons.download_outlined),
+                  ),
+                  IconButton(
+                    tooltip: 'Zoom out',
+                    onPressed: _ready ? () => _zoom(false) : null,
+                    icon: const Icon(Icons.remove),
+                  ),
+                  SizedBox(
+                    width: 44,
+                    child: Center(
+                      child: Text(
+                        '${(_zoomLevel * 100).round()}%',
+                        style: const TextStyle(fontSize: 12),
+                      ),
                     ),
                   ),
-                ),
-                IconButton(
-                  tooltip: 'Zoom in',
-                  onPressed: _ready ? () => _zoom(true) : null,
-                  icon: const Icon(Icons.add),
-                ),
-                IconButton(
-                  tooltip: 'Document details',
-                  onPressed: _details,
-                  icon: const Icon(Icons.info_outline),
-                ),
-                IconButton(
-                  tooltip: 'More actions',
-                  onPressed: _more,
-                  icon: const Icon(Icons.more_horiz),
-                ),
-              ],
+                  IconButton(
+                    tooltip: 'Zoom in',
+                    onPressed: _ready ? () => _zoom(true) : null,
+                    icon: const Icon(Icons.add),
+                  ),
+                  IconButton(
+                    tooltip: 'Fit whole page',
+                    onPressed: _ready ? () => _fit() : null,
+                    icon: const Icon(Icons.fit_screen),
+                  ),
+                  IconButton(
+                    tooltip: 'Document details',
+                    onPressed: _details,
+                    icon: const Icon(Icons.info_outline),
+                  ),
+                  IconButton(
+                    tooltip: 'More actions',
+                    onPressed: _more,
+                    icon: const Icon(Icons.more_horiz),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
