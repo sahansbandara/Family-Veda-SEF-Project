@@ -12,7 +12,6 @@ type OriginalReportDialogProps = {
 /** A modal for protected report bytes. Native dialog keeps background controls inert. */
 export function OriginalReportDialog({ reportId, originalFileName, fileUrl, onClose }: OriginalReportDialogProps) {
   const dialog = useRef<HTMLDialogElement>(null)
-  const closeButton = useRef<HTMLButtonElement>(null)
   const invoker = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
@@ -21,7 +20,7 @@ export function OriginalReportDialog({ reportId, originalFileName, fileUrl, onCl
     if (!element) return
     if (typeof element.showModal === 'function') element.showModal()
     else element.setAttribute('open', '')
-    closeButton.current?.focus()
+    element.querySelector<HTMLButtonElement>('button')?.focus()
     return () => {
       if (element.open && typeof element.close === 'function') element.close()
       invoker.current?.focus()
@@ -34,8 +33,7 @@ export function OriginalReportDialog({ reportId, originalFileName, fileUrl, onCl
       onClose={onClose}
       onClick={(event) => { if (event.target === event.currentTarget) onClose() }}>
       <div className="original-report-dialog__content care-report-dialog__content">
-        <button ref={closeButton} type="button" className="button button--secondary button--sm original-report-dialog__close" onClick={onClose}>Close preview</button>
-        <OriginalReportPreview reportId={reportId} originalFileName={originalFileName} hasOriginalFile fileUrl={fileUrl} />
+        <OriginalReportPreview reportId={reportId} originalFileName={originalFileName} hasOriginalFile fileUrl={fileUrl} onClose={onClose} checkReason="Only an authorized member or guardian can check this report again in Health records." />
       </div>
     </dialog>
   )

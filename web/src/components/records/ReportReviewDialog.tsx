@@ -73,6 +73,16 @@ export function ReportReviewDialog({ report, hasOriginalFile, loading, error, ti
       if (mounted.current) setSaving(false)
     }
   }
+  const retryAllowed = Boolean(onExtract && report && !report.values.some((value) => value.wasManuallyConfirmed) && !report.flags.some((flag) => flag.manuallyConfirmed) && report.ocrStatus !== 'Processing');
+  async function recheck() {
+    if (!retryAllowed || dirty || extracting || saving) return
+    setExtracting(true); setSaveMessage('')
+    try {
+      const success = await onExtract?.()
+      if (mounted.current) { setTab('values'); if (!success) setSaveMessage('Reading could not be completed. Please retry.') }
+    } catch { if (mounted.current) setSaveMessage('Reading could not be completed. Please retry.') }
+    finally { if (mounted.current) setExtracting(false) }
+  }
   return <dialog ref={dialog} className="report-studio report-studio--review" aria-labelledby={titleId}
     onCancel={(event) => { event.preventDefault(); if (leaving) setLeaving(false); else requestClose() }}
     onClick={(event) => { if (event.target === dialog.current && !leaving) requestClose() }}>
@@ -84,7 +94,7 @@ export function ReportReviewDialog({ report, hasOriginalFile, loading, error, ti
         <button type="button" role="tab" aria-selected={tab === 'values'} aria-controls={`${titleId}-values`} onClick={() => setTab('values')}>Values</button>
       </div>
       {loading ? <div className="report-studio__empty" role="status">Loading report details…</div> : error ? <div className="report-studio__empty"><p role="alert">{error}</p><button type="button" className="button button--secondary" onClick={onRetry}>Retry report details</button></div> : report && <div className="report-studio__split" data-active-tab={tab}>
-        <section id={`${titleId}-original`} className="report-studio__original" aria-label="Source document"><OriginalReportPreview reportId={report.id} originalFileName={report.originalFileName} hasOriginalFile={hasOriginalFile} /></section>
+        <section id={`${titleId}-original`} className="report-studio__original" aria-label="Source document"><OriginalReportPreview reportId={report.id} originalFileName={report.originalFileName} hasOriginalFile={hasOriginalFile} extractionStatus={report.ocrStatus} onCheckReport={onExtract ? () => void recheck() : undefined} checkDisabled={!retryAllowed || dirty || extracting || saving} checkReason={dirty ? 'Save or discard your edits before checking again.' : !retryAllowed ? 'Confirmed values or an active extraction prevent rechecking.' : extracting ? 'Reading report…' : 'Review and confirm extracted values before they can be used.'} /></section>
         <section id={`${titleId}-values`} className="report-studio__values" aria-label="Check extracted values" onChangeCapture={() => { setDirty(true); setSaveMessage('') }}>
           {saveMessage && <p className="report-studio__notice" role="status">{saveMessage}</p>}
           {(() => {
@@ -97,7 +107,7 @@ export function ReportReviewDialog({ report, hasOriginalFile, loading, error, ti
                 if (mounted.current) setSaveMessage('Reading could not be completed. Please retry.')
               } finally { if (mounted.current) setExtracting(false) }
             }
-            const readButton = (label: string) => onExtract && <button type="button" className="button button--primary" disabled={extracting || dirty} onClick={() => void read()}>{extracting ? 'Reading report…' : label}</button>
+            const readButton = (label: string) => onExtract && <button type="button" className="button button--primary" disabled={extracting || dirty || !retryAllowed} onClick={() => void read()}>{extracting ? 'Reading report…' : label}</button>
             if (report.ocrStatus === 'Failed' && !report.values.some((value) => value.wasManuallyConfirmed)) {
               const failure = readingFailure(report.ocrErrorCode)
               return <div className="report-reading-card report-reading-card--failed" role="alert"><h3>Why it could not be read: {failure.title}</h3><p>{failure.detail}</p><ul>{failure.tips.map((tip) => <li key={tip}>{tip}</li>)}</ul><p>Rechecks the original report with enhanced reading passes. Review and confirm the results yourself before they can be used.</p>{dirty && <p>Save your edits before checking the report again.</p>}<div className="report-reading-card__actions">{readButton('Check report again')}</div></div>

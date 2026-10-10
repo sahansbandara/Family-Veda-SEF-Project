@@ -7,8 +7,8 @@ import type { LabReportDetailDto } from '../../services/apiClient'
 
 // Protected-byte loading/rendering has its own OriginalReportPreview regressions.
 vi.mock('./OriginalReportPreview', () => ({
-  OriginalReportPreview: ({ originalFileName }: { originalFileName: string }) => (
-    <div role="img" aria-label={`Original report image: ${originalFileName}`} />
+  OriginalReportPreview: ({ originalFileName, onCheckReport, checkDisabled }: { originalFileName: string; onCheckReport?: () => void; checkDisabled?: boolean }) => (
+    <><div role="img" aria-label={`Original report image: ${originalFileName}`} />{onCheckReport && <button onClick={onCheckReport} disabled={checkDisabled}>Viewer recheck</button>}</>
   ),
 }))
 
@@ -185,6 +185,7 @@ describe('ReportReviewDialog', () => {
     renderReview({ onExtract })
     fireEvent.change(screen.getByDisplayValue('Synthetic analyte'), { target: { value: 'Edited synthetic analyte' } })
     expect(screen.getByRole('button', { name: 'Check report again' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Viewer recheck' })).toBeDisabled()
     expect(screen.getByText('Save your edits before checking the report again.')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Check report again' }))
     expect(onExtract).not.toHaveBeenCalled()
@@ -232,6 +233,21 @@ describe('ReportReviewDialog', () => {
     expect(keep).toHaveFocus()
     fireEvent.keyDown(keep, { key: 'Tab', shiftKey: true })
     expect(leave).toHaveFocus()
+  })
+
+  it('rechecks from the viewer and switches to extracted values without confirmation', async () => {
+    const onExtract = vi.fn(async () => true)
+    renderReview({ onExtract })
+    fireEvent.click(screen.getByRole('button', { name: 'Viewer recheck' }))
+    await waitFor(() => expect(onExtract).toHaveBeenCalledTimes(1))
+    expect(screen.getByRole('button', { name: 'Confirm values' })).toBeInTheDocument()
+  })
+  it.each(['confirmed-value', 'confirmed-flag', 'processing'])('blocks viewer recheck for %s', (state) => {
+    const onExtract = vi.fn(async () => true)
+    renderReview({ onExtract, report: { ...report, ocrStatus: state === 'processing' ? 'Processing' : 'Completed', values: report.values.map((value) => ({ ...value, wasManuallyConfirmed: state === 'confirmed-value' })), flags: state === 'confirmed-flag' ? [{ id: 'synthetic-flag', memberId: report.memberId, conditionCode: 'SYNTHETIC', finding: 'Synthetic fixture', confidence: 1, manuallyConfirmed: true }] : [] } })
+    expect(screen.getByRole('button', { name: 'Viewer recheck' })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: 'Viewer recheck' }))
+    expect(onExtract).not.toHaveBeenCalled()
   })
 
 })

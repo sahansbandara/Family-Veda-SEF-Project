@@ -512,6 +512,7 @@ class _LabReportsTabState extends ConsumerState<_LabReportsTab> {
 
   Route<void>? _previewRoute;
   Future<void> _viewOriginal(LabReport report, String? memberId) async {
+    var openReview = false;
     try {
       await showDialog<void>(
         context: context,
@@ -519,6 +520,12 @@ class _LabReportsTabState extends ConsumerState<_LabReportsTab> {
           _previewRoute = ModalRoute.of(dialogContext);
           return OriginalReportPreviewDialog(
             fileName: report.fileName,
+            onCheckAgain: widget.canManage && memberId != null
+                ? () {
+                    openReview = true;
+                    Navigator.of(dialogContext).pop();
+                  }
+                : null,
             onDelete: widget.canManage && memberId != null
                 ? () => _delete(report, memberId)
                 : null,
@@ -538,6 +545,11 @@ class _LabReportsTabState extends ConsumerState<_LabReportsTab> {
       );
     } finally {
       _previewRoute = null;
+    }
+    if (openReview &&
+        mounted &&
+        (widget.memberId ?? ref.read(activeMemberProvider)) == memberId) {
+      await _checkValues(report, memberId);
     }
   }
 

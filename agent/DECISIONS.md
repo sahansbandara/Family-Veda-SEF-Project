@@ -388,3 +388,6 @@ Android debug demo APK build PASSED (assembleDebug 516.6s): mobile/build/app/out
 
 ## 2026-10-11 — Publish document viewer design prototype
 User authorized pushing the approved premium viewer HTML and notes to develop. Store standalone artifacts in docs/mockups/document-viewer; include member-only Check report again simulation and light/dark shell toggle. Production React/Flutter integration remains pending; do not present simulated extraction or role controls as live API behavior.
+
+## 2026-10-11 — Integrate approved premium original-report viewer
+User explicitly requested actual app integration and develop push. React dialog, member preview/review, and matching Flutter original viewer now use a compact icon toolbar, light/dark shell, fit/zoom/rotation, details and navigation. Existing authenticated Blob loader/PDF.js and native protected loaders/export remain; original document colours are not altered. Member library recheck opens authoritative value review first because list DTO has no confirmation metadata; review guards confirmed values/flags, dirty edits and active extraction. Doctor/shared previews do not receive extraction callbacks. Rejected: allowing doctor retry or inferring confirmation from list DTO. No backend, schema, dependency or deployment configuration changes.

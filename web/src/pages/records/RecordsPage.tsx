@@ -589,13 +589,13 @@ export function RecordsPage() {
 
   return (
     <div className="page-stack care-workspace health-records">
-      {originalReport?.memberId === memberId && <ReportPreviewDialog report={originalReport} onClose={() => setOriginalReport(null)}
+      {originalReport?.memberId === memberId && <ReportPreviewDialog report={originalReport} canRecheck={!isSharedView} onClose={() => setOriginalReport(null)}
         onReview={() => { const id = originalReport.id; setOriginalReport(null); void openReport(id) }}
         onDelete={isSharedView ? undefined : () => { setReportToDelete(originalReport); setOriginalReport(null) }} />}
       {reviewTarget && reviewTarget.memberId === memberId && <ReportReviewDialog key={reviewTarget.id} title={reviewTarget.originalFileName}
         report={selectedReport?.id === reviewTarget.id && selectedReport.memberId === memberId ? selectedReport : null}
         hasOriginalFile={reviewTarget.hasOriginalFile === true} loading={reviewLoading} error={reviewError}
-        onClose={closeReview} onRetry={() => void openReport(reviewTarget.id)} onSubmit={confirmReport} onExtract={retryExtraction} />}
+        onClose={closeReview} onRetry={() => void openReport(reviewTarget.id)} onSubmit={confirmReport} onExtract={isSharedView ? undefined : retryExtraction} />}
       <header className="care-header">
         <div>
           <p className="care-eyebrow">{isHead ? 'Family health records' : 'Your health records'}</p>

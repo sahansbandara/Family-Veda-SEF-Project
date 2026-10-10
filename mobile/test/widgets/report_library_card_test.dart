@@ -23,6 +23,90 @@ const _report = LabReport(
 );
 
 void main() {
+  for (final width in [375.0, 390.0, 768.0]) {
+    testWidgets('native viewer tools and theme fit width $width', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(Size(width, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      var loads = 0;
+      var reviews = 0;
+      final bytes = Uint8List.fromList(
+        base64Decode(
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+        ),
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: OriginalReportPreviewDialog(
+            fileName: 'Synthetic original report with a long filename.png',
+            load: () async {
+              loads++;
+              return bytes;
+            },
+            onCheckAgain: () {
+              reviews++;
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Use light theme'));
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('Use dark theme'), findsOneWidget);
+      expect(loads, 1);
+      await tester.tap(find.byTooltip('Zoom in'));
+      await tester.pumpAndSettle();
+      expect(find.text('130%'), findsOneWidget);
+      await tester.tap(find.byTooltip('Document details'));
+      await tester.pumpAndSettle();
+      expect(find.text('Stored original'), findsOneWidget);
+      Navigator.of(tester.element(find.text('Document details'))).pop();
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('More actions'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Rotate report'));
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<RotatedBox>(find.byType(RotatedBox)).quarterTurns,
+        1,
+      );
+      await tester.tap(find.byTooltip('More actions'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Reset view'));
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<RotatedBox>(find.byType(RotatedBox)).quarterTurns,
+        0,
+      );
+      expect(find.text('100%'), findsOneWidget);
+      await tester.tap(find.byTooltip('More actions'));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Check report again'));
+      await tester.tap(find.text('Check report again'));
+      await tester.pumpAndSettle();
+      expect(reviews, 1);
+      expect(loads, 1);
+      expect(tester.takeException(), isNull);
+    });
+  }
+  testWidgets('read-only viewer hides report retry and deletion', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: OriginalReportPreviewDialog(
+          fileName: 'Synthetic report.png',
+          load: () async => Uint8List(0),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('More actions'));
+    await tester.pumpAndSettle();
+    expect(find.text('Check report again'), findsNothing);
+    expect(find.text('Delete report'), findsNothing);
+  });
   for (final outcome in ['saved', 'cancelled', 'failed']) {
     testWidgets('original export $outcome uses protected bytes without closing', (
       tester,
@@ -82,7 +166,9 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Delete report'));
+    await tester.tap(find.byTooltip('More actions'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete report'));
     await tester.pumpAndSettle();
     expect(requests, 1);
     expect(find.byType(OriginalReportPreviewDialog), findsOneWidget);

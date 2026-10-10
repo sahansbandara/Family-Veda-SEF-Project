@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 
-import { act, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({ get: vi.fn() }))
@@ -34,6 +34,7 @@ describe('OriginalReportPreview', () => {
 
     expect(await screen.findByLabelText('Original report document: synthetic.pdf')).toHaveAttribute('data-source', 'blob:synthetic-pdf')
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
     expect(screen.getByRole('link', { name: 'Open PDF' })).toHaveAttribute('href', 'blob:synthetic-pdf')
     expect(screen.getByRole('link', { name: 'Open PDF' })).toHaveAttribute('rel', 'noopener noreferrer')
     expect(screen.getByRole('link', { name: 'Download original report' })).toHaveAttribute('download', 'synthetic.pdf')
@@ -80,6 +81,36 @@ describe('OriginalReportPreview', () => {
 
     expect(revokeObjectURL).toHaveBeenCalledWith('blob:first')
     expect(screen.getByText('Original report unavailable.')).toBeInTheDocument()
+  })
+
+  it('changes the shell theme without fetching or replacing original bytes', async () => {
+    mocks.get.mockResolvedValue({ data: new Blob(['synthetic'], { type: 'image/png' }) })
+    vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:synthetic'), revokeObjectURL: vi.fn() })
+    render(<OriginalReportPreview reportId="report-theme" originalFileName="synthetic.png" hasOriginalFile />)
+    const image = await screen.findByRole('img', { name: 'Original report image: synthetic.png' })
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to dark mode' }))
+    expect(screen.getByRole('region', { name: 'Original report' })).toHaveAttribute('data-viewer-theme', 'dark')
+    expect(image).toHaveAttribute('src', 'blob:synthetic')
+    expect(mocks.get).toHaveBeenCalledTimes(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to light mode' }))
+    expect(screen.getByRole('region', { name: 'Original report' })).toHaveAttribute('data-viewer-theme', 'light')
+  })
+  it('guards rechecking and omits it for read-only callers', async () => {
+    mocks.get.mockResolvedValue({ data: new Blob(['synthetic'], { type: 'image/png' }) })
+    vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:synthetic'), revokeObjectURL: vi.fn() })
+    const recheck = vi.fn()
+    const view = render(<OriginalReportPreview reportId="report-member" originalFileName="synthetic.png" hasOriginalFile onCheckReport={recheck} checkDisabled />)
+    await screen.findByRole('img')
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    expect(screen.getByRole('button', { name: 'Check report again' })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: 'Check report again' }))
+    expect(recheck).not.toHaveBeenCalled()
+    view.rerender(<OriginalReportPreview reportId="report-member" originalFileName="synthetic.png" hasOriginalFile onCheckReport={recheck} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Check report again' }))
+    expect(recheck).toHaveBeenCalledTimes(1)
+    view.rerender(<OriginalReportPreview reportId="report-member" originalFileName="synthetic.png" hasOriginalFile />)
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    expect(screen.queryByRole('button', { name: 'Check report again' })).not.toBeInTheDocument()
   })
 
 })

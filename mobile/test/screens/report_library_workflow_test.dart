@@ -18,6 +18,12 @@ class _FileApi implements MobileApi {
   final pending = Completer<Uint8List>();
   int loads = 0;
   int reviews = 0;
+  int extractions = 0;
+  @override
+  Future<void> extractLabReport(String reportId) async {
+    extractions++;
+  }
+
   @override
   Future<Map<String, dynamic>> getLabReportDetail(String reportId) async => {
     'values': [
@@ -66,6 +72,42 @@ const reports = [
   ),
 ];
 void main() {
+  testWidgets('original recheck opens review without starting extraction', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 1000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final api = _FileApi();
+    api.pending.complete(Uint8List(0));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeMemberProvider.overrideWith((ref) => 'member-1'),
+          myMemberIdProvider.overrideWith((ref) async => 'member-1'),
+          memberRecordsProvider.overrideWith((ref) async => []),
+          memberLabReportsProvider.overrideWith((ref) async => reports),
+          mobileApiProvider.overrideWithValue(api),
+        ],
+        child: const MaterialApp(home: RecordsScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Lab reports'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('View original report'));
+    await tester.tap(find.text('View original report'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('More actions'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Check report again'));
+    await tester.tap(find.text('Check report again'));
+    await tester.pumpAndSettle();
+    expect(find.byType(OriginalReportPreviewDialog), findsNothing);
+    expect(find.byType(ReportReviewWorkspace), findsOneWidget);
+    expect(api.extractions, 0);
+    expect(api.reviews, 0);
+    expect(tester.takeException(), isNull);
+  });
   testWidgets(
     'library refresh after saving keeps the review open until explicit close',
     (tester) async {
@@ -172,9 +214,15 @@ void main() {
     await tester.tap(find.text('View original report'));
     await tester.pump();
     expect(find.byType(OriginalReportPreviewDialog), findsOneWidget);
+    await tester.tap(find.byTooltip('More actions'));
+    await tester.pump(const Duration(milliseconds: 350));
+    expect(find.text('Reload original'), findsOneWidget);
     container.read(activeMemberProvider.notifier).state = 'member-2';
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 350));
     expect(find.byType(OriginalReportPreviewDialog), findsNothing);
+    await tester.pump();
+    expect(find.text('Reload original'), findsNothing);
     api.pending.complete(Uint8List.fromList([1, 2, 3]));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
