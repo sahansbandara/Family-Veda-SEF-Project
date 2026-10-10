@@ -2,6 +2,8 @@
 
 ## 2026-10-11 — Web PDF preview resize loop
 
+Follow-up: applying the dialog styles also imposed `max-height: 68dvh` on images inside `ImageReportCanvas`, conflicting with its calculated stage dimensions and shrinking portrait content. Scope `max-height: none` to images inside the original report dialog's calculated image stage; scrolling and zoom remain controlled by the image renderer.
+
 Live synthetic report preview alternated between loading and rendered states, with container widths 557/581 px and dialog widths 631/655 px. `PdfReportCanvas` hid its canvas with the HTML `hidden` attribute during rendering, collapsing intrinsic dialog layout and retriggering `ResizeObserver`. Preserve canvas layout using CSS visibility and `aria-hidden`, reuse existing `care-report-dialog` styling, and include padding in the PDF container width with border-box sizing. Focused web tests passed (3 files, 16 tests), build and lint passed; code review found no blockers. Production deployment and post-fix browser/device verification remain pending.
 
 ## 2026-10-01 — AI workflow documentation

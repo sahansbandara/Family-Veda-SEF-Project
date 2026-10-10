@@ -1293,6 +1293,7 @@
 .care-report-dialog h2 { font-size: 1.2rem; overflow-wrap: anywhere; margin: 7px 0; }
 .care-report-dialog .original-report-preview__document { height: 68dvh; width: 100%; }
 .care-report-dialog .original-report-preview__image { display: block; max-height: 68dvh; width: 100%; object-fit: contain; background: var(--surface-subtle); }
+.original-report-dialog .original-report-preview__image-stage .original-report-preview__image { max-height: none; }
 .care-report-dialog .original-report-preview { min-width: 0; }
 .care-report-dialog .original-report-preview > a { margin: 12px 8px 0 0; }
 .care-steps { display: flex; gap: 12px; padding: 0; list-style: none; margin: 4px 0 25px; }
