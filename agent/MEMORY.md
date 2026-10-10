@@ -1,5 +1,9 @@
 # Memory — Family Veda
 
+## 2026-10-11 — Extraction is separate from member confirmation
+
+`0 confirmed values` does not imply OCR failed. The synthetic current PNG has three accurate draft lab values while its matching PDF has three confirmed rows. Doctor workspace contracts now include optional OCR status and unconfirmed-value count; actual values remain confirmed-only behind existing grants/consent. Web and Flutter show the difference and direct members to Health records. Member "Check report again" reuses existing protected extraction, preserves confirmed data and blocks unsaved edits. Scanned PDF pages now get one enhanced fallback when the first read lacks structured values; unsuccessful enhancement retains the first text. Conversion temp files are cleaned on cancellation/failure. No schema/deployment changes or production report backfill. UI device/screenshots and live recheck remain pending after deployment.
+
 ## 2026-10-11 — Web PDF preview resize loop
 
 Follow-up: applying the dialog styles also imposed `max-height: 68dvh` on images inside `ImageReportCanvas`, conflicting with its calculated stage dimensions and shrinking portrait content. Scope `max-height: none` to images inside the original report dialog's calculated image stage; scrolling and zoom remain controlled by the image renderer.

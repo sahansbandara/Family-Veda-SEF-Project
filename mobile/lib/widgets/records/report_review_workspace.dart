@@ -218,7 +218,12 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
       onPressed: _saving ? null : _readAgain,
       child: Text(_saving ? 'Reading report…' : label),
     );
-    Widget card(String title, String detail, List<Widget> extra, {bool warn = false}) => Card(
+    Widget card(
+      String title,
+      String detail,
+      List<Widget> extra, {
+      bool warn = false,
+    }) => Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -244,19 +249,14 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
     if (_values.isEmpty && (status == 'FAILED' || status == 'FAILED_SAFE')) {
       final failure = readingFailure(widget.report.ocrErrorCode);
       return [
-        card(
-          'Why it could not be read: ${failure.title}',
-          failure.detail,
-          [
-            const SizedBox(height: 6),
-            for (final tip in failure.tips) Text('• $tip'),
-            if (widget.readAgain != null) ...[
-              const SizedBox(height: 10),
-              readButton('Read again'),
-            ],
+        card('Why it could not be read: ${failure.title}', failure.detail, [
+          const SizedBox(height: 6),
+          for (final tip in failure.tips) Text('• $tip'),
+          if (widget.readAgain != null) ...[
+            const SizedBox(height: 10),
+            readButton('Check report again'),
           ],
-          warn: true,
-        ),
+        ], warn: true),
       ];
     }
     if (_values.isEmpty && status == 'PENDING' && widget.readAgain != null) {
@@ -275,7 +275,10 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
           'Reports are read one at a time in the background, so this can take a few minutes when several are waiting. You can close this and come back.',
           [
             const SizedBox(height: 10),
-            OutlinedButton(onPressed: _load, child: const Text('Refresh status')),
+            OutlinedButton(
+              onPressed: _load,
+              child: const Text('Refresh status'),
+            ),
           ],
         ),
       ];
@@ -436,7 +439,14 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
                   padding: const EdgeInsets.only(top: 12),
                   child: OutlinedButton(
                     onPressed: _saving || _dirty ? null : _readAgain,
-                    child: const Text('Read report again'),
+                    child: const Text('Check report again'),
+                  ),
+                ),
+              if (widget.readAgain != null && !_confirmed)
+                const Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Text(
+                    'Recheck the original file with enhanced reading where needed. Compare every extracted value before confirming. If reading fails, enter values manually.',
                   ),
                 ),
             ],

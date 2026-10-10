@@ -59,6 +59,36 @@ public sealed class PdfReportLimitTests : IDisposable
         return new TesseractOcrService(configuration);
     }
 
+    [Theory]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    public async Task ExtractText_EnhancesScannedPageOnce_AndRetainsUsableOutput(bool firstReadHasValues, bool enhancedReadHasValues)
+    {
+        var countFile = Path.Combine(_directory.FullName, "reads.txt");
+        var firstText = firstReadHasValues ? "Fasting glucose: 104 mg/dL | 70 - 100" : "Unreadable scan";
+        var enhancedText = enhancedReadHasValues ? "Fasting glucose: 104 mg/dL | 70 - 100" : "Still unreadable";
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Ocr:PdfInfoCommand"] = Script("pdfinfo", "echo 'Pages: 1'"),
+            ["Ocr:PdfTextCommand"] = Script("pdftotext", "echo 'Synthetic scanned report'"),
+            ["Ocr:PdfRenderCommand"] = Script("render", "for arg do last=\"$arg\"; done\ntouch \"${last}-1.png\""),
+            ["Ocr:DeskewCommand"] = Script("convert", "for arg do last=\"$arg\"; done\ntouch \"${last#png:}\""),
+            ["Ocr:TesseractCommand"] = Script("ocr", $"echo read >> '{countFile}'\ncase \"$1\" in *fv-ocr-enhance-*) echo '{enhancedText}';; *) echo '{firstText}';; esac"),
+        }).Build();
+
+        var text = await new TesseractOcrService(configuration).ExtractTextAsync(PdfPath(), CancellationToken.None);
+
+        if (firstReadHasValues || enhancedReadHasValues)
+            LabExtractionService.ParseValues(text).Should().ContainSingle().Which.Value.Should().Be(104m);
+        else
+        {
+            LabExtractionService.ParseValues(text).Should().BeEmpty();
+            text.Should().Contain(firstText).And.NotContain(enhancedText);
+        }
+        File.ReadAllLines(countFile).Should().HaveCount(firstReadHasValues ? 1 : 2);
+    }
+
     private string Script(string name, string body)
     {
         var path = Path.Combine(_directory.FullName, name);

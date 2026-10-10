@@ -97,14 +97,16 @@ export function ReportReviewDialog({ report, hasOriginalFile, loading, error, ti
                 if (mounted.current) setSaveMessage('Reading could not be completed. Please retry.')
               } finally { if (mounted.current) setExtracting(false) }
             }
-            const readButton = (label: string) => onExtract && <button type="button" className="button button--primary" disabled={extracting} onClick={() => void read()}>{extracting ? 'Reading report…' : label}</button>
-            if (report.values.length === 0 && report.ocrStatus === 'Failed') {
+            const readButton = (label: string) => onExtract && <button type="button" className="button button--primary" disabled={extracting || dirty} onClick={() => void read()}>{extracting ? 'Reading report…' : label}</button>
+            if (report.ocrStatus === 'Failed' && !report.values.some((value) => value.wasManuallyConfirmed)) {
               const failure = readingFailure(report.ocrErrorCode)
-              return <div className="report-reading-card report-reading-card--failed" role="alert"><h3>Why it could not be read: {failure.title}</h3><p>{failure.detail}</p><ul>{failure.tips.map((tip) => <li key={tip}>{tip}</li>)}</ul><div className="report-reading-card__actions">{readButton('Read again')}</div></div>
+              return <div className="report-reading-card report-reading-card--failed" role="alert"><h3>Why it could not be read: {failure.title}</h3><p>{failure.detail}</p><ul>{failure.tips.map((tip) => <li key={tip}>{tip}</li>)}</ul><p>Rechecks the original report with enhanced reading passes. Review and confirm the results yourself before they can be used.</p>{dirty && <p>Save your edits before checking the report again.</p>}<div className="report-reading-card__actions">{readButton('Check report again')}</div></div>
             }
             if (report.values.length === 0 && report.ocrStatus === 'Pending') return <div className="report-reading-card"><h3>Not read yet</h3><p>Read this report now to pull out its test values. It usually takes under a minute.</p><div className="report-reading-card__actions">{readButton('Read report now')}</div></div>
             if (report.ocrStatus === 'Processing') return <div className="report-reading-card" role="status"><h3>Reading the report text…</h3><p>Reports are read one at a time in the background, so this can take a few minutes when several are waiting. You can close this and come back; the values appear when ready.</p><div className="report-reading-card__actions"><button type="button" className="button button--secondary" onClick={onRetry}>Refresh status</button></div></div>
             if (report.values.length > 0 && report.values.every((value) => value.wasManuallyConfirmed)) return <div className="report-reading-card"><h3>Next step: doctor review</h3><p>Your confirmed values are saved. To have them looked at, start a check in Symptoms &amp; Triage. An AI assistant prepares a summary for your doctor, and you only see what your doctor approves.</p><div className="report-reading-card__actions"><a className="button button--primary" href="/triage">Go to Symptoms &amp; Triage</a></div></div>
+            if (report.ocrStatus === 'Completed' && !report.values.some((value) => value.wasManuallyConfirmed))
+              return <div className="report-reading-card"><h3>Check missing or unclear values</h3><p>Rechecks the original report with enhanced reading passes. Review and confirm the results yourself before they can be used.</p>{dirty && <p>Save your edits before checking the report again.</p>}<div className="report-reading-card__actions">{readButton('Check report again')}</div></div>
             return null
           })()}
           <ReportDetail report={report} hasOriginalFile={hasOriginalFile} showOriginal={false} saving={saving} onSubmit={save} />

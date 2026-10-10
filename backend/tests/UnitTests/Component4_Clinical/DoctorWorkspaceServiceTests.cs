@@ -333,6 +333,35 @@ public sealed class DoctorWorkspaceServiceTests
     }
 
     [Theory]
+    [InlineData(OcrStatus.Pending)]
+    [InlineData(OcrStatus.Processing)]
+    [InlineData(OcrStatus.Completed)]
+    [InlineData(OcrStatus.Failed)]
+    public async Task Workspace_ReportExtractionMetadata_DoesNotExposeUnconfirmedValues(OcrStatus status)
+    {
+        await using var db = NewDb(); var f = await SeedAsync(db);
+        await ConfirmedVisitAsync(db, f, DateTimeOffset.UtcNow.AddHours(2));
+        var report = new LabReport
+        {
+            MemberId = f.Adult.Id, OriginalFileName = "SYNTHETIC-status.pdf",
+            StoredFileName = "fixture.pdf", ContentType = "application/pdf", OcrStatus = status,
+            Values = [
+                new LabValue { Analyte = "Synthetic confirmed", Value = 1, Unit = "u", WasManuallyConfirmed = true },
+                new LabValue { Analyte = "Synthetic unconfirmed", Value = 2, Unit = "u" },
+                new LabValue { Analyte = "Synthetic unconfirmed 2", Value = 3, Unit = "u" }
+            ]
+        };
+        db.Add(report); await db.SaveChangesAsync();
+
+        var view = await Workspace(db, f.DoctorUser.Id).GetMemberWorkspaceAsync(f.Adult.Id, CancellationToken.None);
+
+        var lab = view.LabReports.Should().ContainSingle().Subject;
+        lab.OcrStatus.Should().Be(status);
+        lab.UnconfirmedValueCount.Should().Be(2);
+        lab.Values.Should().ContainSingle(v => v.Analyte == "Synthetic confirmed" && v.Confirmed);
+    }
+
+    [Theory]
     [InlineData("no-grant")]
     [InlineData("revoked-consent")]
     [InlineData("adult-guardian-consent")]

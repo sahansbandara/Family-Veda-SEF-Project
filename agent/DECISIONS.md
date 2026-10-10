@@ -1,5 +1,9 @@
 # Decisions — Family Veda
 
+## 2026-10-11 — Report extraction status and bounded recheck
+
+User approved distinguishing extraction from confirmation, member-owned rechecks, and stronger bounded reading. Production read-only evidence: the synthetic current PNG already has the correct three extracted values (104, 5.8, 188), but none confirmed; the matching PDF has three confirmed values. Doctor APIs therefore expose OCR status and unconfirmed counts, never raw draft values. Existing member/guardian extraction authorization and confirmed-value/flag guards remain unchanged. Web and Flutter direct doctors to member Health records; member rechecks protect unsaved edits. Scanned PDFs get one enhanced OCR fallback per unstructured page, reusing existing limits and enhancement tooling. Image enhancement already exists. Automatic confirmation, doctor retry permissions, migrations, and automatic production backfills were rejected. Original output is retained when enhancement yields no structured values. Optional `Ocr:TesseractCommand` supports deterministic subprocess tests; default remains `tesseract`, deployment configuration unchanged.
+
 ## 2026-10-11 — Stabilize PDF preview layout during rendering
 
 **Decision:** Retain canvas layout during PDF rerendering, mark the unfinished canvas inaccessible, apply existing report dialog styles, and include PDF container padding in its width.

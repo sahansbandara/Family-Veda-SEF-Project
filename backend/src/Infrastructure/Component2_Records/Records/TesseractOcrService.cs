@@ -81,7 +81,7 @@ public sealed partial class TesseractOcrService(IConfiguration configuration) : 
 
     private async Task<string?> RunTesseractAsync(string filePath, string? pageSegmentationMode, CancellationToken cancellationToken)
     {
-        var startInfo = NewProcess("tesseract");
+        var startInfo = NewProcess(configuration["Ocr:TesseractCommand"] is { Length: > 0 } command ? command : "tesseract");
         startInfo.ArgumentList.Add(filePath);
         startInfo.ArgumentList.Add("stdout");
         startInfo.ArgumentList.Add("-l");
@@ -128,18 +128,26 @@ public sealed partial class TesseractOcrService(IConfiguration configuration) : 
         startInfo.ArgumentList.Add($"{coder}:{filePath}");
         foreach (var argument in operations) startInfo.ArgumentList.Add(argument);
         startInfo.ArgumentList.Add($"png:{outputPath}");
+        var keepOutput = false;
         try
         {
             using var process = Process.Start(startInfo);
             if (process is null) return null;
             var (exitCode, _) = await WaitForOutputAsync(process, cancellationToken);
-            if (exitCode == 0 && File.Exists(outputPath)) return outputPath;
+            if (exitCode == 0 && File.Exists(outputPath))
+            {
+                keepOutput = true;
+                return outputPath;
+            }
         }
         catch (System.ComponentModel.Win32Exception)
         {
             // Image tool is not installed: straightening/enhancing is optional, the first OCR pass still stands.
         }
-        File.Delete(outputPath);
+        finally
+        {
+            if (!keepOutput) File.Delete(outputPath);
+        }
         return null;
     }
 
@@ -220,7 +228,22 @@ public sealed partial class TesseractOcrService(IConfiguration configuration) : 
             var text = new System.Text.StringBuilder();
             foreach (var page in pageDirectory.GetFiles("page*.png").OrderBy(x => x.Name, StringComparer.Ordinal))
             {
-                text.AppendLine(await RunTesseractAsync(page.FullName, pageSegmentationMode: null, cancellationToken));
+                var pageText = LimitText(await RunTesseractAsync(page.FullName, pageSegmentationMode: null, cancellationToken));
+                if (!HasStructuredValues(pageText))
+                {
+                    // One enhanced pass for scanned PDF pages; retain the first read unless the retry yields structured values.
+                    var enhancedPath = await TryConvertAsync(page.FullName, "enhance", EnhanceArguments, cancellationToken);
+                    if (enhancedPath is not null)
+                    {
+                        try
+                        {
+                            var enhancedText = LimitText(await RunTesseractAsync(enhancedPath, "6", cancellationToken));
+                            if (HasStructuredValues(enhancedText)) pageText = enhancedText;
+                        }
+                        finally { File.Delete(enhancedPath); }
+                    }
+                }
+                text.AppendLine(pageText);
                 LimitText(text.ToString());
             }
             if (string.IsNullOrWhiteSpace(text.ToString())) throw new ProcessingException("OCR could not read this report. Use manual entry instead.", OcrFailureCodes.Unreadable);

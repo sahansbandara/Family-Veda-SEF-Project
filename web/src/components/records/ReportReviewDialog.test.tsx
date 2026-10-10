@@ -164,10 +164,47 @@ describe('ReportReviewDialog', () => {
     renderReview({ report: { ...report, ocrStatus: 'Failed', ocrErrorCode: 'NO_VALUES_FOUND', values: [] }, onExtract })
     expect(screen.getByRole('alert')).toHaveTextContent('Why it could not be read: No test results found')
     expect(screen.queryByRole('button', { name: 'Confirm values' })).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Read again' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Check report again' }))
     expect(onExtract).toHaveBeenCalledTimes(1)
     expect(await screen.findByText(/Reading could not be completed/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Read again' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Check report again' })).toBeEnabled()
+  })
+
+  it('rechecks completed unconfirmed values through the existing callback without confirming', async () => {
+    const onExtract = vi.fn().mockResolvedValue(true)
+    const { props } = renderReview({ onExtract })
+    expect(screen.getByText(/enhanced reading passes/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Check report again' }))
+    await waitFor(() => expect(onExtract).toHaveBeenCalledTimes(1))
+    expect(props.onSubmit).not.toHaveBeenCalled()
+    expect(screen.getByText(/Review and confirm the results yourself/)).toBeInTheDocument()
+  })
+
+  it('protects unsaved edits by disabling rechecking until they are saved', () => {
+    const onExtract = vi.fn()
+    renderReview({ onExtract })
+    fireEvent.change(screen.getByDisplayValue('Synthetic analyte'), { target: { value: 'Edited synthetic analyte' } })
+    expect(screen.getByRole('button', { name: 'Check report again' })).toBeDisabled()
+    expect(screen.getByText('Save your edits before checking the report again.')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Check report again' }))
+    expect(onExtract).not.toHaveBeenCalled()
+  })
+
+  it('does not offer rechecking when any value has already been confirmed', () => {
+    renderReview({ report: { ...report, values: [
+      ...report.values,
+      { ...report.values[0], id: 'synthetic-confirmed', wasManuallyConfirmed: true },
+    ] }, onExtract: vi.fn() })
+    expect(screen.queryByRole('button', { name: 'Check report again' })).not.toBeInTheDocument()
+  })
+
+  it('allows a failed recheck with retained drafts but hides rechecking while processing', () => {
+    const onExtract = vi.fn()
+    const { rerender, props } = renderReview({ report: { ...report, ocrStatus: 'Failed' }, onExtract })
+    expect(screen.getByRole('button', { name: 'Check report again' })).toBeEnabled()
+    rerender(<ReportReviewDialog {...props} report={{ ...report, ocrStatus: 'Processing' }} />)
+    expect(screen.queryByRole('button', { name: 'Check report again' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Refresh status' })).toBeInTheDocument()
   })
 
   it('offers to read a report that was never read', () => {

@@ -346,11 +346,10 @@ class LabsTab extends StatelessWidget {
                           label: const Text('View original report'),
                         ),
                       ),
-                    if (report.values.isEmpty)
-                      Text(
-                        'No values confirmed by the member yet.',
-                        style: TextStyle(color: palette.muted),
-                      ),
+                    Text(
+                      report.extractionSummary,
+                      style: TextStyle(color: palette.muted),
+                    ),
                     for (final value in report.values) ...[
                       Divider(color: palette.border, height: 16),
                       Text(

@@ -105,3 +105,20 @@ it('traps focus in a native preview dialog, closes with Escape, and clears on ca
   view.rerender(<ApprovalSupportingEvidence memberId="synthetic-member" caseId="case-b" />)
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 })
+
+it('shows extraction state separately from confirmed values and directs the member to review', async () => {
+  mocks.get.mockResolvedValue({ data: { clinicalAccess: true, vitals: [], labReports: [
+    { id: 'unconfirmed', fileName: 'Synthetic awaiting.pdf', ocrStatus: 'Completed', unconfirmedValueCount: 3, values: [] },
+    { id: 'pending', fileName: 'Synthetic pending.pdf', ocrStatus: 'Pending', unconfirmedValueCount: 0, values: [] },
+    { id: 'failed', fileName: 'Synthetic failed.pdf', ocrStatus: 'Failed', unconfirmedValueCount: 2, values: [] },
+    { id: 'processing', fileName: 'Synthetic processing.pdf', ocrStatus: 'Processing', unconfirmedValueCount: 2, values: [] },
+  ] } })
+  render(<ApprovalSupportingEvidence memberId="synthetic-member" />)
+  expect(await screen.findByText('3 extracted · awaiting member confirmation')).toBeInTheDocument()
+  expect(screen.getByText('Not processed')).toBeInTheDocument()
+  expect(screen.getByText('Extraction failed')).toBeInTheDocument()
+  expect(screen.getByText('Extraction in progress')).toBeInTheDocument()
+  expect(screen.getAllByRole('button', { name: '0 confirmed values' })).toHaveLength(4)
+  expect(screen.getAllByText(/Health records/).length).toBeGreaterThan(0)
+  expect(screen.queryByRole('button', { name: 'Check report again' })).not.toBeInTheDocument()
+})

@@ -41,7 +41,7 @@ public sealed record WorkspaceRecordDto(Guid Id, RecordType RecordType, string T
 public sealed record WorkspaceLabValueDto(string Analyte, decimal Value, string Unit, decimal? ReferenceLow, decimal? ReferenceHigh,
     LabRangeStatus RangeStatus, bool Confirmed);
 
-public sealed record WorkspaceLabReportDto(Guid Id, string FileName, DateTimeOffset? CollectedAt, IReadOnlyList<WorkspaceLabValueDto> Values, bool HasOriginalFile = false);
+public sealed record WorkspaceLabReportDto(Guid Id, string FileName, DateTimeOffset? CollectedAt, IReadOnlyList<WorkspaceLabValueDto> Values, bool HasOriginalFile = false, OcrStatus? OcrStatus = null, int? UnconfirmedValueCount = null);
 
 /// <summary>
 /// A recorded reading with its position against a cited reference interval for the member's age and its

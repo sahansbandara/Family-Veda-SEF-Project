@@ -9,6 +9,17 @@ import { rangeLabel, rangeTone, referenceRange } from './familyWorkspace'
 
 type Report = NonNullable<MemberWorkspaceDto['labReports']>[number]
 
+function extractionStatus(report: Report): string {
+  if (report.ocrStatus === 'Pending') return 'Not processed'
+  if (report.ocrStatus === 'Processing') return 'Extraction in progress'
+  if (report.ocrStatus === 'Failed') return 'Extraction failed'
+  if ((report.unconfirmedValueCount ?? 0) > 0)
+    return `${report.unconfirmedValueCount} extracted · awaiting member confirmation`
+  if (report.ocrStatus === 'Completed') return report.values.length > 0 ? 'Extraction complete' : 'No extracted values found'
+  if (report.ocrStatus === 'ManualEntry') return 'Manually entered'
+  return 'Extraction status unavailable'
+}
+
 export function ApprovalReportsPanel({ reports, onPreview }: { reports: Report[]; onPreview: (report: Report) => void }) {
   const [openId, setOpenId] = useState<string | null>(null)
   if (reports.length === 0) return <p className="care-caption">No supporting reports are available in the authorized records.</p>
@@ -24,6 +35,10 @@ export function ApprovalReportsPanel({ reports, onPreview }: { reports: Report[]
               <span className="approval-report__name">
                 <b>{report.fileName}</b>
                 <small>{report.collectedAt ? `Collected ${queueDateTime(report.collectedAt)}` : 'Collection date not recorded'}</small>
+                <small>{extractionStatus(report)}</small>
+                {((report.unconfirmedValueCount ?? 0) > 0 || report.ocrStatus === 'Pending' || report.ocrStatus === 'Failed') && (
+                  <small>Ask the member to review or check the report again from Health records.</small>
+                )}
               </span>
               <span className="approval-report__actions">
                 <button type="button" className="button button--secondary button--sm" aria-expanded={open}

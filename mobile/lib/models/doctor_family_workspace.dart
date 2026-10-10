@@ -220,6 +220,8 @@ class LabReport {
     required this.values,
     this.collectedAt,
     this.hasOriginalFile = false,
+    this.ocrStatus,
+    this.unconfirmedValueCount = 0,
   });
 
   factory LabReport.fromJson(Map<String, dynamic> json) => LabReport(
@@ -227,6 +229,9 @@ class LabReport {
     fileName: json['fileName'] as String? ?? 'Report',
     collectedAt: _date(json['collectedAt']),
     hasOriginalFile: json['hasOriginalFile'] == true,
+    ocrStatus: json['ocrStatus'] as String?,
+    unconfirmedValueCount:
+        (json['unconfirmedValueCount'] as num?)?.toInt() ?? 0,
     values: _maps(json['values']).map(LabValue.fromJson).toList(),
   );
 
@@ -234,6 +239,29 @@ class LabReport {
   final String fileName;
   final DateTime? collectedAt;
   final bool hasOriginalFile;
+  final String? ocrStatus;
+  final int unconfirmedValueCount;
+
+  String get extractionSummary {
+    if (ocrStatus == 'Processing') return 'Reading report…';
+    if (ocrStatus == 'Failed') {
+      return 'Extraction failed. The member can check the report again or enter values manually.';
+    }
+    if (unconfirmedValueCount > 0) {
+      return '$unconfirmedValueCount extracted · awaiting member confirmation. Review in Health records.';
+    }
+    return switch (ocrStatus) {
+      'Pending' =>
+        'Not processed. The member can check this report in Health records.',
+      'Processing' => 'Reading report…',
+      'Failed' =>
+        'Extraction failed. The member can check the report again or enter values manually.',
+      'Completed' when values.isEmpty =>
+        'No confirmed values. Review the original report.',
+      _ => '${values.length} confirmed values',
+    };
+  }
+
   final List<LabValue> values;
 }
 

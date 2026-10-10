@@ -204,7 +204,7 @@ public sealed class DoctorWorkspaceService(AppDbContext dbContext, ICurrentUser 
             // Only values the member confirmed are clinical data; unconfirmed OCR output stays out (RULE 4).
             labs = reports.Select(r => new WorkspaceLabReportDto(r.Id, r.OriginalFileName, r.CollectedAt,
                 r.Values.Where(v => v.WasManuallyConfirmed).Select(v => new WorkspaceLabValueDto(v.Analyte, v.Value, v.Unit, v.ReferenceLow, v.ReferenceHigh,
-                    LabRangeClassifier.Classify(v.Value, v.ReferenceLow, v.ReferenceHigh), v.WasManuallyConfirmed)).ToList(), originals.Contains(r.Id))).ToList();
+                    LabRangeClassifier.Classify(v.Value, v.ReferenceLow, v.ReferenceHigh), v.WasManuallyConfirmed)).ToList(), originals.Contains(r.Id), r.OcrStatus, r.Values.Count(v => !v.WasManuallyConfirmed))).ToList();
         }
         if (vitalsAllowed)
         {
