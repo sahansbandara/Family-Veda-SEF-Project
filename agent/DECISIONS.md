@@ -400,3 +400,10 @@ User explicitly requested actual app integration and develop push. React dialog,
 - Reject silent first-click deletion and immediate API deletion; use web confirmation and Flutter AlertDialog, plus Undo removals. Count all draft rows (including removed rows) toward the 200-row UI cap so undo cannot exceed the API limit.
 - Use the existing effective interrupted-extraction status for eligibility; successful manual correction of failed/interrupted extraction becomes ManualEntry. Preserve drafts after failed saves and adopt server IDs after successful saves.
 - UI parity: React desktop/mobile and Flutter updated. Flutter already uses icon closing and barrier-dismissible More options; preserve those native behaviours.
+
+
+## 2026-10-13 — App-styled deletion confirmation
+- User rejected the browser-native confirmation and supplied a rectangular dialog reference. Use a matching header/close icon, pink warning banner, full field name/result and Cancel/Delete actions on responsive React and Flutter.
+- Warning copy describes the actual staged deletion: persisted only through Confirm values, with Undo available before saving. Do not copy permanent-deletion wording or bypass-confirmation shortcuts from the visual reference.
+- Native web dialog is an alertdialog with Cancel focus, contained Tab navigation, Escape/backdrop/close cancellation, and focus restoration. After deleting a row at the 200-row cap, return focus to enabled Undo instead of disabled Add.
+- Flutter confirmation scrolls for short screens and large text. Pair the fixed red destructive button with white text for light/dark contrast. Preserve API and save behaviour.

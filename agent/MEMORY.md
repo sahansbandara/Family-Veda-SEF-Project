@@ -169,3 +169,9 @@ Android debug demo APK build PASSED (assembleDebug 516.6s): mobile/build/app/out
 - Web modal uses × with accessible close label. Web/Flutter values support manual additions, confirmation before draft removal, Undo, and persistence only through Confirm values. Review contract has optional explicit deletions/additions; no schema or migration change.
 - Backend validates full request before mutations, retains owner/guardian checks, generates addition IDs, and writes ID/count-only audit metadata. Active reads are blocked; interrupted/failed reads may be manually corrected and become ManualEntry.
 - Clients replace temporary IDs using saved details to avoid resubmitting additions. Synthetic regression tests cover cancel/remove/undo, missing fields, failed saves, second-save IDs, ownership, count limits, null entries and interrupted extraction. No commit/push/deploy performed.
+
+
+### 2026-10-13 — Confirmation UI refinement
+- Replace report-value window.confirm with an app-styled nested native dialog based on the user's rectangular/pink-warning reference. Flutter has the equivalent styled, scrollable AlertDialog.
+- Cancel default focus and Tab containment are browser-verified. Escape/backdrop/× cancel without closing the parent review. Confirmed removal restores focus to the first enabled form control when the delete trigger disappears (Undo at the 200-row cap).
+- Verify short landscape + 1.5 text scaling and fixed-red/white Delete contrast in Flutter dark mode. No API or persistence contract changes.

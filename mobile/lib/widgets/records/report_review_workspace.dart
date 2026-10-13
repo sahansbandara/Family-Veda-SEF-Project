@@ -164,18 +164,85 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
     final remove = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Remove this value?'),
-        content: Text(
-          'Are you sure you want to remove ${value.analyte.text.trim().isEmpty ? 'this value' : value.analyte.text.trim()}? This change is saved only when you confirm values.',
+        scrollable: true,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        insetPadding: const EdgeInsets.all(16),
+        constraints: const BoxConstraints(maxWidth: 680),
+        title: Row(
+          children: [
+            const Expanded(child: Text('Delete this value?')),
+            IconButton(
+              tooltip: 'Close removal confirmation',
+              onPressed: () => Navigator.pop(context, false),
+              icon: const Icon(Icons.close),
+            ),
+          ],
         ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              color: Theme.of(context).colorScheme.errorContainer,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: Theme.of(context).colorScheme.onErrorContainer,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'This value will be deleted from your report when you confirm values.',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text('Report value', style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(height: 8),
+            Text(
+              value.analyte.text.trim().isEmpty
+                  ? 'Unnamed field'
+                  : value.analyte.text.trim(),
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
+            ),
+            if (value.value.text.trim().isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text('${value.value.text} ${value.unit.text}'),
+            ],
+            const SizedBox(height: 24),
+            Text(
+              'You can undo this removal before saving. Your original report is kept.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
         actions: [
           TextButton(
+            autofocus: true,
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text('CANCEL'),
           ),
           FilledButton(
+            style: FilledButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
+              elevation: 2,
+              backgroundColor: const Color(0xFFD44242),
+              foregroundColor: Colors.white,
+            ),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Remove value'),
+            child: const Text('DELETE VALUE'),
           ),
         ],
       ),

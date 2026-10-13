@@ -1,6 +1,6 @@
 // Owner: S2 · Health Records & Extraction — Fernando K.R.N (IT24101875)
 // Extracted-value review for one lab report. Range status uses the printed reference range only (RULE 1, RULE 4).
-import { type FormEvent, useEffect, useState } from 'react'
+import { type FormEvent, useEffect, useState, useRef, useId } from 'react'
 import { ViewerIcon } from '../../components/records/ViewerIcon'
 import { OriginalReportPreview } from '../../components/records/OriginalReportPreview'
 import { ReportProgress } from '../../components/records/ReportProgress'
@@ -41,6 +41,26 @@ export function ReportDetail({
   onDirty?: () => void
 }) {
   const [rows, setRows] = useState<LabValueDto[]>(report.values)
+  const [pendingRemoval, setPendingRemoval] = useState<LabValueDto | null>(null)
+  const removalDialog = useRef<HTMLDialogElement>(null)
+  const removalCancel = useRef<HTMLButtonElement>(null)
+  const removalTrigger = useRef<HTMLButtonElement | null>(null)
+  const reviewForm = useRef<HTMLFormElement>(null)
+  const removalTitle = useId()
+  useEffect(() => {
+    if (!pendingRemoval) return
+    const dialog = removalDialog.current
+    const trigger = removalTrigger.current
+    const fallback = reviewForm.current
+    if (dialog?.showModal) dialog.showModal()
+    else dialog?.setAttribute('open', '')
+    removalCancel.current?.focus()
+    return () => {
+      if (dialog?.open) { if (typeof dialog.close === 'function') dialog.close(); else dialog.removeAttribute('open') }
+      if (trigger?.isConnected) trigger.focus()
+      else fallback?.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus()
+    }
+  }, [pendingRemoval])
   const [deletedIds, setDeletedIds] = useState<string[]>([])
   useEffect(() => { setRows(report.values); setDeletedIds([]) }, [report.id, report.values])
   const visibleRows = rows.filter((value) => !deletedIds.includes(value.id))
@@ -51,7 +71,6 @@ export function ReportDetail({
     onDirty?.()
   }
   function removeValue(value: LabValueDto) {
-    if (!window.confirm(`Are you sure you want to remove ${value.analyte || 'this value'}? This change is saved only when you confirm values.`)) return
     setDeletedIds((ids) => [...ids, value.id])
     onDirty?.()
   }
@@ -79,7 +98,7 @@ export function ReportDetail({
         Extraction reads reported values. Compare each item with the original image before confirming it.
         Range status uses the printed reference range only.
       </p>
-      <form className="care-form report-review-form" onSubmit={(event) => void onSubmit(event)}>
+      <form ref={reviewForm} className="care-form report-review-form" onSubmit={(event) => void onSubmit(event)}>
         <fieldset disabled={saving || reading}>
         {deletedIds.filter((id) => !id.startsWith('new-')).map((id) => <input key={id} type="hidden" name="deletedValueIds" value={id} />)}
         <div className="report-review-form__actions"><button type="button" className="button button--secondary" onClick={addValue} disabled={rows.length >= 200}><ViewerIcon name="plus" /> Add value</button>{deletedIds.length > 0 && <button type="button" className="button button--secondary" onClick={() => { setDeletedIds([]); onDirty?.() }}>Undo removals ({deletedIds.length})</button>}</div>
@@ -163,7 +182,7 @@ export function ReportDetail({
                     <td data-label="State">
                       <StatusBadge status={value.wasManuallyConfirmed ? 'CONFIRMED' : 'REVIEW_REQUIRED'} />
                     </td>
-                    <td data-label="Actions"><button type="button" className="button button--secondary report-review-form__delete" aria-label={`Delete value ${value.analyte || 'new field'}`} title="Delete value" onClick={() => removeValue(value)}><ViewerIcon name="trash" /></button></td>
+                    <td data-label="Actions"><button type="button" className="button button--secondary report-review-form__delete" aria-label={`Delete value ${value.analyte || 'new field'}`} title="Delete value" onClick={(event) => { removalTrigger.current = event.currentTarget; setPendingRemoval(value) }}><ViewerIcon name="trash" /></button></td>
                   </tr>
                 ))}
               </tbody>
@@ -193,6 +212,19 @@ export function ReportDetail({
         )}
         </fieldset>
       </form>
+      {pendingRemoval && <dialog ref={removalDialog} className="value-removal-dialog" role="alertdialog" aria-modal="true" aria-labelledby={removalTitle} aria-describedby={`${removalTitle}-description`} onKeyDown={(event) => {
+        if (event.key !== 'Tab') return
+        const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'))
+        const first = buttons[0], last = buttons[buttons.length - 1]
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+      }} onCancel={(event) => { event.preventDefault(); event.stopPropagation(); setPendingRemoval(null) }} onClick={(event) => { if (event.target === event.currentTarget) { event.stopPropagation(); setPendingRemoval(null) } }}>
+        <button type="button" className="button button--secondary value-removal-dialog__close" aria-label="Close removal confirmation" onClick={() => setPendingRemoval(null)}><ViewerIcon name="close" /></button>
+        <h2 id={removalTitle}>Delete this value?</h2>
+        <div className="value-removal-dialog__warning" id={`${removalTitle}-description`}><ViewerIcon name="warning" /><span>This value will be deleted from your report when you confirm values.</span></div>
+        <div className="value-removal-dialog__value"><p className="care-caption">Report value</p><span>{pendingRemoval.analyte || 'Unnamed field'}</span>{Number.isFinite(pendingRemoval.value) && <small>{pendingRemoval.value} {pendingRemoval.unit}</small>}</div>
+        <div className="value-removal-dialog__footer"><p className="care-caption">You can undo this removal before saving. Your original report is kept.</p><div className="value-removal-dialog__actions"><button ref={removalCancel} type="button" className="button button--secondary" onClick={() => setPendingRemoval(null)}>Cancel</button><button type="button" className="button value-removal-dialog__remove" onClick={() => { removeValue(pendingRemoval); setPendingRemoval(null) }}>Delete value</button></div></div>
+      </dialog>}
     </>
   )
 }

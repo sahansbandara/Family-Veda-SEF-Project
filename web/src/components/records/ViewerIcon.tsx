@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 const paths: Record<string, ReactNode> = {
+  warning: <><path d="M12 3 2 21h20L12 3Z" /><path d="M12 9v5M12 17h.01" /></>,
   trash: <path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7" />,
   close: <path d="m6 6 12 12M6 18 18 6" />,
   download: <path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5" />,

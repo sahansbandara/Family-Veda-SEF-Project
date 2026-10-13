@@ -174,3 +174,22 @@
 
 .report-review-form__delete { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0.5rem; }
 .report-review-form__delete:hover { color: var(--color-danger, #b42318); }
+
+.value-removal-dialog { width: min(680px, calc(100vw - 32px)); box-sizing: border-box; border: 1px solid var(--border); border-radius: 8px; padding: 32px; color: var(--text); background: var(--surface); box-shadow: 0 20px 64px #12243b40; max-height: calc(100dvh - 32px); overflow: auto; }
+.value-removal-dialog::backdrop { background: #10182070; }
+.value-removal-dialog__close { position: absolute; top: 22px; right: 22px; padding: 10px; display: flex; border: 0; background: transparent; color: var(--muted); }
+.value-removal-dialog h2 { margin: 0 48px 24px 0; font-size: 24px; font-weight: 600; }
+.value-removal-dialog__warning { display: flex; align-items: flex-start; gap: 16px; padding: 18px 20px; background: color-mix(in srgb, var(--danger) 10%, var(--surface)); color: var(--danger); font-weight: 600; line-height: 1.5; }
+.value-removal-dialog__warning svg { width: 24px; height: 24px; flex-shrink: 0; margin-top: 1px; }
+.value-removal-dialog__value { margin: 28px 0 32px; overflow-wrap: anywhere; }
+.value-removal-dialog__value .care-caption { margin: 0 0 10px; }
+.value-removal-dialog__value > span { font-size: 18px; font-weight: 500; }
+.value-removal-dialog__value small { display: block; margin-top: 8px; color: var(--muted); }
+.value-removal-dialog__footer { display: flex; align-items: center; gap: 24px; }
+.value-removal-dialog__footer > p { flex: 1; margin: 0; line-height: 1.5; }
+.value-removal-dialog__actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.value-removal-dialog__actions .button { min-height: 44px; border-radius: 4px; text-transform: uppercase; font-size: 13px; letter-spacing: 0.02em; }
+.value-removal-dialog__actions .button--secondary { border-color: transparent; background: transparent; color: var(--muted); }
+.value-removal-dialog__remove { background: #d44242; color: white; box-shadow: 0 2px 6px #a9282826; }
+.value-removal-dialog__remove:hover { background: #b83131; }
+@media (max-width: 560px) { .value-removal-dialog { padding: 24px; } .value-removal-dialog__close { top: 14px; right: 14px; } .value-removal-dialog__footer { align-items: stretch; flex-direction: column; gap: 20px; } .value-removal-dialog__actions { justify-content: flex-end; } }

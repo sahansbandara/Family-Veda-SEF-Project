@@ -59,18 +59,46 @@ describe('ReportReviewDialog', () => {
   it('uses an icon close button and confirms removal before changing the draft', () => {
     renderReview()
     expect(screen.getByRole('button', { name: 'Close report review' })).toHaveTextContent('')
-    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    const confirm = vi.spyOn(window, 'confirm')
     fireEvent.click(screen.getByRole('button', { name: 'Delete value Synthetic analyte' }))
-    expect(confirm).toHaveBeenCalledWith(expect.stringContaining('Are you sure'))
+    expect(confirm).not.toHaveBeenCalled()
+    expect(screen.getByRole('alertdialog', { name: 'Delete this value?' })).toHaveTextContent('Synthetic analyte')
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(screen.getByDisplayValue('Synthetic analyte')).toBeInTheDocument()
-    confirm.mockReturnValue(true)
     fireEvent.click(screen.getByRole('button', { name: 'Delete value Synthetic analyte' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Delete value' }))
     expect(screen.queryByDisplayValue('Synthetic analyte')).not.toBeInTheDocument()
     expect(document.querySelector('input[name=deletedValueIds]')).toHaveValue('synthetic-value-review')
     expect(screen.getByRole('button', { name: 'Confirm values' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Undo removals (1)' }))
     expect(screen.getByDisplayValue('Synthetic analyte')).toBeInTheDocument()
     expect(document.querySelector('input[name=deletedValueIds]')).toBeNull()
+  })
+
+  it('cancels removal with Escape, close icon or backdrop without closing the review', () => {
+    const { props } = renderReview()
+    for (const method of ['escape', 'close', 'backdrop']) {
+      const trigger = screen.getByRole('button', { name: 'Delete value Synthetic analyte' })
+      fireEvent.click(trigger)
+      const confirmation = screen.getByRole('alertdialog', { name: 'Delete this value?' })
+      expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus()
+      if (method === 'escape') fireEvent(confirmation, new Event('cancel', { bubbles: true, cancelable: true }))
+      else if (method === 'close') fireEvent.click(screen.getByRole('button', { name: 'Close removal confirmation' }))
+      else fireEvent.click(confirmation)
+      expect(screen.queryByRole('alertdialog', { name: 'Delete this value?' })).not.toBeInTheDocument()
+      expect(screen.getByDisplayValue('Synthetic analyte')).toBeInTheDocument()
+      expect(trigger).toHaveFocus()
+    }
+    expect(props.onClose).not.toHaveBeenCalled()
+    expect(document.querySelector('input[name=deletedValueIds]')).toBeNull()
+  })
+
+  it('returns focus to Undo when deletion leaves Add value disabled at the row limit', () => {
+    renderReview({ report: { ...report, values: Array.from({ length: 200 }, (_, index) => ({ ...report.values[0], id: `synthetic-${index}`, analyte: `Synthetic analyte ${index}` })) } })
+    expect(screen.getByRole('button', { name: 'Add value' })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: 'Delete value Synthetic analyte 0' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Delete value' }))
+    expect(screen.getByRole('button', { name: 'Undo removals (1)' })).toHaveFocus()
   })
 
   it('adds missing fields and preserves them when saving fails', async () => {

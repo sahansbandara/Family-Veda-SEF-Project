@@ -497,6 +497,7 @@ describe('RecordsPage', () => {
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
     try {
       fireEvent.click(screen.getByRole('button', { name: 'Delete value Synthetic analyte' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Delete value' }))
       fireEvent.click(screen.getByRole('button', { name: 'Add value' }))
       fireEvent.change(screen.getByRole('textbox', { name: 'Test name' }), { target: { value: 'Synthetic missed field' } })
       fireEvent.change(screen.getByRole('spinbutton', { name: 'Value Synthetic missed field' }), { target: { value: '5' } })

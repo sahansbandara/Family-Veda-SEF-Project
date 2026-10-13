@@ -225,13 +225,13 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Delete value'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('Are you sure'), findsOneWidget);
-      await tester.tap(find.text('Cancel'));
+      expect(find.textContaining('This value will be deleted'), findsOneWidget);
+      await tester.tap(find.text('CANCEL'));
       await tester.pumpAndSettle();
       expect(find.byTooltip('Delete value'), findsOneWidget);
       await tester.tap(find.byTooltip('Delete value'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Remove value'));
+      await tester.tap(find.text('DELETE VALUE'));
       await tester.pumpAndSettle();
       expect(find.byTooltip('Delete value'), findsNothing);
       await tester.tap(find.text('Add value'));
@@ -264,4 +264,94 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+  for (final size in [
+    const Size(375, 667),
+    const Size(390, 844),
+    const Size(768, 1024),
+    const Size(844, 390),
+  ]) {
+    testWidgets(
+      'branded removal popup fits $size and close preserves the draft',
+      (tester) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final data = detail();
+        (data['values'] as List).first['analyte'] =
+            'Synthetic long report field with a descriptive name for confirmation layout verification';
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData.light(),
+            darkTheme: ThemeData.dark(),
+            themeMode: ThemeMode.dark,
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: const TextScaler.linear(1.5)),
+              child: child!,
+            ),
+            home: ReportReviewWorkspace(
+              report: report,
+              loadDetail: () async => data,
+              loadOriginal: () async => Uint8List(0),
+              save: (_) async => data,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        if (size.width < 800) {
+          await tester.tap(find.text('Values'));
+          await tester.pumpAndSettle();
+        }
+        await tester.scrollUntilVisible(
+          find.byTooltip('Delete value'),
+          250,
+          scrollable: find
+              .descendant(
+                of: find.byType(Form),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byTooltip('Delete value'));
+        await tester.pumpAndSettle();
+        expect(find.text('Delete this value?'), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byType(AlertDialog),
+            matching: find.textContaining('Synthetic long report field'),
+          ),
+          findsOneWidget,
+        );
+        expect(find.text('CANCEL'), findsOneWidget);
+        expect(find.text('DELETE VALUE'), findsOneWidget);
+        final deleteButton = tester.widget<FilledButton>(
+          find.ancestor(
+            of: find.text('DELETE VALUE'),
+            matching: find.byType(FilledButton),
+          ),
+        );
+        final foreground = deleteButton.style!.foregroundColor!.resolve({})!;
+        final background = deleteButton.style!.backgroundColor!.resolve({})!;
+        expect(
+          (foreground.computeLuminance() + 0.05) /
+              (background.computeLuminance() + 0.05),
+          greaterThanOrEqualTo(4.5),
+        );
+
+        expect(tester.takeException(), isNull);
+        await tester.ensureVisible(
+          find.byTooltip('Close removal confirmation'),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byTooltip('Close removal confirmation'));
+        await tester.pumpAndSettle();
+        expect(find.text('Delete this value?'), findsNothing);
+        expect(find.byTooltip('Delete value'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
 }
