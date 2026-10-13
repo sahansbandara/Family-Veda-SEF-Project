@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mocks = vi.hoisted(() => ({ get: vi.fn() }))
@@ -10,6 +10,28 @@ vi.mock('./PdfReportCanvas', () => ({ PdfReportCanvas: ({ url, label }: { url: s
 import { OriginalReportPreview } from './OriginalReportPreview'
 
 describe('OriginalReportPreview', () => {
+  it('dismisses More actions outside or on Escape while allowing menu actions', async () => {
+    mocks.get.mockResolvedValue({ data: new Blob(['synthetic'], { type: 'image/png' }) })
+    vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:synthetic'), revokeObjectURL: vi.fn() })
+    render(<><button>Outside viewer</button><OriginalReportPreview reportId="report-menu" originalFileName="synthetic.png" hasOriginalFile /></>)
+    await screen.findByRole('img')
+    const toggle = screen.getByRole('button', { name: 'More actions' })
+    fireEvent.click(toggle)
+    fireEvent.pointerDown(within(screen.getByRole('group', { name: 'More document actions' })).getByRole('button', { name: 'Fit width' }))
+    expect(within(screen.getByRole('group', { name: 'More document actions' })).getByRole('button', { name: 'Fit width' })).toBeInTheDocument()
+    fireEvent.click(within(screen.getByRole('group', { name: 'More document actions' })).getByRole('button', { name: 'Fit width' }))
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(toggle)
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Outside viewer' }))
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(toggle)
+    fireEvent.pointerDown(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(toggle).toHaveFocus()
+  })
+
   beforeEach(() => mocks.get.mockReset())
   afterEach(() => {
     vi.restoreAllMocks()

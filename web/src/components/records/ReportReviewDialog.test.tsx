@@ -2,7 +2,7 @@
 import '@testing-library/jest-dom/vitest'
 import type { FormEvent } from 'react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { LabReportDetailDto } from '../../services/apiClient'
 
 // Protected-byte loading/rendering has its own OriginalReportPreview regressions.
@@ -54,6 +54,39 @@ function renderReview(overrides: Partial<Parameters<typeof ReportReviewDialog>[0
 }
 
 describe('ReportReviewDialog', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  it('uses an icon close button and confirms removal before changing the draft', () => {
+    renderReview()
+    expect(screen.getByRole('button', { name: 'Close report review' })).toHaveTextContent('')
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    fireEvent.click(screen.getByRole('button', { name: 'Delete value Synthetic analyte' }))
+    expect(confirm).toHaveBeenCalledWith(expect.stringContaining('Are you sure'))
+    expect(screen.getByDisplayValue('Synthetic analyte')).toBeInTheDocument()
+    confirm.mockReturnValue(true)
+    fireEvent.click(screen.getByRole('button', { name: 'Delete value Synthetic analyte' }))
+    expect(screen.queryByDisplayValue('Synthetic analyte')).not.toBeInTheDocument()
+    expect(document.querySelector('input[name=deletedValueIds]')).toHaveValue('synthetic-value-review')
+    expect(screen.getByRole('button', { name: 'Confirm values' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Undo removals (1)' }))
+    expect(screen.getByDisplayValue('Synthetic analyte')).toBeInTheDocument()
+    expect(document.querySelector('input[name=deletedValueIds]')).toBeNull()
+  })
+
+  it('adds missing fields and preserves them when saving fails', async () => {
+    let form: FormData | undefined
+    renderReview({ onSubmit: async (event) => { event.preventDefault(); form = new FormData(event.currentTarget); return false } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add value' }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Test name' }), { target: { value: 'Synthetic missed field' } })
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Value Synthetic missed field' }), { target: { value: '5' } })
+    fireEvent.change(screen.getByRole('textbox', { name: 'Unit Synthetic missed field' }), { target: { value: 'unit' } })
+    fireEvent.submit(screen.getByRole('button', { name: 'Confirm values' }).closest('form')!)
+    await screen.findByText('Values could not be saved. Your edits are still here. Please retry.')
+    expect(form?.getAll('valueIds')).toHaveLength(2)
+    expect(screen.getByDisplayValue('Synthetic missed field')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Close report review' }))
+    expect(screen.getByRole('button', { name: 'Leave without confirming' })).toBeInTheDocument()
+  })
   it('opens a named modal containing the original and editable extracted values', () => {
     renderReview()
     expect(screen.getByRole('dialog', { name: 'Check extracted values' })).toHaveAttribute('open')

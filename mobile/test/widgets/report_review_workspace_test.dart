@@ -182,6 +182,7 @@ void main() {
         );
         expect(find.text('Could not read'), findsOneWidget);
         await tester.ensureVisible(find.text('Check report again'));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('Check report again'));
         await tester.pumpAndSettle();
         expect(reads, 1);
@@ -189,4 +190,78 @@ void main() {
       },
     );
   }
+  testWidgets(
+    'asks before removal and sends explicit deletions and manually added fields',
+    (tester) async {
+      tester.view.physicalSize = const Size(1024, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      Map<String, dynamic>? payload;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ReportReviewWorkspace(
+            report: report,
+            loadDetail: () async => detail(),
+            loadOriginal: () async => Uint8List(0),
+            save: (body) async {
+              payload = body;
+              return {
+                ...detail(),
+                'values': [
+                  {
+                    'id': 'server-added',
+                    'analyte': 'Synthetic missed field',
+                    'value': 5,
+                    'unit': 'unit',
+                    'wasManuallyConfirmed': true,
+                  },
+                ],
+              };
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Delete value'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Are you sure'), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('Delete value'), findsOneWidget);
+      await tester.tap(find.byTooltip('Delete value'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Remove value'));
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('Delete value'), findsNothing);
+      await tester.tap(find.text('Add value'));
+      await tester.pumpAndSettle();
+      final fields = find.byType(TextFormField);
+      await tester.enterText(fields.at(0), 'Synthetic missed field');
+      await tester.enterText(fields.at(1), '5');
+      await tester.enterText(fields.at(2), 'unit');
+      await tester.ensureVisible(find.text('Confirm values'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Confirm values'));
+      await tester.pumpAndSettle();
+      expect(payload?['values'], isEmpty);
+      expect(payload?['deletedValueIds'], [
+        (detail()['values'] as List).first['id'],
+      ]);
+      expect(
+        (payload?['addedValues'] as List).single,
+        containsPair('analyte', 'Synthetic missed field'),
+      );
+      expect((payload?['addedValues'] as List).single, isNot(contains('id')));
+      await tester.tap(find.text('Confirm values'));
+      await tester.pumpAndSettle();
+      expect(payload?['addedValues'], isEmpty);
+      expect(
+        (payload?['values'] as List).single,
+        containsPair('id', 'server-added'),
+      );
+      expect(payload?['deletedValueIds'], isEmpty);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

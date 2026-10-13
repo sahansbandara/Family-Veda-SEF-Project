@@ -162,3 +162,10 @@ Android debug demo APK build PASSED (assembleDebug 516.6s): mobile/build/app/out
 - 2026-10-11: Premium report viewer prototype is stored in docs/mockups/document-viewer/index.html with implementation notes in README.md. Includes synthetic retry/review role scenarios and light/dark toggle. This is a design artifact; production integration and native verification remain pending.
 
 - 2026-10-11: Approved viewer prototype integrated into React OriginalReportPreview/Dialog and native original_report_preview.dart. New scoped web CSS is document-viewer.css. Keep fixed viewport/min-height:0 for modal shell to prevent ResizeObserver/intrinsic-sizing flicker and short-screen clipping; identity h3 explicitly overrides legacy studio hidden heading. PDF navigator renders only adjacent thumbnails from the already loaded protected PDF. Library retry navigates to review; actual retry stays guarded/authorized in existing flow. Web browser verified desktop,375,390,768,844x390 using actual components with a temporary synthetic API adapter; native widget tests/analyze passed, devices not run.
+
+
+### 2026-10-13 — Report-review additions/removals and viewer dismissal
+- Approved S2 report-review change: More actions dismisses on outside pointer/focus and Escape; Escape restores toggle focus. Both toggle and menu refs must be attached so inside actions remain usable.
+- Web modal uses × with accessible close label. Web/Flutter values support manual additions, confirmation before draft removal, Undo, and persistence only through Confirm values. Review contract has optional explicit deletions/additions; no schema or migration change.
+- Backend validates full request before mutations, retains owner/guardian checks, generates addition IDs, and writes ID/count-only audit metadata. Active reads are blocked; interrupted/failed reads may be manually corrected and become ManualEntry.
+- Clients replace temporary IDs using saved details to avoid resubmitting additions. Synthetic regression tests cover cancel/remove/undo, missing fields, failed saves, second-save IDs, ownership, count limits, null entries and interrupted extraction. No commit/push/deploy performed.

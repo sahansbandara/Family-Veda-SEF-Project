@@ -34,6 +34,10 @@ class ReportReviewWorkspace extends StatefulWidget {
 class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
   final _form = GlobalKey<FormState>();
   List<_ValueDraft> _values = [];
+  final List<_ValueDraft> _removed = [];
+  int _nextValue = 0;
+  bool _loaded = false;
+  bool get _reading => _status == 'PENDING' || _status == 'PROCESSING';
   List<Map<String, dynamic>> _flags = [];
   final Set<String> _selectedFlags = {};
   bool _loading = true,
@@ -57,7 +61,7 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
 
   @override
   void dispose() {
-    for (final value in _values) {
+    for (final value in [..._values, ..._removed]) {
       value.dispose();
     }
     super.dispose();
@@ -76,12 +80,14 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
       // Validate before replacing the previous state; malformed responses are errors.
       final drafts = values.map(_ValueDraft.new).toList();
       final status = (detail['ocrStatus'] ?? _status).toString().toUpperCase();
-      for (final old in _values) {
+      for (final old in [..._values, ..._removed]) {
         old.dispose();
       }
       setState(() {
         _status = status;
         _values = drafts;
+        _removed.clear();
+        _loaded = true;
         _flags = flags;
         _selectedFlags.clear();
         _selectedFlags.addAll(
@@ -134,8 +140,58 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
     });
   }
 
+  void _addValue() {
+    if (_saving ||
+        _reading ||
+        !_loaded ||
+        _values.length + _removed.length >= 200) {
+      return;
+    }
+    setState(() {
+      _values.add(
+        _ValueDraft({
+          'id': 'new-${_nextValue++}',
+          'analyte': '',
+          'value': '',
+          'unit': '',
+        }),
+      );
+      _dirty = true;
+    });
+  }
+
+  Future<void> _removeValue(_ValueDraft value) async {
+    final remove = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remove this value?'),
+        content: Text(
+          'Are you sure you want to remove ${value.analyte.text.trim().isEmpty ? 'this value' : value.analyte.text.trim()}? This change is saved only when you confirm values.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Remove value'),
+          ),
+        ],
+      ),
+    );
+    if (remove != true || !mounted || _saving) return;
+    setState(() {
+      _values.remove(value);
+      _removed.add(value);
+      _dirty = true;
+    });
+  }
+
   Future<void> _save() async {
-    if (_saving || !_form.currentState!.validate()) return;
+    if (_saving || _reading || !_loaded || !_form.currentState!.validate()) {
+      return;
+    }
     for (final value in _values) {
       final low = double.tryParse(value.low.text),
           high = double.tryParse(value.high.text);
@@ -151,12 +207,33 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
       _message = null;
     });
     try {
-      await widget.save({
-        'values': _values.map((v) => v.payload()).toList(),
+      final detail = await widget.save({
+        'values': _values
+            .where((v) => !v.isNew)
+            .map((v) => v.payload())
+            .toList(),
+        'addedValues': _values
+            .where((v) => v.isNew)
+            .map((v) => v.payload()..remove('id'))
+            .toList(),
+        'deletedValueIds': _removed
+            .where((v) => !v.isNew)
+            .map((v) => v.id)
+            .toList(),
         'confirmedFlagIds': _selectedFlags.toList(),
       });
       if (mounted) {
+        final drafts = (detail['values'] as List)
+            .cast<Map<String, dynamic>>()
+            .map(_ValueDraft.new)
+            .toList();
+        for (final old in [..._values, ..._removed]) {
+          old.dispose();
+        }
         setState(() {
+          _values = drafts;
+          _removed.clear();
+          _status = (detail['ocrStatus'] as String? ?? _status).toUpperCase();
           _confirmed = true;
           _dirty = false;
           _message = 'Values confirmed';
@@ -331,6 +408,38 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
                 'Compare each item with the original report. Reference intervals alone do not determine your health. These are recorded values, not a diagnosis.',
               ),
               const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed:
+                        _saving ||
+                            _reading ||
+                            !_loaded ||
+                            _values.length + _removed.length >= 200
+                        ? null
+                        : _addValue,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add value'),
+                  ),
+                  if (_removed.isNotEmpty)
+                    TextButton(
+                      onPressed: _saving
+                          ? null
+                          : () => setState(() {
+                              _values.addAll(_removed);
+                              _removed.clear();
+                              _dirty = true;
+                            }),
+                      child: Text('Undo removals (${_removed.length})'),
+                    ),
+                ],
+              ),
+              const Text(
+                'Add any field missed during extraction. Removals are saved only when you confirm values.',
+              ),
+              const SizedBox(height: 12),
               if (_values.isEmpty)
                 const Text('No values are available to check yet.'),
               if (_values.isEmpty &&
@@ -341,14 +450,28 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
                 ),
               for (final value in _values)
                 Card(
+                  key: ValueKey(value.id),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Reported item ${_values.indexOf(value) + 1}',
-                          style: Theme.of(context).textTheme.labelLarge,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Reported item ${_values.indexOf(value) + 1}',
+                                style: Theme.of(context).textTheme.labelLarge,
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: 'Delete value',
+                              onPressed: _saving || _reading
+                                  ? null
+                                  : () => _removeValue(value),
+                              icon: const Icon(Icons.delete_outline),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 12),
                         _field(value.analyte, 'Analyte', max: 120),
@@ -409,7 +532,7 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
                     contentPadding: EdgeInsets.zero,
                     title: Text('${flag['conditionCode']}: ${flag['finding']}'),
                     value: _selectedFlags.contains(flag['id']),
-                    onChanged: _saving
+                    onChanged: _saving || _reading
                         ? null
                         : (selected) => setState(() {
                             _dirty = true;
@@ -428,9 +551,9 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
                   child: Text(_message!, semanticsLabel: _message),
                 ),
               const SizedBox(height: 16),
-              if (_values.isNotEmpty)
+              if (_values.isNotEmpty || _removed.isNotEmpty)
                 FilledButton.icon(
-                  onPressed: _saving ? null : _save,
+                  onPressed: _saving || _reading ? null : _save,
                   icon: const Icon(Icons.check),
                   label: Text(_saving ? 'Saving…' : 'Confirm values'),
                 ),
@@ -463,7 +586,7 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
   }) => TextFormField(
     key: fieldKey,
     controller: controller,
-    enabled: !_saving,
+    enabled: !_saving && !_reading,
     maxLength: max,
     decoration: InputDecoration(
       labelText: label,
@@ -571,6 +694,7 @@ class _ValueDraft {
         text: value['referenceHigh']?.toString() ?? '',
       );
   final String id;
+  bool get isNew => id.startsWith('new-');
   final TextEditingController analyte, value, unit, low, high;
   Map<String, dynamic> payload() => {
     'id': id,

@@ -494,6 +494,22 @@ describe('RecordsPage', () => {
       ),
     )
     expect(screen.queryByText(/diagnos/i)).not.toBeInTheDocument()
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
+    try {
+      fireEvent.click(screen.getByRole('button', { name: 'Delete value Synthetic analyte' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Add value' }))
+      fireEvent.change(screen.getByRole('textbox', { name: 'Test name' }), { target: { value: 'Synthetic missed field' } })
+      fireEvent.change(screen.getByRole('spinbutton', { name: 'Value Synthetic missed field' }), { target: { value: '5' } })
+      fireEvent.change(screen.getByRole('textbox', { name: 'Unit Synthetic missed field' }), { target: { value: 'unit' } })
+      mocks.put.mockRejectedValueOnce(new Error('Synthetic save failure'))
+      fireEvent.submit(screen.getByRole('button', { name: 'Confirm values' }).closest('form')!)
+      await waitFor(() => expect(mocks.put).toHaveBeenCalledWith('/lab-reports/lab-1/review', {
+        values: [], deletedValueIds: ['v1'],
+        addedValues: [{ analyte: 'Synthetic missed field', value: 5, unit: 'unit', referenceLow: null, referenceHigh: null }],
+        confirmedFlagIds: [],
+      }))
+      expect(screen.getByDisplayValue('Synthetic missed field')).toBeInTheDocument()
+    } finally { confirm.mockRestore() }
   })
 
   it('clears the selected report and ignores a stale list response when the active profile changes', async () => {

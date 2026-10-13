@@ -307,24 +307,57 @@ public sealed partial class RecordService(AppDbContext dbContext, ICurrentUser c
     {
         var report = await dbContext.LabReports.Include(x => x.Values).SingleOrDefaultAsync(x => x.Id == reportId, cancellationToken) ?? throw new NotFoundException();
         await RequireMemberAccessAsync(report.MemberId, ConsentCategory.Conditions, cancellationToken);
-        if (request.Values.Count > 200 || request.ConfirmedFlagIds.Count > 20 || request.Values.Select(x => x.Id).Distinct().Count() != request.Values.Count)
+        if (ReadingState(report).Status is OcrStatus.Pending or OcrStatus.Processing)
+            throw new ValidationException(new Dictionary<string, string[]> { ["values"] = ["Wait until report extraction finishes before saving values."] });
+        var deletedIds = request.DeletedValueIds ?? [];
+        var additions = request.AddedValues ?? [];
+        if (request.Values is null || request.ConfirmedFlagIds is null || request.Values.Count + additions.Count > 200 ||
+            request.Values.Any(x => x is null) || additions.Any(x => x is null) ||
+            deletedIds.Count > 200 || request.ConfirmedFlagIds.Count > 20 ||
+            request.Values.Select(x => x.Id).Distinct().Count() != request.Values.Count ||
+            deletedIds.Distinct().Count() != deletedIds.Count)
             throw new ValidationException(new Dictionary<string, string[]> { ["values"] = ["Manual review payload is invalid."] });
-        var existingIds = report.Values.Select(x => x.Id).Order().ToArray();
-        if (!existingIds.SequenceEqual(request.Values.Select(x => x.Id).Order()))
-            throw new ValidationException(new Dictionary<string, string[]> { ["values"] = ["Every extracted value must be reviewed exactly once."] });
-        foreach (var input in request.Values)
+        var existingIds = report.Values.Select(x => x.Id).ToHashSet();
+        if (deletedIds.Except(existingIds).Any() || request.Values.Any(x => deletedIds.Contains(x.Id)) ||
+            !existingIds.Except(deletedIds).Order().SequenceEqual(request.Values.Select(x => x.Id).Order()))
+            throw new ValidationException(new Dictionary<string, string[]> { ["values"] = ["Every existing value must be reviewed or explicitly removed exactly once."] });
+        // Validate the entire request before changing any tracked data.
+        foreach (var input in request.Values.Select(x => new AddLabValueRequest(x.Analyte, x.Value, x.Unit, x.ReferenceLow, x.ReferenceHigh)).Concat(additions))
         {
             if (string.IsNullOrWhiteSpace(input.Analyte) || input.Analyte.Trim().Length > 120 || string.IsNullOrWhiteSpace(input.Unit) || input.Unit.Trim().Length > 32)
                 throw new ValidationException(new Dictionary<string, string[]> { ["values"] = ["Analyte and unit are required and must remain within allowed lengths."] });
             if (input.ReferenceLow is not null && input.ReferenceHigh is not null && input.ReferenceLow > input.ReferenceHigh)
                 throw new ValidationException(new Dictionary<string, string[]> { ["values"] = ["Reference low cannot exceed reference high."] });
-            var value = report.Values.Single(x => x.Id == input.Id);
-            value.Analyte = input.Analyte.Trim(); value.Value = input.Value; value.Unit = input.Unit.Trim();
-            value.ReferenceLow = input.ReferenceLow; value.ReferenceHigh = input.ReferenceHigh; value.WasManuallyConfirmed = true;
         }
         var reportFlags = await dbContext.HereditaryFlags.Where(x => x.LabReportId == reportId).ToListAsync(cancellationToken);
         if (request.ConfirmedFlagIds.Except(reportFlags.Select(x => x.Id)).Any())
             throw new ValidationException(new Dictionary<string, string[]> { ["confirmedFlagIds"] = ["A selected flag does not belong to this report."] });
+        if (ReadingState(report).Status == OcrStatus.Failed && request.Values.Count + additions.Count > 0)
+        {
+            report.OcrStatus = OcrStatus.ManualEntry;
+            report.OcrErrorCode = null;
+        }
+        foreach (var input in request.Values)
+        {
+            var value = report.Values.Single(x => x.Id == input.Id);
+            value.Analyte = input.Analyte.Trim(); value.Value = input.Value; value.Unit = input.Unit.Trim();
+            value.ReferenceLow = input.ReferenceLow; value.ReferenceHigh = input.ReferenceHigh; value.WasManuallyConfirmed = true;
+        }
+        foreach (var value in report.Values.Where(x => deletedIds.Contains(x.Id)).ToList())
+        {
+            report.Values.Remove(value);
+            dbContext.LabValues.Remove(value);
+        }
+        foreach (var input in additions)
+        {
+            var value = new LabValue
+            {
+                LabReport = report, Analyte = input.Analyte.Trim(), Value = input.Value, Unit = input.Unit.Trim(),
+                ReferenceLow = input.ReferenceLow, ReferenceHigh = input.ReferenceHigh, WasManuallyConfirmed = true
+            };
+            report.Values.Add(value);
+            dbContext.LabValues.Add(value);
+        }
         foreach (var flag in reportFlags) flag.ManuallyConfirmed = request.ConfirmedFlagIds.Contains(flag.Id);
         dbContext.AuditLogs.Add(new AuditLog
         {
@@ -334,7 +367,7 @@ public sealed partial class RecordService(AppDbContext dbContext, ICurrentUser c
             ResourceType = "LabReport",
             ResourceId = report.Id,
             Outcome = "SUCCESS",
-            MetadataJson = "{}"
+            MetadataJson = System.Text.Json.JsonSerializer.Serialize(new { DeletedValueIds = deletedIds, AddedValueCount = additions.Count })
         });
         await dbContext.SaveChangesAsync(cancellationToken);
         return MapLabDetail(report, reportFlags.Select(MapFlag).ToList());

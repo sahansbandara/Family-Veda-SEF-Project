@@ -3,6 +3,7 @@ import { type FormEvent, useEffect, useId, useRef, useState } from 'react'
 import type { LabReportDetailDto } from '../../services/apiClient'
 import { ReportDetail } from '../../pages/records/ReportDetail'
 import { OriginalReportPreview } from './OriginalReportPreview'
+import { ViewerIcon } from './ViewerIcon'
 import { readingFailure } from './reportReading'
 
 export type ReportReviewDialogProps = {
@@ -88,7 +89,7 @@ export function ReportReviewDialog({ report, hasOriginalFile, loading, error, ti
     onClick={(event) => { if (event.target === dialog.current && !leaving) requestClose() }}>
     <div className="report-studio__shell">
       <div ref={content} className="report-studio__body" aria-hidden={leaving || undefined}>
-      <header className="report-studio__header"><div><p className="care-eyebrow">Report review</p><h2 id={titleId}>{title}</h2><p className="care-caption">Compare the original, correct any reading errors, then confirm.</p></div><button type="button" className="button button--secondary" onClick={requestClose} disabled={saving} aria-label="Close report review">Close</button></header>
+      <header className="report-studio__header"><div><p className="care-eyebrow">Report review</p><h2 id={titleId}>{title}</h2><p className="care-caption">Compare the original, correct any reading errors, then confirm.</p></div><button type="button" className="button button--secondary" onClick={requestClose} disabled={saving} aria-label="Close report review"><ViewerIcon name="close" /></button></header>
       <div className="report-studio__tabs" role="tablist" aria-label="Review panels">
         <button type="button" role="tab" aria-selected={tab === 'report'} aria-controls={`${titleId}-original`} onClick={() => setTab('report')}>Report</button>
         <button type="button" role="tab" aria-selected={tab === 'values'} aria-controls={`${titleId}-values`} onClick={() => setTab('values')}>Values</button>
@@ -119,7 +120,7 @@ export function ReportReviewDialog({ report, hasOriginalFile, loading, error, ti
               return <div className="report-reading-card"><h3>Check missing or unclear values</h3><p>Rechecks the original report with enhanced reading passes. Review and confirm the results yourself before they can be used.</p>{dirty && <p>Save your edits before checking the report again.</p>}<div className="report-reading-card__actions">{readButton('Check report again')}</div></div>
             return null
           })()}
-          <ReportDetail report={report} hasOriginalFile={hasOriginalFile} showOriginal={false} saving={saving} onSubmit={save} />
+          <ReportDetail report={report} hasOriginalFile={hasOriginalFile} showOriginal={false} saving={saving} onDirty={() => { setDirty(true); setSaveMessage('') }} onSubmit={save} />
         </section>
       </div>}
       </div>

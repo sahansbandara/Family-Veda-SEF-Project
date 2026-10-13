@@ -1,6 +1,7 @@
 // Owner: S2 · Health Records & Extraction — Fernando K.R.N (IT24101875)
 // Extracted-value review for one lab report. Range status uses the printed reference range only (RULE 1, RULE 4).
-import type { FormEvent } from 'react'
+import { type FormEvent, useEffect, useState } from 'react'
+import { ViewerIcon } from '../../components/records/ViewerIcon'
 import { OriginalReportPreview } from '../../components/records/OriginalReportPreview'
 import { ReportProgress } from '../../components/records/ReportProgress'
 import { RecordedRangeVisual } from '../../components/records/RecordedRangeVisual'
@@ -30,14 +31,34 @@ export function ReportDetail({
   onSubmit,
   showOriginal = true,
   saving = false,
+  onDirty,
 }: {
   report: LabReportDetailDto
   hasOriginalFile: boolean
   onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void | boolean>
   showOriginal?: boolean
   saving?: boolean
+  onDirty?: () => void
 }) {
-  const confirmed = report.values.filter((value) => value.wasManuallyConfirmed).length
+  const [rows, setRows] = useState<LabValueDto[]>(report.values)
+  const [deletedIds, setDeletedIds] = useState<string[]>([])
+  useEffect(() => { setRows(report.values); setDeletedIds([]) }, [report.id, report.values])
+  const visibleRows = rows.filter((value) => !deletedIds.includes(value.id))
+  const confirmed = visibleRows.filter((value) => value.wasManuallyConfirmed).length
+  const reading = report.ocrStatus === 'Pending' || report.ocrStatus === 'Processing'
+  function addValue() {
+    setRows((values) => [...values, { id: `new-${crypto.randomUUID()}`, analyte: '', value: Number.NaN, unit: '', wasManuallyConfirmed: false }])
+    onDirty?.()
+  }
+  function removeValue(value: LabValueDto) {
+    if (!window.confirm(`Are you sure you want to remove ${value.analyte || 'this value'}? This change is saved only when you confirm values.`)) return
+    setDeletedIds((ids) => [...ids, value.id])
+    onDirty?.()
+  }
+  function editValue(id: string, field: keyof LabValueDto, value: string | number | null) {
+    setRows((values) => values.map((row) => row.id === id ? { ...row, [field]: value, wasManuallyConfirmed: false } : row))
+    onDirty?.()
+  }
   return (
     <>
       <div className="care-panel-heading">
@@ -59,7 +80,10 @@ export function ReportDetail({
         Range status uses the printed reference range only.
       </p>
       <form className="care-form report-review-form" onSubmit={(event) => void onSubmit(event)}>
-        <fieldset disabled={saving}>
+        <fieldset disabled={saving || reading}>
+        {deletedIds.filter((id) => !id.startsWith('new-')).map((id) => <input key={id} type="hidden" name="deletedValueIds" value={id} />)}
+        <div className="report-review-form__actions"><button type="button" className="button button--secondary" onClick={addValue} disabled={rows.length >= 200}><ViewerIcon name="plus" /> Add value</button>{deletedIds.length > 0 && <button type="button" className="button button--secondary" onClick={() => { setDeletedIds([]); onDirty?.() }}>Undo removals ({deletedIds.length})</button>}</div>
+        <p className="care-caption">Add any field missed during extraction. Removals are saved only when you confirm values.</p>
         {report.values.some((value) => value.wasManuallyConfirmed) && (
           <section className="care-range-overview" aria-label="Confirmed report values">
             <div className="care-range-grid">
@@ -73,7 +97,7 @@ export function ReportDetail({
             </p>
           </section>
         )}
-        {report.values.length === 0 ? (
+        {visibleRows.length === 0 ? (
           <div className="care-empty">
             <p>{report.ocrStatus === 'Failed' ? 'No extracted values are available to confirm.' : 'No values are available to check yet.'}</p>
           </div>
@@ -88,16 +112,18 @@ export function ReportDetail({
                   <th>Low</th>
                   <th>High</th>
                   <th>State</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {report.values.map((value) => (
+                {visibleRows.map((value) => (
                   <tr key={value.id}>
                     <td data-label="Test name">
+                      <input type="hidden" name="valueIds" value={value.id} />
                       <input
                         aria-label={`Test name ${value.analyte}`}
                         name={`analyte-${value.id}`}
-                        defaultValue={value.analyte}
+                        value={value.analyte} onChange={(event) => editValue(value.id, 'analyte', event.target.value)}
                         required
                         maxLength={120}
                       />
@@ -108,13 +134,13 @@ export function ReportDetail({
                         name={`value-${value.id}`}
                         type="number"
                         step="any"
-                        defaultValue={value.value}
+                        value={Number.isNaN(value.value) ? '' : value.value} onChange={(event) => editValue(value.id, 'value', event.target.value === '' ? Number.NaN : Number(event.target.value))}
                         required
                       />
                       {recordedRangeMarker(value)}
                     </td>
                     <td data-label="Unit">
-                      <input aria-label={`Unit ${value.analyte}`} name={`unit-${value.id}`} defaultValue={value.unit} required maxLength={32} />
+                      <input aria-label={`Unit ${value.analyte}`} name={`unit-${value.id}`} value={value.unit} onChange={(event) => editValue(value.id, 'unit', event.target.value)} required maxLength={32} />
                     </td>
                     <td data-label="Reference low">
                       <input
@@ -122,7 +148,7 @@ export function ReportDetail({
                         name={`low-${value.id}`}
                         type="number"
                         step="any"
-                        defaultValue={value.referenceLow ?? ''}
+                        value={value.referenceLow ?? ''} onChange={(event) => editValue(value.id, 'referenceLow', event.target.value === '' ? null : Number(event.target.value))}
                       />
                     </td>
                     <td data-label="Reference high">
@@ -131,12 +157,13 @@ export function ReportDetail({
                         name={`high-${value.id}`}
                         type="number"
                         step="any"
-                        defaultValue={value.referenceHigh ?? ''}
+                        value={value.referenceHigh ?? ''} onChange={(event) => editValue(value.id, 'referenceHigh', event.target.value === '' ? null : Number(event.target.value))}
                       />
                     </td>
                     <td data-label="State">
                       <StatusBadge status={value.wasManuallyConfirmed ? 'CONFIRMED' : 'REVIEW_REQUIRED'} />
                     </td>
+                    <td data-label="Actions"><button type="button" className="button button--secondary report-review-form__delete" aria-label={`Delete value ${value.analyte || 'new field'}`} title="Delete value" onClick={() => removeValue(value)}><ViewerIcon name="trash" /></button></td>
                   </tr>
                 ))}
               </tbody>
@@ -159,8 +186,8 @@ export function ReportDetail({
             </label>
           ))
         )}
-        {report.values.length > 0 && (
-          <div className="report-review-form__footer"><span>{confirmed} of {report.values.length} values confirmed</span><button className="button button--primary" type="submit" disabled={saving}>
+        {(rows.length > 0 || deletedIds.length > 0) && (
+          <div className="report-review-form__footer"><span>{confirmed} of {visibleRows.length} values confirmed</span><button className="button button--primary" type="submit" disabled={saving}>
             {saving ? 'Saving values…' : 'Confirm values'}
           </button></div>
         )}

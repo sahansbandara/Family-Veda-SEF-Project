@@ -481,20 +481,22 @@ export function RecordsPage() {
     const targetMemberId = memberId
     const targetReportId = selectedReport.id
     const form = new FormData(event.currentTarget)
-    const values = selectedReport.values.map((value) => ({
-      id: value.id,
-      analyte: String(form.get(`analyte-${value.id}`) ?? ''),
-      value: Number(form.get(`value-${value.id}`)),
-      unit: String(form.get(`unit-${value.id}`) ?? ''),
-      referenceLow: form.get(`low-${value.id}`) === '' ? null : Number(form.get(`low-${value.id}`)),
-      referenceHigh: form.get(`high-${value.id}`) === '' ? null : Number(form.get(`high-${value.id}`)),
+    const reviewedValues = form.getAll('valueIds').map(String).map((id) => ({
+      id,
+      analyte: String(form.get(`analyte-${id}`) ?? ''),
+      value: Number(form.get(`value-${id}`)),
+      unit: String(form.get(`unit-${id}`) ?? ''),
+      referenceLow: form.get(`low-${id}`) === '' ? null : Number(form.get(`low-${id}`)),
+      referenceHigh: form.get(`high-${id}`) === '' ? null : Number(form.get(`high-${id}`)),
     }))
     const confirmedFlagIds = selectedReport.flags
       .filter((flag) => form.get(`flag-${flag.id}`) === 'on')
       .map((flag) => flag.id)
     try {
       const { data } = await apiClient.put<LabReportDetailDto>(`/lab-reports/${selectedReport.id}/review`, {
-        values,
+        values: reviewedValues.filter((value) => !value.id.startsWith('new-')),
+        addedValues: reviewedValues.filter((value) => value.id.startsWith('new-')).map((value) => ({ analyte: value.analyte, value: value.value, unit: value.unit, referenceLow: value.referenceLow, referenceHigh: value.referenceHigh })),
+        deletedValueIds: form.getAll('deletedValueIds').map(String),
         confirmedFlagIds,
       })
       if (

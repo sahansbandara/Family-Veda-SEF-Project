@@ -168,3 +168,9 @@
 .original-report-preview__image-scroll { width: 100%; overflow: auto; padding: 16px; box-sizing: border-box; }
 .report-studio .original-report-preview__image-stage, .original-report-preview__image-stage { display: block; position: relative; padding: 0; margin: auto; min-height: 0; overflow: visible; }
 .report-studio .original-report-preview__image-stage .original-report-preview__image, .original-report-preview__image-stage .original-report-preview__image { position: absolute; left: 50%; top: 50%; max-width: none; object-fit: contain; }
+
+.report-review-form__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.75rem; }
+.report-review-form__actions .button { display: inline-flex; align-items: center; gap: 0.5rem; }
+
+.report-review-form__delete { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 0.5rem; }
+.report-review-form__delete:hover { color: var(--color-danger, #b42318); }

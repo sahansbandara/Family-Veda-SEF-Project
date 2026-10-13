@@ -78,6 +78,179 @@ public sealed class RecordServiceLabReviewTests
         (await db.AuditLogs.CountAsync()).Should().Be(0);
     }
 
+    [Fact]
+    public async Task ManualReview_ExplicitDeletionAndAddition_PersistsRemainingValuesAndGeneratesDistinctIds()
+    {
+        var (db, service, report) = await CreateReviewAsync(2);
+        await using var context = db;
+        var retained = report.Values.First();
+        var deleted = report.Values.Last();
+        var originalIds = report.Values.Select(x => x.Id).ToArray();
+
+        var result = await service.ConfirmLabReportAsync(report.Id, new ConfirmLabReportRequest(
+            [Review(retained)], [], [deleted.Id],
+            [new AddLabValueRequest(" Added Synthetic Analyte ", 3m, " unit ", 1m, 4m),
+             new AddLabValueRequest("Second Synthetic Analyte", 4m, "unit", null, null)]), CancellationToken.None);
+
+        result.Values.Should().HaveCount(3).And.NotContain(x => x.Id == deleted.Id);
+        var added = result.Values.Where(x => !originalIds.Contains(x.Id)).ToArray();
+        added.Should().HaveCount(2);
+        added.Select(x => x.Id).Should().OnlyHaveUniqueItems().And.NotContain(Guid.Empty);
+        added.Should().OnlyContain(x => x.WasManuallyConfirmed);
+        added.Should().ContainSingle(x => x.Analyte == "Added Synthetic Analyte" && x.Unit == "unit" && x.Value == 3m
+            && x.ReferenceLow == 1m && x.ReferenceHigh == 4m);
+        db.ChangeTracker.Clear();
+        var stored = await db.LabValues.Where(x => x.LabReportId == report.Id).ToListAsync();
+        stored.Select(x => x.Id).Should().BeEquivalentTo(result.Values.Select(x => x.Id));
+        (await db.AuditLogs.CountAsync()).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task ManualReview_DeletionFromAnotherReport_RejectsWithoutDeletingEitherReportsValues()
+    {
+        var (db, service, report) = await CreateReviewAsync(1);
+        await using var context = db;
+        var otherReport = new LabReport { MemberId = report.MemberId, OcrStatus = OcrStatus.Completed,
+            OriginalFileName = "synthetic-other.pdf", StoredFileName = "synthetic-other.pdf", ContentType = "application/pdf" };
+        var otherValue = new LabValue { LabReport = otherReport, Analyte = "Other Synthetic Analyte", Value = 1m, Unit = "unit" };
+        db.AddRange(otherReport, otherValue);
+        await db.SaveChangesAsync();
+
+        var review = () => service.ConfirmLabReportAsync(report.Id, new ConfirmLabReportRequest(
+            [Review(report.Values.Single())], [], [otherValue.Id]), CancellationToken.None);
+
+        await review.Should().ThrowAsync<FamilyVeda.Application.Common.ValidationException>();
+        db.ChangeTracker.Clear();
+        (await db.LabValues.CountAsync()).Should().Be(2);
+        (await db.LabValues.AnyAsync(x => x.WasManuallyConfirmed)).Should().BeFalse();
+        (await db.AuditLogs.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task ManualReview_OmittedRemainingValue_RejectsEvenWhenAnotherValueIsExplicitlyDeleted()
+    {
+        var (db, service, report) = await CreateReviewAsync(2);
+        await using var context = db;
+        var review = () => service.ConfirmLabReportAsync(report.Id, new ConfirmLabReportRequest(
+            [], [], [report.Values.First().Id]), CancellationToken.None);
+
+        await review.Should().ThrowAsync<FamilyVeda.Application.Common.ValidationException>();
+        db.ChangeTracker.Clear();
+        (await db.LabValues.CountAsync()).Should().Be(2);
+        (await db.AuditLogs.CountAsync()).Should().Be(0);
+    }
+
+    [Theory]
+    [InlineData(199, true)]
+    [InlineData(200, false)]
+    public async Task ManualReview_CombinedExistingAndAddedValues_EnforcesTwoHundredValueLimit(int existingCount, bool accepted)
+    {
+        var (db, service, report) = await CreateReviewAsync(existingCount);
+        await using var context = db;
+        var request = new ConfirmLabReportRequest(report.Values.Select(Review).ToArray(), [], null,
+            [new AddLabValueRequest("Added Synthetic Analyte", 1m, "unit", null, null)]);
+        var review = () => service.ConfirmLabReportAsync(report.Id, request, CancellationToken.None);
+
+        if (accepted)
+        {
+            var result = await review();
+            result.Values.Should().HaveCount(200);
+            (await db.LabValues.CountAsync()).Should().Be(200);
+        }
+        else
+        {
+            await review.Should().ThrowAsync<FamilyVeda.Application.Common.ValidationException>();
+            db.ChangeTracker.Clear();
+            (await db.LabValues.CountAsync()).Should().Be(existingCount);
+            (await db.AuditLogs.CountAsync()).Should().Be(0);
+        }
+    }
+
+    [Theory]
+    [InlineData(OcrStatus.Pending)]
+    [InlineData(OcrStatus.Processing)]
+    public async Task ManualReview_UnfinishedExtraction_RejectsAdditionsAndDeletions(OcrStatus status)
+    {
+        var (db, service, report) = await CreateReviewAsync(1, status);
+        await using var context = db;
+        var originalId = report.Values.Single().Id;
+        var review = () => service.ConfirmLabReportAsync(report.Id, new ConfirmLabReportRequest(
+            [], [], [originalId], [new AddLabValueRequest("Added Synthetic Analyte", 1m, "unit", null, null)]), CancellationToken.None);
+
+        await review.Should().ThrowAsync<FamilyVeda.Application.Common.ValidationException>();
+        db.ChangeTracker.Clear();
+        (await db.LabValues.SingleAsync()).Id.Should().Be(originalId);
+        (await db.AuditLogs.CountAsync()).Should().Be(0);
+    }
+
+    [Theory]
+    [InlineData("", "unit", null, null)]
+    [InlineData("Synthetic Analyte", "", null, null)]
+    [InlineData("Synthetic Analyte", "unit", 10, 3)]
+    public async Task ManualReview_InvalidAddedValue_RejectsBeforeExistingValueOrDeletionChanges(
+        string analyte, string unit, int? referenceLow, int? referenceHigh)
+    {
+        var (db, service, report) = await CreateReviewAsync(2);
+        await using var context = db;
+        var retained = report.Values.First();
+        var review = () => service.ConfirmLabReportAsync(report.Id, new ConfirmLabReportRequest(
+            [new ConfirmLabValueRequest(retained.Id, "Changed Synthetic Analyte", 5m, "changed-unit", null, null)],
+            [], [report.Values.Last().Id], [new AddLabValueRequest(analyte, 1m, unit, referenceLow, referenceHigh)]), CancellationToken.None);
+
+        await review.Should().ThrowAsync<FamilyVeda.Application.Common.ValidationException>();
+        db.ChangeTracker.Clear();
+        var preserved = await db.LabValues.SingleAsync(x => x.Id == retained.Id);
+        preserved.Analyte.Should().Be("Synthetic Analyte 0");
+        preserved.Value.Should().Be(1m);
+        preserved.WasManuallyConfirmed.Should().BeFalse();
+        (await db.LabValues.CountAsync()).Should().Be(2);
+        (await db.AuditLogs.CountAsync()).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task ManualReview_NullAddition_RejectsWithoutMutation()
+    {
+        var (db, service, report) = await CreateReviewAsync(1);
+        await using var context = db;
+        var review = () => service.ConfirmLabReportAsync(report.Id, new ConfirmLabReportRequest(
+            report.Values.Select(Review).ToArray(), [], [], [null!]), CancellationToken.None);
+        await review.Should().ThrowAsync<FamilyVeda.Application.Common.ValidationException>();
+        (await db.AuditLogs.CountAsync()).Should().Be(0);
+        report.Values.Single().WasManuallyConfirmed.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ManualReview_InterruptedExtraction_AllowsManualCorrection()
+    {
+        var (db, service, report) = await CreateReviewAsync(1, OcrStatus.Processing);
+        await using var context = db;
+        report.UpdatedAt = DateTimeOffset.UtcNow.AddDays(-1);
+        // Keep the stale timestamp without invoking the save hook that updates it.
+        var result = await service.ConfirmLabReportAsync(report.Id, new ConfirmLabReportRequest(
+            report.Values.Select(Review).ToArray(), [], [], [new AddLabValueRequest("Synthetic missed field", 2m, "unit", null, null)]), CancellationToken.None);
+        result.Values.Should().HaveCount(2).And.OnlyContain(x => x.WasManuallyConfirmed);
+        result.OcrStatus.Should().Be(OcrStatus.ManualEntry);
+    }
+
+    private static ConfirmLabValueRequest Review(LabValue value) =>
+        new(value.Id, value.Analyte, value.Value, value.Unit, value.ReferenceLow, value.ReferenceHigh);
+
+    private static async Task<(AppDbContext Db, RecordService Service, LabReport Report)> CreateReviewAsync(
+        int valueCount, OcrStatus status = OcrStatus.Completed)
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
+        var db = new AppDbContext(options);
+        var user = new UserAccount { Email = "synthetic-value-review@example.invalid", PasswordHash = "synthetic", DisplayName = "Synthetic User", UserType = UserType.FamilyUser };
+        var family = new Family { Name = "Synthetic Value Family", CreatedByUser = user };
+        var member = new Member { Family = family, User = user, DisplayName = "Synthetic Member", DateOfBirth = new DateOnly(1990, 1, 1), Role = FamilyRole.Head };
+        var report = new LabReport { Member = member, OriginalFileName = "synthetic-values.pdf", StoredFileName = "synthetic-values.pdf", ContentType = "application/pdf", SizeBytes = 100, OcrStatus = status };
+        for (var index = 0; index < valueCount; index++)
+            report.Values.Add(new LabValue { LabReport = report, Analyte = $"Synthetic Analyte {index}", Value = 1m, Unit = "unit" });
+        db.AddRange(user, family, member, report);
+        await db.SaveChangesAsync();
+        return (db, new RecordService(db, new StubCurrentUser(user.Id), Options.Create(new StorageOptions())), report);
+    }
+
     private sealed class StubCurrentUser(Guid userId) : ICurrentUser
     {
         public bool IsAuthenticated => true;

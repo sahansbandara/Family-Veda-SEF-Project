@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 
 import { ImageReportCanvas } from './ImageReportCanvas'
 import { PdfReportCanvas } from './PdfReportCanvas'
@@ -45,6 +45,22 @@ export function OriginalReportPreview({ reportId, originalFileName, hasOriginalF
   const [details, setDetails] = useState(false)
   const [more, setMore] = useState(false)
   const [navigator, setNavigator] = useState(false)
+  const moreMenu = useRef<HTMLDivElement>(null)
+  const moreToggle = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    if (!more) return
+    const dismiss = (event: PointerEvent | FocusEvent) => {
+      const target = event.target as Node
+      if (!moreMenu.current?.contains(target) && !moreToggle.current?.contains(target)) setMore(false)
+    }
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); setMore(false); moreToggle.current?.focus() }
+    }
+    document.addEventListener('pointerdown', dismiss, true)
+    document.addEventListener('focusin', dismiss, true)
+    document.addEventListener('keydown', escape, true)
+    return () => { document.removeEventListener('pointerdown', dismiss, true); document.removeEventListener('focusin', dismiss, true); document.removeEventListener('keydown', escape, true) }
+  }, [more])
   const toolbarButton = (name: string, label: string, action: () => void, disabled = false) => <button type="button" className="viewer-tool" title={label} aria-label={label} disabled={disabled} onClick={action}><ViewerIcon name={name} /></button>
 
 
@@ -92,10 +108,10 @@ export function OriginalReportPreview({ reportId, originalFileName, hasOriginalF
           {state === 'ready' && objectUrl && <a className="viewer-tool" title={isPdf ? 'Download original report' : 'Download original image'} aria-label={isPdf ? 'Download original report' : 'Download original image'} href={objectUrl} download={originalFileName}><ViewerIcon name="download" /></a>}
           {toolbarButton(theme === 'dark' ? 'sun' : 'moon', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode', () => setTheme(theme === 'dark' ? 'light' : 'dark'))}
           <button type="button" className="viewer-tool" title="File details" aria-label="File details" aria-expanded={details} onClick={() => { setDetails(!details); setMore(false) }}><ViewerIcon name="info" /></button>
-          <button type="button" className="viewer-tool" title="More actions" aria-label="More actions" aria-expanded={more} onClick={() => setMore(!more)}><ViewerIcon name="more" /></button>
+          <button ref={moreToggle} type="button" className="viewer-tool" title="More actions" aria-label="More actions" aria-expanded={more} onClick={() => setMore(!more)}><ViewerIcon name="more" /></button>
         </div>
       </header>
-      {more && <div className="premium-viewer__menu" aria-label="More document actions" onKeyDown={(event) => { if (event.key === 'Escape') { event.stopPropagation(); setMore(false) } }}>
+      {more && <div ref={moreMenu} role="group" className="premium-viewer__menu" aria-label="More document actions" onKeyDown={(event) => { if (event.key === 'Escape') { event.stopPropagation(); setMore(false) } }}>
         <button type="button" onClick={() => { setFit('width'); setZoom(1); setMore(false) }}><ViewerIcon name="width" />Fit width</button>
         <button type="button" onClick={() => { setFit('page'); setZoom(1); setMore(false) }}><ViewerIcon name="fit" />Fit whole page</button>
         <button type="button" onClick={() => { setRotation((value) => (value + 90) % 360); setMore(false) }}><ViewerIcon name="rotate" />Rotate</button>
