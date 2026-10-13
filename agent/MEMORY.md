@@ -175,3 +175,9 @@ Android debug demo APK build PASSED (assembleDebug 516.6s): mobile/build/app/out
 - Replace report-value window.confirm with an app-styled nested native dialog based on the user's rectangular/pink-warning reference. Flutter has the equivalent styled, scrollable AlertDialog.
 - Cancel default focus and Tab containment are browser-verified. Escape/backdrop/× cancel without closing the parent review. Confirmed removal restores focus to the first enabled form control when the delete trigger disappears (Undo at the 200-row cap).
 - Verify short landscape + 1.5 text scaling and fixed-red/white Delete contrast in Flutter dark mode. No API or persistence contract changes.
+
+
+### 2026-10-13 — Add value placement and discoverability
+- Add value now sits immediately below editable rows/cards in React and Flutter. New rows append before this control; name field is scrolled into view and focused.
+- Flutter's visible bottom Add control ensures the appended lazy-list card is built for post-frame ensureVisible. Each draft owns/disposes its GlobalKey/FocusNode; callbacks check mounted and draft presence.
+- Regression coverage includes placement, two successive additions after five existing phone rows, disposal before the next callback, and Undo focus at the row cap. Browser checks cover 1440/375/390/768 widths. Backend unchanged.

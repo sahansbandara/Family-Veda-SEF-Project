@@ -354,4 +354,84 @@ void main() {
       },
     );
   }
+  testWidgets(
+    'Add value follows existing rows and scrolls to the focused new field',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ReportReviewWorkspace(
+            report: report,
+            loadDetail: () async => {
+              ...detail(),
+              'values': List.generate(
+                5,
+                (index) => {
+                  ...(detail()['values'] as List).first as Map<String, dynamic>,
+                  'id': 'existing-$index',
+                  'analyte': 'Synthetic existing $index',
+                },
+              ),
+            },
+            loadOriginal: () async => Uint8List(0),
+            save: (_) async => detail(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Values'));
+      await tester.pumpAndSettle();
+      final scrollable = find
+          .descendant(of: find.byType(Form), matching: find.byType(Scrollable))
+          .first;
+      await tester.scrollUntilVisible(
+        find.text('Add value'),
+        150,
+        scrollable: scrollable,
+      );
+      await tester.pumpAndSettle();
+      final names = find.byWidgetPredicate(
+        (widget) =>
+            widget is TextField && widget.decoration?.labelText == 'Analyte',
+      );
+      expect(
+        tester.getTopLeft(find.text('Add value')).dy,
+        greaterThan(tester.getTopLeft(names.first).dy),
+      );
+      for (var addition = 0; addition < 2; addition++) {
+        await tester.scrollUntilVisible(
+          find.text('Add value'),
+          150,
+          scrollable: scrollable,
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Add value'));
+        await tester.pumpAndSettle();
+        final addedName = find.byWidgetPredicate(
+          (widget) =>
+              widget is TextField &&
+              widget.decoration?.labelText == 'Analyte' &&
+              widget.controller?.text == '',
+        );
+        final added = tester.widget<TextField>(addedName);
+        expect(added.focusNode?.hasFocus, isTrue);
+        expect(tester.getTopLeft(addedName).dy, greaterThan(0));
+        expect(tester.getBottomRight(addedName).dy, lessThan(844));
+        await tester.enterText(addedName, 'Synthetic manual $addition');
+      }
+      await tester.scrollUntilVisible(
+        find.text('Add value'),
+        150,
+        scrollable: scrollable,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Add value'));
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

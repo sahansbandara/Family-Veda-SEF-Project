@@ -46,7 +46,15 @@ export function ReportDetail({
   const removalCancel = useRef<HTMLButtonElement>(null)
   const removalTrigger = useRef<HTMLButtonElement | null>(null)
   const reviewForm = useRef<HTMLFormElement>(null)
+  const pendingAddedId = useRef<string | null>(null)
   const removalTitle = useId()
+  useEffect(() => {
+    if (!pendingAddedId.current) return
+    const field = reviewForm.current?.elements.namedItem(`analyte-${pendingAddedId.current}`) as HTMLInputElement | null
+    field?.focus({ preventScroll: true })
+    field?.scrollIntoView?.({ block: 'center' })
+    pendingAddedId.current = null
+  }, [rows])
   useEffect(() => {
     if (!pendingRemoval) return
     const dialog = removalDialog.current
@@ -58,7 +66,7 @@ export function ReportDetail({
     return () => {
       if (dialog?.open) { if (typeof dialog.close === 'function') dialog.close(); else dialog.removeAttribute('open') }
       if (trigger?.isConnected) trigger.focus()
-      else fallback?.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus()
+      else (fallback?.querySelector<HTMLButtonElement>('button[data-review-undo]:not(:disabled)') ?? fallback?.querySelector<HTMLButtonElement>('button:not(:disabled)'))?.focus()
     }
   }, [pendingRemoval])
   const [deletedIds, setDeletedIds] = useState<string[]>([])
@@ -67,7 +75,9 @@ export function ReportDetail({
   const confirmed = visibleRows.filter((value) => value.wasManuallyConfirmed).length
   const reading = report.ocrStatus === 'Pending' || report.ocrStatus === 'Processing'
   function addValue() {
-    setRows((values) => [...values, { id: `new-${crypto.randomUUID()}`, analyte: '', value: Number.NaN, unit: '', wasManuallyConfirmed: false }])
+    const id = `new-${crypto.randomUUID()}`
+    pendingAddedId.current = id
+    setRows((values) => [...values, { id, analyte: '', value: Number.NaN, unit: '', wasManuallyConfirmed: false }])
     onDirty?.()
   }
   function removeValue(value: LabValueDto) {
@@ -101,8 +111,6 @@ export function ReportDetail({
       <form ref={reviewForm} className="care-form report-review-form" onSubmit={(event) => void onSubmit(event)}>
         <fieldset disabled={saving || reading}>
         {deletedIds.filter((id) => !id.startsWith('new-')).map((id) => <input key={id} type="hidden" name="deletedValueIds" value={id} />)}
-        <div className="report-review-form__actions"><button type="button" className="button button--secondary" onClick={addValue} disabled={rows.length >= 200}><ViewerIcon name="plus" /> Add value</button>{deletedIds.length > 0 && <button type="button" className="button button--secondary" onClick={() => { setDeletedIds([]); onDirty?.() }}>Undo removals ({deletedIds.length})</button>}</div>
-        <p className="care-caption">Add any field missed during extraction. Removals are saved only when you confirm values.</p>
         {report.values.some((value) => value.wasManuallyConfirmed) && (
           <section className="care-range-overview" aria-label="Confirmed report values">
             <div className="care-range-grid">
@@ -189,6 +197,8 @@ export function ReportDetail({
             </table>
           </div>
         )}
+        <div className="report-review-form__actions"><button type="button" className="button button--secondary" onClick={addValue} disabled={rows.length >= 200}><ViewerIcon name="plus" /> Add value</button>{deletedIds.length > 0 && <button type="button" className="button button--secondary" data-review-undo onClick={() => { setDeletedIds([]); onDirty?.() }}>Undo removals ({deletedIds.length})</button>}</div>
+        <p className="care-caption">Add any field missed during extraction. Removals are saved only when you confirm values.</p>
         <h3>Potential hereditary screening flags</h3>
         {report.flags.length === 0 ? (
           <p className="care-muted">No flags were extracted.</p>

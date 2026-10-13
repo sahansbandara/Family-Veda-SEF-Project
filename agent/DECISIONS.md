@@ -407,3 +407,9 @@ User explicitly requested actual app integration and develop push. React dialog,
 - Warning copy describes the actual staged deletion: persisted only through Confirm values, with Undo available before saving. Do not copy permanent-deletion wording or bypass-confirmation shortcuts from the visual reference.
 - Native web dialog is an alertdialog with Cancel focus, contained Tab navigation, Escape/backdrop/close cancellation, and focus restoration. After deleting a row at the 200-row cap, return focus to enabled Undo instead of disabled Add.
 - Flutter confirmation scrolls for short screens and large text. Pair the fixed red destructive button with white text for light/dark contrast. Preserve API and save behaviour.
+
+
+## 2026-10-13 — Add report values at the end of editable rows
+- User requested Add value directly below existing editable rows. Move Add/Undo controls and explanatory copy after the web table and Flutter value cards, ahead of hereditary flags.
+- Appending a row scrolls to and focuses its name field. Use a pending ID after React render and stable per-draft GlobalKey/FocusNode after Flutter layout; guard callbacks against removed drafts/disposed screens. Preserve validation, confirmation, deletion and API contracts.
+- Retain explicit Undo focus after removal at the 200-row cap despite the actions changing position.

@@ -147,16 +147,23 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
         _values.length + _removed.length >= 200) {
       return;
     }
+    final draft = _ValueDraft({
+      'id': 'new-${_nextValue++}',
+      'analyte': '',
+      'value': '',
+      'unit': '',
+    });
     setState(() {
-      _values.add(
-        _ValueDraft({
-          'id': 'new-${_nextValue++}',
-          'analyte': '',
-          'value': '',
-          'unit': '',
-        }),
-      );
+      _values.add(draft);
       _dirty = true;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted || !_values.contains(draft)) return;
+      final rowContext = draft.rowKey.currentContext;
+      if (rowContext != null) {
+        await Scrollable.ensureVisible(rowContext, alignment: 0);
+        if (mounted && _values.contains(draft)) draft.nameFocus.requestFocus();
+      }
     });
   }
 
@@ -475,38 +482,6 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
                 'Compare each item with the original report. Reference intervals alone do not determine your health. These are recorded values, not a diagnosis.',
               ),
               const SizedBox(height: 16),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed:
-                        _saving ||
-                            _reading ||
-                            !_loaded ||
-                            _values.length + _removed.length >= 200
-                        ? null
-                        : _addValue,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add value'),
-                  ),
-                  if (_removed.isNotEmpty)
-                    TextButton(
-                      onPressed: _saving
-                          ? null
-                          : () => setState(() {
-                              _values.addAll(_removed);
-                              _removed.clear();
-                              _dirty = true;
-                            }),
-                      child: Text('Undo removals (${_removed.length})'),
-                    ),
-                ],
-              ),
-              const Text(
-                'Add any field missed during extraction. Removals are saved only when you confirm values.',
-              ),
-              const SizedBox(height: 12),
               if (_values.isEmpty)
                 const Text('No values are available to check yet.'),
               if (_values.isEmpty &&
@@ -517,7 +492,7 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
                 ),
               for (final value in _values)
                 Card(
-                  key: ValueKey(value.id),
+                  key: value.rowKey,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -541,7 +516,12 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        _field(value.analyte, 'Analyte', max: 120),
+                        _field(
+                          value.analyte,
+                          'Analyte',
+                          max: 120,
+                          focusNode: value.nameFocus,
+                        ),
                         const SizedBox(height: 12),
                         Row(
                           children: [
@@ -585,6 +565,38 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
                     ),
                   ),
                 ),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed:
+                        _saving ||
+                            _reading ||
+                            !_loaded ||
+                            _values.length + _removed.length >= 200
+                        ? null
+                        : _addValue,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add value'),
+                  ),
+                  if (_removed.isNotEmpty)
+                    TextButton(
+                      onPressed: _saving
+                          ? null
+                          : () => setState(() {
+                              _values.addAll(_removed);
+                              _removed.clear();
+                              _dirty = true;
+                            }),
+                      child: Text('Undo removals (${_removed.length})'),
+                    ),
+                ],
+              ),
+              const Text(
+                'Add any field missed during extraction. Removals are saved only when you confirm values.',
+              ),
+              const SizedBox(height: 12),
               if (_flags.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 Text(
@@ -646,6 +658,7 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
   Widget _field(
     TextEditingController controller,
     String label, {
+    FocusNode? focusNode,
     bool numeric = false,
     bool optional = false,
     int? max,
@@ -653,6 +666,7 @@ class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
   }) => TextFormField(
     key: fieldKey,
     controller: controller,
+    focusNode: focusNode,
     enabled: !_saving && !_reading,
     maxLength: max,
     decoration: InputDecoration(
@@ -760,6 +774,8 @@ class _ValueDraft {
       high = TextEditingController(
         text: value['referenceHigh']?.toString() ?? '',
       );
+  final GlobalKey rowKey = GlobalKey();
+  final FocusNode nameFocus = FocusNode();
   final String id;
   bool get isNew => id.startsWith('new-');
   final TextEditingController analyte, value, unit, low, high;
@@ -772,6 +788,7 @@ class _ValueDraft {
     'referenceHigh': double.tryParse(high.text.trim()),
   };
   void dispose() {
+    nameFocus.dispose();
     for (final controller in [analyte, value, unit, low, high]) {
       controller.dispose();
     }

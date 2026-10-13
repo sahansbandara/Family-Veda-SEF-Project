@@ -101,6 +101,20 @@ describe('ReportReviewDialog', () => {
     expect(screen.getByRole('button', { name: 'Undo removals (1)' })).toHaveFocus()
   })
 
+  it('places Add value below existing rows and focuses each newly appended field', () => {
+    renderReview()
+    const add = screen.getByRole('button', { name: 'Add value' })
+    const table = screen.getByRole('table')
+    expect(table.compareDocumentPosition(add) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    fireEvent.click(add)
+    expect(screen.getByRole('textbox', { name: 'Test name' })).toHaveFocus()
+    fireEvent.change(screen.getByRole('textbox', { name: 'Test name' }), { target: { value: 'Synthetic first addition' } })
+    fireEvent.click(add)
+    expect(screen.getByRole('textbox', { name: 'Test name' })).toHaveFocus()
+    expect(screen.getAllByRole('row')).toHaveLength(4)
+    expect(table.compareDocumentPosition(add) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
   it('adds missing fields and preserves them when saving fails', async () => {
     let form: FormData | undefined
     renderReview({ onSubmit: async (event) => { event.preventDefault(); form = new FormData(event.currentTarget); return false } })
