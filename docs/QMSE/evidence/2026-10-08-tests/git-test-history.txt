@@ -1,0 +1,1842 @@
+3bb6c192a379f73eccbfea2745f6fee26fec87e4|2026-10-06|ImSahanS|sahansbandara.mail@gmail.com|fix(s1): default to own profile, show case numbers and tidy symptom flow on mobile
+
+mobile/test/models/triage_case_test.dart
+mobile/test/providers/members_provider_test.dart
+mobile/test/providers/patient_providers_test.dart
+mobile/test/screens/care_workflows_test.dart
+mobile/test/screens/request_progress_actions_test.dart
+7fd741a024d9d7e5433f11fab805a067ac5ae3b5|2026-10-06|ImSahanS|sahansbandara.mail@gmail.com|fix(s3): ask agents to avoid command verbs the safety validator blocks
+
+backend/tests/UnitTests/AgentOutputPromptTests.cs
+backend/tests/UnitTests/GeminiKeyPoolTests.cs
+f3b1aaeb0464427fe0bbf4170d52df6a5f0f5052|2026-10-05|Claude|noreply@anthropic.com|test(s1): pin the clock in the MyDoctor stale-date test
+
+web/src/pages/family/MyDoctorPage.test.tsx
+1ac2c1e0257044999455213dff2491a2490ed584|2026-10-05|Claude|noreply@anthropic.com|feat(s2): read stacked lab layouts, trim OCR unit noise, add enhanced OCR pass
+
+backend/tests/UnitTests/Component2_Records/LabExtractionParserTests.cs
+1b0b4e7a042cfd4d3b92cf5d410de4c96492c3c4|2026-10-05|Claude|noreply@anthropic.com|fix(s4): load vitals grid CSS with ?raw so the web build compiles
+
+web/src/styles/approvalVitalsGrid.test.ts
+7f761455f3b4db07bc558c9cb5e507d30e651155|2026-10-05|Claude|noreply@anthropic.com|feat(s2): read lab reports in a background worker
+
+backend/tests/UnitTests/Component2_Records/LabExtractionSafetyTests.cs
+backend/tests/UnitTests/Component2_Records/LabExtractionWorkerTests.cs
+mobile/test/services/report_reading_poller_test.dart
+web/src/components/records/ReportReviewDialog.tsx
+web/src/pages/records/RecordsPage.tsx
+web/src/pages/records/pollReading.test.ts
+web/src/pages/records/pollReading.ts
+0a38b48d48790405f1d2e462a232ed9b0649f1ff|2026-10-05|Claude|noreply@anthropic.com|fix(s2): give the whole OCR read its own timeout key
+
+backend/tests/UnitTests/Component2_Records/LabExtractionSafetyTests.cs
+4311792f7b32ea2f0535a1f836a8eeedb2f0d750|2026-10-05|Claude|noreply@anthropic.com|test(s2): fix missing configuration using in OCR timeout tests
+
+backend/tests/UnitTests/Component2_Records/LabExtractionSafetyTests.cs
+979a93f946e173cafcd809fb5d315c8e67458fc2|2026-10-05|Claude|noreply@anthropic.com|fix(s3): exclude no-data agents from the confidence safety check
+
+backend/tests/UnitTests/Component3_Triage/TriageOrchestratorNoDataTests.cs
+web/src/pages/doctor/AgentOutputCard.tsx
+web/src/pages/doctor/ApprovalEvidenceTabs.tsx
+web/src/pages/doctor/safetyRules.test.ts
+web/src/pages/doctor/safetyRules.ts
+web/src/services/apiClient.ts
+7b9ecf3dd2c6db79111d9294a4c160238e2aea22|2026-10-05|Claude|noreply@anthropic.com|fix(s4): lay out vital signs overview as a 3-column responsive grid
+
+mobile/test/screens/doctor_families_flow_test.dart
+mobile/test/widgets/doctor/vital_overview_grid_test.dart
+web/src/styles/approval-desk.css
+web/src/styles/approvalVitalsGrid.test.ts
+197f6a04fe0dea05ca6285c1b855655f028b4d42|2026-10-05|Claude|noreply@anthropic.com|fix(s2): stop client timeouts cancelling lab report OCR
+
+backend/tests/UnitTests/Component2_Records/LabExtractionParserTests.cs
+backend/tests/UnitTests/Component2_Records/LabExtractionSafetyTests.cs
+web/src/pages/records/RecordsPage.tsx
+e78fc025567a0fe1c4d26edd3c4fcf1930d40f3b|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|feat(s3): add doctor processing queue and patient edit/withdraw before review
+
+backend/tests/IntegrationTests/Shared/GoldenCaseFlowTests.cs
+backend/tests/UnitTests/Component3_Triage/NotificationServiceTests.cs
+backend/tests/UnitTests/Component3_Triage/TriageSubmissionLifecycleTests.cs
+backend/tests/UnitTests/Component3_Triage/TriageWorkerRecoveryTests.cs
+backend/tests/UnitTests/Component4_Clinical/ClinicalCasePoolPrivacyTests.cs
+mobile/test/screens/doctor_triage_cases_screen_test.dart
+mobile/test/screens/report_library_workflow_test.dart
+mobile/test/screens/request_progress_actions_test.dart
+mobile/test/services/api_services_test.dart
+mobile/test/widgets/head_dashboard_section_test.dart
+mobile/test/widgets/report_library_card_test.dart
+web/src/components/layout/AppLayout.tsx
+web/src/components/records/ReportLibrary.tsx
+web/src/components/records/ReportLibraryCard.test.tsx
+web/src/components/records/ReportLibraryCard.tsx
+web/src/pages/doctor/CasesPage.test.tsx
+web/src/pages/doctor/CasesPage.tsx
+web/src/pages/doctor/triageQueue.ts
+web/src/pages/triage/FamilyCaseProgress.test.tsx
+web/src/pages/triage/FamilyCaseProgress.tsx
+web/src/pages/triage/RequestPopup.test.tsx
+web/src/pages/triage/TriageJourney.test.tsx
+web/src/pages/triage/TriagePage.test.tsx
+web/src/pages/triage/TriagePage.tsx
+web/src/routes/AppRouter.test.tsx
+web/src/services/apiClient.ts
+web/src/styles/records-studio.css
+web/src/styles/triage-redesign.css
+d3cc5276df600e98e4dd550b10a264adef21ac7e|2026-10-05|Claude|noreply@anthropic.com|feat(s2): explain why a report could not be read, recover stuck reads, show 5-step progress
+
+backend/tests/UnitTests/Component2_Records/LabExtractionSafetyTests.cs
+mobile/test/widgets/report_review_workspace_test.dart
+web/src/components/records/ReportLibrary.test.tsx
+web/src/components/records/ReportLibraryCard.test.tsx
+web/src/components/records/ReportProgress.tsx
+web/src/components/records/ReportReviewDialog.test.tsx
+web/src/components/records/ReportReviewDialog.tsx
+web/src/components/records/ReportStatusBadge.tsx
+web/src/components/records/reportReading.ts
+web/src/pages/records/RecordsPage.tsx
+web/src/pages/records/ReportDetail.tsx
+web/src/services/apiClient.ts
+web/src/styles/records-studio.css
+833d8ede4dc65d96216664ad7d87a77a1cbd29d5|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|fix(s3): specify fallback agent output schemas
+
+backend/tests/UnitTests/AgentOutputPromptTests.cs
+0d389bfc27e311d15b06844f0d573ae89e48b2ec|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|fix(s3): recover triage provider fallback and add guarded sequence checks
+
+backend/tests/UnitTests/CloudflareClientTests.cs
+backend/tests/UnitTests/GeminiKeyPoolTests.cs
+backend/tests/UnitTests/LlmFallbackCancellationTests.cs
+backend/tests/UnitTests/LlmFallbackClientTests.cs
+backend/tests/UnitTests/ProviderRedirectTests.cs
+b07e9632eae1f7d59558f60614222bddbc5b77d4|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|docs: complete final report evidence, UML diagrams, ADRs and testing report
+
+scripts/e2e/local_load_profile.py
+7a90a771ccc33b73e2cc86d02214e18303615bea|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|fix(s1): reject NUL characters in query strings and send nosniff header
+
+backend/tests/IntegrationTests/RequestHardeningTests.cs
+ced3fd03995cf69234c2b273b943abce925ee136|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|fix(s3): recover triage provider fallback and add guarded sequence checks
+
+backend/tests/UnitTests/CloudflareClientTests.cs
+backend/tests/UnitTests/GeminiKeyPoolTests.cs
+backend/tests/UnitTests/LlmFallbackCancellationTests.cs
+backend/tests/UnitTests/LlmFallbackClientTests.cs
+backend/tests/UnitTests/ProviderRedirectTests.cs
+a5c5a9e7965719085d3ec5c441f056aa6ab6c542|2026-10-05|Claude|noreply@anthropic.com|feat(s2): read PDF text layer, cap reports at 4 pages, parse column-aligned lab rows
+
+backend/tests/UnitTests/Component2_Records/LabExtractionParserTests.cs
+backend/tests/UnitTests/Component2_Records/PdfReportLimitTests.cs
+web/src/pages/records/RecordsPage.tsx
+web/src/pages/records/extractionRefusal.test.ts
+web/src/pages/records/extractionRefusal.ts
+fcd814fef326bd716becb23c31b0e4a552a5c0d8|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|fix(s1): match appointment fields to the UI theme
+
+web/src/styles/appointments.css
+81f8e83bd9eefcc323d3e4b8d67dc97948d23c47|2026-10-05|Claude|noreply@anthropic.com|fix(s1): show the error state when consents fail to load; route Manage family to /members
+
+web/src/pages/family/PrivacyPage.tsx
+08ec51a12e54aa6813879ca0ba945f46e9cee72f|2026-10-05|Claude|noreply@anthropic.com|test(s1): scroll the nested privacy list before tapping the minor consent switch
+
+mobile/test/screens/privacy_screen_test.dart
+be7cc52e971bfba062cd13cda11f9062a7fd7556|2026-10-05|Claude|noreply@anthropic.com|fix(s1,s4): uniform card borders on Flutter appointments, scroll to adult card in privacy test
+
+mobile/test/screens/privacy_screen_test.dart
+f51530aec07d051e8265b09d078c5f83e46f38aa|2026-10-05|Claude|noreply@anthropic.com|feat(s1): redesign privacy and access on web, add Flutter privacy screen
+
+mobile/test/screens/privacy_screen_test.dart
+mobile/test/widgets/app_shell_test.dart
+web/src/index.css
+web/src/pages/family/PrivacyPage.test.tsx
+web/src/pages/family/PrivacyPage.tsx
+web/src/pages/family/privacyParts.tsx
+web/src/pages/family/privacyWording.ts
+web/src/styles/privacy-access.css
+5ed44ee26b5cfadb39ad2218e436333ae630841f|2026-10-05|Claude|noreply@anthropic.com|feat(s4): redesign appointments on web and Flutter
+
+mobile/test/screens/appointments_screen_test.dart
+web/src/pages/family/AppointmentsPage.test.tsx
+web/src/pages/family/AppointmentsPage.tsx
+web/src/styles/appointments.css
+b9d11da8e6c86563021392564db7f89031e86e2e|2026-10-05|Claude|noreply@anthropic.com|feat(s1): redesign profile settings on web and Flutter
+
+mobile/test/screens/profile_screen_test.dart
+web/src/pages/profile/ProfilePage.test.tsx
+web/src/pages/profile/ProfilePage.tsx
+web/src/pages/profile/passwordStrength.ts
+web/src/styles/profile-settings.css
+3337d3e497ca89ac4f0bf35a0bf7240ab5b7f0ea|2026-10-05|Claude|noreply@anthropic.com|refactor(tests): group backend tests by component; add per-member report folders
+
+backend/tests/IntegrationTests/Component1_Family/AuthAndPatientFlowTests.cs
+backend/tests/IntegrationTests/Component1_Family/DoctorRegistrationTests.cs
+backend/tests/IntegrationTests/Component1_Family/MigrationTests.cs
+backend/tests/IntegrationTests/Component1_Family/RegistrationFlowTests.cs
+backend/tests/IntegrationTests/Component2_Records/AdultReportSharingTests.cs
+backend/tests/IntegrationTests/Shared/GoldenCaseFlowTests.cs
+backend/tests/UnitTests/Component1_Family/ConsentStateMachineTests.cs
+backend/tests/UnitTests/Component1_Family/FamilyAccessTests.cs
+backend/tests/UnitTests/Component1_Family/FamilyHeadTransferServiceTests.cs
+backend/tests/UnitTests/Component1_Family/FamilyLifecycleServiceTests.cs
+backend/tests/UnitTests/Component1_Family/FamilyServicePrivacyTests.cs
+backend/tests/UnitTests/Component1_Family/IncomingInvitationServiceTests.cs
+backend/tests/UnitTests/Component1_Family/ProfileServiceTests.cs
+backend/tests/UnitTests/Component1_Family/RegistrationValidatorTests.cs
+backend/tests/UnitTests/Component1_Family/ToolDispatcherTests.cs
+backend/tests/UnitTests/Component1_Family/ToolRegistryTests.cs
+backend/tests/UnitTests/Component2_Records/GoogleDriveReportStorageTests.cs
+backend/tests/UnitTests/Component2_Records/LabExtractionParserTests.cs
+backend/tests/UnitTests/Component2_Records/LabExtractionSafetyTests.cs
+backend/tests/UnitTests/Component2_Records/LabReportDurableStorageTests.cs
+backend/tests/UnitTests/Component2_Records/LabReportTrashTests.cs
+backend/tests/UnitTests/Component2_Records/RecordServiceLabReviewTests.cs
+backend/tests/UnitTests/Component2_Records/VitalReferenceRangesTests.cs
+backend/tests/UnitTests/Component3_Triage/CaseSlaProcessorTests.cs
+backend/tests/UnitTests/Component3_Triage/ChatCompletionsLlmClientTests.cs
+backend/tests/UnitTests/Component3_Triage/NotificationServiceTests.cs
+backend/tests/UnitTests/Component3_Triage/TriageOrchestratorEmergencyTests.cs
+backend/tests/UnitTests/Component3_Triage/TriageOrchestratorSchemaTests.cs
+backend/tests/UnitTests/Component3_Triage/TriageReviewReasonsTests.cs
+backend/tests/UnitTests/Component3_Triage/TriageWorkerRecoveryTests.cs
+backend/tests/UnitTests/Component4_Clinical/AdultPrivacyAuthorizationTests.cs
+backend/tests/UnitTests/Component4_Clinical/AppointmentServiceTests.cs
+backend/tests/UnitTests/Component4_Clinical/CaseGrantPolicyTests.cs
+backend/tests/UnitTests/Component4_Clinical/ClinicalCasePoolPrivacyTests.cs
+backend/tests/UnitTests/Component4_Clinical/ClinicalEmergencyReferralTests.cs
+backend/tests/UnitTests/Component4_Clinical/ClinicalRuleTableTests.cs
+backend/tests/UnitTests/Component4_Clinical/DoctorWorkspaceServiceTests.cs
+backend/tests/UnitTests/Component4_Clinical/EmergencyFollowUpTests.cs
+backend/tests/UnitTests/Component4_Clinical/FamilialRiskAgentTests.cs
+backend/tests/UnitTests/Component4_Clinical/FamilialRiskPolicyTests.cs
+backend/tests/UnitTests/Component4_Clinical/FamilyDoctorServiceTests.cs
+backend/tests/UnitTests/Component4_Clinical/JoinRequestServiceTests.cs
+backend/tests/UnitTests/Component4_Clinical/LabRangeClassifierTests.cs
+backend/tests/UnitTests/Component4_Clinical/PortalDashboardAndNotificationTests.cs
+backend/tests/UnitTests/Component4_Clinical/PortalDashboardMockupFieldsTests.cs
+backend/tests/UnitTests/Component4_Clinical/SafetyValidationServiceTests.cs
+backend/tests/UnitTests/Shared/Phase1bSeedTests.cs
+backend/tests/UnitTests/Shared/VivaDemoSeederTests.cs
+4eddbb868edbad55c2e3bb4b5e07884757a95622|2026-10-05|Jani6969|janithchamika20030411@gmail.com|update folder structure
+
+web/src/views/Component1_Family/index.ts
+web/src/views/Component2_Records/index.ts
+web/src/views/Component3_Triage/index.ts
+web/src/views/Component4_Clinical/index.ts
+web/src/views/index.ts
+ae53a4043e7b4a9f2ca25c185a79e65b33a30e48|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|fix(s2): remove hard-coded normal ranges from patient vital charts
+
+web/src/pages/records/Sparkline.tsx
+web/src/pages/records/VitalsPanel.test.tsx
+web/src/pages/records/VitalsPanel.tsx
+web/src/pages/records/vitalMeta.ts
+fcc512a81d383d1600622196021f3290f890968c|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|fix(s2): restore web lint, build and vitals tests after records redesign
+
+web/src/pages/records/RecordsPage.tsx
+web/src/pages/records/VitalsPanel.test.tsx
+c01193f1cd0608949caca2750782619650e67494|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|style(s2): Force Blood Pressure form to wrap its wide date input to a new row
+
+web/src/styles/health-records.css
+613bf7ee474bbf292cdbdb5063527cd17fb0593f|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|style(s1): Remove Family history screening link from Health Records header
+
+web/src/pages/records/RecordsPage.tsx
+95ad4bfdc94e72c5a9faedb73df09b4890a7b405|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|style(s2): Fix Blood Pressure date input overflowing its container
+
+web/src/styles/health-records.css
+100e0ce467469596397a3467553739eacc7a4380|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|style(s2): Fix Quick Add grid layout clipping and make tiles fill container width
+
+web/src/styles/health-records.css
+0e56399ad2cf38c653cc7f1433c5ce8d416cf954|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|style(s2): Fix label overlap and add avg value in React Sparkline
+
+web/src/pages/records/Sparkline.tsx
+c354e662edb177225fb9a4b5b0ae56429564f7e2|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|fix(s2): Pass normalMin and normalMax to Sparkline in VitalsPanel
+
+web/src/pages/records/VitalsPanel.tsx
+f856cf70b69b38dadde99cceebd5bef10345a156|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): refine report viewer and value review workspace
+
+mobile/test/providers/active_member_provider_test.dart
+mobile/test/screens/report_library_workflow_test.dart
+mobile/test/services/api_services_test.dart
+mobile/test/widgets/report_library_card_test.dart
+mobile/test/widgets/report_review_workspace_test.dart
+web/src/components/records/ImageReportCanvas.tsx
+web/src/components/records/OriginalReportPreview.tsx
+web/src/components/records/PdfReportCanvas.tsx
+web/src/components/records/ReportActionMenu.tsx
+web/src/components/records/ReportLibrary.tsx
+web/src/components/records/ReportLibraryCard.tsx
+web/src/components/records/ReportPreviewDialog.tsx
+web/src/components/records/ReportProgress.tsx
+web/src/components/records/ReportReviewDialog.test.tsx
+web/src/components/records/ReportReviewDialog.tsx
+web/src/index.css
+web/src/pages/records/RecordsPage.test.tsx
+web/src/pages/records/RecordsPage.tsx
+web/src/pages/records/ReportDetail.tsx
+web/src/styles/records-studio.css
+c9f9c1566e1e98682d3f02f657318656d7e6544e|2026-10-05|Jani6969|janithchamika20030411@gmail.com|fix ui bug in FH
+
+web/src/index.css
+web/src/styles/portal-dashboard.css
+web/src/styles/triage-redesign.css
+fb451bb5189bbc448dffe2b2e8c9f9a485377cb6|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|feat(s2): Update chart rendering to 14 slots, color normal range, show modal for vital entry
+
+web/src/pages/records/RecordDialog.tsx
+web/src/pages/records/Sparkline.tsx
+web/src/pages/records/VitalsPanel.tsx
+web/src/pages/records/vitalMeta.ts
+web/src/styles/health-records.css
+678a77b4dbb24e5abd656bc46cd61f4b39f85a4b|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|feat(s1): premium My Family members workspace on web and mobile
+
+mobile/test/screens/members_screen_test.dart
+web/src/pages/family/FamilyMembersTab.tsx
+web/src/pages/family/FamilyPage.test.tsx
+web/src/pages/family/FamilyPage.tsx
+web/src/styles/family-tabs.css
+cf767cb7185a838c6d81a3b44ea2a3db9c6b0b38|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): let a doctor follow up on an acknowledged emergency referral
+
+backend/tests/UnitTests/EmergencyFollowUpTests.cs
+mobile/test/screens/doctor_triage_cases_screen_test.dart
+web/src/pages/doctor/CasePreview.tsx
+web/src/pages/doctor/CasesPage.test.tsx
+web/src/pages/doctor/CasesPage.tsx
+web/src/pages/doctor/EmergencyFollowUp.tsx
+web/src/pages/doctor/triageQueue.ts
+web/src/services/apiClient.ts
+web/src/styles/triage-queue.css
+28cd79b92daa29fc2279f273d360f71ea376eb07|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): show the complaint in the case pool and notify on emergency acknowledgement
+
+backend/tests/UnitTests/ClinicalCasePoolPrivacyTests.cs
+backend/tests/UnitTests/ClinicalEmergencyReferralTests.cs
+mobile/test/screens/doctor_triage_cases_screen_test.dart
+web/src/pages/doctor/CasePreview.tsx
+web/src/pages/doctor/CasesPage.test.tsx
+web/src/pages/doctor/CasesPage.tsx
+web/src/pages/doctor/triageQueue.ts
+web/src/services/apiClient.ts
+b1dd9a56faae6d6148d4e0adad09e12a576d61b1|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|feat(s2): compact report tiles in grid view
+
+web/src/components/records/ReportLibrary.tsx
+web/src/components/records/ReportLibraryCard.test.tsx
+web/src/components/records/ReportLibraryCard.tsx
+web/src/components/records/ReportStatusBadge.tsx
+web/src/styles/health-records.css
+6788cf9a08fa984557f9c07e7395cf2ac1a6f251|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|feat(s2): add Recently deleted for uploaded reports
+
+backend/tests/IntegrationTests/AdultReportSharingTests.cs
+backend/tests/UnitTests/DoctorWorkspaceServiceTests.cs
+backend/tests/UnitTests/GoogleDriveReportStorageTests.cs
+backend/tests/UnitTests/LabReportTrashTests.cs
+mobile/test/screens/report_trash_test.dart
+web/src/components/records/DeletedReports.test.tsx
+web/src/components/records/DeletedReports.tsx
+web/src/components/records/ReportLibrary.tsx
+web/src/components/records/ReportLibraryCard.tsx
+web/src/pages/records/RecordsPage.tsx
+web/src/services/apiClient.ts
+web/src/styles/health-records.css
+0ee34003261dbd8f6ac7ba1fdbc862866871d24e|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): redesign My Doctor with pending-request and cancel flow
+
+backend/tests/UnitTests/FamilyDoctorServiceTests.cs
+mobile/test/screens/my_doctor_screen_test.dart
+web/src/pages/family/MyDoctorPage.test.tsx
+web/src/pages/family/MyDoctorPage.tsx
+web/src/pages/family/myDoctorParts.tsx
+web/src/pages/family/threePortalUtils.ts
+web/src/services/apiClient.ts
+web/src/styles/my-doctor.css
+c108b58df493fbb4562a030f6292d2c20acded51|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|feat(s2): bring Health Records redesign to the Flutter app
+
+mobile/test/models/vital_test.dart
+mobile/test/providers/active_member_provider_test.dart
+mobile/test/screens/vitals_tab_test.dart
+00de7edbb22798af33ac15ef076347763591e53f|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|feat(s3): redesign symptoms & triage across web and Flutter
+
+mobile/test/screens/care_workflows_test.dart
+mobile/test/screens/cases_screen_test.dart
+web/src/pages/triage/FamilyCaseProgress.tsx
+web/src/pages/triage/TriageJourney.test.tsx
+web/src/pages/triage/TriagePage.test.tsx
+web/src/pages/triage/TriagePage.tsx
+web/src/styles/triage-redesign.css
+e6e843804a04650cf03dea8bb7dadc434bdf9395|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|fix(s2): keep Health Records layout inside the viewport on tablets and phones
+
+web/src/pages/records/RecordsPage.tsx
+web/src/styles/health-records.css
+4d0ce20494ee8fdb1a3c1b9ea76a2e35bd646ed4|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|feat(s2): redesign Health Records page with Labs, Records and Vitals views
+
+web/src/components/records/ReportLibrary.test.tsx
+web/src/components/records/ReportLibrary.tsx
+web/src/index.css
+web/src/pages/records/ManualRecordsPanel.tsx
+web/src/pages/records/RecordDialog.tsx
+web/src/pages/records/RecordForm.tsx
+web/src/pages/records/RecordsPage.test.tsx
+web/src/pages/records/RecordsPage.tsx
+web/src/pages/records/ReportDetail.tsx
+web/src/pages/records/Sparkline.tsx
+web/src/pages/records/VitalsPanel.test.tsx
+web/src/pages/records/VitalsPanel.tsx
+web/src/pages/records/recordIcons.tsx
+web/src/pages/records/recordSummaryMeta.ts
+web/src/pages/records/vitalMeta.test.ts
+web/src/pages/records/vitalMeta.ts
+web/src/styles/health-records.css
+eb08983817b03ab4b06ee2846d5d0b195e414c73|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|fix(web): stack report card fact labels above values
+
+web/src/styles/care-workspace.css
+85d067cc57a40f52ccdd34ee743b2eba9f111f71|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|fix(web): remove stray duplicate files committed at web/src root
+
+web/src/AppLayout.tsx
+web/src/RecordSummaryText.tsx
+web/src/RecordsPage.tsx
+web/src/ReportLibraryCard.tsx
+web/src/care-workspace.css
+web/src/components.css
+5a949aa4b99a7aa86efb25ac834121919ab25e3c|2026-10-05|ImSahanS|sahansbandara.mail@gmail.com|feat(s2,s4): refine family records, symptoms and doctor experience
+
+mobile/test/providers/active_member_provider_test.dart
+mobile/test/screens/care_workflows_test.dart
+mobile/test/screens/case_status_screen_test.dart
+mobile/test/screens/family_doctor_availability_test.dart
+mobile/test/screens/my_doctor_screen_test.dart
+mobile/test/screens/records_screen_test.dart
+mobile/test/screens/report_library_workflow_test.dart
+mobile/test/services/api_services_test.dart
+mobile/test/widgets/report_library_card_test.dart
+web/src/components/records/OriginalReportPreview.test.tsx
+web/src/components/records/OriginalReportPreview.tsx
+web/src/components/records/PdfReportCanvas.test.tsx
+web/src/components/records/PdfReportCanvas.tsx
+web/src/components/records/ReportLibrary.test.tsx
+web/src/components/records/ReportLibrary.tsx
+web/src/components/records/ReportLibraryCard.tsx
+web/src/components/records/ReportPreviewDialog.tsx
+web/src/components/records/ReportThumbnail.test.tsx
+web/src/components/records/ReportThumbnail.tsx
+web/src/pages/family/AppointmentsPage.test.tsx
+web/src/pages/family/AppointmentsPage.tsx
+web/src/pages/family/MyDoctorPage.test.tsx
+web/src/pages/family/MyDoctorPage.tsx
+web/src/pages/records/RecordsPage.test.tsx
+web/src/pages/records/RecordsPage.tsx
+web/src/pages/triage/TriageJourney.test.tsx
+web/src/pages/triage/TriagePage.test.tsx
+web/src/pages/triage/TriagePage.tsx
+web/src/styles/care-workspace.css
+4e635213fc8059a1f38e224a77b27310ea09ba34|2026-10-04|Jani6969|janithchamika20030411@gmail.com|fix layout of FH
+
+web/src/AppLayout.tsx
+web/src/RecordSummaryText.tsx
+web/src/RecordsPage.tsx
+web/src/ReportLibraryCard.tsx
+web/src/care-workspace.css
+web/src/components.css
+web/src/pages/records/RecordSummaryText.tsx
+web/src/pages/records/RecordsPage.tsx
+web/src/styles/care-workspace.css
+d3e891c8de668096a722049639e86ee4ffe2862a|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): show what a doctor decision did and link to where the case went
+
+web/src/pages/doctor/ApprovalsPage.test.tsx
+web/src/pages/doctor/ApprovalsPage.tsx
+web/src/pages/doctor/CasesPage.tsx
+web/src/pages/doctor/approvalReview.test.ts
+web/src/pages/doctor/approvalReview.ts
+web/src/styles/approval-desk.css
+f12adb1cff76818f70a2eebc6d8d3cb767ed2da9|2026-10-04|Jani6969|janithchamika20030411@gmail.com|fix record ui
+
+web/src/components/records/ReportLibraryCard.tsx
+web/src/pages/records/RecordsPage.tsx
+web/src/styles/care-workspace.css
+d3d8eb416ab9e21d5a8971682c6c7b47787085ef|2026-10-04|Jani6969|janithchamika20030411@gmail.com|update record page
+
+web/src/pages/records/RecordsPage.tsx
+837b2825b075a58ebcac5f2298c5f637477fcc04|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): make claim and emergency-acknowledge outcomes visible
+
+web/src/pages/doctor/CasesPage.test.tsx
+web/src/pages/doctor/CasesPage.tsx
+web/src/styles/triage-queue.css
+1922520310f610d1861e677f31d185fc93f3862a|2026-10-04|Jani6969|janithchamika20030411@gmail.com|update ui resolution
+
+web/src/components/layout/AppLayout.tsx
+web/src/pages/records/RecordsPage.tsx
+web/src/styles/care-workspace.css
+web/src/styles/components.css
+f0023168709581504336e140452968e6eb809565|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|test(s4): cover the name-first case title and anonymous pool fallback
+
+mobile/test/models/doctor_queue_case_reference_test.dart
+3ae5fc985cb7e6541c772d102c5b2348996ea4fc|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): stacked AI sub-sections with distinct headings; name-first case cards
+
+web/src/pages/doctor/AgentOutputCard.tsx
+web/src/pages/doctor/CasePreview.tsx
+web/src/pages/doctor/CasesPage.tsx
+web/src/styles/approval-desk.css
+c62d401f83a00f9df264e7dde4c0a2d4f8008df8|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): boxed AI analysis sections, vital icons and range colours, patient details
+
+web/src/components/records/OriginalReportPreview.tsx
+web/src/pages/doctor/AgentOutputCard.tsx
+web/src/pages/doctor/ApprovalEvidenceTabs.tsx
+web/src/pages/doctor/ApprovalPatientSnapshot.tsx
+web/src/pages/doctor/ApprovalSupportingEvidence.test.tsx
+web/src/pages/doctor/ApprovalVitalsPanel.tsx
+web/src/pages/doctor/approvalVitals.ts
+web/src/styles/approval-desk.css
+268860acc741f7c5055f0daea70c7301131c2dfe|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): cited vital reference ranges, history and a patient-first review overview
+
+backend/tests/UnitTests/VitalReferenceRangesTests.cs
+mobile/test/screens/doctor_families_flow_test.dart
+web/src/pages/doctor/ApprovalEvidenceTabs.tsx
+web/src/pages/doctor/ApprovalPatientSnapshot.tsx
+web/src/pages/doctor/ApprovalReportsPanel.tsx
+web/src/pages/doctor/ApprovalSupportingEvidence.test.tsx
+web/src/pages/doctor/ApprovalSupportingEvidence.tsx
+web/src/pages/doctor/ApprovalVitalsPanel.tsx
+web/src/pages/doctor/ApprovalsPage.tsx
+web/src/pages/doctor/approvalVitals.ts
+web/src/pages/doctor/memberClinicalTabs.tsx
+web/src/services/apiClient.ts
+web/src/styles/approval-desk.css
+e8774540acf54953c2bab285f255da1f4db97949|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|test(s4): cover the doctor menu after a fresh sign-in through the real router
+
+mobile/test/router/doctor_shell_after_login_test.dart
+cd7375791689522052404306e0001fb13621c357|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): selectors for the doctor practice profile on web and Flutter
+
+mobile/test/screens/doctor_profile_screen_test.dart
+web/src/pages/doctor/DoctorProfilePage.test.tsx
+web/src/pages/doctor/DoctorProfilePage.tsx
+web/src/pages/doctor/DoctorStatusPage.tsx
+web/src/pages/doctor/PracticeProfileForm.test.tsx
+web/src/pages/doctor/PracticeProfileForm.tsx
+web/src/pages/doctor/practiceOptions.ts
+web/src/pages/doctor/practiceSelectors.tsx
+web/src/styles/doctor-profile.css
+e7a0d3215a806889eca06ca7a93fe3d03bfb822f|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|fix(s4): give doctors the clinician menu in the Flutter app and keep the role across restarts
+
+mobile/test/providers/auth_provider_test.dart
+mobile/test/widgets/app_shell_test.dart
+55dce1f37b996017772e3986e76b77d33aa7a045|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): case numbers, granted patient identity and a single AI analysis tab
+
+backend/tests/UnitTests/TriageReviewReasonsTests.cs
+mobile/test/models/doctor_queue_case_reference_test.dart
+web/src/pages/doctor/AgentOutputCard.test.tsx
+web/src/pages/doctor/AgentOutputCard.tsx
+web/src/pages/doctor/ApprovalEvidenceTabs.tsx
+web/src/pages/doctor/ApprovalsPage.tsx
+web/src/pages/doctor/CasePreview.tsx
+web/src/pages/doctor/CasesPage.tsx
+web/src/pages/doctor/approvalReview.ts
+web/src/pages/doctor/triageQueue.ts
+web/src/services/apiClient.ts
+web/src/styles/approval-desk.css
+b9ca9163dd5e4a0e5298eb55c44e44eeb7d0c060|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|fix(s4): use full report preview width on phones
+
+web/src/styles/components.css
+ba9bf8f6e4ea12dccd0c0f1ca93810742e517844|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|fix(s1): keep the web session signed in across page reloads
+
+web/src/main.tsx
+web/src/routes/RouteGuard.test.tsx
+web/src/routes/RouteGuard.tsx
+web/src/services/apiClient.session.test.ts
+web/src/services/apiClient.ts
+web/src/store/slices/authSlice.ts
+9a3a692bfa52d3720d889ad515dd4a440b5666db|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|fix(s1): disclose hosted AI processing and keep public pages reachable during session restore
+
+mobile/test/router/route_guard_test.dart
+web/src/pages/public/PublicInformationPage.tsx
+21809ad429c7780191a3dada54902704467d250f|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|fix(s4): preserve public page accessible names
+
+web/src/pages/public/PublicInformationPage.tsx
+737e6165894ac42083d869f79de5795fdc4abe3f|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|fix(ui): restore accessible name on public information main landmark
+
+web/src/pages/public/PublicInformationPage.tsx
+7ff87c922b1fb0e6f6b0297c50aee0ffc124584e|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): let doctors view original reports securely
+
+backend/tests/IntegrationTests/GoldenCaseFlowTests.cs
+backend/tests/UnitTests/DoctorWorkspaceServiceTests.cs
+mobile/test/screens/doctor_families_flow_test.dart
+mobile/test/widgets/report_library_card_test.dart
+web/src/components/records/OriginalReportDialog.tsx
+web/src/components/records/OriginalReportPreview.test.tsx
+web/src/components/records/OriginalReportPreview.tsx
+web/src/pages/doctor/ApprovalEvidenceTabs.tsx
+web/src/pages/doctor/ApprovalSupportingEvidence.test.tsx
+web/src/pages/doctor/ApprovalSupportingEvidence.tsx
+web/src/pages/doctor/DoctorMemberPage.tsx
+web/src/pages/doctor/memberClinicalTabs.test.tsx
+web/src/pages/doctor/memberClinicalTabs.tsx
+web/src/services/apiClient.ts
+web/src/styles/components.css
+8f66d05e249ee7bbb58dd5f43ad8d732f2827a21|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|style(ui): fix auth legal links overlap, remove underline, add hover animation
+
+web/src/styles/commercial-auth.css
+db8ccb9040102681a6526ecc23b2e349ce1ced88|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|style(ui): anchor legal links to bottom of auth pane and fix mobile link styles
+
+web/src/styles/commercial-auth.css
+6b6f790709601a3b893d416bb24ad740355e1973|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|fix(ui): remove invalid backslash escapes in public info page JSX
+
+web/src/pages/public/PublicInformationPage.tsx
+be7f559b143366292036bfbcd8c62dc583b419c8|2026-10-04|ImSahanS|sahansbandara.mail@gmail.com|feat(ui): redesign public info pages to match login glassmorphism in web and app
+
+web/src/pages/public/PublicInformationPage.tsx
+web/src/pages/public/public-information.css
+web/src/styles/public-information.css
+d71bc69be87dc7a1524464e6f62c13cd5899b490|2026-10-03|ImSahanS|sahansbandara.mail@gmail.com|fix(s4): preserve factual trends and unknown family history
+
+backend/tests/UnitTests/FamilialRiskAgentTests.cs
+backend/tests/UnitTests/SafetyValidationServiceTests.cs
+a8472c509ba632785ed848e568299594351bed44|2026-10-03|ImSahanS|sahansbandara.mail@gmail.com|fix(s4): distinguish lab concentrations from medication doses
+
+backend/tests/UnitTests/SafetyValidationServiceTests.cs
+8f33895fc4d335853b8c3713ee5d09a8dba54ead|2026-10-03|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): redesign doctor Profile & Availability on web and add the Flutter screen
+
+mobile/test/screens/doctor_profile_screen_test.dart
+web/src/pages/doctor/DoctorProfilePage.test.tsx
+web/src/pages/doctor/DoctorProfilePage.tsx
+web/src/pages/doctor/doctorProfileParts.tsx
+web/src/pages/doctor/doctorSchedule.test.ts
+web/src/pages/doctor/doctorSchedule.ts
+web/src/styles/doctor-profile.css
+fb4674b4faee4aa05962a0436e3f87004334512d|2026-10-03|ImSahanS|sahansbandara.mail@gmail.com|fix(s4): swap vitals and family history panels and compact vitals layout
+
+web/src/pages/doctor/ApprovalEvidenceTabs.tsx
+web/src/styles/approval-desk.css
+909a1f65b13eb88b29c35e2f37985f0ada30b29d|2026-10-03|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): redesign doctor My Families on web and Flutter, recheck grant on note amendment
+
+backend/tests/UnitTests/DoctorWorkspaceServiceTests.cs
+mobile/test/screens/doctor_families_flow_test.dart
+web/src/pages/doctor/DoctorFamiliesPage.test.tsx
+web/src/pages/doctor/DoctorFamiliesPage.tsx
+web/src/pages/doctor/DoctorFamilyDetailPage.test.tsx
+web/src/pages/doctor/DoctorFamilyDetailPage.tsx
+web/src/pages/doctor/DoctorMemberPage.test.tsx
+web/src/pages/doctor/DoctorMemberPage.tsx
+web/src/pages/doctor/familyParts.tsx
+web/src/pages/doctor/familyWorkspace.ts
+web/src/pages/doctor/memberCareTabs.tsx
+web/src/pages/doctor/memberClinicalTabs.tsx
+web/src/styles/doctor-families.css
+48113107929c8ff23ce5d3455166d5b79ee4cfc8|2026-10-03|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): approval desk icons, empty-vitals tiles and decision panel polish on web and Flutter
+
+web/src/pages/doctor/ApprovalDecisionPanel.tsx
+web/src/pages/doctor/ApprovalEvidenceTabs.tsx
+web/src/pages/doctor/ApprovalIcons.tsx
+web/src/pages/doctor/ApprovalSupportingEvidence.test.tsx
+web/src/pages/doctor/ApprovalSupportingEvidence.tsx
+web/src/pages/doctor/SafetyChecks.tsx
+web/src/styles/approval-desk.css
+web/src/styles/auth-shell.css
+73b5f1a6d504c1f3edd5b187e167300337be6df8|2026-10-03|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): redesign doctor Triage Cases as a work queue on web and Flutter
+
+mobile/test/screens/doctor_triage_cases_screen_test.dart
+web/src/pages/doctor/CasePreview.tsx
+web/src/pages/doctor/CasesPage.test.tsx
+web/src/pages/doctor/CasesPage.tsx
+web/src/pages/doctor/triageQueue.ts
+web/src/routes/AppRouter.test.tsx
+web/src/services/apiClient.ts
+web/src/styles/triage-queue.css
+33137d98007bc29636fe2534529b373869363b74|2026-10-03|ImSahanS|sahansbandara.mail@gmail.com|feat(s1): public about, privacy policy and terms pages on web and Flutter
+
+mobile/test/router/route_guard_test.dart
+mobile/test/screens/public_information_screen_test.dart
+web/src/components/auth/RegistrationReview.tsx
+web/src/pages/auth/AuthPage.test.tsx
+web/src/pages/auth/AuthPage.tsx
+web/src/pages/public/PublicInformationPage.test.tsx
+web/src/pages/public/PublicInformationPage.tsx
+web/src/pages/public/public-information.css
+web/src/routes/AppRouter.test.tsx
+web/src/routes/AppRouter.tsx
+web/src/styles/commercial-auth.css
+4ea2678985bac866a9bfbe663cb50dd6e8322be6|2026-10-03|ImSahanS|sahansbandara.mail@gmail.com|perf(s4): fewer database round trips on the doctor dashboard, wake the API at app start
+
+web/src/main.tsx
+web/src/services/apiClient.ts
+33f92d00d0cc7edbe7f993778d7093e2d9809f2f|2026-10-03|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): case-specific review reasons and supporting evidence on the approval desk
+
+backend/tests/UnitTests/TriageReviewReasonsTests.cs
+web/src/pages/doctor/ApprovalEvidenceTabs.tsx
+web/src/pages/doctor/ApprovalSupportingEvidence.test.tsx
+web/src/pages/doctor/ApprovalSupportingEvidence.tsx
+web/src/pages/doctor/ApprovalsPage.test.tsx
+web/src/pages/doctor/approvalReview.test.ts
+web/src/pages/doctor/approvalReview.ts
+web/src/pages/doctor/reviewReasons.test.ts
+web/src/services/apiClient.ts
+web/src/styles/approval-desk.css
+1de698e1c3e482077cd6bc2d7da34e88273e7591|2026-10-03|Jani6969|janithchamika20030411@gmail.com|add refresh feature
+
+mobile/test/screens/home_screen_test.dart
+4c61e2f98db9ef6423b29797882594bc787ebb63|2026-10-03|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): rebuild doctor calendar on all three surfaces and fix slow load
+
+backend/tests/UnitTests/AppointmentServiceTests.cs
+mobile/test/screens/doctor_calendar_logic_test.dart
+mobile/test/screens/doctor_calendar_screen_test.dart
+web/src/pages/doctor/DoctorCalendarPage.test.tsx
+web/src/pages/doctor/DoctorCalendarPage.tsx
+web/src/pages/doctor/calendar/AppointmentDrawer.tsx
+web/src/pages/doctor/calendar/CalendarViews.tsx
+web/src/pages/doctor/calendar/calendarUtils.test.ts
+web/src/pages/doctor/calendar/calendarUtils.ts
+web/src/services/apiClient.ts
+web/src/styles/doctor-calendar.css
+af05a868550eeea2f9918909941362fdd0215bf4|2026-10-03|Jani6969|janithchamika20030411@gmail.com|fix login bug
+
+mobile/test/screens/register_screen_test.dart
+web/src/pages/family/FamilyInvitationsTab.tsx
+b1900b484b5cc7609746095d3ed7539d7f5852d3|2026-10-03|ImSahanS|sahansbandara.mail@gmail.com|fix(s4): render AI findings as readable rows instead of raw JSON
+
+web/src/pages/doctor/approvalReview.test.ts
+web/src/pages/doctor/approvalReview.ts
+2293332dab359f8e58b5fda8fcfd56db0cc6ccaf|2026-10-03|ImSahanS|sahansbandara.mail@gmail.com|feat(S4): redesign doctor calendar cross-platform
+
+web/src/index.tsx
+web/src/pages/doctor/DoctorCalendarPage.tsx
+web/src/styles/doctor-calendar.css
+1eae97c1eb53d778ad609d5acbb24e856d9246f1|2026-10-03|ImSahanS|sahansbandara.mail@gmail.com|fix(s4): keep decision dialog open while saving, scope desk stylesheet
+
+web/src/index.css
+web/src/pages/doctor/ApprovalDecisionPanel.tsx
+web/src/pages/doctor/ApprovalsPage.test.tsx
+web/src/pages/doctor/ApprovalsPage.tsx
+43b5f5d17128bb6838c65c37e98e2037984459c0|2026-10-03|ImSahanS|sahansbandara.mail@gmail.com|wip: backup of local uncommitted approvals redesign (not for merge)
+
+web/src/pages/doctor/ApprovalsPage.tsx
+web/src/pages/doctor/ApprovalsPageRedesign.css
+7548a2d0ba91287fbcaf1989d42ed9a2d162aeea|2026-10-03|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): redesign doctor approval desk as case review center
+
+web/src/index.css
+web/src/pages/doctor/ApprovalDecisionPanel.tsx
+web/src/pages/doctor/ApprovalEvidenceTabs.tsx
+web/src/pages/doctor/ApprovalsPage.test.tsx
+web/src/pages/doctor/ApprovalsPage.tsx
+web/src/pages/doctor/approvalReview.ts
+web/src/styles/approval-desk.css
+d752686f7dc06ff24ed450fa5e1276a54eaaea65|2026-10-03|Jani6969|janithchamika20030411@gmail.com|add family details in to FH
+
+mobile/test/screens/members_screen_test.dart
+b91c338d176aa58056963e71aad897ef20ed510d|2026-10-03|ImSahanS|sahansbandara.mail@gmail.com|fix(s1): Preserve Flutter member and appointment API errors
+
+mobile/test/services/api_services_test.dart
+498c811f8869cbf5e5052913ade49c7c811fbeae|2026-10-03|ImSahanS|sahansbandara.mail@gmail.com|feat(s3): redesign patient request-progress tracker on web and mobile
+
+web/src/pages/triage/FamilyCaseProgress.tsx
+web/src/styles/care-workspace.css
+dc0b1a790e21086f739a5afc2d1dc05078a4223e|2026-10-03|Jani6969|janithchamika20030411@gmail.com|add calendar for flutter
+
+mobile/test/screens/appointments_screen_test.dart
+mobile/test/screens/book_appointment_screen_test.dart
+b1f88e31b364e6bf32691d8e47acd46a639d4f06|2026-10-03|Jani6969|janithchamika20030411@gmail.com|update FH flutter ui
+
+mobile/test/screens/members_screen_test.dart
+mobile/test/screens/my_doctor_screen_test.dart
+mobile/test/widgets/app_shell_test.dart
+373287b8312bf89540cd423ef82713f6b9a58242|2026-10-02|Jani6969|janithchamika20030411@gmail.com|add
+
+web/src/pages/family/AppointmentsPage.tsx
+web/src/styles/care-workspace.css
+6b94121f94e7cdf2c1f755a3a6803948ebbf2200|2026-10-02|Jani6969|janithchamika20030411@gmail.com|update FH
+
+mobile/test/widgets/app_shell_test.dart
+web/src/pages/family/AppointmentsPage.tsx
+web/src/styles/portal-dashboard.css
+72d12504b905f3a51a4102990e9db24134ce4a1d|2026-10-02|Jani6969|janithchamika20030411@gmail.com|update calendar
+
+web/src/pages/doctor/DoctorCalendarPage.test.tsx
+web/src/pages/doctor/DoctorCalendarPage.tsx
+web/src/pages/family/AppointmentsPage.tsx
+web/src/styles/portal-dashboard.css
+a5798bc035cbb8706ea2bc6b246dec75302a9f3b|2026-10-02|ImSahanS|sahansbandara.mail@gmail.com|fix(s2,s4): make appointment and health-record form additions honest
+
+mobile/test/models/record_summary_meta_test.dart
+web/src/pages/doctor/DoctorMemberPage.tsx
+web/src/pages/family/AppointmentsPage.test.tsx
+web/src/pages/family/AppointmentsPage.tsx
+web/src/pages/records/RecordSummaryText.tsx
+web/src/pages/records/RecordsPage.tsx
+web/src/pages/records/recordSummaryMeta.test.ts
+web/src/pages/records/recordSummaryMeta.ts
+web/src/styles/portal-dashboard.css
+872af791c0cadc958ad53cd9dbd057d065371a37|2026-10-02|Jani6969|janithchamika20030411@gmail.com|add new fiileds into appoiment FH
+
+web/src/pages/family/AppointmentsPage.test.tsx
+web/src/pages/family/AppointmentsPage.tsx
+9dd1af89ccd0675c79d14c836cb137294306f96d|2026-10-02|Jani6969|janithchamika20030411@gmail.com|add validation for the appoiment
+
+web/src/pages/family/AppointmentsPage.tsx
+0706f06990f1e7922de7bd9c4e22b98d6fffd0c8|2026-10-02|Jani6969|janithchamika20030411@gmail.com|fix the record layout
+
+web/src/pages/doctor/DoctorFamiliesPage.tsx
+web/src/pages/doctor/DoctorMemberPage.tsx
+web/src/pages/records/RecordsPage.tsx
+web/src/styles/portal-dashboard.css
+26c3ca888a7848d5d7ede3a1d6e3fb25238e5090|2026-10-02|Jani6969|janithchamika20030411@gmail.com|update HR doctor drop down
+
+web/src/pages/records/RecordsPage.test.tsx
+web/src/pages/records/RecordsPage.tsx
+3fcdb9c538245d951174d9f189e6c17b2b893006|2026-10-02|Jani6969|janithchamika20030411@gmail.com|add health records into family head
+
+web/src/pages/records/RecordsPage.tsx
+web/src/styles/care-workspace.css
+1e78843ec7df8e725ecf4b39ab5b10e2eda72099|2026-10-02|ImSahanS|sahansbandara.mail@gmail.com|feat(s2): accept PDF lab reports and recover tilted or range-table reports in OCR
+
+backend/tests/UnitTests/LabExtractionParserTests.cs
+backend/tests/UnitTests/LabReportDurableStorageTests.cs
+mobile/test/widgets/report_library_card_test.dart
+web/src/components/records/OriginalReportPreview.test.tsx
+web/src/components/records/OriginalReportPreview.tsx
+web/src/components/records/ReportLibraryCard.test.tsx
+web/src/components/records/ReportLibraryCard.tsx
+web/src/pages/records/RecordsPage.test.tsx
+web/src/pages/records/RecordsPage.tsx
+web/src/styles/components.css
+bade0219186db468d9a66e4a90a588a7b1438c57|2026-10-02|ImSahanS|sahansbandara.mail@gmail.com|fix(s1): preserve viva accounts and correct report previews and fixtures
+
+backend/tests/UnitTests/LabExtractionParserTests.cs
+backend/tests/UnitTests/VivaDemoSeederTests.cs
+web/src/components/records/ReportLibraryCard.test.tsx
+web/src/components/records/ReportLibraryCard.tsx
+web/src/pages/records/RecordsPage.test.tsx
+web/src/pages/records/RecordsPage.tsx
+af9da2d1cafefd18593d98cd3810a56e351dc5a7|2026-10-01|ImSahanS|sahansbandara.mail@gmail.com|feat(s2): store original lab-report images in Google Drive (ADR-014)
+
+backend/tests/UnitTests/GoogleDriveReportStorageTests.cs
+4856b1b9173bcc902cb0ba0803fc5027f111132a|2026-10-01|ImSahanS|sahansbandara.mail@gmail.com|fix(seed): give JPEG test-pack files a .jpg extension
+
+backend/tests/UnitTests/LabExtractionParserTests.cs
+c690bc9970fdf6fff4faed16d8bdbe783682fb14|2026-10-01|ImSahanS|sahansbandara.mail@gmail.com|feat(s2): show original report image on web and mobile, parse real OCR tables
+
+backend/tests/IntegrationTests/AdultReportSharingTests.cs
+backend/tests/UnitTests/LabExtractionParserTests.cs
+backend/tests/UnitTests/LabExtractionSafetyTests.cs
+mobile/test/providers/active_member_provider_test.dart
+mobile/test/widgets/report_library_card_test.dart
+web/src/components/records/OriginalReportPreview.test.tsx
+web/src/components/records/OriginalReportPreview.tsx
+web/src/pages/records/RecordsPage.tsx
+web/src/styles/components.css
+504b291aacda1814e294e0c24392209896b64217|2026-10-01|ImSahanS|sahansbandara.mail@gmail.com|feat(seed): add viva synthetic accounts and medical report test pack
+
+backend/tests/UnitTests/VivaDemoSeederTests.cs
+ef8e13cfce21ed60db249c12d46f36a0547d57f5|2026-10-01|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): Integrate premium care dashboard workflows
+
+web/src/components/records/RecordedRangeVisual.test.tsx
+web/src/components/records/RecordedRangeVisual.tsx
+web/src/components/records/ReportLibraryCard.tsx
+web/src/index.css
+web/src/pages/doctor/ApprovalsPage.test.tsx
+web/src/pages/doctor/ApprovalsPage.tsx
+web/src/pages/doctor/CasesPage.tsx
+web/src/pages/doctor/DoctorDashboardPanel.test.tsx
+web/src/pages/doctor/DoctorDashboardPanel.tsx
+web/src/pages/family/FamilyDashboardPanel.test.tsx
+web/src/pages/family/FamilyDashboardPanel.tsx
+web/src/pages/records/RecordsPage.test.tsx
+web/src/pages/records/RecordsPage.tsx
+web/src/pages/triage/FamilyCaseProgress.test.tsx
+web/src/pages/triage/FamilyCaseProgress.tsx
+web/src/pages/triage/TriagePage.test.tsx
+web/src/pages/triage/TriagePage.tsx
+web/src/styles/care-workspace.css
+7b1287f3646a92c3ba7c05ad2b6907aac37a16c7|2026-10-01|Jani6969|janithchamika20030411@gmail.com|edit password validation in registration
+
+backend/tests/UnitTests/RegistrationValidatorTests.cs
+web/src/pages/auth/AuthPage.tsx
+web/src/pages/auth/DoctorRegisterPage.test.tsx
+web/src/pages/auth/DoctorRegisterPage.tsx
+4ce6b2ed133d964e8b974ff6752fd82e4b1bb241|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|feat(seed): fill every dashboard widget with varied synthetic data
+
+web/src/pages/admin/AdminDashboardPanel.tsx
+web/src/pages/admin/ClinicAdminPortal.tsx
+a3bbf1cf5e231f517f9ac425f45d97f428e2dba1|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|fix(S1): stabilise auth panels on mobile viewports
+
+web/src/styles/commercial-auth.css
+a4d0f23c6c17824b8fb9cde2b34fa1f580785309|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|style(S1): redesign mobile login and register screens
+
+mobile/test/screens/login_screen_test.dart
+c306d394b89d914dd7ad85ea3c22a0f5a796304d|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|style(S1): refine web auth page layout and styling
+
+web/src/pages/auth/AuthPage.test.tsx
+web/src/pages/auth/AuthPage.tsx
+web/src/styles/commercial-auth.css
+91ce950111580e67db118c313eded5ab8bada64b|2026-09-30|Jani6969|janithchamika20030411@gmail.com|update DatabaseInitializer
+
+web/src/pages/records/RecordsPage.tsx
+6f9662e3db48267bd1c225db258361de9eea8942|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|fix(S1): keep user signed in after approving a family invitation
+
+web/src/pages/family/FamilyPage.test.tsx
+web/src/pages/family/IncomingInvitationsPanel.test.tsx
+web/src/pages/family/IncomingInvitationsPanel.tsx
+d0d57f76ecd638a95604e78980c9107d9828e5d1|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|style(S1): refine app layout topbar and notification bell freshness
+
+web/src/components/layout/AppLayout.tsx
+web/src/pages/notifications/NotificationsPage.tsx
+web/src/services/apiClient.ts
+web/src/styles/components.css
+eb06ef7eb4e84451fc103eaa9b262884eb184f84|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|fix(S4): synchronize notification bell count when read
+
+web/src/components/shared/NotificationBell.tsx
+web/src/pages/notifications/NotificationsPage.tsx
+60ce19fbf8461da31f2f04d8e7f8d3450b0c39a9|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|style(S1): move doctor verified badge to profile dropdown menu
+
+web/src/components/layout/AppLayout.tsx
+web/src/styles/components.css
+e1eda9ba16d0add188a3cffa2b2f28ed1154a2ad|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|feat(S4): improve notification read icons and add mark all read functionality
+
+web/src/pages/notifications/NotificationsPage.tsx
+web/src/styles/components.css
+731a0dde55be85d3d8d8a3ba6750ec0a65324baa|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|feat(S1): upgrade doctor verified badge to a premium rosette icon
+
+web/src/components/layout/AppLayout.tsx
+web/src/styles/components.css
+23ab39a3f678ca914d41e5633a80f0df7da8f9fc|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|fix(S1): use 127.0.0.1 for API and add dev:all script
+
+web/src/services/apiClient.ts
+57fea8b532a94c243ffc5a54ddf7ecb3b6dd623e|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|feat(S1,S4): redesign notifications page into a modern timeline layout
+
+web/src/pages/notifications/NotificationsPage.tsx
+web/src/styles/components.css
+49d9347d34058987718f7fabcee2913cca60a9e8|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|style(S1): match profile dropdown colors to app theme and fix left-alignment
+
+web/src/styles/components.css
+f459437d4c55c4d773443387d6a1b1cb305483ba|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|fix(S1): correct JSX button tag in AppLayout
+
+web/src/components/layout/AppLayout.tsx
+99a4bab9b9d846bdc84270063e9302e7bb10b6bf|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|style(S1): overhaul topbar controls to match premium design references
+
+web/src/components/layout/AppLayout.tsx
+web/src/styles/components.css
+37e1d90d7cee84a549c88f2932df2507f46ba634|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|feat(s1): add Profile settings to every portal
+
+backend/tests/UnitTests/ProfileServiceTests.cs
+web/src/components/layout/AppLayout.tsx
+web/src/pages/profile/ProfilePage.tsx
+web/src/routes/AppRouter.tsx
+web/src/services/apiClient.ts
+web/src/styles/components.css
+4e0bf0103bd51880be4540772f6a9f0542e496bc|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|style(S1): refine dashboard topbar and sidebar layout to match premium design system
+
+web/src/components/layout/AppLayout.tsx
+web/src/pages/auth/LoginPage.tsx
+web/src/styles/components.css
+4af74f8cbf8abc34df4741a8b5c4fa78b73583d1|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|feat(s1): let invitees approve or reject family invitations in-app
+
+backend/tests/UnitTests/IncomingInvitationServiceTests.cs
+mobile/test/main_test.dart
+web/src/pages/family/FamilyJoinRequestsTab.tsx
+web/src/pages/family/FamilyPage.test.tsx
+web/src/pages/family/FamilyPage.tsx
+web/src/pages/family/IncomingInvitationsPanel.tsx
+web/src/pages/family/JoinFamilyPage.tsx
+web/src/services/apiClient.ts
+373886dd2a17d033f61bed52b1167ef0e91a9ff8|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|feat(ui): global premium dashboard layout & glassmorphism login
+
+web/src/components/layout/AppLayout.tsx
+web/src/pages/auth/LoginPage.tsx
+web/src/styles/auth-shell.css
+web/src/styles/components.css
+web/src/styles/portal-dashboard.css
+c9e8510f8c9813ba51e1541d1faea4bdf8305fe4|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|feat(brand): use the illustrated logo for favicon, app icons and chrome
+
+web/src/assets/logo-mark.png
+web/src/assets/mark.svg
+web/src/components/layout/AppLayout.tsx
+02acad92db281cd0243f4394fc6dc779b5a55d55|2026-09-30|ImSahanS|sahansbandara.mail@gmail.com|feat(ui): retheme web app to sign-in blue palette with liquid-glass dashboard
+
+web/src/styles/components.css
+web/src/styles/portal-dashboard.css
+web/src/styles/tokens.css
+b8ca59b8be69b748587bd2608658b85c698201ea|2026-09-29|Jani6969|janithchamika20030411@gmail.com|update the family head
+
+web/src/pages/family/FamilyHeadStatusPage.tsx
+web/src/pages/family/FamilyPage.test.tsx
+357df2131aa80a38aade88a383219cc3aa4d7fce|2026-09-29|Claude|noreply@anthropic.com|fix(s4): review fixes for the doctor workspace
+
+backend/tests/UnitTests/DoctorWorkspaceServiceTests.cs
+web/src/pages/doctor/DoctorCalendarPage.tsx
+7e48c3eed78f46ef7edac3b80c834b02aaf35fd6|2026-09-29|Claude|noreply@anthropic.com|test(s1): migration tests account for the doctor-workspace migration
+
+backend/tests/IntegrationTests/MigrationTests.cs
+e635b4f89bb5f4625de2cae7a37841846457205b|2026-09-29|Claude|noreply@anthropic.com|feat(s4): doctor workspace web — practice profile, weekly hours, blocked time, reschedule, member workspace, slot picker
+
+web/src/pages/doctor/DoctorCalendarPage.tsx
+web/src/pages/doctor/DoctorFamiliesPage.tsx
+web/src/pages/doctor/DoctorFamilyDetailPage.tsx
+web/src/pages/doctor/DoctorMemberPage.test.tsx
+web/src/pages/doctor/DoctorMemberPage.tsx
+web/src/pages/doctor/DoctorProfilePage.test.tsx
+web/src/pages/doctor/DoctorProfilePage.tsx
+web/src/pages/family/AppointmentsPage.test.tsx
+web/src/pages/family/AppointmentsPage.tsx
+web/src/routes/AppRouter.tsx
+web/src/services/apiClient.ts
+eda186ecf992a6ee6e165af7a359c62eee67e706|2026-09-29|Claude|noreply@anthropic.com|feat(s4): doctor workspace backend — hours, blocked time, slots, visit grants, member workspace, notes
+
+backend/tests/UnitTests/DoctorWorkspaceServiceTests.cs
+web/src/pages/doctor/DoctorPortal.css
+web/src/pages/doctor/DoctorPortal.tsx
+2a9d0946053a4a19c9553969ec615aed422f5df3|2026-09-29|Claude|noreply@anthropic.com|fix(ui): keep a committed household move on session-refresh failure; load all records in Privacy
+
+web/src/pages/family/MyFamilyPage.tsx
+web/src/pages/family/PrivacyPage.test.tsx
+web/src/pages/family/PrivacyPage.tsx
+e5e2763b9c000af4799637d58f3c2181baa2b021|2026-09-29|Claude|noreply@anthropic.com|feat(s4): real-data admin dashboard; agent files for the four-portal UI shell
+
+web/src/pages/admin/AdminDashboardPanel.test.tsx
+web/src/pages/admin/AdminDashboardPanel.tsx
+web/src/pages/admin/ClinicAdminPortal.tsx
+web/src/pages/dashboard/DashboardPage.tsx
+11560c97a235cda7405a56374825bdf4f395ee92|2026-09-29|Claude|noreply@anthropic.com|feat(s4): doctor My Families and Profile pages on real data
+
+web/src/pages/doctor/DoctorFamiliesPage.test.tsx
+web/src/pages/doctor/DoctorFamiliesPage.tsx
+web/src/pages/doctor/DoctorProfilePage.tsx
+web/src/pages/family/PrivacyPage.test.tsx
+web/src/routes/AppRouter.tsx
+c7c8604075b8f2ebff7a8a23466f07c7f26beff0|2026-09-29|Claude|noreply@anthropic.com|feat(ui): shared page template, per-role navigation, Privacy and My Family pages
+
+web/src/components/layout/AppLayout.tsx
+web/src/pages/audit/AuditPage.tsx
+web/src/pages/dashboard/dashboardParts.tsx
+web/src/pages/doctor/ApprovalsPage.tsx
+web/src/pages/doctor/CasesPage.tsx
+web/src/pages/doctor/DoctorCalendarPage.tsx
+web/src/pages/doctor/DoctorDashboardPanel.tsx
+web/src/pages/family/AppointmentsPage.tsx
+web/src/pages/family/FamilyDashboardPanel.adult.test.tsx
+web/src/pages/family/FamilyDashboardPanel.test.tsx
+web/src/pages/family/FamilyDashboardPanel.tsx
+web/src/pages/family/FamilyPage.tsx
+web/src/pages/family/MyDoctorPage.tsx
+web/src/pages/family/MyFamilyPage.tsx
+web/src/pages/family/PrivacyPage.tsx
+web/src/pages/family/privacyWording.ts
+web/src/pages/records/RecordsPage.test.tsx
+web/src/pages/records/RecordsPage.tsx
+web/src/pages/triage/TriagePage.tsx
+web/src/routes/AppRouter.test.tsx
+web/src/routes/AppRouter.tsx
+web/src/styles/portal-dashboard.css
+0172d4fbdde6b1fe3711907c99d3bcb64dcab924|2026-09-29|Claude|noreply@anthropic.com|fix(s4): admin deactivates accounts instead of hard-deleting them
+
+web/src/pages/admin/ClinicAdminPortal.tsx
+web/src/pages/admin/DoctorVerificationPage.tsx
+8f57f7b62019ddc7c3b1203a8ba88bee825e4835|2026-09-29|Claude|noreply@anthropic.com|fix(s1): close empty households and reset family sharing on membership move
+
+backend/tests/UnitTests/FamilyLifecycleServiceTests.cs
+c231130a9cd85f62dd056008f02b5a7732382efb|2026-09-29|ImSahanS|87028927+sahansbandara@users.noreply.github.com|feat(s4): restyle doctor registration to match family/member glass wizard (#81)
+
+web/src/pages/auth/DoctorRegisterPage.test.tsx
+web/src/pages/auth/DoctorRegisterPage.tsx
+web/src/styles/doctor-register.css
+fa55ef480c887d9858738b7370a20c9210ddd7f4|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|feat(s1): Family Head transfer with two-person approval (backend + web)
+
+backend/tests/UnitTests/FamilyHeadTransferServiceTests.cs
+web/src/components/layout/AppLayout.tsx
+web/src/pages/family/FamilyHeadTransferSection.tsx
+web/src/pages/family/FamilySettingsTab.tsx
+web/src/pages/family/HeadTransfer.test.tsx
+web/src/pages/family/HeadTransferBanner.tsx
+web/src/routes/AppRouter.test.tsx
+web/src/services/apiClient.ts
+02c268a11282d969f51f23411e3fc72ec3675c6d|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|feat(s1): My Family tabs on web — members, join requests, invitations, family settings
+
+backend/tests/UnitTests/FamilyLifecycleServiceTests.cs
+web/src/pages/family/FamilyDashboardPanel.tsx
+web/src/pages/family/FamilyInvitationsTab.tsx
+web/src/pages/family/FamilyJoinRequestsTab.tsx
+web/src/pages/family/FamilyMembersTab.tsx
+web/src/pages/family/FamilyPage.test.tsx
+web/src/pages/family/FamilyPage.tsx
+web/src/pages/family/FamilySettingsTab.tsx
+web/src/pages/family/threePortalUtils.ts
+web/src/services/apiClient.ts
+web/src/styles/family-tabs.css
+4276f6411d6c6e1229b024d53e5c5fbdc64b61f1|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|feat(s1): family lifecycle — move-out removal, leave/start own family, invitation management, join-request expiry
+
+backend/tests/IntegrationTests/MigrationTests.cs
+backend/tests/UnitTests/FamilyLifecycleServiceTests.cs
+994a3158daa220a6a283b7f684f9fa4ef735d270|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|refactor(s1): single definition of current Family Head via Member.Role
+
+backend/tests/UnitTests/FamilyAccessTests.cs
+f97495c535d440ee4ddd93a224f4104258a350d0|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): Family Head dashboard — shared-item counts, minor guidance, Flutter head dashboard
+
+backend/tests/UnitTests/PortalDashboardMockupFieldsTests.cs
+mobile/test/models/family_dashboard_test.dart
+mobile/test/widgets/head_dashboard_section_test.dart
+d6cfbdb04e98a58ec01a65817590b3c3d6db940a|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|feat(web): Family Head and Adult Member menus follow the blueprint; Emergency Help on every family page
+
+web/src/components/layout/AppLayout.tsx
+web/src/pages/family/FamilyDashboardPanel.test.tsx
+web/src/pages/family/FamilyDashboardPanel.tsx
+web/src/pages/family/FamilyPage.tsx
+web/src/pages/records/RecordsPage.tsx
+web/src/routes/AppRouter.test.tsx
+web/src/routes/AppRouter.tsx
+5047c3a53b1a721d4269b6e42784f859ffdcaef5|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|fix(s1): show the server's registration error and jump to the failing step
+
+web/src/pages/auth/AuthPage.tsx
+820e0606b8ff33ed6e8ab4ed787f51d0ca53ecf6|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|style(s1): redesign registration review step
+
+web/src/components/auth/RegistrationReview.tsx
+web/src/pages/auth/AuthPage.test.tsx
+web/src/pages/auth/AuthPage.tsx
+web/src/styles/commercial-auth.css
+c754463c7ef7be230b81a6f11cb375e354724d45|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|fix(s1): split registration address into its own step; stop clipping long steps
+
+web/src/pages/auth/AuthPage.test.tsx
+web/src/pages/auth/AuthPage.tsx
+web/src/styles/commercial-auth.css
+e810f2b1a0ebf7f3e4d610fd6b4fc82b288120bf|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|fix(s1): scroll to and focus the first invalid registration field
+
+web/src/pages/auth/AuthPage.test.tsx
+web/src/pages/auth/AuthPage.tsx
+f68c6dc0800f7e366fd6de6965933bcd7c4bdfb3|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|fix(web): restore glass blur in production builds (Chrome)
+
+web/src/styles/auth-shell.css
+web/src/styles/commercial-auth.css
+web/src/styles/components.css
+web/src/styles/materials.css
+2c57da9f954616eb97e4c6cd889ba46c08c4fba1|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|fix(s1): keep auth glass panel blurred after the sign-in/sign-up slide
+
+web/src/styles/commercial-auth.css
+71ba23ea8c795af5bd9f7ca07f00d57b9cc354d9|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|fix(mobile): iOS build and sign-in error message
+
+mobile/test/services/api_services_test.dart
+mobile/test/services/auth_api_error_test.dart
+64ef22d54a175bbf9d177a9bd174fdb73faf8f5c|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|style(s1): bring local auth polish onto develop registration flow
+
+web/src/components/auth/AuthStepper.tsx
+web/src/pages/auth/AuthPage.tsx
+web/src/store/slices/authSlice.ts
+web/src/styles/commercial-auth.css
+8f6279bb696f22897e42c52b5c8ab6fd2979fd71|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|feat(s1): wire web and Flutter registration to atomic endpoints
+
+backend/tests/IntegrationTests/RegistrationFlowTests.cs
+backend/tests/UnitTests/RegistrationValidatorTests.cs
+mobile/test/main_test.dart
+mobile/test/providers/auth_provider_test.dart
+mobile/test/screens/register_screen_test.dart
+web/src/pages/auth/AuthPage.test.tsx
+web/src/pages/auth/AuthPage.tsx
+web/src/pages/auth/DoctorRegisterPage.tsx
+web/src/store/slices/authSlice.ts
+3c406a79a0576fb66e6463e416f42c9ad2bfa8c2|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|style(s1): force role card dark background to override auth-shell styles
+
+web/src/styles/commercial-auth.css
+0c59eabf04c52c2ea01718cd79b21e40f50c1dc8|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|style(s1): darken unselected auth role cards and hide progress bar on step 0
+
+web/src/pages/auth/AuthPage.tsx
+web/src/styles/commercial-auth.css
+326a6fbf036d547854eafbe9567a57c90d2dc169|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|feat(s1): atomic role-specific registration with validated profiles
+
+backend/tests/IntegrationTests/DoctorRegistrationTests.cs
+backend/tests/IntegrationTests/MigrationTests.cs
+backend/tests/IntegrationTests/RegistrationFlowTests.cs
+backend/tests/UnitTests/RegistrationValidatorTests.cs
+1c1fc0df4b752fc189c81e19172a68eebc4eacd3|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|fix(s1): disable webkit autofill styling and increase password dot size
+
+web/src/styles/commercial-auth.css
+72dfb5305957100a05fc00dbd4a92c58d648f19f|2026-09-29|ImSahanS|sahansbandara.mail@gmail.com|feat(s1): add password visibility toggle eye icon to auth inputs
+
+web/src/pages/auth/AuthPage.tsx
+a9421fde97d910afa2cff5a27a5949449022bcb4|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|style(s1): curve form buttons and adjust text panel alignments
+
+web/src/pages/auth/AuthPage.tsx
+web/src/styles/commercial-auth.css
+424461cb21ede6e8b4f7b45b7b362b9aa1d6534d|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|style(s1): switch to Montserrat font, fix heading colors, add input placeholders
+
+web/src/pages/auth/AuthPage.tsx
+web/src/styles/commercial-auth.css
+fb24543870ed89e8a98e43701cd157a4f685cec4|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|style(s1): add premium font and big auth switch buttons to image panels
+
+web/src/pages/auth/AuthPage.tsx
+web/src/styles/commercial-auth.css
+4f8315951ef7c697244819fdaca73eb61a26c198|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): Flutter lab-report library with sharing toggles
+
+mobile/test/models/lab_report_test.dart
+mobile/test/providers/active_member_provider_test.dart
+mobile/test/widgets/report_library_card_test.dart
+1c08d8f153755c28779244b963098b1e1bacace4|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): web report sharing, report-library cards and clinical sex fields
+
+web/src/components/records/ReportLibraryCard.test.tsx
+web/src/components/records/ReportLibraryCard.tsx
+web/src/components/shared/ClinicalSexSelect.tsx
+web/src/pages/auth/RegisterPage.tsx
+web/src/pages/family/FamilyPage.tsx
+web/src/pages/family/OnboardingPage.test.tsx
+web/src/pages/family/OnboardingPage.tsx
+web/src/pages/records/RecordsPage.tsx
+web/src/services/apiClient.ts
+web/src/styles/components.css
+5ab11a3bcabe6af5e54a30993d1f06f9ff702a1c|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): adult report sharing with Family Head and clinical sex on members
+
+backend/tests/IntegrationTests/AdultReportSharingTests.cs
+backend/tests/UnitTests/AdultPrivacyAuthorizationTests.cs
+ad3705a57de483d1c28c3f21c5bdeac3a83cbda5|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|style(s1): remove logo from AuthPage and fix lint errors
+
+web/src/pages/auth/AuthPage.tsx
+bf93efe08b7698a0f803f5dc78a3c42fe4e4fe2e|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|feat(s1): expand registration flows with detailed steps and placeholder fields
+
+web/src/assets/Loging.webp
+web/src/assets/Register.webp
+web/src/assets/mobile-login.png
+web/src/assets/mobile-login.webp
+web/src/pages/auth/AuthPage.tsx
+229fbc7b0a00af07ac6ec265c71ebc9970201ed1|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|feat(seed): add Phase 1b synthetic test data
+
+backend/tests/UnitTests/Phase1bSeedTests.cs
+022e3dbc2f111c15884911ae2a7eaa0521921ee8|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|feat(s1): implement multi-step wizard for family and doctor registration
+
+web/src/pages/auth/AuthPage.tsx
+web/src/styles/commercial-auth.css
+597e3942d422f17f55fa1eddcc5c947e0623c07e|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|feat(s1): apply dual background image layout for auth pages
+
+web/src/pages/auth/AuthPage.tsx
+web/src/styles/commercial-auth.css
+8383cb8c2ec576af806506ecaeaca29b436e5bea|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|style(s1): increase glass transparency and swap bg images
+
+web/src/pages/auth/AuthPage.tsx
+web/src/styles/commercial-auth.css
+ac89affd0f82bae36be58253e766be9156048099|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|feat(s1): refine sliding auth layout to match commercial medical glassmorphism
+
+web/src/assets/42be9dd5-0e00-4fe6-9232-dafc4d6b.png
+web/src/assets/logo.png
+web/src/pages/auth/AuthPage.test.tsx
+web/src/pages/auth/AuthPage.tsx
+web/src/styles/commercial-auth.css
+e15e73016863ab9f5c34b145c7e31e72da1c1b16|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|feat(s1): add sliding animation and auth logic
+
+web/src/pages/auth/AuthPage.test.tsx
+de8656acbaa53caeba29bf679c8f35e15b1fb206|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): complete premium auth redesign — AuthPage, AppRouter, agent files
+
+web/src/index.css
+web/src/pages/auth/AuthPage.test.tsx
+web/src/pages/auth/AuthPage.tsx
+web/src/routes/AppRouter.test.tsx
+web/src/routes/AppRouter.tsx
+6fe712cdcbeb6e80778607441e72bebdbfaad02e|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): premium auth redesign — AuthShell components, DoctorRegisterPage 3-step stepper
+
+web/src/assets/Loging.webp
+web/src/assets/Register.webp
+web/src/components/auth/AuthHero.tsx
+web/src/components/auth/AuthRoleSelector.tsx
+web/src/components/auth/AuthShell.tsx
+web/src/components/auth/AuthStepper.tsx
+web/src/components/auth/PasswordField.tsx
+web/src/pages/auth/DoctorRegisterPage.test.tsx
+web/src/pages/auth/DoctorRegisterPage.tsx
+web/src/styles/auth-shell.css
+4a5d364be94a9ba5f43c0b45c5b7429bfa9ea4c1|2026-09-28|Claude|noreply@anthropic.com|feat(s4): mockup-aligned Family Head, Adult Member and Doctor dashboards with synthetic demo data
+
+backend/tests/UnitTests/PortalDashboardMockupFieldsTests.cs
+web/src/index.css
+web/src/pages/dashboard/DashboardPage.tsx
+web/src/pages/dashboard/dashboardFormat.ts
+web/src/pages/dashboard/dashboardParts.tsx
+web/src/pages/doctor/DoctorDashboardPanel.tsx
+web/src/pages/doctor/DoctorPortal.tsx
+web/src/pages/family/FamilyDashboardPanel.adult.test.tsx
+web/src/pages/family/FamilyDashboardPanel.test.tsx
+web/src/pages/family/FamilyDashboardPanel.tsx
+web/src/routes/AppRouter.test.tsx
+web/src/services/apiClient.ts
+web/src/styles/portal-dashboard.css
+3a0f15b47384120902de57031a1ac80204d7d72a|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|fix(s4): route doctor cases and approvals to live pages
+
+web/src/routes/AppRouter.test.tsx
+web/src/routes/AppRouter.tsx
+c2fa2633a3ef865808178771c813fc5a94a93086|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|fix(s4): show live doctor dashboard without sample metrics
+
+web/src/pages/dashboard/DashboardPage.tsx
+d29ccc14aa939ac225f5556250994f34ed5406a2|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|fix(s4): load doctor requests from scoped list endpoint
+
+web/src/pages/doctor/DoctorDashboardPanel.test.tsx
+web/src/pages/doctor/DoctorDashboardPanel.tsx
+web/src/services/apiClient.ts
+4d0e7fa59305bd37848929f02ac7ec75ddeaed16|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|test(s4): verify synthetic approval and safe-failure evidence
+
+backend/tests/IntegrationTests/GoldenCaseFlowTests.cs
+ce72ebadf450e0e0531f083e1bad62261b940220|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|fix(s4): complete three-portal flows and doctor constraints
+
+backend/tests/IntegrationTests/AuthAndPatientFlowTests.cs
+backend/tests/IntegrationTests/MigrationTests.cs
+backend/tests/UnitTests/FamilyDoctorServiceTests.cs
+backend/tests/UnitTests/PortalDashboardAndNotificationTests.cs
+mobile/test/models/app_notification_test.dart
+mobile/test/models/appointment_test.dart
+mobile/test/services/api_services_test.dart
+scripts/e2e/local_performance_check.py
+scripts/e2e/synthetic_portal_journey.py
+web/src/pages/family/AppointmentsPage.test.tsx
+web/src/pages/family/AppointmentsPage.tsx
+web/src/pages/family/FamilyDashboardPanel.test.tsx
+web/src/pages/family/FamilyDashboardPanel.tsx
+web/src/services/apiClient.ts
+93cec16a3fc647ae9e7cccb2fd2a7ea5c2798b58|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|fix(web): move shared helpers out of component module to clear lint warnings
+
+web/src/pages/doctor/DoctorCalendarPage.tsx
+web/src/pages/doctor/DoctorDashboardPanel.tsx
+web/src/pages/family/AppointmentsPage.tsx
+web/src/pages/family/FamilyDashboardPanel.tsx
+web/src/pages/family/JoinFamilyPage.tsx
+web/src/pages/family/MyDoctorPage.tsx
+web/src/pages/family/threePortalShared.tsx
+web/src/pages/notifications/NotificationsPage.tsx
+89f58879760fc50fb508504d51bf5a7ca15c0794|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|fix(ci): update migration test for current migrations, fix conditional hooks and lint errors
+
+backend/tests/IntegrationTests/MigrationTests.cs
+web/src/pages/dashboard/DashboardPage.tsx
+web/src/pages/doctor/DoctorPortal.tsx
+edb7a5eec76138946841f49ee2853901056be982|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): three-portal features — join requests, family doctor, appointments, notifications, dashboards
+
+backend/tests/UnitTests/AppointmentServiceTests.cs
+backend/tests/UnitTests/FamilyDoctorServiceTests.cs
+backend/tests/UnitTests/JoinRequestServiceTests.cs
+backend/tests/UnitTests/PortalDashboardAndNotificationTests.cs
+mobile/test/main_test.dart
+mobile/test/models/app_notification_test.dart
+mobile/test/models/appointment_test.dart
+mobile/test/models/family_dashboard_test.dart
+mobile/test/screens/book_appointment_member_options_test.dart
+mobile/test/screens/home_screen_test.dart
+web/src/components/layout/AppLayout.tsx
+web/src/components/shared/NotificationBell.tsx
+web/src/pages/dashboard/DashboardPage.tsx
+web/src/pages/doctor/DoctorCalendarPage.tsx
+web/src/pages/doctor/DoctorDashboardPanel.test.tsx
+web/src/pages/doctor/DoctorDashboardPanel.tsx
+web/src/pages/doctor/DoctorPortal.tsx
+web/src/pages/family/AppointmentsPage.test.tsx
+web/src/pages/family/AppointmentsPage.tsx
+web/src/pages/family/FamilyDashboardPanel.adult.test.tsx
+web/src/pages/family/FamilyDashboardPanel.test.tsx
+web/src/pages/family/FamilyDashboardPanel.tsx
+web/src/pages/family/JoinFamilyPage.tsx
+web/src/pages/family/MyDoctorPage.tsx
+web/src/pages/family/threePortalShared.tsx
+web/src/pages/family/threePortalUtils.ts
+web/src/pages/notifications/NotificationsPage.test.tsx
+web/src/pages/notifications/NotificationsPage.tsx
+web/src/routes/AppRouter.tsx
+web/src/services/apiClient.ts
+2e47b0e7b51af3bf40df9e6d2f885cc9f168ab14|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): deterministic lab range status, family-facing triage progress, privacy tests, CodeQL
+
+backend/tests/UnitTests/AdultPrivacyAuthorizationTests.cs
+backend/tests/UnitTests/LabRangeClassifierTests.cs
+web/src/pages/records/RecordsPage.tsx
+web/src/pages/triage/FamilyCaseProgress.test.tsx
+web/src/pages/triage/FamilyCaseProgress.tsx
+web/src/pages/triage/TriagePage.tsx
+web/src/services/apiClient.ts
+eca0433d52eb5fd5a18cc7fd3c45c237b4f01302|2026-09-28|ImSahanS|sahansbandara.mail@gmail.com|docs(s4): revise three-portal blueprint for approval-gate compliance
+
+backend/tests/UnitTests/SafetyValidationServiceTests.cs
+b5fa2fd32742b31d320c892823b24ed767407be5|2026-09-28|Jani6969|janithchamika20030411@gmail.com|fix bugs in clinic portal layout
+
+web/src/pages/admin/ClinicAdminPortal.tsx
+76b8ab5239cea2c8d8c76f571b0748a0f55b641d|2026-09-28|Jani6969|janithchamika20030411@gmail.com|feat new dashboard to clinic admin
+
+web/src/pages/admin/ClinicAdminPortal.css
+web/src/pages/admin/ClinicAdminPortal.tsx
+c0e2d1a1c2d5d68e0a7ad5f9acb3e66516f8bfda|2026-09-28|Jani6969|janithchamika20030411@gmail.com|update clinic  portal
+
+web/src/components/layout/AppLayout.tsx
+web/src/pages/admin/ClinicAdminPortal.css
+web/src/pages/admin/ClinicAdminPortal.tsx
+web/src/pages/dashboard/DashboardPage.tsx
+web/src/routes/AppRouter.tsx
+1fcf9d8e395e24a92cd2ad7aa4c747163588f562|2026-09-27|Jani6969|janithchamika20030411@gmail.com|update doctor portal
+
+web/src/components/layout/AppLayout.tsx
+web/src/pages/dashboard/DashboardPage.tsx
+web/src/pages/doctor/DoctorPortal.css
+web/src/pages/doctor/DoctorPortal.tsx
+web/src/routes/AppRouter.tsx
+6165d6220fbf6f9c48197a6bdd261c183fc1c56d|2026-09-27|Jani6969|janithchamika20030411@gmail.com|fix doctor reg issues
+
+web/src/pages/admin/DoctorVerificationPage.tsx
+web/src/services/apiClient.ts
+web/src/store/slices/authSlice.ts
+2935994adb03b8924c5700b5eb0c19dc61091e4b|2026-09-27|Jani6969|janithchamika20030411@gmail.com|fix issues in doc reg
+
+web/src/components/shared/SearchableSelect.tsx
+web/src/pages/auth/DoctorRegisterPage.tsx
+web/src/pages/doctor/DoctorStatusPage.tsx
+59f79edeaf1705d28a0ca0f359de9c4c845fec32|2026-09-27|Jani6969|janithchamika20030411@gmail.com|update doctor registration fiels
+
+web/src/pages/admin/DoctorVerificationPage.tsx
+web/src/pages/auth/DoctorRegisterPage.tsx
+web/src/pages/doctor/DoctorStatusPage.tsx
+web/src/services/apiClient.ts
+web/src/store/slices/authSlice.ts
+309e9aae6f378203e7c15420c348c443c734f3ba|2026-09-26|Jani6969|janithchamika20030411@gmail.com|update family head access
+
+web/src/pages/admin/FamilyHeadVerificationPage.tsx
+web/src/pages/auth/RegisterPage.tsx
+web/src/pages/family/FamilyPage.tsx
+10aab9d57a43449686fb402a0904ed763c5276f8|2026-09-26|Jani6969|janithchamika20030411@gmail.com|update forget password option
+
+web/src/components/layout/AppLayout.tsx
+web/src/pages/admin/DoctorVerificationPage.tsx
+web/src/pages/admin/FamilyHeadVerificationPage.tsx
+web/src/pages/auth/ForgotPasswordPage.tsx
+web/src/pages/auth/LoginPage.tsx
+web/src/pages/auth/RegisterPage.tsx
+web/src/pages/auth/ResetPasswordPage.tsx
+web/src/pages/dashboard/DashboardPage.tsx
+web/src/pages/doctor/CasesPage.tsx
+web/src/pages/family/FamilyHeadStatusPage.tsx
+web/src/pages/family/FamilyPage.tsx
+web/src/pages/family/OnboardingPage.test.tsx
+web/src/pages/family/OnboardingPage.tsx
+web/src/pages/system/SystemPages.tsx
+web/src/pages/triage/TriagePage.tsx
+web/src/routes/AppRouter.test.tsx
+web/src/routes/AppRouter.tsx
+web/src/routes/RouteGuard.tsx
+web/src/services/apiClient.ts
+cf53311f2ce1dc5fe85214c0a2899962ffd0e0bc|2026-09-26|Jani6969|janithchamika20030411@gmail.com|update family member
+
+web/src/pages/auth/LoginPage.tsx
+web/src/pages/auth/RegisterPage.tsx
+web/src/pages/family/FamilyHeadStatusPage.tsx
+web/src/routes/AppRouter.test.tsx
+web/src/routes/AppRouter.tsx
+web/src/routes/RouteGuard.tsx
+web/src/services/apiClient.ts
+web/src/store/slices/authSlice.ts
+aa93c8c8b9875f5427cca81a428865e25feed5ad|2026-09-25|Jani6969|janithchamika20030411@gmail.com|update member details
+
+web/src/pages/auth/DoctorRegisterPage.tsx
+web/src/pages/auth/RegisterPage.tsx
+web/src/styles/components.css
+e43a73111bda297181bc5e26539b47452bf93f84|2026-09-25|Jani6969|janithchamika20030411@gmail.com|Edit  family head crud
+
+web/src/pages/admin/FamilyHeadVerificationPage.tsx
+web/src/pages/auth/DoctorRegisterPage.tsx
+web/src/pages/auth/RegisterPage.tsx
+web/src/services/apiClient.ts
+web/src/store/slices/authSlice.ts
+web/src/styles/components.css
+ea5f7a35ca42413f0c8bb4d9271c9a92793e25d7|2026-09-25|Jani6969|janithchamika20030411@gmail.com|update superAdmin FMH
+
+web/src/components/layout/AppLayout.tsx
+web/src/pages/admin/DoctorVerificationPage.tsx
+web/src/pages/admin/FamilyHeadVerificationPage.tsx
+web/src/routes/AppRouter.test.tsx
+web/src/routes/AppRouter.tsx
+web/src/services/apiClient.ts
+web/src/styles/components.css
+e70945e6e7c809d60f33099c092290622cfd9e31|2026-09-25|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): remove Ollama fallback, use Gemini -> Groq only
+
+backend/tests/UnitTests/OllamaClientTests.cs
+74acdf66f545a76a96c1a877a7563fe88e6cf3c6|2026-09-23|ImSahanS|sahansbandara.mail@gmail.com|feat(s1): surface agent tool-permission events in audit view
+
+web/src/pages/audit/AuditPage.tsx
+b4ba9f1f18c7fba50546aef5efac11fccfc7c8d3|2026-09-23|ImSahanS|sahansbandara.mail@gmail.com|feat(s2): mark AI-extracted lab values and show extraction confidence
+
+web/src/pages/records/RecordsPage.tsx
+653b188faa9538323be839ee21a01481e7570baf|2026-09-23|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): show deterministic safety checks and approved familial screening
+
+web/src/pages/doctor/ApprovalsPage.tsx
+web/src/pages/doctor/SafetyChecks.tsx
+web/src/pages/doctor/safetyRules.test.ts
+web/src/pages/doctor/safetyRules.ts
+web/src/pages/family/FamilyRiskPage.test.tsx
+web/src/pages/family/FamilyRiskPage.tsx
+197334beae7158ba2a79c9cb03e706be9baeb79c|2026-09-23|ImSahanS|sahansbandara.mail@gmail.com|feat(s3): add AI triage page with live agent pipeline timeline
+
+web/src/components/layout/AppLayout.tsx
+web/src/components/shared/AiBadge.tsx
+web/src/components/shared/StatusBadge.tsx
+web/src/pages/triage/AgentPipeline.tsx
+web/src/pages/triage/TriagePage.test.tsx
+web/src/pages/triage/TriagePage.tsx
+web/src/pages/triage/pipelineStages.ts
+web/src/routes/AppRouter.tsx
+web/src/styles/components.css
+4fe8dd1503ace0f9132f3581aa45f3e7a321e533|2026-09-23|ImSahanS|sahansbandara.mail@gmail.com|fix(all): restore missing web/mobile scaffolding, fix startup blockers, verify full stack runs
+
+web/src/assets/logo.png
+web/src/assets/mark.svg
+web/src/setupTests.ts
+web/src/vite-env.d.ts
+d680cc29e337f87b2515d781f12044a59d9e7db8|2026-09-23|ImSahanS|sahansbandara.mail@gmail.com|Revert "Merge pull request #3 from sahansbandara/feature/s3-agent-orchestration"
+
+backend/tests/UnitTests/CaseSlaProcessorTests.cs
+backend/tests/UnitTests/ChatCompletionsLlmClientTests.cs
+backend/tests/UnitTests/NotificationServiceTests.cs
+backend/tests/UnitTests/OllamaClientTests.cs
+backend/tests/UnitTests/TriageOrchestratorEmergencyTests.cs
+backend/tests/UnitTests/TriageOrchestratorSchemaTests.cs
+backend/tests/UnitTests/TriageWorkerRecoveryTests.cs
+mobile/test/providers/patient_providers_test.dart
+mobile/test/screens/async_state_views_test.dart
+mobile/test/screens/case_status_screen_test.dart
+mobile/test/screens/home_screen_test.dart
+web/src/components/layout/AmbientMesh.tsx
+web/src/components/layout/AppLayout.tsx
+web/src/components/shared/ListToolbar.tsx
+web/src/components/shared/Pagination.tsx
+web/src/components/shared/StatusBadge.tsx
+web/src/components/shared/ViewState.test.tsx
+web/src/components/shared/ViewState.tsx
+web/src/index.css
+web/src/pages/dashboard/DashboardPage.tsx
+web/src/store/index.ts
+web/src/styles/components.css
+web/src/styles/materials.css
+web/src/styles/tokens.css
+e678bf14f6fb8bf435902a22a40edbfe09546a09|2026-09-23|Samaranayaka S.G.V.S|it23544154@my.sliit.lk|test(s1): cover the family, identity and consent providers and screens
+
+mobile/test/main_test.dart
+mobile/test/providers/active_member_provider_test.dart
+mobile/test/providers/auth_provider_test.dart
+mobile/test/router/route_guard_test.dart
+mobile/test/screens/login_screen_test.dart
+mobile/test/services/api_services_test.dart
+mobile/test/services/secure_storage_test.dart
+eadc2e56ed32e05ef142e0f8d030aef322022fa1|2026-09-23|Samaranayaka S.G.V.S|it23544154@my.sliit.lk|test(s1): cover the family, identity and consent web screens
+
+web/src/pages/family/OnboardingPage.test.tsx
+web/src/routes/AppRouter.test.tsx
+web/src/store/slices/authSlice.test.ts
+26bfe4cf474edfd41e8c6476f9b2eadb25e1f0cb|2026-09-23|Samaranayaka S.G.V.S|it23544154@my.sliit.lk|feat(s1): add the family, identity and consent web screens
+
+web/src/App.tsx
+web/src/main.tsx
+web/src/pages/auth/LoginPage.tsx
+web/src/pages/auth/RegisterPage.tsx
+web/src/pages/family/FamilyPage.tsx
+web/src/pages/family/OnboardingPage.tsx
+web/src/routes/AppRouter.tsx
+web/src/routes/RouteGuard.tsx
+web/src/services/apiClient.ts
+web/src/store/hooks.ts
+web/src/store/slices/authSlice.ts
+8ca51ac3f9fac5e0d420b4737378fd278253c064|2026-09-23|Samaranayaka S.G.V.S|it23544154@my.sliit.lk|test(s1): cover the family, identity and consent service and policy layer
+
+backend/tests/IntegrationTests/AuthAndPatientFlowTests.cs
+backend/tests/IntegrationTests/FamilyVeda.IntegrationTests.csproj
+backend/tests/IntegrationTests/MigrationTests.cs
+backend/tests/UnitTests/ConsentStateMachineTests.cs
+backend/tests/UnitTests/FamilyServicePrivacyTests.cs
+backend/tests/UnitTests/FamilyVeda.UnitTests.csproj
+backend/tests/UnitTests/ToolDispatcherTests.cs
+backend/tests/UnitTests/ToolRegistryTests.cs
+3e137e7fbd15f1523607ebbd25cb53a9321b510c|2026-09-23|Karunathilaka K.D.J.C|janithchamika20030411@gmail.com|test(s3): cover the triage and agent orchestration providers and screens
+
+mobile/test/providers/patient_providers_test.dart
+mobile/test/screens/async_state_views_test.dart
+mobile/test/screens/case_status_screen_test.dart
+mobile/test/screens/home_screen_test.dart
+d09383e468edaf0880b2c75a46eb0975fa39007d|2026-09-23|Karunathilaka K.D.J.C|janithchamika20030411@gmail.com|test(s3): cover the triage and agent orchestration web screens
+
+web/src/components/shared/ViewState.test.tsx
+0b0ab3c89a0e6fd0972fc3f9a728247aa735f8cf|2026-09-23|Karunathilaka K.D.J.C|janithchamika20030411@gmail.com|feat(s3): add the triage and agent orchestration web screens
+
+web/src/components/layout/AmbientMesh.tsx
+web/src/components/layout/AppLayout.tsx
+web/src/components/shared/ListToolbar.tsx
+web/src/components/shared/Pagination.tsx
+web/src/components/shared/StatusBadge.tsx
+web/src/components/shared/ViewState.tsx
+web/src/index.css
+web/src/pages/dashboard/DashboardPage.tsx
+web/src/store/index.ts
+web/src/styles/components.css
+web/src/styles/materials.css
+web/src/styles/tokens.css
+a3a0dbf9c528aff659e15b7e349fc5206cb4fcb0|2026-09-23|Karunathilaka K.D.J.C|janithchamika20030411@gmail.com|test(s3): cover the triage and agent orchestration service and policy layer
+
+backend/tests/UnitTests/CaseSlaProcessorTests.cs
+backend/tests/UnitTests/ChatCompletionsLlmClientTests.cs
+backend/tests/UnitTests/NotificationServiceTests.cs
+backend/tests/UnitTests/OllamaClientTests.cs
+backend/tests/UnitTests/TriageOrchestratorEmergencyTests.cs
+backend/tests/UnitTests/TriageOrchestratorSchemaTests.cs
+backend/tests/UnitTests/TriageWorkerRecoveryTests.cs
+3a7a281b824ce516969321639603a45fb27d932f|2026-09-22|Fernando K.R.N|it24101875@my.sliit.lk|fix(s2): drop invalid const from records screen test fixtures
+
+mobile/test/screens/records_screen_test.dart
+d84b28c9e6bc0471ca5ce5ac596076fd7322618d|2026-09-22|Fernando K.R.N|it24101875@my.sliit.lk|fix(s2): remove diagnosis wording from records web copy
+
+web/src/pages/records/RecordsPage.tsx
+43ca434f391fb6686c84f7c3d7751f0fa884a0fe|2026-09-22|Fernando K.R.N|it24101875@my.sliit.lk|test(s2): cover the health records and extraction providers and screens
+
+mobile/test/screens/records_screen_test.dart
+2731780bd8b8167bf33a4639efc6a8708c4d4b4f|2026-09-22|Fernando K.R.N|it24101875@my.sliit.lk|test(s2): cover the health records and extraction web screens
+
+web/src/pages/records/RecordsPage.test.tsx
+4bfcaeaa061b0ea95678eea088dfb6c8ca05d3a5|2026-09-22|Fernando K.R.N|it24101875@my.sliit.lk|feat(s2): add the health records and extraction web screens
+
+web/src/pages/records/RecordsPage.tsx
+2c1e458966ce047681f32e79244d906e999e2c74|2026-09-22|Fernando K.R.N|it24101875@my.sliit.lk|test(s2): cover the health records and extraction service and policy layer
+
+backend/tests/UnitTests/LabExtractionParserTests.cs
+backend/tests/UnitTests/LabExtractionSafetyTests.cs
+backend/tests/UnitTests/LabReportDurableStorageTests.cs
+backend/tests/UnitTests/RecordServiceLabReviewTests.cs
+fa6c357027376a2bbfa2fc24846d88b6023a594c|2026-09-22|ImSahanS|sahansbandara.mail@gmail.com|test(s4): cover the familial risk and clinical approval providers and screens
+
+mobile/test/models/approved_guidance_test.dart
+mobile/test/providers/guidance_provider_test.dart
+mobile/test/screens/approved_guidance_screen_test.dart
+mobile/test/screens/emergency_screen_test.dart
+977c822cfa6504879f898e37f4d0f083ff50a897|2026-09-22|ImSahanS|sahansbandara.mail@gmail.com|test(s4): cover the familial risk and clinical approval web screens
+
+web/src/pages/doctor/ApprovalsPage.test.tsx
+6b86f84814a258d68feb4b196952379a09a3717b|2026-09-22|ImSahanS|sahansbandara.mail@gmail.com|feat(s4): add the familial risk and clinical approval web screens
+
+web/src/pages/admin/DoctorVerificationPage.tsx
+web/src/pages/audit/AuditPage.tsx
+web/src/pages/auth/DoctorRegisterPage.tsx
+web/src/pages/doctor/ApprovalsPage.tsx
+web/src/pages/doctor/CasesPage.tsx
+web/src/pages/doctor/DoctorStatusPage.tsx
+web/src/pages/system/SystemPages.tsx
+4ccb64349362d87c276958fbe6b9c46d250721e5|2026-09-22|ImSahanS|sahansbandara.mail@gmail.com|test(s4): cover the familial risk and clinical approval service and policy layer
+
+backend/tests/UnitTests/CaseGrantPolicyTests.cs
+backend/tests/UnitTests/ClinicalCasePoolPrivacyTests.cs
+backend/tests/UnitTests/ClinicalEmergencyReferralTests.cs
+backend/tests/UnitTests/ClinicalRuleTableTests.cs
+backend/tests/UnitTests/FamilialRiskPolicyTests.cs
+backend/tests/UnitTests/SafetyValidationServiceTests.cs
+7976777561abc6178b240a2a6b517da39e3503d6|2026-09-22|Jani6969|janithchamika20030411@gmail.com|feat(s4): apply the approvals page UI work from S3's branch
+
+web/src/pages/doctor/ApprovalsPage.tsx
+bc4e928a572322e0da6ea404a3f3eee2f114ce44|2026-09-22|ImSahanS|sahansbandara.mail@gmail.com|fix(s3): stop theme persistence crashing the app shell when storage is absent
+
+web/src/components/layout/AppLayout.tsx
+web/src/services/apiClient.ts
+ae408fd06850acb5ebcff9e5d66e4a28fc01d649|2026-09-22|Jani6969|janithchamika20030411@gmail.com|feat(s3): apply the triage UI, theming and Gemini LLM work from S3's branch
+
+mobile/test/screens/home_screen_test.dart
+web/src/components/layout/AppLayout.tsx
+web/src/components/shared/StatusBadge.tsx
+web/src/pages/dashboard/DashboardPage.tsx
+web/src/styles/components.css
+web/src/styles/materials.css
+web/src/styles/tokens.css
+5e98a087209c2e982d8248759657de984fe35415|2026-09-22|ImSahanS|sahansbandara.mail@gmail.com|fix(s1): stop theme persistence crashing the login page when storage is absent
+
+web/src/pages/auth/LoginPage.tsx
+2bf42ca67615c1cbf26ac910ff6235c67850b8a0|2026-09-22|Jani6969|janithchamika20030411@gmail.com|feat(s1): apply the S1 identity and onboarding UI work from S3's branch
+
+mobile/test/screens/login_screen_test.dart
+web/src/pages/auth/LoginPage.tsx
+web/src/services/apiClient.ts
+ba5728329ddfb3d13c94f5a1b48a2e701646dc1a|2026-09-22|ImSahanS|sahansbandara.mail@gmail.com|chore(s4): tag the Familial Risk and Clinical Approval files with S4 ownership
+
+backend/tests/UnitTests/CaseGrantPolicyTests.cs
+backend/tests/UnitTests/ClinicalCasePoolPrivacyTests.cs
+backend/tests/UnitTests/ClinicalEmergencyReferralTests.cs
+backend/tests/UnitTests/ClinicalRuleTableTests.cs
+backend/tests/UnitTests/FamilialRiskPolicyTests.cs
+backend/tests/UnitTests/SafetyValidationServiceTests.cs
+mobile/test/models/approved_guidance_test.dart
+mobile/test/providers/guidance_provider_test.dart
+mobile/test/screens/approved_guidance_screen_test.dart
+mobile/test/screens/emergency_screen_test.dart
+web/src/pages/admin/DoctorVerificationPage.tsx
+web/src/pages/audit/AuditPage.tsx
+web/src/pages/auth/DoctorRegisterPage.tsx
+web/src/pages/doctor/ApprovalsPage.test.tsx
+web/src/pages/doctor/ApprovalsPage.tsx
+web/src/pages/doctor/CasesPage.tsx
+web/src/pages/doctor/DoctorStatusPage.tsx
+web/src/pages/system/SystemPages.tsx
+69d9ff0faa5108135443b7335282a288af485604|2026-09-22|ImSahanS|sahansbandara.mail@gmail.com|chore(s3): tag the Triage and Agent Orchestration files with S3 ownership
+
+backend/tests/UnitTests/CaseSlaProcessorTests.cs
+backend/tests/UnitTests/ChatCompletionsLlmClientTests.cs
+backend/tests/UnitTests/NotificationServiceTests.cs
+backend/tests/UnitTests/OllamaClientTests.cs
+backend/tests/UnitTests/TriageOrchestratorEmergencyTests.cs
+backend/tests/UnitTests/TriageOrchestratorSchemaTests.cs
+backend/tests/UnitTests/TriageWorkerRecoveryTests.cs
+mobile/test/providers/patient_providers_test.dart
+mobile/test/screens/async_state_views_test.dart
+mobile/test/screens/case_status_screen_test.dart
+web/src/components/layout/AmbientMesh.tsx
+web/src/components/layout/AppLayout.tsx
+web/src/components/shared/ListToolbar.tsx
+web/src/components/shared/Pagination.tsx
+web/src/components/shared/StatusBadge.tsx
+web/src/components/shared/ViewState.test.tsx
+web/src/components/shared/ViewState.tsx
+web/src/index.css
+web/src/pages/dashboard/DashboardPage.tsx
+web/src/styles/components.css
+web/src/styles/materials.css
+web/src/styles/tokens.css
+63983f53110bb2e0cce5a7d2dea952ba8d613fa3|2026-09-22|ImSahanS|sahansbandara.mail@gmail.com|chore(s2): tag the Health Records and Extraction files with S2 ownership
+
+backend/tests/UnitTests/LabExtractionParserTests.cs
+backend/tests/UnitTests/LabExtractionSafetyTests.cs
+backend/tests/UnitTests/LabReportDurableStorageTests.cs
+backend/tests/UnitTests/RecordServiceLabReviewTests.cs
+web/src/pages/records/RecordsPage.tsx
+5cfdac59db3abde225cb6c2d0f988a437d083cd2|2026-09-22|ImSahanS|sahansbandara.mail@gmail.com|chore(s1): tag the Family, Identity and Consent files with S1 ownership
+
+backend/tests/IntegrationTests/AuthAndPatientFlowTests.cs
+backend/tests/IntegrationTests/FamilyVeda.IntegrationTests.csproj
+backend/tests/IntegrationTests/MigrationTests.cs
+backend/tests/UnitTests/ConsentStateMachineTests.cs
+backend/tests/UnitTests/FamilyServicePrivacyTests.cs
+backend/tests/UnitTests/FamilyVeda.UnitTests.csproj
+backend/tests/UnitTests/ToolDispatcherTests.cs
+backend/tests/UnitTests/ToolRegistryTests.cs
+mobile/test/main_test.dart
+mobile/test/providers/active_member_provider_test.dart
+mobile/test/providers/auth_provider_test.dart
+mobile/test/router/route_guard_test.dart
+mobile/test/services/api_services_test.dart
+mobile/test/services/secure_storage_test.dart
+web/src/App.tsx
+web/src/main.tsx
+web/src/pages/auth/LoginPage.tsx
+web/src/pages/auth/RegisterPage.tsx
+web/src/pages/family/FamilyPage.tsx
+web/src/pages/family/OnboardingPage.test.tsx
+web/src/pages/family/OnboardingPage.tsx
+web/src/routes/AppRouter.test.tsx
+web/src/routes/RouteGuard.tsx
+web/src/services/apiClient.ts
+web/src/store/hooks.ts
+web/src/store/slices/authSlice.test.ts
+web/src/store/slices/authSlice.ts
+2aefef2984ffb68ac64fd8a5d4525dca75bc90eb|2026-09-22|ImSahanS|sahansbandara.mail@gmail.com|chore(all): add the file-level ownership manifest, CODEOWNERS and evidence table
+
+web/src/routes/AppRouter.tsx
+web/src/store/index.ts
+745fc934e1f519bcd822e82ca526ef6c9ab2d245|2026-09-20|Fernando K.R.N|it24101875@my.sliit.lk|feat(s2): complete records demo seed, trend bars, and mobile error paths
+
+backend/tests/UnitTests/RecordServiceSortingTests.cs
+web/src/pages/records/RecordsPage.tsx
+ef35ed8250ac5927d433d35cc303c4b4d517e450|2026-09-20|Fernando K.R.N|it24101875@my.sliit.lk|test(s2): cover extraction agent, record sorting, and records UI
+
+backend/tests/UnitTests/ExtractionAgentTests.cs
+backend/tests/UnitTests/RecordServiceSortingTests.cs
+mobile/test/screens/records_screen_test.dart
+web/src/pages/records/RecordsPage.test.tsx
+cff85821b7fe597734f5e457d8a8b06e24f582b2|2026-09-20|Fernando K.R.N|it24101875@my.sliit.lk|feat(s2): flag out-of-range lab values with colour and icon
+
+web/src/pages/records/RecordsPage.tsx
+b7b2e9fe5510523ca38b100962fed5715fe43742|2026-09-18|ImSahanS|sahansbandara.mail@gmail.com|fix(all): make push delivery best-effort and validate production config
+
+backend/tests/UnitTests/NotificationServiceTests.cs
+b1b9d52607626ca743d858c6eecc75ebf62b553b|2026-09-18|ImSahanS|sahansbandara.mail@gmail.com|feat(all): store lab-report files and Data Protection keys in PostgreSQL
+
+backend/tests/IntegrationTests/MigrationTests.cs
+backend/tests/UnitTests/LabReportDurableStorageTests.cs
+240109775c9a69b060d52e076a365235e6de2097|2026-09-18|ImSahanS|sahansbandara.mail@gmail.com|feat(all): host agent inference on Groq and expose production Swagger
+
+backend/tests/UnitTests/ChatCompletionsLlmClientTests.cs
+web/src/services/apiClient.ts
+6795158758826a8d90f5bf8177de8b2bdf5ad766|2026-09-13|ImSahanS|sahansbandara.mail@gmail.com|feat(all): use the illustrated logo on splash and auth screens
+
+web/src/assets/logo.png
+web/src/pages/auth/DoctorRegisterPage.tsx
+web/src/pages/auth/LoginPage.tsx
+web/src/pages/auth/RegisterPage.tsx
+web/src/styles/components.css
+db65f3964c2874e32cf0806844ef50ef3181d321|2026-09-12|ImSahanS|sahansbandara.mail@gmail.com|feat(all): liquid glass redesign for web and mobile
+
+web/src/App.css
+web/src/App.tsx
+web/src/assets/mark.svg
+web/src/assets/react.svg
+web/src/assets/vite.svg
+web/src/components/layout/AmbientMesh.tsx
+web/src/components/layout/AppLayout.tsx
+web/src/index.css
+web/src/pages/auth/DoctorRegisterPage.tsx
+web/src/pages/auth/LoginPage.tsx
+web/src/pages/auth/RegisterPage.tsx
+web/src/styles/components.css
+web/src/styles/materials.css
+web/src/styles/tokens.css
+5c1d7b7ae35766a551998ede71e8f3b85ca1d837|2026-08-04|ImSahanS|sahansbandara.mail@gmail.com|fix(s1): harden mobile auth storage boundaries
+
+mobile/test/main_test.dart
+mobile/test/providers/auth_provider_test.dart
+mobile/test/router/route_guard_test.dart
+mobile/test/services/api_services_test.dart
+mobile/test/services/secure_storage_test.dart
+4343f672c8c31a2c8926eefd9677fe041636088b|2026-08-04|ImSahanS|sahansbandara.mail@gmail.com|fix(s1): fail closed on iOS keychain errors
+
+mobile/test/providers/auth_provider_test.dart
+ceab82ded27893f76e9e3ffa80b4b6ce49239d63|2026-08-04|ImSahanS|sahansbandara.mail@gmail.com|feat(mobile): add iOS device support
+
+mobile/test/services/api_services_test.dart
+067ad22da8c85aca067bde57e2e54820fe14895b|2026-08-04|ImSahanS|sahansbandara.mail@gmail.com|feat(all): complete Family Veda platform
+
+backend/tests/IntegrationTests/AuthAndPatientFlowTests.cs
+backend/tests/IntegrationTests/FamilyVeda.IntegrationTests.csproj
+backend/tests/IntegrationTests/MigrationTests.cs
+backend/tests/UnitTests/CaseGrantPolicyTests.cs
+backend/tests/UnitTests/CaseSlaProcessorTests.cs
+backend/tests/UnitTests/ClinicalCasePoolPrivacyTests.cs
+backend/tests/UnitTests/ClinicalEmergencyReferralTests.cs
+backend/tests/UnitTests/ClinicalRuleTableTests.cs
+backend/tests/UnitTests/ConsentStateMachineTests.cs
+backend/tests/UnitTests/FamilialRiskPolicyTests.cs
+backend/tests/UnitTests/FamilyServicePrivacyTests.cs
+backend/tests/UnitTests/FamilyVeda.UnitTests.csproj
+backend/tests/UnitTests/LabExtractionParserTests.cs
+backend/tests/UnitTests/LabExtractionSafetyTests.cs
+backend/tests/UnitTests/NotificationServiceTests.cs
+backend/tests/UnitTests/OllamaClientTests.cs
+backend/tests/UnitTests/RecordServiceLabReviewTests.cs
+backend/tests/UnitTests/SafetyValidationServiceTests.cs
+backend/tests/UnitTests/ToolDispatcherTests.cs
+backend/tests/UnitTests/ToolRegistryTests.cs
+backend/tests/UnitTests/TriageOrchestratorEmergencyTests.cs
+backend/tests/UnitTests/TriageOrchestratorSchemaTests.cs
+backend/tests/UnitTests/TriageWorkerRecoveryTests.cs
+mobile/test/models/approved_guidance_test.dart
+mobile/test/providers/active_member_provider_test.dart
+mobile/test/providers/auth_provider_test.dart
+mobile/test/providers/guidance_provider_test.dart
+mobile/test/providers/patient_providers_test.dart
+mobile/test/router/route_guard_test.dart
+mobile/test/screens/approved_guidance_screen_test.dart
+mobile/test/screens/async_state_views_test.dart
+mobile/test/screens/case_status_screen_test.dart
+mobile/test/screens/emergency_screen_test.dart
+mobile/test/services/api_services_test.dart
+mobile/test/services/secure_storage_test.dart
+web/src/App.css
+web/src/App.tsx
+web/src/assets/hero.png
+web/src/assets/react.svg
+web/src/assets/vite.svg
+web/src/components/layout/AppLayout.tsx
+web/src/components/shared/ListToolbar.tsx
+web/src/components/shared/Pagination.tsx
+web/src/components/shared/StatusBadge.tsx
+web/src/components/shared/ViewState.test.tsx
+web/src/components/shared/ViewState.tsx
+web/src/index.css
+web/src/main.tsx
+web/src/pages/admin/DoctorVerificationPage.tsx
+web/src/pages/audit/AuditPage.tsx
+web/src/pages/auth/DoctorRegisterPage.tsx
+web/src/pages/auth/LoginPage.tsx
+web/src/pages/auth/RegisterPage.tsx
+web/src/pages/dashboard/DashboardPage.tsx
+web/src/pages/doctor/ApprovalsPage.test.tsx
+web/src/pages/doctor/ApprovalsPage.tsx
+web/src/pages/doctor/CasesPage.tsx
+web/src/pages/doctor/DoctorStatusPage.tsx
+web/src/pages/family/FamilyPage.tsx
+web/src/pages/family/OnboardingPage.test.tsx
+web/src/pages/family/OnboardingPage.tsx
+web/src/pages/records/RecordsPage.tsx
+web/src/pages/system/SystemPages.tsx
+web/src/routes/AppRouter.test.tsx
+web/src/routes/AppRouter.tsx
+web/src/routes/RouteGuard.tsx
+web/src/services/apiClient.ts
+web/src/store/hooks.ts
+web/src/store/index.ts
+web/src/store/slices/authSlice.test.ts
+web/src/store/slices/authSlice.ts

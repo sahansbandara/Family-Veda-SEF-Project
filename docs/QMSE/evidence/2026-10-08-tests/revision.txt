@@ -1,0 +1,19 @@
+3bb6c192a379f73eccbfea2745f6fee26fec87e4
+
+Working tree at execution start (not a clean commit-only run):
+ M agent/DECISIONS.md
+ M agent/MEMORY.md
+ M mobile/android/gradlew
+ M mobile/ios/Flutter/Generated.xcconfig
+ M mobile/ios/Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage/Package.swift
+ M mobile/ios/Flutter/flutter_export_environment.sh
+ M mobile/ios/Runner.xcodeproj/project.pbxproj
+ M mobile/ios/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme
+?? .playwright-cli/
+?? docs/QMSE/
+?? fix_css.py
+?? fix_flutter.py
+?? fix_grid.py
+?? scripts/__pycache__/check-llm-providers.cpython-314.pyc
+?? scripts/__pycache__/repair-triage-case-sequence.cpython-314.pyc
+?? web/src/styles/test_css.css

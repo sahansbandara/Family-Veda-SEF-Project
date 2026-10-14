@@ -1,0 +1,796 @@
+import 'dart:async';
+
+import 'package:family_veda/models/lab_report.dart';
+import 'package:family_veda/services/api/report_reading_poller.dart';
+import 'package:family_veda/widgets/records/original_report_preview.dart';
+import 'package:family_veda/widgets/records/report_progress.dart';
+import 'package:family_veda/widgets/records/report_reading.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter/material.dart';
+
+typedef ReportDetailLoader = Future<Map<String, dynamic>> Function();
+typedef ReportReviewSaver =
+    Future<Map<String, dynamic>> Function(Map<String, dynamic> body);
+
+/// Manual verification of extracted evidence. This never generates clinical advice.
+class ReportReviewWorkspace extends StatefulWidget {
+  const ReportReviewWorkspace({
+    super.key,
+    required this.report,
+    required this.loadDetail,
+    required this.loadOriginal,
+    required this.save,
+    this.readAgain,
+  });
+  final LabReport report;
+  final ReportDetailLoader loadDetail;
+  final OriginalReportLoader loadOriginal;
+  final ReportReviewSaver save;
+  final Future<void> Function()? readAgain;
+  @override
+  State<ReportReviewWorkspace> createState() => _ReportReviewWorkspaceState();
+}
+
+class _ReportReviewWorkspaceState extends State<ReportReviewWorkspace> {
+  final _form = GlobalKey<FormState>();
+  List<_ValueDraft> _values = [];
+  final List<_ValueDraft> _removed = [];
+  int _nextValue = 0;
+  bool _loaded = false;
+  bool get _reading => _status == 'PENDING' || _status == 'PROCESSING';
+  List<Map<String, dynamic>> _flags = [];
+  final Set<String> _selectedFlags = {};
+  bool _loading = true,
+      _saving = false,
+      _dirty = false,
+      _confirmed = false,
+      _allowPop = false,
+      _watching = false;
+  String? _message;
+  // Server-side status; starts from the library row and is refreshed from each detail load.
+  late String _status = widget.report.ocrStatus.toUpperCase();
+  @override
+  void initState() {
+    super.initState();
+    unawaited(
+      _load().then((_) {
+        if (mounted && _status == 'PROCESSING') unawaited(_watchReading());
+      }),
+    );
+  }
+
+  @override
+  void dispose() {
+    for (final value in [..._values, ..._removed]) {
+      value.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _message = null;
+    });
+    try {
+      final detail = await widget.loadDetail();
+      if (!mounted) return;
+      final values = (detail['values'] as List).cast<Map<String, dynamic>>();
+      final flags = (detail['flags'] as List).cast<Map<String, dynamic>>();
+      // Validate before replacing the previous state; malformed responses are errors.
+      final drafts = values.map(_ValueDraft.new).toList();
+      final status = (detail['ocrStatus'] ?? _status).toString().toUpperCase();
+      for (final old in [..._values, ..._removed]) {
+        old.dispose();
+      }
+      setState(() {
+        _status = status;
+        _values = drafts;
+        _removed.clear();
+        _loaded = true;
+        _flags = flags;
+        _selectedFlags.clear();
+        _selectedFlags.addAll(
+          flags
+              .where((f) => f['manuallyConfirmed'] == true)
+              .map((f) => f['id'] as String),
+        );
+        _confirmed =
+            values.isNotEmpty &&
+            values.every((v) => v['wasManuallyConfirmed'] == true);
+        _dirty = false;
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(() => _message = 'Values could not be loaded. Retry.');
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _close() async {
+    if (_saving) return;
+    if (_dirty || !_confirmed) {
+      final leave = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Leave this review?'),
+          content: const Text(
+            'These values have not been confirmed. Unsaved changes will be lost if you leave.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Continue reviewing'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Leave without confirming'),
+            ),
+          ],
+        ),
+      );
+      if (leave != true || !mounted) return;
+    }
+    setState(() => _allowPop = true);
+    // Rebuild PopScope before popping so native back and the close button agree.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Navigator.of(context).pop();
+    });
+  }
+
+  void _addValue() {
+    if (_saving ||
+        _reading ||
+        !_loaded ||
+        _values.length + _removed.length >= 200) {
+      return;
+    }
+    final draft = _ValueDraft({
+      'id': 'new-${_nextValue++}',
+      'analyte': '',
+      'value': '',
+      'unit': '',
+    });
+    setState(() {
+      _values.add(draft);
+      _dirty = true;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted || !_values.contains(draft)) return;
+      final rowContext = draft.rowKey.currentContext;
+      if (rowContext != null) {
+        await Scrollable.ensureVisible(rowContext, alignment: 0);
+        if (mounted && _values.contains(draft)) draft.nameFocus.requestFocus();
+      }
+    });
+  }
+
+  Future<void> _removeValue(_ValueDraft value) async {
+    final remove = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        scrollable: true,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        insetPadding: const EdgeInsets.all(16),
+        constraints: const BoxConstraints(maxWidth: 680),
+        title: Row(
+          children: [
+            const Expanded(child: Text('Delete this value?')),
+            IconButton(
+              tooltip: 'Close removal confirmation',
+              onPressed: () => Navigator.pop(context, false),
+              icon: const Icon(Icons.close),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              color: Theme.of(context).colorScheme.errorContainer,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: Theme.of(context).colorScheme.onErrorContainer,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'This value will be deleted from your report when you confirm values.',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text('Report value', style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(height: 8),
+            Text(
+              value.analyte.text.trim().isEmpty
+                  ? 'Unnamed field'
+                  : value.analyte.text.trim(),
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
+            ),
+            if (value.value.text.trim().isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text('${value.value.text} ${value.unit.text}'),
+            ],
+            const SizedBox(height: 24),
+            Text(
+              'You can undo this removal before saving. Your original report is kept.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        actions: [
+          TextButton(
+            autofocus: true,
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('CANCEL'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+              ),
+              elevation: 2,
+              backgroundColor: const Color(0xFFD44242),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('DELETE VALUE'),
+          ),
+        ],
+      ),
+    );
+    if (remove != true || !mounted || _saving) return;
+    setState(() {
+      _values.remove(value);
+      _removed.add(value);
+      _dirty = true;
+    });
+  }
+
+  Future<void> _save() async {
+    if (_saving || _reading || !_loaded || !_form.currentState!.validate()) {
+      return;
+    }
+    for (final value in _values) {
+      final low = double.tryParse(value.low.text),
+          high = double.tryParse(value.high.text);
+      if (low != null && high != null && low > high) {
+        setState(
+          () => _message = 'Reference low cannot exceed reference high.',
+        );
+        return;
+      }
+    }
+    setState(() {
+      _saving = true;
+      _message = null;
+    });
+    try {
+      final detail = await widget.save({
+        'values': _values
+            .where((v) => !v.isNew)
+            .map((v) => v.payload())
+            .toList(),
+        'addedValues': _values
+            .where((v) => v.isNew)
+            .map((v) => v.payload()..remove('id'))
+            .toList(),
+        'deletedValueIds': _removed
+            .where((v) => !v.isNew)
+            .map((v) => v.id)
+            .toList(),
+        'confirmedFlagIds': _selectedFlags.toList(),
+      });
+      if (mounted) {
+        final drafts = (detail['values'] as List)
+            .cast<Map<String, dynamic>>()
+            .map(_ValueDraft.new)
+            .toList();
+        for (final old in [..._values, ..._removed]) {
+          old.dispose();
+        }
+        setState(() {
+          _values = drafts;
+          _removed.clear();
+          _status = (detail['ocrStatus'] as String? ?? _status).toUpperCase();
+          _confirmed = true;
+          _dirty = false;
+          _message = 'Values confirmed';
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _message =
+              'Could not save. Your changes are still here. Retry when ready.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  /// The read runs in the background on the server: poll until it leaves Processing, then reload.
+  Future<void> _watchReading() async {
+    if (_watching) return;
+    _watching = true;
+    try {
+      final done = await waitForReportReading(
+        widget.loadDetail,
+        isActive: () => mounted,
+      );
+      if (done != null && mounted) await _load();
+    } finally {
+      _watching = false;
+    }
+  }
+
+  Future<void> _readAgain() async {
+    if (_saving || _dirty || _confirmed || widget.readAgain == null) return;
+    setState(() {
+      _saving = true;
+      _message = null;
+    });
+    try {
+      await widget.readAgain!();
+      if (mounted) await _load();
+      if (mounted && _status == 'PROCESSING') unawaited(_watchReading());
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _message =
+              'Reading could not finish. Retry or compare the original report.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  /// Why reading failed, what to do next, or the next step once values are confirmed.
+  List<Widget> _readingState(BuildContext context) {
+    final status = _status;
+    Widget readButton(String label) => FilledButton(
+      onPressed: _saving ? null : _readAgain,
+      child: Text(_saving ? 'Reading report…' : label),
+    );
+    Widget card(
+      String title,
+      String detail,
+      List<Widget> extra, {
+      bool warn = false,
+    }) => Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: warn
+              ? const Color(0xFFD59A3D)
+              : Theme.of(context).colorScheme.outlineVariant,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 4),
+            Text(detail),
+            ...extra,
+          ],
+        ),
+      ),
+    );
+    if (_values.isEmpty && (status == 'FAILED' || status == 'FAILED_SAFE')) {
+      final failure = readingFailure(widget.report.ocrErrorCode);
+      return [
+        card('Why it could not be read: ${failure.title}', failure.detail, [
+          const SizedBox(height: 6),
+          for (final tip in failure.tips) Text('• $tip'),
+          if (widget.readAgain != null) ...[
+            const SizedBox(height: 10),
+            readButton('Check report again'),
+          ],
+        ], warn: true),
+      ];
+    }
+    if (_values.isEmpty && status == 'PENDING' && widget.readAgain != null) {
+      return [
+        card(
+          'Not read yet',
+          'Read this report now to pull out its test values. It usually takes under a minute.',
+          [const SizedBox(height: 10), readButton('Read report now')],
+        ),
+      ];
+    }
+    if (status == 'PROCESSING') {
+      return [
+        card(
+          'Reading the report text…',
+          'Reports are read one at a time in the background, so this can take a few minutes when several are waiting. You can close this and come back.',
+          [
+            const SizedBox(height: 10),
+            OutlinedButton(
+              onPressed: _load,
+              child: const Text('Refresh status'),
+            ),
+          ],
+        ),
+      ];
+    }
+    if (_confirmed && !_dirty) {
+      return [
+        card(
+          'Next step: doctor review',
+          'Your confirmed values are saved. To have them looked at, start a check in Symptoms & Triage. An AI assistant prepares a summary for your doctor, and you only see what your doctor approves.',
+          [
+            const SizedBox(height: 10),
+            FilledButton(
+              onPressed: () {
+                final router = GoRouter.maybeOf(context);
+                Navigator.of(context).pop();
+                router?.go('/cases');
+              },
+              child: const Text('Go to Symptoms & Triage'),
+            ),
+          ],
+        ),
+      ];
+    }
+    return const [];
+  }
+
+  Widget _original() => widget.report.hasOriginalFile
+      ? OriginalReportContent(
+          fileName: widget.report.fileName,
+          load: widget.loadOriginal,
+        )
+      : const Center(child: Text('Original not stored'));
+
+  Widget _fields() => _loading
+      ? const Center(child: CircularProgressIndicator())
+      : Form(
+          key: _form,
+          onChanged: () {
+            if (!_dirty) setState(() => _dirty = true);
+          },
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              Text(
+                'Check every value',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Compare each item with the original report. Reference intervals alone do not determine your health. These are recorded values, not a diagnosis.',
+              ),
+              const SizedBox(height: 16),
+              if (_values.isEmpty)
+                const Text('No values are available to check yet.'),
+              if (_values.isEmpty &&
+                  _message == 'Values could not be loaded. Retry.')
+                OutlinedButton(
+                  onPressed: _load,
+                  child: const Text('Retry values'),
+                ),
+              for (final value in _values)
+                Card(
+                  key: value.rowKey,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Reported item ${_values.indexOf(value) + 1}',
+                                style: Theme.of(context).textTheme.labelLarge,
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: 'Delete value',
+                              onPressed: _saving || _reading
+                                  ? null
+                                  : () => _removeValue(value),
+                              icon: const Icon(Icons.delete_outline),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        _field(
+                          value.analyte,
+                          'Analyte',
+                          max: 120,
+                          focusNode: value.nameFocus,
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _field(
+                                value.value,
+                                'Value',
+                                numeric: true,
+                                fieldKey: ValueKey('value-${value.id}'),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _field(value.unit, 'Unit', max: 32),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _field(
+                                value.low,
+                                'Reference low',
+                                numeric: true,
+                                optional: true,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _field(
+                                value.high,
+                                'Reference high',
+                                numeric: true,
+                                optional: true,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed:
+                        _saving ||
+                            _reading ||
+                            !_loaded ||
+                            _values.length + _removed.length >= 200
+                        ? null
+                        : _addValue,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add value'),
+                  ),
+                  if (_removed.isNotEmpty)
+                    TextButton(
+                      onPressed: _saving
+                          ? null
+                          : () => setState(() {
+                              _values.addAll(_removed);
+                              _removed.clear();
+                              _dirty = true;
+                            }),
+                      child: Text('Undo removals (${_removed.length})'),
+                    ),
+                ],
+              ),
+              const Text(
+                'Add any field missed during extraction. Removals are saved only when you confirm values.',
+              ),
+              const SizedBox(height: 12),
+              if (_flags.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Potential hereditary screening flags',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const Text(
+                  'Confirm only source-supported statements. Screening flags are not diagnoses.',
+                ),
+                for (final flag in _flags)
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text('${flag['conditionCode']}: ${flag['finding']}'),
+                    value: _selectedFlags.contains(flag['id']),
+                    onChanged: _saving || _reading
+                        ? null
+                        : (selected) => setState(() {
+                            _dirty = true;
+                            if (selected == true) {
+                              _selectedFlags.add(flag['id'] as String);
+                            } else {
+                              _selectedFlags.remove(flag['id']);
+                            }
+                          }),
+                  ),
+              ],
+              ..._readingState(context),
+              if (_message != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Text(_message!, semanticsLabel: _message),
+                ),
+              const SizedBox(height: 16),
+              if (_values.isNotEmpty || _removed.isNotEmpty)
+                FilledButton.icon(
+                  onPressed: _saving || _reading ? null : _save,
+                  icon: const Icon(Icons.check),
+                  label: Text(_saving ? 'Saving…' : 'Confirm values'),
+                ),
+              if (widget.readAgain != null && !_confirmed && _values.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: OutlinedButton(
+                    onPressed: _saving || _dirty ? null : _readAgain,
+                    child: const Text('Check report again'),
+                  ),
+                ),
+              if (widget.readAgain != null && !_confirmed)
+                const Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Text(
+                    'Recheck the original file with enhanced reading where needed. Compare every extracted value before confirming. If reading fails, enter values manually.',
+                  ),
+                ),
+            ],
+          ),
+        );
+
+  Widget _field(
+    TextEditingController controller,
+    String label, {
+    FocusNode? focusNode,
+    bool numeric = false,
+    bool optional = false,
+    int? max,
+    Key? fieldKey,
+  }) => TextFormField(
+    key: fieldKey,
+    controller: controller,
+    focusNode: focusNode,
+    enabled: !_saving && !_reading,
+    maxLength: max,
+    decoration: InputDecoration(
+      labelText: label,
+      counterText: '',
+      border: const OutlineInputBorder(),
+    ),
+    keyboardType: numeric
+        ? const TextInputType.numberWithOptions(decimal: true, signed: true)
+        : TextInputType.text,
+    validator: (text) {
+      final input = (text ?? '').trim();
+      if (optional && input.isEmpty) return null;
+      if (input.isEmpty) return 'Required';
+      if (numeric && (double.tryParse(input)?.isFinite != true)) {
+        return 'Enter a number';
+      }
+      if (max != null && input.length > max) return 'Too long';
+      return null;
+    },
+  );
+
+  @override
+  Widget build(BuildContext context) => PopScope(
+    canPop: _allowPop,
+    onPopInvokedWithResult: (didPop, _) {
+      if (!didPop) _close();
+    },
+    child: LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 800;
+        return DefaultTabController(
+          length: 2,
+          initialIndex: 1,
+          child: Scaffold(
+            appBar: AppBar(
+              automaticallyImplyLeading: false,
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Check values'),
+                  Text(
+                    widget.report.fileName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+              actions: [
+                IconButton(
+                  tooltip: 'Close review',
+                  onPressed: _saving ? null : _close,
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            body: SafeArea(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: ReportProgress(
+                      status: widget.report.ocrStatus,
+                      confirmed: _confirmed && !_dirty,
+                    ),
+                  ),
+                  if (!wide)
+                    const TabBar(
+                      tabs: [
+                        Tab(text: 'Report'),
+                        Tab(text: 'Values'),
+                      ],
+                    ),
+                  Expanded(
+                    child: wide
+                        ? Row(
+                            children: [
+                              Expanded(child: _original()),
+                              const VerticalDivider(width: 1),
+                              Expanded(child: _fields()),
+                            ],
+                          )
+                        : TabBarView(children: [_original(), _fields()]),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    ),
+  );
+}
+
+class _ValueDraft {
+  _ValueDraft(Map<String, dynamic> value)
+    : id = value['id'] as String,
+      analyte = TextEditingController(text: value['analyte'] as String),
+      value = TextEditingController(text: '${value['value']}'),
+      unit = TextEditingController(text: value['unit'] as String),
+      low = TextEditingController(
+        text: value['referenceLow']?.toString() ?? '',
+      ),
+      high = TextEditingController(
+        text: value['referenceHigh']?.toString() ?? '',
+      );
+  final GlobalKey rowKey = GlobalKey();
+  final FocusNode nameFocus = FocusNode();
+  final String id;
+  bool get isNew => id.startsWith('new-');
+  final TextEditingController analyte, value, unit, low, high;
+  Map<String, dynamic> payload() => {
+    'id': id,
+    'analyte': analyte.text.trim(),
+    'value': double.parse(value.text.trim()),
+    'unit': unit.text.trim(),
+    'referenceLow': double.tryParse(low.text.trim()),
+    'referenceHigh': double.tryParse(high.text.trim()),
+  };
+  void dispose() {
+    nameFocus.dispose();
+    for (final controller in [analyte, value, unit, low, high]) {
+      controller.dispose();
+    }
+  }
+}

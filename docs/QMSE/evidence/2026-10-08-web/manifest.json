@@ -1,0 +1,522 @@
+[
+  {
+    "file": "public-login-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "anonymous",
+    "route": "/login",
+    "finalPath": "/login"
+  },
+  {
+    "file": "public-login-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 0,
+    "role": "anonymous",
+    "route": "/login",
+    "finalPath": "/login"
+  },
+  {
+    "file": "public-register-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "anonymous",
+    "route": "/register",
+    "finalPath": "/register"
+  },
+  {
+    "file": "public-register-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 0,
+    "role": "anonymous",
+    "route": "/register",
+    "finalPath": "/register"
+  },
+  {
+    "file": "public-dashboard-redirect-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "anonymous",
+    "route": "/dashboard",
+    "finalPath": "/login"
+  },
+  {
+    "file": "family-head-dashboard-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "family-head",
+    "route": "/dashboard",
+    "finalPath": "/dashboard"
+  },
+  {
+    "file": "family-head-dashboard-768.png",
+    "viewport": "768",
+    "horizontalOverflowPx": 0,
+    "role": "family-head",
+    "route": "/dashboard",
+    "finalPath": "/dashboard"
+  },
+  {
+    "file": "family-head-dashboard-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 0,
+    "role": "family-head",
+    "route": "/dashboard",
+    "finalPath": "/dashboard"
+  },
+  {
+    "file": "family-head-dashboard-375.png",
+    "viewport": "375",
+    "horizontalOverflowPx": 0,
+    "role": "family-head",
+    "route": "/dashboard",
+    "finalPath": "/dashboard"
+  },
+  {
+    "file": "family-head-family-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "family-head",
+    "route": "/family",
+    "finalPath": "/family"
+  },
+  {
+    "file": "family-head-family-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 65,
+    "role": "family-head",
+    "route": "/family",
+    "finalPath": "/family"
+  },
+  {
+    "file": "family-head-records-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "family-head",
+    "route": "/records",
+    "finalPath": "/records"
+  },
+  {
+    "file": "family-head-records-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 0,
+    "role": "family-head",
+    "route": "/records",
+    "finalPath": "/records"
+  },
+  {
+    "file": "family-head-triage-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "family-head",
+    "route": "/triage",
+    "finalPath": "/triage"
+  },
+  {
+    "file": "family-head-triage-768.png",
+    "viewport": "768",
+    "horizontalOverflowPx": 0,
+    "role": "family-head",
+    "route": "/triage",
+    "finalPath": "/triage"
+  },
+  {
+    "file": "family-head-triage-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 65,
+    "role": "family-head",
+    "route": "/triage",
+    "finalPath": "/triage"
+  },
+  {
+    "file": "family-head-triage-375.png",
+    "viewport": "375",
+    "horizontalOverflowPx": 80,
+    "role": "family-head",
+    "route": "/triage",
+    "finalPath": "/triage"
+  },
+  {
+    "file": "family-head-family-risk-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "family-head",
+    "route": "/family-risk",
+    "finalPath": "/family-risk"
+  },
+  {
+    "file": "family-head-family-risk-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 65,
+    "role": "family-head",
+    "route": "/family-risk",
+    "finalPath": "/family-risk"
+  },
+  {
+    "file": "family-head-appointments-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "family-head",
+    "route": "/appointments",
+    "finalPath": "/appointments"
+  },
+  {
+    "file": "family-head-appointments-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 65,
+    "role": "family-head",
+    "route": "/appointments",
+    "finalPath": "/appointments"
+  },
+  {
+    "file": "family-head-my-doctor-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "family-head",
+    "route": "/my-doctor",
+    "finalPath": "/my-doctor"
+  },
+  {
+    "file": "family-head-my-doctor-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 0,
+    "role": "family-head",
+    "route": "/my-doctor",
+    "finalPath": "/my-doctor"
+  },
+  {
+    "file": "family-head-notifications-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "family-head",
+    "route": "/notifications",
+    "finalPath": "/notifications"
+  },
+  {
+    "file": "family-head-notifications-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 65,
+    "role": "family-head",
+    "route": "/notifications",
+    "finalPath": "/notifications"
+  },
+  {
+    "file": "family-head-privacy-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "family-head",
+    "route": "/privacy",
+    "finalPath": "/privacy"
+  },
+  {
+    "file": "family-head-privacy-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 65,
+    "role": "family-head",
+    "route": "/privacy",
+    "finalPath": "/privacy"
+  },
+  {
+    "file": "family-head-own-audit-log-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "family-head",
+    "route": "/audit",
+    "finalPath": "/audit"
+  },
+  {
+    "file": "family-head-own-audit-log-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 194,
+    "role": "family-head",
+    "route": "/audit",
+    "finalPath": "/audit"
+  },
+  {
+    "file": "adult-member-dashboard-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "adult-member",
+    "route": "/dashboard",
+    "finalPath": "/dashboard"
+  },
+  {
+    "file": "adult-member-dashboard-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 13,
+    "role": "adult-member",
+    "route": "/dashboard",
+    "finalPath": "/dashboard"
+  },
+  {
+    "file": "adult-member-records-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "adult-member",
+    "route": "/records",
+    "finalPath": "/records"
+  },
+  {
+    "file": "adult-member-records-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 0,
+    "role": "adult-member",
+    "route": "/records",
+    "finalPath": "/records"
+  },
+  {
+    "file": "adult-member-triage-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "adult-member",
+    "route": "/triage",
+    "finalPath": "/triage"
+  },
+  {
+    "file": "adult-member-triage-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 70,
+    "role": "adult-member",
+    "route": "/triage",
+    "finalPath": "/triage"
+  },
+  {
+    "file": "adult-member-appointments-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "adult-member",
+    "route": "/appointments",
+    "finalPath": "/appointments"
+  },
+  {
+    "file": "adult-member-appointments-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 70,
+    "role": "adult-member",
+    "route": "/appointments",
+    "finalPath": "/appointments"
+  },
+  {
+    "file": "adult-member-my-family-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "adult-member",
+    "route": "/my-family",
+    "finalPath": "/my-family"
+  },
+  {
+    "file": "adult-member-my-family-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 70,
+    "role": "adult-member",
+    "route": "/my-family",
+    "finalPath": "/my-family"
+  },
+  {
+    "file": "doctor-dashboard-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "doctor",
+    "route": "/dashboard",
+    "finalPath": "/dashboard"
+  },
+  {
+    "file": "doctor-dashboard-768.png",
+    "viewport": "768",
+    "horizontalOverflowPx": 0,
+    "role": "doctor",
+    "route": "/dashboard",
+    "finalPath": "/dashboard"
+  },
+  {
+    "file": "doctor-dashboard-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 0,
+    "role": "doctor",
+    "route": "/dashboard",
+    "finalPath": "/dashboard"
+  },
+  {
+    "file": "doctor-dashboard-375.png",
+    "viewport": "375",
+    "horizontalOverflowPx": 0,
+    "role": "doctor",
+    "route": "/dashboard",
+    "finalPath": "/dashboard"
+  },
+  {
+    "file": "doctor-approvals-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "doctor",
+    "route": "/approvals",
+    "finalPath": "/approvals"
+  },
+  {
+    "file": "doctor-approvals-768.png",
+    "viewport": "768",
+    "horizontalOverflowPx": 0,
+    "role": "doctor",
+    "route": "/approvals",
+    "finalPath": "/approvals"
+  },
+  {
+    "file": "doctor-approvals-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 0,
+    "role": "doctor",
+    "route": "/approvals",
+    "finalPath": "/approvals"
+  },
+  {
+    "file": "doctor-approvals-375.png",
+    "viewport": "375",
+    "horizontalOverflowPx": 0,
+    "role": "doctor",
+    "route": "/approvals",
+    "finalPath": "/approvals"
+  },
+  {
+    "file": "doctor-cases-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "doctor",
+    "route": "/cases",
+    "finalPath": "/cases"
+  },
+  {
+    "file": "doctor-cases-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 0,
+    "role": "doctor",
+    "route": "/cases",
+    "finalPath": "/cases"
+  },
+  {
+    "file": "doctor-families-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "doctor",
+    "route": "/families",
+    "finalPath": "/families"
+  },
+  {
+    "file": "doctor-families-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 43,
+    "role": "doctor",
+    "route": "/families",
+    "finalPath": "/families"
+  },
+  {
+    "file": "doctor-doctor-calendar-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "doctor",
+    "route": "/doctor-calendar",
+    "finalPath": "/calendar"
+  },
+  {
+    "file": "doctor-doctor-calendar-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 43,
+    "role": "doctor",
+    "route": "/doctor-calendar",
+    "finalPath": "/calendar"
+  },
+  {
+    "file": "doctor-doctor-profile-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "doctor",
+    "route": "/doctor-profile",
+    "finalPath": "/doctor-profile"
+  },
+  {
+    "file": "doctor-doctor-profile-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 43,
+    "role": "doctor",
+    "route": "/doctor-profile",
+    "finalPath": "/doctor-profile"
+  },
+  {
+    "file": "admin-dashboard-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "admin",
+    "route": "/dashboard",
+    "finalPath": "/dashboard"
+  },
+  {
+    "file": "admin-dashboard-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 104,
+    "role": "admin",
+    "route": "/dashboard",
+    "finalPath": "/dashboard"
+  },
+  {
+    "file": "admin-doctor-verification-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "admin",
+    "route": "/doctor-verification",
+    "finalPath": "/doctor-verification"
+  },
+  {
+    "file": "admin-doctor-verification-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 721,
+    "role": "admin",
+    "route": "/doctor-verification",
+    "finalPath": "/doctor-verification"
+  },
+  {
+    "file": "admin-family-head-verification-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "admin",
+    "route": "/family-head-verification",
+    "finalPath": "/family-head-verification"
+  },
+  {
+    "file": "admin-family-head-verification-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 600,
+    "role": "admin",
+    "route": "/family-head-verification",
+    "finalPath": "/family-head-verification"
+  },
+  {
+    "file": "admin-users-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "admin",
+    "route": "/users",
+    "finalPath": "/users"
+  },
+  {
+    "file": "admin-users-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 388,
+    "role": "admin",
+    "route": "/users",
+    "finalPath": "/users"
+  },
+  {
+    "file": "admin-audit-1440.png",
+    "viewport": "1440",
+    "horizontalOverflowPx": 0,
+    "role": "admin",
+    "route": "/audit",
+    "finalPath": "/audit"
+  },
+  {
+    "file": "admin-audit-390.png",
+    "viewport": "390",
+    "horizontalOverflowPx": 320,
+    "role": "admin",
+    "route": "/audit",
+    "finalPath": "/audit"
+  }
+]

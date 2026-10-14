@@ -1,0 +1,16 @@
+# OWASP ZAP API scan summary
+# tool: ZAP 2.17.0 (ghcr.io/zaproxy/zaproxy:stable), zap-api-scan.py, OpenAPI definition from /swagger/v1/swagger.json
+# target: disposable local API (http://127.0.0.1:5060) + PostgreSQL 16 in Docker, synthetic seed data; authenticated as a synthetic Family Head (bearer token injected by the ZAP replacer)
+# date: 2026-10-05
+
+First run  (before fixes):  PASS 116   WARN 4   FAIL 0
+  Low  A Server Error response code was returned by the server (1)  GET /api/v1/doctors/directory?search=%00  -> 500
+  Low  X-Content-Type-Options Header Missing (12 URLs reported, 5 instances recorded)
+  Low  Cross-Origin-Resource-Policy Header Missing or Invalid (12 URLs reported, 5 instances recorded)
+  Low  Unexpected Content-Type was returned (2)  /swagger/ and /swagger/index.html
+
+Retest (after RequestHardeningMiddleware):  PASS 117   WARN 2   FAIL 0
+  Low  Cross-Origin-Resource-Policy Header Missing or Invalid  -- accepted, see final report section 4.5
+  Low  Unexpected Content-Type was returned (2)  /swagger/ and /swagger/index.html -- Swagger UI is HTML by design
+
+No High or Medium risk alert in either run. Full reports: zap-first-run/ and zap-retest/ (HTML and Markdown).

@@ -1,0 +1,15 @@
+# Write path: 20 x (create symptom episode -> submit triage case) as synthetic Family Head
+# target: http://127.0.0.1:5090/api/v1
+status counts: {'create:201': 20, 'submit:202': 20}
+create episode   n=20   p50=    3.8 ms  p95=    6.6 ms  max=   30.0 ms
+submit triage    n=20   p50=   10.9 ms  p95=   16.4 ms  max=   64.2 ms
+case states 5 s after submit: {'FailedSafe': 20}
+
+# Stepped read ramp: 2000 requests per step on GET /dashboard/family (ApacheBench)
+ conc   done  fail  non2xx     req/s   mean ms   p50   p95   p99    max
+   10   2000     0       0    371.01    26.953    24    45    70    233
+   25   2000     0       0    431.75    57.904    53    90   113    141
+   50   2000     0       0    447.07   111.840   104   165   227    294
+  100   2000     0       0    437.41   228.616   208   367   407    488
+
+Writes: all returned expected 201/202; ramp: no failed or non-2xx requests

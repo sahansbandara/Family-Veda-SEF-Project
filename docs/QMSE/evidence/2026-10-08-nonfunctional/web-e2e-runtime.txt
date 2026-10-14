@@ -1,0 +1,21 @@
+npm verbose cli /Users/sahansandaruwan/.hermes/node/bin/node /Users/sahansandaruwan/.local/bin/npm
+npm info using npm@10.9.8
+npm info using node@v22.23.2
+npm verbose title npm run dev --host 127.0.0.1 --port 5175
+npm verbose argv "run" "dev" "--" "--host" "127.0.0.1" "--port" "5175"
+npm verbose logfile logs-max:10 dir:/Users/sahansandaruwan/.npm/_logs/2026-10-08T09_10_16_942Z-
+npm verbose logfile /Users/sahansandaruwan/.npm/_logs/2026-10-08T09_10_16_942Z-debug-0.log
+
+> family-veda-web@0.1.0 dev
+> vite --host 127.0.0.1 --port 5175
+
+
+  VITE v8.2.0  ready in 182 ms
+
+  ➜  Local:   http://127.0.0.1:5175/
+2:40:40 PM [vite] (client) [console.warn] [cently:rd:site] failed to patch window.location setter TypeError: Cannot redefine property: location
+    at Object.defineProperty (<anonymous>)
+    at chrome-extension://eofcbnmajmjmplflapaojjnihcjkigck/redirectionChainSiteScript.js:1:1867
+    at chrome-extension://eofcbnmajmjmplflapaojjnihcjkigck/redirectionChainSiteScript.js:1:2646
+    at chrome-extension://eofcbnmajmjmplflapaojjnihcjkigck/redirectionChainSiteScript.js:1:2650
+3:11:46 PM [vite] (client) hmr update /src/pages/triage/TriagePage.tsx

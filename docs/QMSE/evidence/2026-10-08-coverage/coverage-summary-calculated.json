@@ -1,0 +1,56 @@
+{
+  "backend-integration": {
+    "report": "docs/QMSE/evidence/2026-10-08-coverage/backend-integration/891c168e-3283-4eb7-b4db-17a635143995/coverage.cobertura.xml",
+    "line-rate": "0.6428",
+    "branch-rate": "0.1387",
+    "version": "1.9",
+    "timestamp": "1791450176",
+    "lines-covered": "29118",
+    "lines-valid": "45297",
+    "branches-covered": "939",
+    "branches-valid": "6767",
+    "linePercent": 64.28240280813299,
+    "branchPercent": 13.876163735776563
+  },
+  "backend-unit": {
+    "report": "docs/QMSE/evidence/2026-10-08-coverage/backend-unit/0a87f8e9-51d8-4119-9cb9-aea69e654556/coverage.cobertura.xml",
+    "line-rate": "0.247",
+    "branch-rate": "0.5472",
+    "version": "1.9",
+    "timestamp": "1791450106",
+    "lines-covered": "11191",
+    "lines-valid": "45297",
+    "branches-covered": "3703",
+    "branches-valid": "6767",
+    "linePercent": 24.705830408194803,
+    "branchPercent": 54.72144229348308
+  },
+  "mobile": {
+    "LF": 11396,
+    "LH": 8632,
+    "BRF": 0,
+    "BRH": 0,
+    "files": 122,
+    "report": "docs/QMSE/evidence/2026-10-08-coverage/mobile/lcov.info",
+    "linePercent": 75.74587574587575
+  },
+  "web": {
+    "report": "docs/QMSE/evidence/2026-10-08-coverage/web/report/clover.xml",
+    "metrics": {
+      "statements": "5030",
+      "coveredstatements": "3619",
+      "conditionals": "5297",
+      "coveredconditionals": "3413",
+      "methods": "1849",
+      "coveredmethods": "1230",
+      "elements": "12176",
+      "coveredelements": "8262",
+      "complexity": "0",
+      "loc": "5030",
+      "ncloc": "5030",
+      "packages": "23",
+      "files": "132",
+      "classes": "132"
+    }
+  }
+}

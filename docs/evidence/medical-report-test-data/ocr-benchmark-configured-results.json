@@ -1,0 +1,146 @@
+[
+  {
+    "file": "SYNTHETIC_morzel_lab_page1_clean.png",
+    "category": "clean",
+    "exitCode": 0,
+    "structuredValues": 0
+  },
+  {
+    "file": "SYNTHETIC_morzel_lab_page2_clean.png",
+    "category": "clean",
+    "exitCode": 0,
+    "structuredValues": 0
+  },
+  {
+    "file": "SYNTHETIC_ClinOCR_tables_t11_s2.jpg",
+    "category": "clean",
+    "exitCode": 0,
+    "structuredValues": 18
+  },
+  {
+    "file": "SYNTHETIC_ClinOCR_tables_t11_s3.jpg",
+    "category": "clean",
+    "exitCode": 0,
+    "structuredValues": 15
+  },
+  {
+    "file": "SYNTHETIC_ClinOCR_tables_t15_s2.jpg",
+    "category": "clean",
+    "exitCode": 0,
+    "structuredValues": 0
+  },
+  {
+    "file": "SYNTHETIC_morzel_lab_page1_skewed.png",
+    "category": "tilted-phone-photo",
+    "exitCode": 0,
+    "structuredValues": 0
+  },
+  {
+    "file": "SYNTHETIC_tilted_02_morzel_page2.jpg",
+    "category": "tilted-phone-photo",
+    "exitCode": 0,
+    "structuredValues": 0
+  },
+  {
+    "file": "SYNTHETIC_tilted_03_clinocr_t11_s2.jpg",
+    "category": "tilted-phone-photo",
+    "exitCode": 0,
+    "structuredValues": 0
+  },
+  {
+    "file": "SYNTHETIC_tilted_04_clinocr_t11_s3.jpg",
+    "category": "tilted-phone-photo",
+    "exitCode": 0,
+    "structuredValues": 0
+  },
+  {
+    "file": "SYNTHETIC_tilted_05_clinocr_t15_s2.jpg",
+    "category": "tilted-phone-photo",
+    "exitCode": 0,
+    "structuredValues": 0
+  },
+  {
+    "file": "SYNTHETIC_low-quality_01_morzel_photocopy.png",
+    "category": "blurry-low-quality",
+    "exitCode": 0,
+    "structuredValues": 0
+  },
+  {
+    "file": "SYNTHETIC_low-quality_02_blur_morzel_page2.jpg",
+    "category": "blurry-low-quality",
+    "exitCode": 0,
+    "structuredValues": 0
+  },
+  {
+    "file": "SYNTHETIC_low-quality_03_lowres_clinocr_t11_s2.jpg",
+    "category": "blurry-low-quality",
+    "exitCode": 0,
+    "structuredValues": 0
+  },
+  {
+    "file": "SYNTHETIC_low-quality_04_jpeg_clinocr_t11_s3.jpg",
+    "category": "blurry-low-quality",
+    "exitCode": 0,
+    "structuredValues": 15
+  },
+  {
+    "file": "SYNTHETIC_low-quality_05_dim-noise_clinocr_t15_s2.jpg",
+    "category": "blurry-low-quality",
+    "exitCode": 0,
+    "structuredValues": 0
+  },
+  {
+    "file": "SYNTHETIC_handwritten_01_clinocr_t1_s2.jpg",
+    "category": "handwritten",
+    "exitCode": 0,
+    "structuredValues": 0
+  },
+  {
+    "file": "SYNTHETIC_handwritten_02_clinocr_t1_s7.jpg",
+    "category": "handwritten",
+    "exitCode": 0,
+    "structuredValues": 0
+  },
+  {
+    "file": "SYNTHETIC_handwritten_03_clinocr_t1_s3.jpg",
+    "category": "handwritten",
+    "exitCode": 0,
+    "structuredValues": 0
+  },
+  {
+    "file": "SYNTHETIC_range-position_01_blood-count.png",
+    "category": "below-within-above",
+    "exitCode": 0,
+    "structuredValues": 3
+  },
+  {
+    "file": "SYNTHETIC_range-position_02_lipids.png",
+    "category": "below-within-above",
+    "exitCode": 0,
+    "structuredValues": 3
+  },
+  {
+    "file": "SYNTHETIC_range-position_03_metabolic.png",
+    "category": "below-within-above",
+    "exitCode": 0,
+    "structuredValues": 3
+  },
+  {
+    "file": "SYNTHETIC_missing-range_01_iron.png",
+    "category": "missing-reference-range",
+    "exitCode": 0,
+    "structuredValues": 3
+  },
+  {
+    "file": "SYNTHETIC_missing-range_02_thyroid.png",
+    "category": "missing-reference-range",
+    "exitCode": 0,
+    "structuredValues": 3
+  },
+  {
+    "file": "SYNTHETIC_missing-range_03_renal.png",
+    "category": "missing-reference-range",
+    "exitCode": 0,
+    "structuredValues": 3
+  }
+]

@@ -1,0 +1,4931 @@
+{
+	"@programName": "ZAP",
+	"@version": "2.17.0",
+	"@generated": "Thu, 8 Oct 2026 09:49:13",
+	"created": "2026-10-08T09:49:13.964222004Z",
+	"insights":[
+		{
+			"level": "Low",
+			"reason": "Warning",
+			"site": "",
+			"key": "insight.log.warn",
+			"description": "ZAP warnings logged - see the zap.log file for details",
+			"statistic": "11"
+		},
+		{
+			"level": "Low",
+			"reason": "Exceeded High",
+			"site": "http://host.docker.internal:5091",
+			"key": "insight.code.4xx",
+			"description": "Percentage of responses with status code 4xx",
+			"statistic": "99"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://host.docker.internal:5091",
+			"key": "insight.code.2xx",
+			"description": "Percentage of responses with status code 2xx",
+			"statistic": "10"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://host.docker.internal:5091",
+			"key": "insight.endpoint.ctype.application/json",
+			"description": "Percentage of endpoints with content type application/json",
+			"statistic": "6"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://host.docker.internal:5091",
+			"key": "insight.endpoint.method.DELETE",
+			"description": "Percentage of endpoints with method DELETE",
+			"statistic": "2"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://host.docker.internal:5091",
+			"key": "insight.endpoint.method.GET",
+			"description": "Percentage of endpoints with method GET",
+			"statistic": "58"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://host.docker.internal:5091",
+			"key": "insight.endpoint.method.PATCH",
+			"description": "Percentage of endpoints with method PATCH",
+			"statistic": "1"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://host.docker.internal:5091",
+			"key": "insight.endpoint.method.POST",
+			"description": "Percentage of endpoints with method POST",
+			"statistic": "34"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://host.docker.internal:5091",
+			"key": "insight.endpoint.method.PUT",
+			"description": "Percentage of endpoints with method PUT",
+			"statistic": "3"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://host.docker.internal:5091",
+			"key": "insight.endpoint.total",
+			"description": "Count of total endpoints",
+			"statistic": "459"
+		}
+	],
+	"site":[ 
+		{
+			"@name": "http://host.docker.internal:5091",
+			"@host": "host.docker.internal",
+			"@port": "5091",
+			"@ssl": "false",
+			"alerts": [ 
+				{
+					"pluginid": "90004",
+					"alertRef": "90004-1",
+					"alert": "Cross-Origin-Resource-Policy Header Missing or Invalid",
+					"name": "Cross-Origin-Resource-Policy Header Missing or Invalid",
+					"riskcode": "1",
+					"confidence": "2",
+					"riskdesc": "Low (Medium)",
+					"desc": "<p>Cross-Origin-Resource-Policy header is an opt-in header designed to counter side-channels attacks like Spectre. Resource should be specifically set as shareable amongst different origins.</p>",
+					"instances":[ 
+						{
+							"id": "586",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me",
+							"method": "GET",
+							"param": "Cross-Origin-Resource-Policy",
+							"attack": "",
+							"evidence": "",
+							"otherinfo": ""
+						},
+						{
+							"id": "595",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/cases?page=1&pageSize=20",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/cases (page,pageSize)",
+							"method": "GET",
+							"param": "Cross-Origin-Resource-Policy",
+							"attack": "",
+							"evidence": "",
+							"otherinfo": ""
+						},
+						{
+							"id": "18",
+							"uri": "http://host.docker.internal:5091/swagger/v1/swagger.json",
+							"nodeName": "http:\/\/host.docker.internal:5091\/swagger\/v1\/swagger.json",
+							"method": "GET",
+							"param": "Cross-Origin-Resource-Policy",
+							"attack": "",
+							"evidence": "",
+							"otherinfo": ""
+						},
+						{
+							"id": "567",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/forgot-password",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/forgot-password ()({email})",
+							"method": "POST",
+							"param": "Cross-Origin-Resource-Policy",
+							"attack": "",
+							"evidence": "",
+							"otherinfo": ""
+						},
+						{
+							"id": "555",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/logout",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/logout",
+							"method": "POST",
+							"param": "Cross-Origin-Resource-Policy",
+							"attack": "",
+							"evidence": "",
+							"otherinfo": ""
+						}
+					],
+					"count": "5",
+					"systemic": true,
+					"solution": "<p>Ensure that the application/web server sets the Cross-Origin-Resource-Policy header appropriately, and that it sets the Cross-Origin-Resource-Policy header to 'same-origin' for all web pages.</p><p>'same-site' is considered as less secured and should be avoided.</p><p>If resources must be shared, set the header to 'cross-origin'.</p><p>If possible, ensure that the end user uses a standards-compliant and modern web browser that supports the Cross-Origin-Resource-Policy header (https://caniuse.com/mdn-http_headers_cross-origin-resource-policy).</p>",
+					"otherinfo": "",
+					"reference": "<p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Embedder-Policy</p>",
+					"cweid": "693",
+					"wascid": "14",
+					"sourceid": "44"
+				},
+				{
+					"pluginid": "100001",
+					"alertRef": "100001",
+					"alert": "Unexpected Content-Type was returned",
+					"name": "Unexpected Content-Type was returned",
+					"riskcode": "1",
+					"confidence": "3",
+					"riskdesc": "Low (High)",
+					"desc": "<p>A Content-Type of text/html was returned by the server.</p><p>This is not one of the types expected to be returned by an API.</p><p>Raised by the 'Alert on Unexpected Content Types' script</p>",
+					"instances":[ 
+						{
+							"id": "23705",
+							"uri": "http://host.docker.internal:5091/swagger/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/swagger\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "text/html",
+							"otherinfo": ""
+						},
+						{
+							"id": "23704",
+							"uri": "http://host.docker.internal:5091/swagger/index.html",
+							"nodeName": "http:\/\/host.docker.internal:5091\/swagger\/index.html",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "text/html",
+							"otherinfo": ""
+						}
+					],
+					"count": "2",
+					"systemic": false,
+					"solution": "",
+					"otherinfo": "",
+					"reference": "",
+					"cweid": "-1",
+					"wascid": "-1",
+					"sourceid": "24104"
+				},
+				{
+					"pluginid": "100000",
+					"alertRef": "100000-1",
+					"alert": "A Client Error response code was returned by the server",
+					"name": "A Client Error response code was returned by the server",
+					"riskcode": "0",
+					"confidence": "3",
+					"riskdesc": "Informational (High)",
+					"desc": "<p>A response code of 404 was returned by the server.</p><p>This may indicate that the application is failing to handle unexpected input correctly.</p><p>Raised by the 'Alert on HTTP Response Code Error' script</p>",
+					"instances":[ 
+						{
+							"id": "51",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/blocked-time/id",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/blocked-time\/id",
+							"method": "DELETE",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23500",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/blocked-time/id/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/blocked-time\/id\/",
+							"method": "DELETE",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "108",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports/reportId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports\/reportId",
+							"method": "DELETE",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23538",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports/reportId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports\/reportId\/",
+							"method": "DELETE",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "111",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports/reportId/permanent",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports\/reportId\/permanent",
+							"method": "DELETE",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23523",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports/reportId/permanent/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports\/reportId\/permanent\/",
+							"method": "DELETE",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "95",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId",
+							"method": "DELETE",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23534",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/",
+							"method": "DELETE",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "105",
+							"uri": "http://host.docker.internal:5091/api/v1/records/recordId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/records\/recordId",
+							"method": "DELETE",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23549",
+							"uri": "http://host.docker.internal:5091/api/v1/records/recordId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/records\/recordId\/",
+							"method": "DELETE",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "1639",
+							"uri": "http://host.docker.internal:5091",
+							"nodeName": "http:\/\/host.docker.internal:5091",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23559",
+							"uri": "http://host.docker.internal:5091/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "138",
+							"uri": "http://host.docker.internal:5091/1751413801898793343",
+							"nodeName": "http:\/\/host.docker.internal:5091\/1751413801898793343",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "1658",
+							"uri": "http://host.docker.internal:5091/api",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23562",
+							"uri": "http://host.docker.internal:5091/api/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "139",
+							"uri": "http://host.docker.internal:5091/api/8979646449268433575",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/8979646449268433575",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "1663",
+							"uri": "http://host.docker.internal:5091/api/v1",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23563",
+							"uri": "http://host.docker.internal:5091/api/v1/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "140",
+							"uri": "http://host.docker.internal:5091/api/v1/5791724067535347412",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/5791724067535347412",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "1682",
+							"uri": "http://host.docker.internal:5091/api/v1/admin",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23566",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "141",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/8549258293675092116",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/8549258293675092116",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "1688",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/doctors",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/doctors",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "24",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/doctors?page=1&pageSize=20",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/doctors (page,pageSize)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "23568",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/doctors/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/doctors\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "142",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/doctors/5425770802318822654",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/doctors\/5425770802318822654",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "1705",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/doctors/doctorId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/doctors\/doctorId",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23570",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/doctors/doctorId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/doctors\/doctorId\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "143",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/doctors/doctorId/7830602145989584073",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/doctors\/doctorId\/7830602145989584073",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "26629",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/doctors/doctorId/actuator/health",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/doctors\/doctorId\/actuator\/health",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "1716",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/family-heads",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/family-heads",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "31",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/family-heads?page=1&pageSize=20",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/family-heads (page,pageSize)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "23572",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/family-heads/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/family-heads\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "144",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/family-heads/2297017386283647818",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/family-heads\/2297017386283647818",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "1735",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/family-heads/userId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/family-heads\/userId",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23575",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/family-heads/userId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/family-heads\/userId\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "145",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/family-heads/userId/5328258824376306794",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/family-heads\/userId\/5328258824376306794",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "1749",
+							"uri": "http://host.docker.internal:5091/api/v1/appointments",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/appointments",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "23577",
+							"uri": "http://host.docker.internal:5091/api/v1/appointments/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/appointments\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "146",
+							"uri": "http://host.docker.internal:5091/api/v1/appointments/7899099316916589714",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/appointments\/7899099316916589714",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "1766",
+							"uri": "http://host.docker.internal:5091/api/v1/appointments/id",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/appointments\/id",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23579",
+							"uri": "http://host.docker.internal:5091/api/v1/appointments/id/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/appointments\/id\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "147",
+							"uri": "http://host.docker.internal:5091/api/v1/appointments/id/4988449855691847605",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/appointments\/id\/4988449855691847605",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "1",
+							"uri": "http://host.docker.internal:5091/api/v1/appointments/mine",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/appointments\/mine",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "23582",
+							"uri": "http://host.docker.internal:5091/api/v1/appointments/mine/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/appointments\/mine\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "46",
+							"uri": "http://host.docker.internal:5091/api/v1/audit?subjectMemberId=subjectMemberId&page=1&pageSize=20",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/audit (page,pageSize,subjectMemberId)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "23581",
+							"uri": "http://host.docker.internal:5091/api/v1/audit/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/audit\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "1784",
+							"uri": "http://host.docker.internal:5091/api/v1/auth",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23583",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "148",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/7158218863099802927",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/7158218863099802927",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "1798",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/admin",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/admin",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23585",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/admin/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/admin\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "149",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/admin/1585034015247353055",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/admin\/1585034015247353055",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "1816",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/admin/users",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/admin\/users",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "20",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/admin/users?page=1&pageSize=20&search=ZAP",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/admin\/users (page,pageSize,search)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "23588",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/admin/users/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/admin\/users\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "150",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/admin/users/7747900949618872373",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/admin\/users\/7747900949618872373",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "1831",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/admin/users/userId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/admin\/users\/userId",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23589",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/admin/users/userId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/admin\/users\/userId\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "151",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/admin/users/userId/4072412915966743610",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/admin\/users\/userId\/4072412915966743610",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "1857",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/register",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/register",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "23593",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/register/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/register\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "152",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/register/2599355313838135737",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/register\/2599355313838135737",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "1872",
+							"uri": "http://host.docker.internal:5091/api/v1/dashboard",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/dashboard",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23594",
+							"uri": "http://host.docker.internal:5091/api/v1/dashboard/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/dashboard\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "153",
+							"uri": "http://host.docker.internal:5091/api/v1/dashboard/8916509035297912228",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/dashboard\/8916509035297912228",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "47",
+							"uri": "http://host.docker.internal:5091/api/v1/dashboard/family",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/dashboard\/family",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "23595",
+							"uri": "http://host.docker.internal:5091/api/v1/dashboard/family/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/dashboard\/family\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "1886",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23597",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "154",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/7019808866866587608",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/7019808866866587608",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "1898",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/case-pool?page=http%3A%2F%2Fwww.google.com%2F&pageSize=20",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/case-pool (page,pageSize)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "400",
+							"otherinfo": ""
+						},
+						{
+							"id": "66",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/directory?search=ZAP&district=district",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/directory (district,search)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "23598",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/directory/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/directory\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "155",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/1275918787591196307",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/1275918787591196307",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "4",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/appointments?from=from&to=to",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/appointments (from,to)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "400",
+							"otherinfo": ""
+						},
+						{
+							"id": "156",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/appointments/6651308187426895071",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/appointments\/6651308187426895071",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "1944",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/appointments/id",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/appointments\/id",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23601",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/appointments/id/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/appointments\/id\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "157",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/appointments/id/4740048292611763026",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/appointments\/id\/4740048292611763026",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "1961",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/blocked-time",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/blocked-time",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "23602",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/blocked-time/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/blocked-time\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "158",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/blocked-time/8306584448675280759",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/blocked-time\/8306584448675280759",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "1967",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/cases?page=http%3A%2F%2Fwww.google.com%2F&pageSize=20",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/cases (page,pageSize)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "400",
+							"otherinfo": ""
+						},
+						{
+							"id": "1993",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/families",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/families",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23604",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/families/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/families\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "159",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/families/378369379789801289",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/families\/378369379789801289",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "53",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/families/familyId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/families\/familyId",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23606",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/families/familyId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/families\/familyId\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "160",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/family-requests/8612851174139900875",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/family-requests\/8612851174139900875",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2013",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/family-requests/id",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/family-requests\/id",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23608",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/family-requests/id/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/family-requests\/id\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "161",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/family-requests/id/920532365497483574",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/family-requests\/id\/920532365497483574",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2030",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/members",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/members",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23609",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/members/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/members\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "162",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/members/2746870500483689395",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/members\/2746870500483689395",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "54",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/members/memberId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/members\/memberId",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23611",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/members/memberId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/members\/memberId\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "163",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/members/memberId/2030093162478045593",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/members\/memberId\/2030093162478045593",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2037",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/members/memberId/lab-reports",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/members\/memberId\/lab-reports",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23612",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/members/memberId/lab-reports/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/members\/memberId\/lab-reports\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "164",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/members/memberId/lab-reports/4564601917173314205",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/members\/memberId\/lab-reports\/4564601917173314205",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2051",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/members/memberId/lab-reports/reportId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/members\/memberId\/lab-reports\/reportId",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23614",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/members/memberId/lab-reports/reportId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/members\/memberId\/lab-reports\/reportId\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "165",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/members/memberId/lab-reports/reportId/4548158320189548114",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/members\/memberId\/lab-reports\/reportId\/4548158320189548114",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "55",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/members/memberId/lab-reports/reportId/file",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/members\/memberId\/lab-reports\/reportId\/file",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23615",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/members/memberId/lab-reports/reportId/file/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/members\/memberId\/lab-reports\/reportId\/file\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2059",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/notes",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/notes",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23617",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/notes/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/notes\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "166",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/notes/5030254295386590002",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/notes\/5030254295386590002",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2072",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/notes/noteId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/notes\/noteId",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23619",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/notes/noteId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/notes\/noteId\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "167",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/notes/noteId/8360901572869332423",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/notes\/noteId\/8360901572869332423",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2089",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/processing-cases?page=http%3A%2F%2Fwww.google.com%2F&pageSize=20",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/processing-cases (page,pageSize)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "400",
+							"otherinfo": ""
+						},
+						{
+							"id": "2083",
+							"uri": "http://host.docker.internal:5091/api/v1/episodes",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/episodes",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23621",
+							"uri": "http://host.docker.internal:5091/api/v1/episodes/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/episodes\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "168",
+							"uri": "http://host.docker.internal:5091/api/v1/episodes/1938620921586937567",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/episodes\/1938620921586937567",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2092",
+							"uri": "http://host.docker.internal:5091/api/v1/episodes/episodeId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/episodes\/episodeId",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23624",
+							"uri": "http://host.docker.internal:5091/api/v1/episodes/episodeId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/episodes\/episodeId\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "169",
+							"uri": "http://host.docker.internal:5091/api/v1/episodes/episodeId/810421013450492645",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/episodes\/episodeId\/810421013450492645",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2100",
+							"uri": "http://host.docker.internal:5091/api/v1/families",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "23626",
+							"uri": "http://host.docker.internal:5091/api/v1/families/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "170",
+							"uri": "http://host.docker.internal:5091/api/v1/families/319301719035004901",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/319301719035004901",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "2126",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "23631",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "171",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/8173411956533515104",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/8173411956533515104",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "135",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/dashboard",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/dashboard",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23629",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/dashboard/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/dashboard\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "67",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/doctor",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/doctor",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2133",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/doctor-requests",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/doctor-requests",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "23632",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/doctor-requests/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/doctor-requests\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "173",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/doctor-requests/1855084900697642213",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/doctor-requests\/1855084900697642213",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2148",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/doctor-requests/id",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/doctor-requests\/id",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23636",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/doctor-requests/id/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/doctor-requests\/id\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "174",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/doctor-requests/id/3237923576462422633",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/doctor-requests\/id\/3237923576462422633",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "69",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/doctor-requests/pending",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/doctor-requests\/pending",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23635",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/doctor-requests/pending/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/doctor-requests\/pending\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23628",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/doctor/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/doctor\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "172",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/doctor/7331508957174451195",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/doctor\/7331508957174451195",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "52",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/doctor/slots?date=date",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/doctor\/slots (date)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23633",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/doctor/slots/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/doctor\/slots\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2158",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/head-transfers",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/head-transfers",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "23640",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/head-transfers/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/head-transfers\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "175",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/head-transfers/3186182533209719118",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/head-transfers\/3186182533209719118",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "74",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/head-transfers/pending",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/head-transfers\/pending",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23637",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/head-transfers/pending/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/head-transfers\/pending\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "63",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/invitations",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/invitations",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23638",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/invitations/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/invitations\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "176",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/invitations/6533200511652242532",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/invitations\/6533200511652242532",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2171",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/invitations/invitationId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/invitations\/invitationId",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23642",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/invitations/invitationId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/invitations\/invitationId\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "177",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/invitations/invitationId/5550413101854691646",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/invitations\/invitationId\/5550413101854691646",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "88",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/join-requests?status=status",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/join-requests (status)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23641",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/join-requests/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/join-requests\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "61",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/members?page=1&pageSize=20&search=ZAP",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/members (page,pageSize,search)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23643",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/members/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/members\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "82",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/roster",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/roster",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23644",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/roster/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/roster\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "134",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/triage-cases?page=1&pageSize=20",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/triage-cases (page,pageSize)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23645",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/triage-cases/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/triage-cases\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2185",
+							"uri": "http://host.docker.internal:5091/api/v1/families/head-transfers",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/head-transfers",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23648",
+							"uri": "http://host.docker.internal:5091/api/v1/families/head-transfers/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/head-transfers\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "178",
+							"uri": "http://host.docker.internal:5091/api/v1/families/head-transfers/1776210152580287569",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/head-transfers\/1776210152580287569",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "75",
+							"uri": "http://host.docker.internal:5091/api/v1/families/head-transfers/incoming",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/head-transfers\/incoming",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "23649",
+							"uri": "http://host.docker.internal:5091/api/v1/families/head-transfers/incoming/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/head-transfers\/incoming\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "2192",
+							"uri": "http://host.docker.internal:5091/api/v1/families/head-transfers/transferId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/head-transfers\/transferId",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23651",
+							"uri": "http://host.docker.internal:5091/api/v1/families/head-transfers/transferId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/head-transfers\/transferId\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "179",
+							"uri": "http://host.docker.internal:5091/api/v1/families/head-transfers/transferId/8500667799158673726",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/head-transfers\/transferId\/8500667799158673726",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2205",
+							"uri": "http://host.docker.internal:5091/api/v1/families/invitations",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/invitations",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23652",
+							"uri": "http://host.docker.internal:5091/api/v1/families/invitations/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/invitations\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "180",
+							"uri": "http://host.docker.internal:5091/api/v1/families/invitations/1435396402768016476",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/invitations\/1435396402768016476",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2217",
+							"uri": "http://host.docker.internal:5091/api/v1/families/join-requests",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/join-requests",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "23655",
+							"uri": "http://host.docker.internal:5091/api/v1/families/join-requests/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/join-requests\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "181",
+							"uri": "http://host.docker.internal:5091/api/v1/families/join-requests/8568845680335481086",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/join-requests\/8568845680335481086",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2227",
+							"uri": "http://host.docker.internal:5091/api/v1/families/join-requests/id",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/join-requests\/id",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23657",
+							"uri": "http://host.docker.internal:5091/api/v1/families/join-requests/id/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/join-requests\/id\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "182",
+							"uri": "http://host.docker.internal:5091/api/v1/families/join-requests/id/7011237169480799597",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/join-requests\/id\/7011237169480799597",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "89",
+							"uri": "http://host.docker.internal:5091/api/v1/families/join-requests/mine",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/join-requests\/mine",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "23658",
+							"uri": "http://host.docker.internal:5091/api/v1/families/join-requests/mine/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/join-requests\/mine\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "58",
+							"uri": "http://host.docker.internal:5091/api/v1/families/me",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/me",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "23656",
+							"uri": "http://host.docker.internal:5091/api/v1/families/me/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/me\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "183",
+							"uri": "http://host.docker.internal:5091/api/v1/families/me/4436958627042195070",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/me\/4436958627042195070",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2237",
+							"uri": "http://host.docker.internal:5091/api/v1/family-head",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/family-head",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23661",
+							"uri": "http://host.docker.internal:5091/api/v1/family-head/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/family-head\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "184",
+							"uri": "http://host.docker.internal:5091/api/v1/family-head/3968017456479176866",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/family-head\/3968017456479176866",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "30",
+							"uri": "http://host.docker.internal:5091/api/v1/family-head/me",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/family-head\/me",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "23660",
+							"uri": "http://host.docker.internal:5091/api/v1/family-head/me/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/family-head\/me\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "2251",
+							"uri": "http://host.docker.internal:5091/api/v1/invitations",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/invitations",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23663",
+							"uri": "http://host.docker.internal:5091/api/v1/invitations/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/invitations\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "185",
+							"uri": "http://host.docker.internal:5091/api/v1/invitations/8808506709069910690",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/invitations\/8808506709069910690",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "79",
+							"uri": "http://host.docker.internal:5091/api/v1/invitations/incoming",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/invitations\/incoming",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "23664",
+							"uri": "http://host.docker.internal:5091/api/v1/invitations/incoming/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/invitations\/incoming\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "2258",
+							"uri": "http://host.docker.internal:5091/api/v1/invitations/invitationId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/invitations\/invitationId",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23667",
+							"uri": "http://host.docker.internal:5091/api/v1/invitations/invitationId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/invitations\/invitationId\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "186",
+							"uri": "http://host.docker.internal:5091/api/v1/invitations/invitationId/617877881892295745",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/invitations\/invitationId\/617877881892295745",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2269",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23669",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "187",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports/8237152712847751465",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports\/8237152712847751465",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "107",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports/reportId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports\/reportId",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23670",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports/reportId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports\/reportId\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "188",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports/reportId/1585351939209831711",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports\/reportId\/1585351939209831711",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "118",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports/reportId/file",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports\/reportId\/file",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23668",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports/reportId/file/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports\/reportId\/file\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2279",
+							"uri": "http://host.docker.internal:5091/api/v1/members",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23672",
+							"uri": "http://host.docker.internal:5091/api/v1/members/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "189",
+							"uri": "http://host.docker.internal:5091/api/v1/members/7334210071239508237",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/7334210071239508237",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "92",
+							"uri": "http://host.docker.internal:5091/api/v1/members/me",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/me",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "23674",
+							"uri": "http://host.docker.internal:5091/api/v1/members/me/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/me\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "93",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23673",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "190",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/3502878568519047210",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/3502878568519047210",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "98",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/consents",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/consents",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23675",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/consents/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/consents\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "191",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/consents/3292004539201269746",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/consents\/3292004539201269746",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "122",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/episodes?page=1&pageSize=20",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/episodes (page,pageSize)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23678",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/episodes/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/episodes\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "132",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/familial-risk",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/familial-risk",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23680",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/familial-risk/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/familial-risk\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "121",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/hereditary-flags",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/hereditary-flags",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23679",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/hereditary-flags/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/hereditary-flags\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "116",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/lab-reports",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/lab-reports",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23683",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/lab-reports/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/lab-reports\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "192",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/lab-reports/7070430421654901448",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/lab-reports\/7070430421654901448",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "109",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/lab-reports/deleted",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/lab-reports\/deleted",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23684",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/lab-reports/deleted/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/lab-reports\/deleted\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "102",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/records?page=1&pageSize=20&search=ZAP&type=Condition&sort=newest",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/records (page,pageSize,search,sort,type)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23685",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/records/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/records\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "96",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/relationships",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/relationships",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23682",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/relationships/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/relationships\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "133",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/triage-cases?page=1&pageSize=20",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/triage-cases (page,pageSize)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23677",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/triage-cases/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/triage-cases\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "113",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/vitals",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/vitals",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23681",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/vitals/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/vitals\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "193",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/vitals/5312362518372897009",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/vitals\/5312362518372897009",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "115",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/vitals/trends",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/vitals\/trends",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23676",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/vitals/trends/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/vitals\/trends\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2329",
+							"uri": "http://host.docker.internal:5091/api/v1/notifications?unreadOnly=http%3A%2F%2Fwww.google.com%2F",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/notifications (unreadOnly)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "400",
+							"otherinfo": ""
+						},
+						{
+							"id": "194",
+							"uri": "http://host.docker.internal:5091/api/v1/notifications/5049653337423805709",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/notifications\/5049653337423805709",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2317",
+							"uri": "http://host.docker.internal:5091/api/v1/notifications/id",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/notifications\/id",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23687",
+							"uri": "http://host.docker.internal:5091/api/v1/notifications/id/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/notifications\/id\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "195",
+							"uri": "http://host.docker.internal:5091/api/v1/notifications/id/9079024535553851128",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/notifications\/id\/9079024535553851128",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "137",
+							"uri": "http://host.docker.internal:5091/api/v1/notifications/inbox?page=1&pageSize=20",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/notifications\/inbox (page,pageSize)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "23689",
+							"uri": "http://host.docker.internal:5091/api/v1/notifications/inbox/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/notifications\/inbox\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "2336",
+							"uri": "http://host.docker.internal:5091/api/v1/profile",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/profile",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23691",
+							"uri": "http://host.docker.internal:5091/api/v1/profile/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/profile\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "196",
+							"uri": "http://host.docker.internal:5091/api/v1/profile/796277890402033943",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/profile\/796277890402033943",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2351",
+							"uri": "http://host.docker.internal:5091/api/v1/records",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/records",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23692",
+							"uri": "http://host.docker.internal:5091/api/v1/records/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/records\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "197",
+							"uri": "http://host.docker.internal:5091/api/v1/records/547696302675331365",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/records\/547696302675331365",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "2361",
+							"uri": "http://host.docker.internal:5091/api/v1/records/recordId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/records\/recordId",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "23694",
+							"uri": "http://host.docker.internal:5091/api/v1/records/recordId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/records\/recordId\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "405",
+							"otherinfo": ""
+						},
+						{
+							"id": "198",
+							"uri": "http://host.docker.internal:5091/api/v1/records/recordId/8173679429127869647",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/records\/recordId\/8173679429127869647",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2379",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23696",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "199",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/2317982609491192426",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/2317982609491192426",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "127",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23700",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "200",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/1298049180863018617",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/1298049180863018617",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "131",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/approved-guidance",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/approved-guidance",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23697",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/approved-guidance/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/approved-guidance\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "130",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/review",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/review",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23698",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/review/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/review\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "128",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/status",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/status",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23699",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/status/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/status\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "129",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/traces",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/traces",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23701",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/traces/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/traces\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "201",
+							"uri": "http://host.docker.internal:5091/swagger/8515110925378852264",
+							"nodeName": "http:\/\/host.docker.internal:5091\/swagger\/8515110925378852264",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "2399",
+							"uri": "http://host.docker.internal:5091/swagger/v1",
+							"nodeName": "http:\/\/host.docker.internal:5091\/swagger\/v1",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23703",
+							"uri": "http://host.docker.internal:5091/swagger/v1/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/swagger\/v1\/",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "202",
+							"uri": "http://host.docker.internal:5091/swagger/v1/7618398420811890627",
+							"nodeName": "http:\/\/host.docker.internal:5091\/swagger\/v1\/7618398420811890627",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "112",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports/reportId/sharing",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports\/reportId\/sharing ()({sharedWithFamilyHead})",
+							"method": "PATCH",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23533",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports/reportId/sharing/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports\/reportId\/sharing\/ ()({sharedWithFamilyHead})",
+							"method": "PATCH",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "106",
+							"uri": "http://host.docker.internal:5091/api/v1/records/recordId/sharing",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/records\/recordId\/sharing ()({sharedWithFamilyHead})",
+							"method": "PATCH",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23547",
+							"uri": "http://host.docker.internal:5091/api/v1/records/recordId/sharing/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/records\/recordId\/sharing\/ ()({sharedWithFamilyHead})",
+							"method": "PATCH",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "28",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/doctors/doctorId/reject",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/doctors\/doctorId\/reject ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23467",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/doctors/doctorId/reject/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/doctors\/doctorId\/reject\/ ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "27",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/doctors/doctorId/request-info",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/doctors\/doctorId\/request-info ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23470",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/doctors/doctorId/request-info/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/doctors\/doctorId\/request-info\/ ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "29",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/doctors/doctorId/suspend",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/doctors\/doctorId\/suspend ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23472",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/doctors/doctorId/suspend/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/doctors\/doctorId\/suspend\/ ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "25",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/doctors/doctorId/verification",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/doctors\/doctorId\/verification ()({status,reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23471",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/doctors/doctorId/verification/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/doctors\/doctorId\/verification\/ ()({status,reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "26",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/doctors/doctorId/verify",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/doctors\/doctorId\/verify ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23468",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/doctors/doctorId/verify/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/doctors\/doctorId\/verify\/ ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "35",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/family-heads/userId/reject",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/family-heads\/userId\/reject ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23469",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/family-heads/userId/reject/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/family-heads\/userId\/reject\/ ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "34",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/family-heads/userId/request-info",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/family-heads\/userId\/request-info ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23473",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/family-heads/userId/request-info/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/family-heads\/userId\/request-info\/ ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "36",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/family-heads/userId/suspend",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/family-heads\/userId\/suspend ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23477",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/family-heads/userId/suspend/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/family-heads\/userId\/suspend\/ ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "32",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/family-heads/userId/verification",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/family-heads\/userId\/verification ()({status,reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23476",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/family-heads/userId/verification/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/family-heads\/userId\/verification\/ ()({status,reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "33",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/family-heads/userId/verify",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/family-heads\/userId\/verify ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23474",
+							"uri": "http://host.docker.internal:5091/api/v1/admin/family-heads/userId/verify/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/admin\/family-heads\/userId\/verify\/ ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "0",
+							"uri": "http://host.docker.internal:5091/api/v1/appointments",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/appointments ()({memberId,startsAt,durationMinutes,reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "23475",
+							"uri": "http://host.docker.internal:5091/api/v1/appointments/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/appointments\/ ()({memberId,startsAt,durationMinutes,reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "2",
+							"uri": "http://host.docker.internal:5091/api/v1/appointments/id/cancel",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/appointments\/id\/cancel",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23478",
+							"uri": "http://host.docker.internal:5091/api/v1/appointments/id/cancel/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/appointments\/id\/cancel\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "21",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/admin/users/userId/reset-password",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/admin\/users\/userId\/reset-password ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23479",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/admin/users/userId/reset-password/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/admin\/users\/userId\/reset-password\/ ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "22",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/admin/users/userId/toggle-status",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/admin\/users\/userId\/toggle-status ()({isActive,reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23480",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/admin/users/userId/toggle-status/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/admin\/users\/userId\/toggle-status\/ ()({isActive,reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "19",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/change-password",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/change-password ()({currentPassword,newPassword})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "208",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/change-password",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/change-password ()({currentPassword,newPassword})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "23481",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/change-password/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/change-password\/ ()({currentPassword,newPassword})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "217",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/forgot-password",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/forgot-password ()({email})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "23482",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/forgot-password/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/forgot-password\/ ()({email})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "14",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/login",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/login ()({email,password})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "222",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/login",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/login ()({email,password})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "23488",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/login/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/login\/ ()({email,password})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "23484",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/logout/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/logout\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "15",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/refresh",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/refresh ()({refreshToken})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "220",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/refresh",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/refresh ()({refreshToken})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "23487",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/refresh/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/refresh\/ ()({refreshToken})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "10",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/register",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/register ()({email,password,displayName,userType,nic,address,registrationNumber,specialty,hospitalClinic,phoneNumber})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "400",
+							"otherinfo": ""
+						},
+						{
+							"id": "410",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/register",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/register ()({email,password,displayName,userType,nic,address,registrationNumber,specialty,hospitalClinic,phoneNumber})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "23489",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/register/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/register\/ ()({email,password,displayName,userType,nic,address,registrationNumber,specialty,hospitalClinic,phoneNumber})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "12",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/register/adult-member",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/register\/adult-member ()({account:{fullName,email,mobileNumber,password,confirmPassword},personal:{dateOfBirth,sexForClinicalReference},address:{addressLine1,addressLine2,city,district,postalCode},connection:{method,invitationToken,familyCode,relationship},acceptTerms})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "400",
+							"otherinfo": ""
+						},
+						{
+							"id": "218",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/register/adult-member",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/register\/adult-member ()({account:{fullName,email,mobileNumber,password,confirmPassword},personal:{dateOfBirth,sexForClinicalReference},address:{addressLine1,addressLine2,city,district,postalCode},connection:{method,invitationToken,familyCode,relationship},acceptTerms})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "23486",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/register/adult-member/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/register\/adult-member\/ ()({account:{fullName,email,mobileNumber,password,confirmPassword},personal:{dateOfBirth,sexForClinicalReference},address:{addressLine1,addressLine2,city,district,postalCode},connection:{method,invitationToken,familyCode,relationship},acceptTerms})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "13",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/register/doctor",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/register\/doctor ()(multipart:FullName,Email,MobileNumber,Password,ConfirmPassword,RegistrationNumber,Specialization,HospitalClinic,PracticeCity,District,Languages,AcceptTerms,LicenseDocument)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "400",
+							"otherinfo": ""
+						},
+						{
+							"id": "221",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/register/doctor",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/register\/doctor ()(multipart:FullName,Email,MobileNumber,Password,ConfirmPassword,RegistrationNumber,Specialization,HospitalClinic,PracticeCity,District,Languages,AcceptTerms,LicenseDocument)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "23483",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/register/doctor/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/register\/doctor\/ ()(multipart:FullName,Email,MobileNumber,Password,ConfirmPassword,RegistrationNumber,Specialization,HospitalClinic,PracticeCity,District,Languages,AcceptTerms,LicenseDocument)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "11",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/register/family-head",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/register\/family-head ()({account:{fullName,email,mobileNumber,password,confirmPassword},personal:{dateOfBirth,sexForClinicalReference},familyName,nationalId,address:{addressLine1,addressLine2,city,district,postalCode},acceptTerms})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "400",
+							"otherinfo": ""
+						},
+						{
+							"id": "219",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/register/family-head",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/register\/family-head ()({account:{fullName,email,mobileNumber,password,confirmPassword},personal:{dateOfBirth,sexForClinicalReference},familyName,nationalId,address:{addressLine1,addressLine2,city,district,postalCode},acceptTerms})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "23485",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/register/family-head/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/register\/family-head\/ ()({account:{fullName,email,mobileNumber,password,confirmPassword},personal:{dateOfBirth,sexForClinicalReference},familyName,nationalId,address:{addressLine1,addressLine2,city,district,postalCode},acceptTerms})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "16",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/reset-password",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/reset-password ()({email,token,newPassword})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "415",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/reset-password",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/reset-password ()({email,token,newPassword})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "23492",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/reset-password/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/reset-password\/ ()({email,token,newPassword})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "8",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/appointments/id/cancel",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/appointments\/id\/cancel ()({note})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23491",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/appointments/id/cancel/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/appointments\/id\/cancel\/ ()({note})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "6",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/appointments/id/complete",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/appointments\/id\/complete ()({note})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23490",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/appointments/id/complete/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/appointments\/id\/complete\/ ()({note})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "5",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/appointments/id/confirm",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/appointments\/id\/confirm ()({note})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23494",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/appointments/id/confirm/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/appointments\/id\/confirm\/ ()({note})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "7",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/appointments/id/no-show",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/appointments\/id\/no-show ()({note})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23496",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/appointments/id/no-show/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/appointments\/id\/no-show\/ ()({note})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "9",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/appointments/id/reschedule",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/appointments\/id\/reschedule ()({startsAt,note})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23497",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/appointments/id/reschedule/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/appointments\/id\/reschedule\/ ()({startsAt,note})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "50",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/blocked-time",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/blocked-time ()({startsAt,endsAt,reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "400",
+							"otherinfo": ""
+						},
+						{
+							"id": "23509",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/blocked-time/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/blocked-time\/ ()({startsAt,endsAt,reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "400",
+							"otherinfo": ""
+						},
+						{
+							"id": "71",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/family-requests/id/accept",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/family-requests\/id\/accept",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23498",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/family-requests/id/accept/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/family-requests\/id\/accept\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "72",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/family-requests/id/decline",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/family-requests\/id\/decline",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23495",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/family-requests/id/decline/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/family-requests\/id\/decline\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "56",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/members/memberId/notes",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/members\/memberId\/notes ()({content,noteType,appointmentId})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23499",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/members/memberId/notes/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/members\/memberId\/notes\/ ()({content,noteType,appointmentId})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "57",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/notes/noteId/amend",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/notes\/noteId\/amend ()({content})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23505",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/notes/noteId/amend/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/notes\/noteId\/amend\/ ()({content})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/register",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/register ()({registrationNumber,specialty,hospitalClinic,phoneNumber})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "409",
+							"otherinfo": ""
+						},
+						{
+							"id": "23502",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/register/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/register\/ ()({registrationNumber,specialty,hospitalClinic,phoneNumber})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "409",
+							"otherinfo": ""
+						},
+						{
+							"id": "124",
+							"uri": "http://host.docker.internal:5091/api/v1/episodes/episodeId/triage",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/episodes\/episodeId\/triage",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23503",
+							"uri": "http://host.docker.internal:5091/api/v1/episodes/episodeId/triage/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/episodes\/episodeId\/triage\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "59",
+							"uri": "http://host.docker.internal:5091/api/v1/families",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families ()({name})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "23521",
+							"uri": "http://host.docker.internal:5091/api/v1/families/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/ ()({name})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "68",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/doctor-requests",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/doctor-requests ()({doctorId,message})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23511",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/doctor-requests/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/doctor-requests\/ ()({doctorId,message})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "70",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/doctor-requests/id/cancel",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/doctor-requests\/id\/cancel",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23493",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/doctor-requests/id/cancel/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/doctor-requests\/id\/cancel\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "73",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/head-transfers",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/head-transfers ()({toMemberId})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23513",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/head-transfers/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/head-transfers\/ ()({toMemberId})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "64",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/invitations",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/invitations ()({email,relationshipType})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23504",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/invitations/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/invitations\/ ()({email,relationshipType})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "84",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/invitations/invitationId/cancel",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/invitations\/invitationId\/cancel",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23512",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/invitations/invitationId/cancel/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/invitations\/invitationId\/cancel\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "83",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/invitations/invitationId/resend",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/invitations\/invitationId\/resend ()({email})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23510",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/invitations/invitationId/resend/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/invitations\/invitationId\/resend\/ ()({email})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "62",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/members",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/members ()({displayName,dateOfBirth,role,userId,sexForClinicalReference})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23506",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/members/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/members\/ ()({displayName,dateOfBirth,role,userId,sexForClinicalReference})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "76",
+							"uri": "http://host.docker.internal:5091/api/v1/families/head-transfers/transferId/accept",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/head-transfers\/transferId\/accept",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23518",
+							"uri": "http://host.docker.internal:5091/api/v1/families/head-transfers/transferId/accept/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/head-transfers\/transferId\/accept\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "78",
+							"uri": "http://host.docker.internal:5091/api/v1/families/head-transfers/transferId/cancel",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/head-transfers\/transferId\/cancel",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23514",
+							"uri": "http://host.docker.internal:5091/api/v1/families/head-transfers/transferId/cancel/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/head-transfers\/transferId\/cancel\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "77",
+							"uri": "http://host.docker.internal:5091/api/v1/families/head-transfers/transferId/decline",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/head-transfers\/transferId\/decline",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23517",
+							"uri": "http://host.docker.internal:5091/api/v1/families/head-transfers/transferId/decline/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/head-transfers\/transferId\/decline\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "65",
+							"uri": "http://host.docker.internal:5091/api/v1/families/invitations/accept",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/invitations\/accept ()({token,dateOfBirth,sexForClinicalReference})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "23516",
+							"uri": "http://host.docker.internal:5091/api/v1/families/invitations/accept/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/invitations\/accept\/ ()({token,dateOfBirth,sexForClinicalReference})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "87",
+							"uri": "http://host.docker.internal:5091/api/v1/families/join-requests",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/join-requests ()({familyCode,relationshipType,message})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "874",
+							"uri": "http://host.docker.internal:5091/api/v1/families/join-requests",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/join-requests ()({familyCode,relationshipType,message})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "23519",
+							"uri": "http://host.docker.internal:5091/api/v1/families/join-requests/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/join-requests\/ ()({familyCode,relationshipType,message})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "429",
+							"otherinfo": ""
+						},
+						{
+							"id": "90",
+							"uri": "http://host.docker.internal:5091/api/v1/families/join-requests/id/accept",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/join-requests\/id\/accept",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23515",
+							"uri": "http://host.docker.internal:5091/api/v1/families/join-requests/id/accept/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/join-requests\/id\/accept\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "91",
+							"uri": "http://host.docker.internal:5091/api/v1/families/join-requests/id/decline",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/join-requests\/id\/decline",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23524",
+							"uri": "http://host.docker.internal:5091/api/v1/families/join-requests/id/decline/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/join-requests\/id\/decline\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "86",
+							"uri": "http://host.docker.internal:5091/api/v1/families/me/leave",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/me\/leave ()({startOwnFamily})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "23520",
+							"uri": "http://host.docker.internal:5091/api/v1/families/me/leave/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/me\/leave\/ ()({startOwnFamily})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "80",
+							"uri": "http://host.docker.internal:5091/api/v1/invitations/invitationId/approve",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/invitations\/invitationId\/approve",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23522",
+							"uri": "http://host.docker.internal:5091/api/v1/invitations/invitationId/approve/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/invitations\/invitationId\/approve\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "81",
+							"uri": "http://host.docker.internal:5091/api/v1/invitations/invitationId/reject",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/invitations\/invitationId\/reject",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23537",
+							"uri": "http://host.docker.internal:5091/api/v1/invitations/invitationId/reject/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/invitations\/invitationId\/reject\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "120",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports/reportId/extract",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports\/reportId\/extract",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23525",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports/reportId/extract/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports\/reportId\/extract\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "110",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports/reportId/restore",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports\/reportId\/restore",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23526",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports/reportId/restore/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports\/reportId\/restore\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "100",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/consents/reaffirm",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/consents\/reaffirm",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23532",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/consents/reaffirm/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/consents\/reaffirm\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "123",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/episodes",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/episodes ()({symptoms:[],durationDays,severity,notes})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23529",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/episodes/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/episodes\/ ()({symptoms:[],durationDays,severity,notes})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "117",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/lab-reports",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/lab-reports ()(multipart:File,CollectedAt)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "27194",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/lab-reports",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/lab-reports ()(multipart:rtobject,CollectedAt)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23531",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/lab-reports/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/lab-reports\/ ()(multipart:File,CollectedAt)",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "103",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/records",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/records ()({recordType,title,summary,occurredOn})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23536",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/records/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/records\/ ()({recordType,title,summary,occurredOn})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "97",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/relationships",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/relationships ()({relatedMemberId,relationshipType,isBiological})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23539",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/relationships/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/relationships\/ ()({relatedMemberId,relationshipType,isBiological})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "85",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/remove-from-family",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/remove-from-family",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23528",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/remove-from-family/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/remove-from-family\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "114",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/vitals",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/vitals ()({vitalType,value,unit,measuredAt})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23535",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/vitals/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/vitals\/ ()({vitalType,value,unit,measuredAt})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "101",
+							"uri": "http://host.docker.internal:5091/api/v1/notifications/id/read",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/notifications\/id\/read",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23542",
+							"uri": "http://host.docker.internal:5091/api/v1/notifications/id/read/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/notifications\/id\/read\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "136",
+							"uri": "http://host.docker.internal:5091/api/v1/notifications/subscribe",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/notifications\/subscribe ()({deviceToken,platform})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "23541",
+							"uri": "http://host.docker.internal:5091/api/v1/notifications/subscribe/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/notifications\/subscribe\/ ()({deviceToken,platform})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "403",
+							"otherinfo": ""
+						},
+						{
+							"id": "3",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/appointments",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/appointments ()({startsAt,durationMinutes,reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23546",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/appointments/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/appointments\/ ()({startsAt,durationMinutes,reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "39",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/approve",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/approve ()({doctorNotes,finalAdvisory})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23543",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/approve/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/approve\/ ()({doctorNotes,finalAdvisory})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "37",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/claim",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/claim",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23544",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/claim/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/claim\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "44",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/close-referral",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/close-referral",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23548",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/close-referral/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/close-referral\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "38",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/decision",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/decision ()({action,doctorNotes,finalAdvisory})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23553",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/decision/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/decision\/ ()({action,doctorNotes,finalAdvisory})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "43",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/escalate",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/escalate ()({doctorNotes,finalAdvisory})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23552",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/escalate/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/escalate\/ ()({doctorNotes,finalAdvisory})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "42",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/reject",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/reject ()({doctorNotes,finalAdvisory})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23555",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/reject/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/reject\/ ()({doctorNotes,finalAdvisory})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "41",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/request-info",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/request-info ()({doctorNotes,finalAdvisory})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23551",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/request-info/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/request-info\/ ()({doctorNotes,finalAdvisory})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "40",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/revise",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/revise ()({doctorNotes,finalAdvisory})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23557",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/revise/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/revise\/ ()({doctorNotes,finalAdvisory})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "45",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/share-contact",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/share-contact",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23556",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/share-contact/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/share-contact\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "126",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/withdraw",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/withdraw",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23554",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/withdraw/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/withdraw\/",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "17533",
+							"uri": "http://host.docker.internal:5091/computeMetadata/v1/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/computeMetadata\/v1\/ ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "17527",
+							"uri": "http://host.docker.internal:5091/latest/meta-data/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/latest\/meta-data\/ ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "17674",
+							"uri": "http://host.docker.internal:5091/metadata/instance",
+							"nodeName": "http:\/\/host.docker.internal:5091\/metadata\/instance ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "17695",
+							"uri": "http://host.docker.internal:5091/metadata/v1",
+							"nodeName": "http:\/\/host.docker.internal:5091\/metadata\/v1 ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "17550",
+							"uri": "http://host.docker.internal:5091/opc/v1/instance/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/opc\/v1\/instance\/ ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "17596",
+							"uri": "http://host.docker.internal:5091/opc/v2/instance/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/opc\/v2\/instance\/ ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "17712",
+							"uri": "http://host.docker.internal:5091/openstack/latest/meta_data.json",
+							"nodeName": "http:\/\/host.docker.internal:5091\/openstack\/latest\/meta_data.json ()({reason})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "49",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/availability",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/availability ()({windows:[{dayOfWeek,startTime,endTime}]})",
+							"method": "PUT",
+							"param": "",
+							"attack": "",
+							"evidence": "400",
+							"otherinfo": ""
+						},
+						{
+							"id": "23508",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/availability/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/availability\/ ()({windows:[{dayOfWeek,startTime,endTime}]})",
+							"method": "PUT",
+							"param": "",
+							"attack": "",
+							"evidence": "400",
+							"otherinfo": ""
+						},
+						{
+							"id": "48",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/profile",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/profile ()({specialty,clinic,phoneNumber,district,city,languages,consultationModes,acceptingNewFamilies,slotMinutes})",
+							"method": "PUT",
+							"param": "",
+							"attack": "",
+							"evidence": "400",
+							"otherinfo": ""
+						},
+						{
+							"id": "23501",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/profile/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/profile\/ ()({specialty,clinic,phoneNumber,district,city,languages,consultationModes,acceptingNewFamilies,slotMinutes})",
+							"method": "PUT",
+							"param": "",
+							"attack": "",
+							"evidence": "400",
+							"otherinfo": ""
+						},
+						{
+							"id": "60",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId ()({name})",
+							"method": "PUT",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23507",
+							"uri": "http://host.docker.internal:5091/api/v1/families/familyId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/families\/familyId\/ ()({name})",
+							"method": "PUT",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "119",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports/reportId/review",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports\/reportId\/review ()({values:[{id,analyte,value,unit,referenceLow,referenceHigh}],confirmedFlagIds:[]})",
+							"method": "PUT",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23527",
+							"uri": "http://host.docker.internal:5091/api/v1/lab-reports/reportId/review/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/lab-reports\/reportId\/review\/ ()({values:[{id,analyte,value,unit,referenceLow,referenceHigh}],confirmedFlagIds:[]})",
+							"method": "PUT",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "94",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId ()({displayName,dateOfBirth,role,sexForClinicalReference})",
+							"method": "PUT",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23540",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/ ()({displayName,dateOfBirth,role,sexForClinicalReference})",
+							"method": "PUT",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "99",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/consents/HereditaryFlags",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/consents\/HereditaryFlags ()({status})",
+							"method": "PUT",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23530",
+							"uri": "http://host.docker.internal:5091/api/v1/members/memberId/consents/HereditaryFlags/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/members\/memberId\/consents\/HereditaryFlags\/ ()({status})",
+							"method": "PUT",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "7644",
+							"uri": "http://host.docker.internal:5091/api/v1/profile/me",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/profile\/me ()({displayName})",
+							"method": "PUT",
+							"param": "",
+							"attack": "",
+							"evidence": "400",
+							"otherinfo": ""
+						},
+						{
+							"id": "104",
+							"uri": "http://host.docker.internal:5091/api/v1/records/recordId",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/records\/recordId ()({recordType,title,summary,occurredOn})",
+							"method": "PUT",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23545",
+							"uri": "http://host.docker.internal:5091/api/v1/records/recordId/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/records\/recordId\/ ()({recordType,title,summary,occurredOn})",
+							"method": "PUT",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "125",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/submission",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/submission ()({symptoms:[],durationDays,severity,notes})",
+							"method": "PUT",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						},
+						{
+							"id": "23550",
+							"uri": "http://host.docker.internal:5091/api/v1/triage-cases/caseId/submission/",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/triage-cases\/caseId\/submission\/ ()({symptoms:[],durationDays,severity,notes})",
+							"method": "PUT",
+							"param": "",
+							"attack": "",
+							"evidence": "404",
+							"otherinfo": ""
+						}
+					],
+					"count": "459",
+					"systemic": false,
+					"solution": "",
+					"otherinfo": "",
+					"reference": "",
+					"cweid": "388",
+					"wascid": "20",
+					"sourceid": "85"
+				},
+				{
+					"pluginid": "10111",
+					"alertRef": "10111",
+					"alert": "Authentication Request Identified",
+					"name": "Authentication Request Identified",
+					"riskcode": "0",
+					"confidence": "1",
+					"riskdesc": "Informational (Low)",
+					"desc": "<p>The given request has been identified as an authentication request. The 'Other Info' field contains a set of key=value lines which identify any relevant fields. If the request is in a context which has an Authentication Method set to \"Auto-Detect\" then this rule will change the authentication to match the request identified.</p>",
+					"instances":[ 
+						{
+							"id": "536",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/reset-password",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/reset-password ()({email,token,newPassword})",
+							"method": "POST",
+							"param": "email",
+							"attack": "",
+							"evidence": "newPassword",
+							"otherinfo": "userParam=email\nuserValue=zaproxy@example.com\npasswordParam=newPassword"
+						},
+						{
+							"id": "520",
+							"uri": "http://host.docker.internal:5091/api/v1/auth/login",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/auth\/login ()({email,password})",
+							"method": "POST",
+							"param": "email",
+							"attack": "",
+							"evidence": "password",
+							"otherinfo": "userParam=email\nuserValue=zaproxy@example.com\npasswordParam=password"
+						}
+					],
+					"count": "2",
+					"systemic": false,
+					"solution": "<p>This is an informational alert rather than a vulnerability and so there is nothing to fix.</p>",
+					"otherinfo": "<p>userParam=email</p><p>userValue=zaproxy@example.com</p><p>passwordParam=newPassword</p>",
+					"reference": "<p>https://www.zaproxy.org/docs/desktop/addons/authentication-helper/auth-req-id/</p>",
+					"cweid": "-1",
+					"wascid": "-1",
+					"sourceid": "35"
+				},
+				{
+					"pluginid": "10049",
+					"alertRef": "10049-1",
+					"alert": "Non-Storable Content",
+					"name": "Non-Storable Content",
+					"riskcode": "0",
+					"confidence": "2",
+					"riskdesc": "Informational (Medium)",
+					"desc": "<p>The response contents are not storable by caching components such as proxy servers. If the response does not contain sensitive, personal or user-specific information, it may benefit from being stored and cached, to improve performance.</p>",
+					"instances":[ 
+						{
+							"id": "516",
+							"uri": "http://host.docker.internal:5091/api/v1/appointments/mine",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/appointments\/mine",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "authorization:",
+							"otherinfo": ""
+						},
+						{
+							"id": "511",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/appointments?from=from&to=to",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/appointments (from,to)",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "authorization:",
+							"otherinfo": ""
+						},
+						{
+							"id": "17",
+							"uri": "http://host.docker.internal:5091/swagger/v1/swagger.json",
+							"nodeName": "http:\/\/host.docker.internal:5091\/swagger\/v1\/swagger.json",
+							"method": "GET",
+							"param": "",
+							"attack": "",
+							"evidence": "authorization:",
+							"otherinfo": ""
+						},
+						{
+							"id": "513",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/appointments/id/confirm",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/appointments\/id\/confirm ()({note})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "authorization:",
+							"otherinfo": ""
+						},
+						{
+							"id": "514",
+							"uri": "http://host.docker.internal:5091/api/v1/doctors/me/appointments/id/reschedule",
+							"nodeName": "http:\/\/host.docker.internal:5091\/api\/v1\/doctors\/me\/appointments\/id\/reschedule ()({startsAt,note})",
+							"method": "POST",
+							"param": "",
+							"attack": "",
+							"evidence": "authorization:",
+							"otherinfo": ""
+						}
+					],
+					"count": "5",
+					"systemic": true,
+					"solution": "<p>The content may be marked as storable by ensuring that the following conditions are satisfied:</p><p>The request method must be understood by the cache and defined as being cacheable (\"GET\", \"HEAD\", and \"POST\" are currently defined as cacheable)</p><p>The response status code must be understood by the cache (one of the 1XX, 2XX, 3XX, 4XX, or 5XX response classes are generally understood)</p><p>The \"no-store\" cache directive must not appear in the request or response header fields</p><p>For caching by \"shared\" caches such as \"proxy\" caches, the \"private\" response directive must not appear in the response</p><p>For caching by \"shared\" caches such as \"proxy\" caches, the \"Authorization\" header field must not appear in the request, unless the response explicitly allows it (using one of the \"must-revalidate\", \"public\", or \"s-maxage\" Cache-Control response directives)</p><p>In addition to the conditions above, at least one of the following conditions must also be satisfied by the response:</p><p>It must contain an \"Expires\" header field</p><p>It must contain a \"max-age\" response directive</p><p>For \"shared\" caches such as \"proxy\" caches, it must contain a \"s-maxage\" response directive</p><p>It must contain a \"Cache Control Extension\" that allows it to be cached</p><p>It must have a status code that is defined as cacheable by default (200, 203, 204, 206, 300, 301, 404, 405, 410, 414, 501).</p>",
+					"otherinfo": "",
+					"reference": "<p>https://datatracker.ietf.org/doc/html/rfc7234</p><p>https://datatracker.ietf.org/doc/html/rfc7231</p><p>https://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html</p>",
+					"cweid": "524",
+					"wascid": "13",
+					"sourceid": "8"
+				}
+			]
+		}
+	],
+	"sequences":[
+	]
+
+}

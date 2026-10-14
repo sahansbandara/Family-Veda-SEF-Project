@@ -1,0 +1,83 @@
+[
+  {
+    "member": "S1",
+    "name": "login_screen",
+    "command": "flutter test --no-pub --reporter expanded test/screens/login_screen_test.dart",
+    "exit_code": 0,
+    "log": "S1-login_screen.txt",
+    "revision": "195c0d3f50243d136fe900935a04545dcdc6b32c",
+    "passed": 1
+  },
+  {
+    "member": "S2",
+    "name": "records_screen",
+    "command": "flutter test --no-pub --reporter expanded test/screens/records_screen_test.dart",
+    "exit_code": 0,
+    "log": "S2-records_screen.txt",
+    "revision": "195c0d3f50243d136fe900935a04545dcdc6b32c",
+    "passed": 2
+  },
+  {
+    "member": "S3",
+    "name": "case_status",
+    "command": "flutter test --no-pub --reporter expanded test/screens/case_status_screen_test.dart",
+    "exit_code": 0,
+    "log": "S3-case_status.txt",
+    "revision": "195c0d3f50243d136fe900935a04545dcdc6b32c",
+    "passed": 4
+  },
+  {
+    "member": "S4",
+    "name": "approved_guidance",
+    "command": "flutter test --no-pub --reporter expanded test/screens/approved_guidance_screen_test.dart",
+    "exit_code": 0,
+    "log": "S4-approved_guidance.txt",
+    "revision": "195c0d3f50243d136fe900935a04545dcdc6b32c",
+    "passed": 2
+  },
+  {
+    "member": "S1",
+    "name": "onboarding",
+    "command": "npx --no-install vitest run src/pages/family/OnboardingPage.test.tsx",
+    "exit_code": 0,
+    "log": "S1-onboarding.txt",
+    "revision": "195c0d3f50243d136fe900935a04545dcdc6b32c",
+    "passed": 2
+  },
+  {
+    "member": "S2",
+    "name": "records_page",
+    "command": "npx --no-install vitest run src/pages/records/RecordsPage.test.tsx",
+    "exit_code": 0,
+    "log": "S2-records_page.txt",
+    "revision": "195c0d3f50243d136fe900935a04545dcdc6b32c",
+    "passed": 14
+  },
+  {
+    "member": "S3",
+    "name": "view_state",
+    "command": "npx --no-install vitest run src/components/shared/ViewState.test.tsx",
+    "exit_code": 0,
+    "log": "S3-view_state.txt",
+    "revision": "195c0d3f50243d136fe900935a04545dcdc6b32c",
+    "passed": 4
+  },
+  {
+    "member": "S4",
+    "name": "approvals_page",
+    "command": "npx --no-install vitest run src/pages/doctor/ApprovalsPage.test.tsx",
+    "exit_code": 0,
+    "log": "S4-approvals_page.txt",
+    "revision": "195c0d3f50243d136fe900935a04545dcdc6b32c",
+    "passed": 8
+  },
+  {
+    "member": "S4",
+    "name": "privacy_integration",
+    "command": "dotnet test backend/tests/IntegrationTests/FamilyVeda.IntegrationTests.csproj --no-restore --filter FullyQualifiedName~ApprovedCase_NeverReturnsInternalDoctorNotes",
+    "exit_code": 0,
+    "log": "S4-privacy_integration.txt",
+    "revision": "195c0d3f50243d136fe900935a04545dcdc6b32c",
+    "passed": 1
+  }
+]

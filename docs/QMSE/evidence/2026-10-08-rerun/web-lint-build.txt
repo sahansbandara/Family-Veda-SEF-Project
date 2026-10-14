@@ -1,0 +1,55 @@
+npm verbose cli /opt/homebrew/Cellar/node/26.9.0/bin/node /opt/homebrew/bin/npm
+npm info using npm@11.19.1
+npm info using node@v26.9.0
+npm verbose title npm run lint
+npm verbose argv "run" "lint"
+npm verbose logfile logs-max:10 dir:/Users/sahansandaruwan/.npm/_logs/2026-10-08T07_56_59_466Z-
+npm verbose logfile /Users/sahansandaruwan/.npm/_logs/2026-10-08T07_56_59_466Z-debug-0.log
+
+> family-veda-web@0.1.0 lint
+> eslint . --max-warnings 0
+
+npm verbose cwd /Users/sahansandaruwan/Github/SLIIT/Family-Veda/web
+npm verbose os Darwin 27.0.0
+npm verbose node v26.9.0
+npm verbose npm  v11.19.1
+npm verbose exit 0
+npm info ok
+lint exit=0
+npm verbose cli /opt/homebrew/Cellar/node/26.9.0/bin/node /opt/homebrew/bin/npm
+npm info using npm@11.19.1
+npm info using node@v26.9.0
+npm verbose title npm run build
+npm verbose argv "run" "build"
+npm verbose logfile logs-max:10 dir:/Users/sahansandaruwan/.npm/_logs/2026-10-08T07_57_22_392Z-
+npm verbose logfile /Users/sahansandaruwan/.npm/_logs/2026-10-08T07_57_22_392Z-debug-0.log
+
+> family-veda-web@0.1.0 build
+> tsc -b && vite build
+
+vite v8.2.0 building client environment for production...
+[2Ktransforming...✓ 318 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                              1.67 kB │ gzip:   0.79 kB
+dist/assets/logo-mark-DfFxn9lS.png          55.83 kB
+dist/assets/Loging-CXVwUaRk.webp           147.15 kB
+dist/assets/Register-BQa5qGCF.webp         163.36 kB
+dist/assets/logo-Bgxk_w8B.png              755.94 kB
+dist/assets/pdf.worker.min-CjEcRF4W.mjs  1,264.34 kB
+dist/assets/index-DyOUIVaw.css             305.06 kB │ gzip:  52.68 kB
+dist/assets/index-Brvfoy9u.js            1,321.71 kB │ gzip: 373.39 kB
+
+✓ built in 1.96s
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+npm verbose cwd /Users/sahansandaruwan/Github/SLIIT/Family-Veda/web
+npm verbose os Darwin 27.0.0
+npm verbose node v26.9.0
+npm verbose npm  v11.19.1
+npm verbose exit 0
+npm info ok
+build exit=0

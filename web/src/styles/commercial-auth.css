@@ -1,0 +1,568 @@
+/* Commercial Sliding Auth Layout (Inspired by Image 1) */
+.auth-page-root {
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  transition: background-image 0.8s ease-in-out;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+.auth-overlay {
+  position: absolute;
+  inset: 0;
+  /* Darken the background slightly for readability */
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.auth-main-container {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  height: 100vh;
+  display: flex;
+  z-index: 2;
+}
+
+/* On desktop, it takes full height. Mobile can scroll. */
+@media (min-width: 768px) {
+  .auth-main-container {
+    height: 80vh;
+    min-height: 600px;
+    margin: auto;
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    /* The container itself doesn't need a background, it's transparent to let the page background show */
+  }
+}
+
+/* The sliding glass form panel */
+.auth-glass-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50%;
+  height: 100%;
+  /* Liquid glass look */
+  background: rgba(10, 15, 25, 0.35);
+  backdrop-filter: blur(20px);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 10;
+  /* Keep the glass on its own compositor layer so Chrome/Safari re-blur the backdrop
+     after the slide; otherwise the sign-up hero image can stay visible unblurred. */
+  will-change: transform, backdrop-filter;
+  isolation: isolate;
+}
+
+/* Register = right side (transform 0). Login = left side (transform -100%) */
+.auth-page-root.mode-login .auth-glass-panel {
+  transform: translateX(-100%);
+  border-left: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Form content area */
+.auth-form-content {
+  position: absolute;
+  inset: 0;
+  padding: 40px clamp(24px, 5vw, 64px);
+  display: flex;
+  flex-direction: column;
+  /* Centre with auto margins, not justify-content: center — centring an overflowing flex box
+     pushes the top of long wizard steps (e.g. Date of Birth) above the scroll area. */
+  justify-content: flex-start;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  overflow-y: auto;
+  color: white !important;
+}
+.auth-form-content > :first-child { margin-top: auto; }
+.auth-form-content > :last-child { margin-bottom: auto; }
+/* Thin visible scrollbar so long steps visibly scroll. */
+.auth-form-content { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.35) transparent; }
+
+.auth-form-register {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+.auth-page-root.mode-login .auth-form-register {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(20px);
+}
+
+.auth-form-login {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-20px);
+}
+.auth-page-root.mode-login .auth-form-login {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+/* Text Panels */
+.auth-text-panel {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  padding: 40px clamp(32px, 5vw, 64px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+  color: white !important;
+  z-index: 5;
+}
+
+/* Register Mode: Text on Left */
+.auth-text-left {
+  left: 0;
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+.auth-page-root.mode-login .auth-text-left {
+  opacity: 0;
+  transform: translateX(-20%);
+  pointer-events: none;
+}
+
+/* Login Mode: Text on Right */
+.auth-text-right {
+  right: 0;
+  opacity: 0;
+  transform: translateX(20%);
+  pointer-events: none;
+  text-align: right;
+  align-items: flex-end;
+}
+.auth-page-root.mode-login .auth-text-right {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+/* Form Styles */
+.auth-form-group {
+  margin-bottom: 20px;
+}
+.auth-form-group label {
+  display: block;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 8px;
+}
+.auth-form-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  color: white !important;
+  padding: 8px 0;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s;
+}
+.auth-form-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+.auth-form-input:focus {
+  border-bottom-color: #146CFF;
+}
+
+select.auth-form-input {
+  background: rgba(10, 15, 25, 0.9);
+}
+select.auth-form-input option {
+  color: white !important;
+  background: #0A0F19;
+}
+
+.auth-form-button {
+  width: 100%;
+  background: #146CFF;
+  color: white !important;
+  border: none;
+  border-radius: 30px;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: background 0.3s;
+}
+.auth-form-button:hover {
+  background: #0f52cc;
+}
+.auth-form-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-form-switch {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+.auth-form-switch button {
+  background: transparent;
+  border: none;
+  color: #38BDF8;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.auth-form-switch button:hover {
+  text-decoration: underline;
+}
+
+.auth-review-list {
+  background: rgba(0, 0, 0, 0.5) !important;
+  padding: 32px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  margin-bottom: 24px;
+}
+.auth-review-item {
+  color: white !important;
+  margin: 16px 0;
+  font-size: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  line-height: 1.5;
+}
+.auth-review-item strong {
+  color: rgba(255, 255, 255, 0.85);
+  min-width: 150px;
+  flex-shrink: 0;
+}
+
+.auth-legal-links {
+  display: flex;
+  gap: 24px;
+  margin-top: 64px;
+  font-size: .85rem;
+  z-index: 10;
+}
+
+.auth-legal-links a { 
+  color: inherit; 
+  text-decoration: none; 
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.auth-legal-links a:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .auth-main-container {
+    flex-direction: column;
+    /* A percentage height resolves to 0 here: the page root only has a min-height. */
+    height: 100vh;
+    height: 100dvh;
+  }
+  .auth-glass-panel {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: none !important;
+  }
+  .auth-text-panel {
+    display: none;
+  }
+  .auth-form-content {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    padding: 40px 24px;
+    overflow-y: auto;
+  }
+}
+
+.auth-text-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4) !important;
+  z-index: 1;
+}
+
+/* Modern Stepper */
+.auth-stepper-modern {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 32px;
+  width: 100%;
+}
+.auth-stepper-segment {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.auth-stepper-bar {
+  width: 100%;
+  height: 4px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+.auth-stepper-bar.active {
+  background: #146CFF;
+  box-shadow: 0 0 8px rgba(20, 108, 255, 0.6);
+}
+.auth-stepper-bar.done {
+  background: #10b981;
+}
+
+.auth-stepper-label {
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+}
+.auth-stepper-label.active {
+  color: white;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+}
+.auth-stepper-label.done {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.auth-role-card-modern {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.5) !important;
+  margin-bottom: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.auth-role-card-modern:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  transform: translateY(-2px);
+}
+.auth-role-card-modern.selected {
+  border-color: #146CFF !important;
+  background: rgba(20, 108, 255, 0.15) !important;
+  box-shadow: 0 4px 12px rgba(20, 108, 255, 0.2);
+}
+.role-card-content {
+  flex: 1;
+}
+.role-card-radio {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  margin-left: 16px;
+  position: relative;
+  transition: all 0.2s;
+}
+.auth-role-card-modern.selected .role-card-radio {
+  border-color: #146CFF;
+  background: #146CFF;
+}
+.auth-role-card-modern.selected .role-card-radio::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+}
+.auth-role-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white !important;
+  margin-bottom: 6px;
+}
+.auth-role-desc {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.4;
+}
+
+.auth-btn-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+.auth-btn-secondary {
+  flex: 1;
+  background: transparent;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 30px;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.auth-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+
+.auth-page-root {
+  font-family: 'Montserrat', sans-serif;
+}
+
+.auth-mode-switch-btn {
+  margin-top: 32px;
+  background: transparent;
+  color: white !important;
+  border: 2px solid white;
+  border-radius: 30px;
+  padding: 12px 32px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-mode-switch-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white !important;
+  border-color: white;
+}
+
+.switch-arrow {
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.auth-mode-switch-btn:hover .right-arrow {
+  transform: translateX(6px);
+}
+
+.auth-mode-switch-btn:hover .left-arrow {
+  transform: translateX(-6px);
+}
+
+.auth-text-panel h1 {
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: -1px;
+}
+
+.auth-page-root, .auth-page-root * {
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol' !important;
+}
+
+.auth-form-input:-webkit-autofill,
+.auth-form-input:-webkit-autofill:hover, 
+.auth-form-input:-webkit-autofill:focus, 
+.auth-form-input:-webkit-autofill:active {
+    transition: background-color 5000s ease-in-out 0s;
+    -webkit-text-fill-color: white !important;
+}
+
+input[type="password"].auth-form-input {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    font-size: 1.25rem !important;
+    letter-spacing: 0.15em;
+    padding-top: 8px;
+}
+
+input[type="password"].auth-form-input::placeholder {
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: 1rem !important;
+    letter-spacing: normal;
+}
+
+/* Registration review — matches the underline form fields instead of dark boxes. */
+.reg-review-heading { font-size: 1.15rem; font-weight: 700; margin: 0 0 18px; color: #fff; }
+.reg-review-section { margin-bottom: 20px; }
+.reg-review-section-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6); margin-bottom: 6px;
+}
+.reg-review-edit {
+  background: none; border: none; padding: 0; cursor: pointer;
+  color: #7fb4ff; font-size: 0.8rem; font-weight: 600; text-transform: none; letter-spacing: 0;
+}
+.reg-review-edit:hover { text-decoration: underline; }
+.reg-review-rows { margin: 0; }
+.reg-review-row {
+  display: grid; grid-template-columns: 38% 1fr; gap: 12px;
+  padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+.reg-review-row dt { color: rgba(255, 255, 255, 0.65); font-size: 0.88rem; }
+.reg-review-row dd { margin: 0; color: #fff; font-size: 0.95rem; overflow-wrap: anywhere; }
+.reg-review-empty { color: rgba(255, 255, 255, 0.4); font-style: italic; }
+.reg-review-terms {
+  display: flex; gap: 10px; align-items: flex-start; margin-top: 8px;
+  font-size: 0.88rem; color: rgba(255, 255, 255, 0.85); line-height: 1.5; cursor: pointer;
+}
+.reg-review-terms input { margin-top: 3px; accent-color: #146cff; width: 16px; height: 16px; }
+@media (max-width: 480px) { .reg-review-row { grid-template-columns: 1fr; gap: 2px; } }
+
+.mobile-mode-switch {
+  display: none;
+}
+.auth-legal-links--mobile {
+    position: static;
+  display: none;
+}
+@media (max-width: 768px) {
+  .mobile-mode-switch {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: transparent;
+    color: white;
+    border: none;
+    text-decoration: underline;
+    margin-top: 32px;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 12px;
+  }
+  .auth-legal-links--mobile {
+    position: static;
+    display: flex;
+    justify-content: center;
+    margin-top: 4px;
+    color: white;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .auth-page-root.mode-login .auth-form-register {
+    display: none;
+  }
+  .auth-page-root.mode-register .auth-form-login {
+    display: none;
+  }
+}

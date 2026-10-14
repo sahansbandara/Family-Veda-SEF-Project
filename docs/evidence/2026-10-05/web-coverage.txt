@@ -1,0 +1,10 @@
+# Web tests with coverage (Vitest v8)
+# date: 2026-10-05 19:11 +0530  commit: 78e96fc  branch: develop
+# command: npx vitest run --coverage --maxWorkers=3 --testTimeout=30000 (in web/)
+
+ Test Files  52 passed (52)
+      Tests  308 passed (308)
+Statements   : 67.53% ( 3802/5630 )
+Branches     : 62.42% ( 3080/4934 )
+Functions    : 64.11% ( 1104/1722 )
+Lines        : 69.64% ( 3277/4705 )

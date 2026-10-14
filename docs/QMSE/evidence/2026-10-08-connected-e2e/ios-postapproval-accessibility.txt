@@ -1,0 +1,64 @@
+Window: "iPhone 18 Pro Max", App: Device Hub.
+0 standard window iPhone 18 Pro Max – iOS 27.0, ID: deviceWindow-AppWindow-1, Secondary Actions: Raise
+	1 container
+		2 text iPhone 18 Pro Max iOS 27.0
+		3 container
+			4 Group Secondary Actions: Cancel
+			5 text Description: Dashboard, Secondary Actions: Cancel
+			6 text Description: My Family, Secondary Actions: Cancel
+			7 text Description: Health Records, Secondary Actions: Cancel
+			8 text Description: Symptoms & Triage, Secondary Actions: Cancel
+			9 text Description: My Doctor, Secondary Actions: Cancel
+			10 text Description: Appointments, Secondary Actions: Cancel
+			11 text Description: Privacy & Access, Secondary Actions: Cancel
+			12 text Description: Scrim, Secondary Actions: Cancel
+			13 button Description: Dismiss, Secondary Actions: Cancel
+			14 button Description: Back, Secondary Actions: Cancel
+			15 text Description: Case progress, Secondary Actions: Cancel
+			16 Group Secondary Actions: Cancel
+			17 text Secondary Actions: Cancel, Description: Request progress
+Step 4 of 4
+Submitted Oct 7, 2026
+			18 text Secondary Actions: Cancel, Description: Request received
+Oct 7, 2026 6:33 PM
+			19 text Secondary Actions: Cancel, Description: Doctor received request
+Awaiting receipt
+			20 text Secondary Actions: Cancel, Description: AI processing
+Complete
+			21 text Secondary Actions: Cancel, Description: Doctor review
+Started Oct 8, 2026 2:47 PM
+			22 text Secondary Actions: Cancel, Description: Doctor response
+Received
+			23 text Secondary Actions: Cancel, Description: Doctor response
+Synthetic QMSE test: verify seeded case approval gate and connected client refresh. No real patient decision.
+			24 text Secondary Actions: Cancel, Description: Doctor review is taking longer
+A doctor has not responded within the expected review window. Please arrange an in-person clinical review. If symptoms worsen or become urgent, use emergency services.
+			25 button Secondary Actions: Cancel, Description: Dashboard
+Tab 1 of 5
+			26 button Secondary Actions: Cancel, Description: My Family
+Tab 2 of 5
+			27 button Secondary Actions: Cancel, Description: Records
+Tab 3 of 5
+			28 button (selected) Secondary Actions: Cancel, Description: Triage
+Tab 4 of 5
+			29 button Secondary Actions: Cancel, Description: Appointments
+Tab 5 of 5
+		30 button Description: Home, ID: app.grid.3x3
+		31 button Description: Screenshot, ID: camera.viewfinder
+		32 button Description: Record, ID: record.circle
+		33 button Rotate Left
+	34 toolbar
+		35 button Description: Show in Device Hub, Help: Expand to view all controls, Secondary Actions: Increment, Decrement, Delete, Cancel, Move previous, Move next, Remove from toolbar
+		36 menu button More, Help: View options, ID: ellipsis
+	37 close button
+	38 zoom button
+	39 minimize button
+40 menu bar
+	41 Device Hub
+	42 File
+	43 Edit
+	44 View
+	45 Device
+	46 Controls
+	47 Window
+	48 Help

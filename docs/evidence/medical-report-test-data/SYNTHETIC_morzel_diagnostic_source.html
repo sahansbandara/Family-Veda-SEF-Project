@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Diagnostic Results — Adam Prince Hirthe (synthetic data)</title>
+  <style>
+    @font-face {
+      font-family: "Liberation Sans";
+      src: url("assets/fonts/liberation_sans/LiberationSans-Regular.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 400;
+    }
+
+    @font-face {
+      font-family: "Liberation Sans";
+      src: url("assets/fonts/liberation_sans/LiberationSans-Bold.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 700;
+    }
+
+    @font-face {
+      font-family: "Liberation Sans";
+      src: url("assets/fonts/liberation_sans/LiberationSans-Italic.ttf") format("truetype");
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    @font-face {
+      font-family: "Liberation Sans";
+      src: url("assets/fonts/liberation_sans/LiberationSans-BoldItalic.ttf") format("truetype");
+      font-style: italic;
+      font-weight: 700;
+    }
+
+    @font-face {
+      font-family: "Liberation Serif";
+      src: url("assets/fonts/liberation_serif/LiberationSerif-Regular.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 400;
+    }
+
+    @font-face {
+      font-family: "Liberation Serif";
+      src: url("assets/fonts/liberation_serif/LiberationSerif-Bold.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 700;
+    }
+
+    @font-face {
+      font-family: "Liberation Serif";
+      src: url("assets/fonts/liberation_serif/LiberationSerif-Italic.ttf") format("truetype");
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    @font-face {
+      font-family: "Liberation Serif";
+      src: url("assets/fonts/liberation_serif/LiberationSerif-BoldItalic.ttf") format("truetype");
+      font-style: italic;
+      font-weight: 700;
+    }
+
+    @font-face {
+      font-family: "Liberation Mono";
+      src: url("assets/fonts/liberation_mono/LiberationMono-Regular.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 400;
+    }
+
+    @font-face {
+      font-family: "Liberation Mono";
+      src: url("assets/fonts/liberation_mono/LiberationMono-Bold.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 700;
+    }
+
+    @font-face {
+      font-family: "Liberation Mono";
+      src: url("assets/fonts/liberation_mono/LiberationMono-Italic.ttf") format("truetype");
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    @font-face {
+      font-family: "Liberation Mono";
+      src: url("assets/fonts/liberation_mono/LiberationMono-BoldItalic.ttf") format("truetype");
+      font-style: italic;
+      font-weight: 700;
+    }
+
+    @font-face {
+      font-family: "Synthetic Caveat";
+      src: url("assets/fonts/caveat/Caveat.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 400 700;
+    }
+
+    @font-face {
+      font-family: "Synthetic Reenie Beanie";
+      src: url("assets/fonts/reenie_beanie/ReenieBeanie.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 400;
+    }
+
+    @font-face {
+      font-family: "Synthetic Marck Script";
+      src: url("assets/fonts/marck_script/MarckScript-Regular.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 400;
+    }
+
+    @font-face {
+      font-family: "Synthetic Nothing You Could Do";
+      src: url("assets/fonts/nothing_you_could_do/NothingYouCouldDo.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 400;
+    }
+
+    @font-face {
+      font-family: "Synthetic Shadows Into Light";
+      src: url("assets/fonts/shadows_into_light/ShadowsIntoLight-Regular.ttf") format("truetype");
+      font-style: normal;
+      font-weight: 400;
+    }
+
+    :root {
+      color-scheme: light;
+      --navy: #17324d;
+      --ink: #1f2933;
+      --muted: #596771;
+      --line: #9aa6ad;
+      --paper: #ffffff;
+      --simulated-handwriting: "Synthetic Caveat", cursive;
+      --page-padding-block: 0.45in;
+      --page-padding-inline: 0.6in;
+      --page-content-min-height: 10.1in;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      background: var(--paper);
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 13px/1.4 "Liberation Sans", sans-serif;
+    }
+
+    .page {
+      position: relative;
+      width: 8.5in;
+      min-height: 11in;
+      margin: 0;
+      padding: var(--page-padding-block) var(--page-padding-inline);
+      overflow: visible;
+      background: var(--paper);
+    }
+
+    .page::after {
+      position: absolute;
+      z-index: 100;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='120' viewBox='0 0 240 120'%3E%3Cg transform='translate(120 60) rotate(-30)' fill='%232d373e' fill-opacity='.08' text-anchor='middle' font-family='Liberation%20Sans' font-weight='700'%3E%3Ctext y='-2' font-size='18' letter-spacing='1.4'%3ESYNTHETIC DATA%3C/text%3E%3Ctext y='13' font-size='11' letter-spacing='1.2' fill-opacity='.088'%3Emorzel.net%3C/text%3E%3C/g%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 2in 1in;
+      content: "";
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .page-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      min-height: var(--page-content-min-height);
+      flex-direction: column;
+    }
+
+    .document-identity {
+      color: var(--navy);
+      font-size: 11px;
+      letter-spacing: .025em;
+    }
+
+    .document-identity strong {
+      display: block;
+      font-size: 11px;
+    }
+
+    .document-header {
+      padding-bottom: 0.12in;
+      border-bottom: 1.5px solid var(--navy);
+    }
+
+    .document-footer {
+      margin-top: auto;
+      padding-top: 0.1in;
+      border-top: 1px solid var(--line);
+    }
+
+    .watermark {
+      display: none;
+      position: absolute;
+      z-index: 10;
+      inset: -1in;
+      grid-template-columns: repeat(6, 1.9in);
+      grid-auto-rows: 0.8in;
+      align-items: center;
+      justify-items: center;
+      color: rgb(45 55 62 / 8%);
+      font-weight: 700;
+      line-height: 1;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .watermark-mark {
+      display: flex;
+      width: 1.9in;
+      align-items: center;
+      flex-direction: column;
+      gap: 3px;
+      transform: rotate(-30deg);
+      white-space: nowrap;
+    }
+
+    .watermark-primary {
+      font-size: 18.75px;
+      letter-spacing: .08em;
+    }
+
+    .watermark-source {
+      font-size: 11px;
+      letter-spacing: .12em;
+    }
+
+    .page-edge-identity { display: none; }
+
+    .handwriting-glyph {
+      display: inline-block;
+      margin-right: var(--hw-space);
+      opacity: var(--hw-opacity);
+      text-shadow: var(--hw-shadow-x) var(--hw-shadow-y) rgb(16 35 58 / 18%);
+      transform:
+        translateY(var(--hw-y))
+        rotate(var(--hw-rotation))
+        skewX(var(--hw-skew))
+        scale(var(--hw-scale-x), var(--hw-scale-y));
+      transform-origin: 50% 72%;
+    }
+
+    @media (max-width: 700px) {
+      .page {
+        width: 100%;
+        min-height: 100vh;
+        padding: 24px;
+      }
+
+      .page-content { min-height: calc(100vh - 48px); }
+    }
+
+    @media print {
+      @page {
+        size: Letter portrait;
+        margin: 0;
+      }
+
+      html, body {
+        width: 8.5in;
+        min-height: 11in;
+        background: white;
+      }
+
+      .page {
+        width: 8.5in;
+        min-height: 11in;
+        margin: 0;
+        padding: var(--page-padding-block) var(--page-padding-inline);
+        background-color: white;
+      }
+
+      .page:not(:last-of-type) {
+        break-after: page;
+      }
+
+      .page::after {
+        display: none;
+      }
+
+      body::after {
+        position: fixed;
+        z-index: 2147483647;
+        inset: -0.5in;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='120' viewBox='0 0 240 120'%3E%3Cg transform='translate(120 60) rotate(-30)' fill='%232d373e' fill-opacity='.08' text-anchor='middle' font-family='Liberation%20Sans' font-weight='700'%3E%3Ctext y='-2' font-size='18' letter-spacing='1.4'%3ESYNTHETIC DATA%3C/text%3E%3Ctext y='13' font-size='11' letter-spacing='1.2' fill-opacity='.088'%3Emorzel.net%3C/text%3E%3C/g%3E%3C/svg%3E");
+        background-repeat: repeat;
+        background-size: 2in 1in;
+        content: "";
+        pointer-events: none;
+        user-select: none;
+      }
+    }
+
+    :root { --lab-blue: #164b78; --lab-pale: #e8f1f7; --lab-line: #91a9ba; --page-padding-block: .38in; --page-padding-inline: .48in; --page-content-min-height: 10.24in; }
+    body { color: #172b3a; font-size: 10px; }
+    .document-header { border-bottom: 0; }
+    .lab-intro { display: grid; grid-template-columns: minmax(0, 1fr) 2.25in; gap: 10px; margin-top: 8px; }
+    .lab-header { display: flex; min-height: 1.18in; flex-direction: column; justify-content: space-between; padding: 13px 15px; background: var(--lab-blue); color: white; }
+    .lab-brand { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .lab-header h1 { margin: 2px 0 0; font-size: 21px; }
+    .accession { font: 9px/1.5 "Liberation Mono", monospace; }
+    .patient-card { padding: 10px 12px; border: 2px solid var(--lab-blue); background: #f7fafc; }
+    .patient-card h2 { margin: 0 0 7px; color: var(--lab-blue); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
+    .patient-card div { padding: 5px 0; border-top: 1px solid #c6d5df; }
+    .label { display: block; color: #567184; font-size: 8px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .panel { margin-top: 13px; border: 1px solid var(--lab-line); break-inside: auto; }
+    .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 6px 9px; background: var(--lab-pale); border-bottom: 1px solid var(--lab-line); }
+    .panel-head h2 { margin: 0; color: var(--lab-blue); font-size: 12px; }
+    .panel-meta { color: #476479; font-size: 9px; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th { padding: 5px 7px; background: #f7fafc; border-bottom: 1px solid #c8d5de; color: #456174; font-size: 8px; letter-spacing: .07em; text-align: left; text-transform: uppercase; }
+    thead { display: table-header-group; }
+    tr { break-inside: avoid; }
+    td { padding: 5px 7px; border-bottom: 1px solid #dce5ea; vertical-align: top; }
+    tr:last-child td { border-bottom: 0; }
+    .test { width: 42%; font-weight: 700; } .result { width: 18%; } .unit { width: 14%; } .range { width: 18%; } .flag { width: 8%; }
+    .empty { padding: 12px; color: #657985; font-style: italic; }
+    .disclaimer { margin: 13px 0 0; color: #647785; font-size: 9px; }
+    .document-footer { border-top-color: var(--lab-blue); color: var(--lab-blue); }
+
+  </style>
+</head>
+<body>
+  <div class="page-edge-identity" aria-hidden="true">morzel.net Synthetic Med Data / diagnostic_type_1_ver_1 · Document for testing data retrieval and de-identification (record based on Synthea™)</div>
+  <main class="page">
+    <div class="watermark" aria-hidden="true">
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+        <span class="watermark-mark">
+          <span class="watermark-primary">SYNTHETIC DATA</span>
+          <span class="watermark-source">morzel.net</span>
+        </span>
+    </div>
+
+    <div class="page-content">
+      <header class="document-header document-identity">
+        <strong>morzel.net Synthetic Med Data / diagnostic_type_1_ver_1</strong>
+        <span>Document for testing data retrieval and de-identification (record based on Synthea™)</span>
+      </header>
+
+  <section class="lab-intro">
+    <header class="lab-header">
+      <div><div class="lab-brand">Northstar Sample Medical Laboratory</div><h1>Diagnostic Results</h1></div>
+      <div class="accession">FINAL RESULTS COPY · PRINTED 08/23/2026</div>
+    </header>
+    <aside class="patient-card" aria-label="Patient identity">
+      <h2>Patient identification</h2>
+      <div><span class="label">Patient</span><strong>Adam Prince Hirthe</strong></div>
+      <div><span class="label">Medical record number</span>1ce276e5-6272-eb01-9538-8d6dbe669eab</div>
+      <div><span class="label">Date of birth</span>10/13/2004</div>
+    </aside>
+  </section>
+      <section class="panel">
+        <header class="panel-head"><h2>Allergen-specific antibody measurements</h2><div class="panel-meta">11/20/2021 · Final</div></header>
+          <table><thead><tr><th class="test">Test</th><th class="result">Result</th><th class="unit">Unit</th><th class="range">Reference range</th><th class="flag">Flag</th></tr></thead>
+          <tbody><tr><td class="test">Peanut IgE Ab [Units/volume] in Serum</td><td class="result">0.025542</td><td class="unit">kU/L</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Walnut IgE Ab [Units/volume] in Serum</td><td class="result">0.061475</td><td class="unit">kU/L</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Codfish IgE Ab [Units/volume] in Serum</td><td class="result">0.17658</td><td class="unit">kU/L</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Shrimp IgE Ab [Units/volume] in Serum</td><td class="result">0.31241</td><td class="unit">kU/L</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Wheat IgE Ab [Units/volume] in Serum</td><td class="result">0.038749</td><td class="unit">kU/L</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Egg white IgE Ab [Units/volume] in Serum</td><td class="result">0.2475</td><td class="unit">kU/L</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Soybean IgE Ab [Units/volume] in Serum</td><td class="result">0.081142</td><td class="unit">kU/L</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Cow milk IgE Ab [Units/volume] in Serum</td><td class="result">0.058352</td><td class="unit">kU/L</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">White oak IgE Ab [Units/volume] in Serum</td><td class="result">0.18332</td><td class="unit">kU/L</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Common Ragweed IgE Ab [Units/volume] in Serum</td><td class="result">0.0087939</td><td class="unit">kU/L</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Cat dander IgE Ab [Units/volume] in Serum</td><td class="result">0.018786</td><td class="unit">kU/L</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">American house dust mite IgE Ab [Units/volume] in Serum</td><td class="result">0.04421</td><td class="unit">kU/L</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Cladosporium herbarum IgE Ab [Units/volume] in Serum</td><td class="result">0.23223</td><td class="unit">kU/L</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Honey bee IgE Ab [Units/volume] in Serum</td><td class="result">0.3255</td><td class="unit">kU/L</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Latex IgE Ab [Units/volume] in Serum</td><td class="result">0.18481</td><td class="unit">kU/L</td><td class="range">Not supplied</td><td class="flag">—</td></tr></tbody></table>
+      </section>
+      <section class="panel">
+        <header class="panel-head"><h2>CBC panel - Blood by Automated count</h2><div class="panel-meta">11/25/2020 · Final · QUICK CARE CLINIC</div></header>
+          <table><thead><tr><th class="test">Test</th><th class="result">Result</th><th class="unit">Unit</th><th class="range">Reference range</th><th class="flag">Flag</th></tr></thead>
+          <tbody><tr><td class="test">Leukocytes [#/volume] in Blood by Automated count</td><td class="result">7.6059</td><td class="unit">10*3/uL</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Erythrocytes [#/volume] in Blood by Automated count</td><td class="result">4.2587</td><td class="unit">10*6/uL</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Hemoglobin [Mass/volume] in Blood</td><td class="result">14.425</td><td class="unit">g/dL</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Hematocrit [Volume Fraction] of Blood by Automated count</td><td class="result">47.698</td><td class="unit">%</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">MCV [Entitic mean volume] in Red Blood Cells by Automated count</td><td class="result">87.658</td><td class="unit">fL</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">MCH [Entitic mass] by Automated count</td><td class="result">29.16</td><td class="unit">pg</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">MCHC [Entitic Mass/volume] in Red Blood Cells by Automated count</td><td class="result">34.125</td><td class="unit">g/dL</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Erythrocyte [DistWidth] in Blood by Automated count</td><td class="result">39.816</td><td class="unit">fL</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Platelets [#/volume] in Blood by Automated count</td><td class="result">436.36</td><td class="unit">10*3/uL</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Platelet distribution width [Entitic volume] in Blood by Automated count</td><td class="result">480.32</td><td class="unit">fL</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Platelet [Entitic mean volume] in Blood by Automated count</td><td class="result">11.641</td><td class="unit">fL</td><td class="range">Not supplied</td><td class="flag">—</td></tr></tbody></table>
+      </section>
+      <section class="panel">
+        <header class="panel-head"><h2>Vital signs and body measurements</h2><div class="panel-meta">12/13/2023 · Final</div></header>
+          <table><thead><tr><th class="test">Test</th><th class="result">Result</th><th class="unit">Unit</th><th class="range">Reference range</th><th class="flag">Flag</th></tr></thead>
+          <tbody><tr><td class="test">Body Height</td><td class="result">166.1</td><td class="unit">cm</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Pain severity - 0-10 verbal numeric rating [Score] - Reported</td><td class="result">0</td><td class="unit">{score}</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Body Weight</td><td class="result">61.6</td><td class="unit">kg</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Body mass index (BMI) [Ratio]</td><td class="result">22.32</td><td class="unit">kg/m2</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Body mass index (BMI) [Percentile] Per age and sex</td><td class="result">46.252</td><td class="unit">%</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Diastolic Blood Pressure</td><td class="result">91</td><td class="unit">mm[Hg]</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Systolic Blood Pressure</td><td class="result">132</td><td class="unit">mm[Hg]</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Heart rate</td><td class="result">97</td><td class="unit">/min</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">Respiratory rate</td><td class="result">13</td><td class="unit">/min</td><td class="range">Not supplied</td><td class="flag">—</td></tr></tbody></table>
+      </section>
+      <section class="panel">
+        <header class="panel-head"><h2>Additional quantitative measurements</h2><div class="panel-meta">12/13/2023 · Final</div></header>
+          <table><thead><tr><th class="test">Test</th><th class="result">Result</th><th class="unit">Unit</th><th class="range">Reference range</th><th class="flag">Flag</th></tr></thead>
+          <tbody><tr><td class="test">What was your best estimate of the total income of all family members from all sources, before taxes, in last year [PhenX]</td><td class="result">147460</td><td class="unit">/a</td><td class="range">Not supplied</td><td class="flag">—</td></tr><tr><td class="test">How many people are living or staying at this address [#]</td><td class="result">3</td><td class="unit">{#}</td><td class="range">Not supplied</td><td class="flag">—</td></tr></tbody></table>
+      </section>
+      <section class="panel">
+        <header class="panel-head"><h2>Alcohol Use Disorder Identification Test - Consumption [AUDIT-C]</h2><div class="panel-meta">12/13/2023 · Final</div></header>
+          <table><thead><tr><th class="test">Test</th><th class="result">Result</th><th class="unit">Unit</th><th class="range">Reference range</th><th class="flag">Flag</th></tr></thead>
+          <tbody><tr><td class="test">Total score [AUDIT-C]</td><td class="result">1</td><td class="unit">{score}</td><td class="range">Not supplied</td><td class="flag">—</td></tr></tbody></table>
+      </section>
+      <section class="panel">
+        <header class="panel-head"><h2>PHQ-9 quick depression assessment panel [Reported.PHQ]</h2><div class="panel-meta">12/13/2023 · Final</div></header>
+          <table><thead><tr><th class="test">Test</th><th class="result">Result</th><th class="unit">Unit</th><th class="range">Reference range</th><th class="flag">Flag</th></tr></thead>
+          <tbody><tr><td class="test">Patient Health Questionnaire 9 item (PHQ-9) total score [Reported]</td><td class="result">16</td><td class="unit">{score}</td><td class="range">Not supplied</td><td class="flag">—</td></tr></tbody></table>
+      </section>
+  <p class="disclaimer">Reference intervals and result interpretations appear only when supplied by the source FHIR record. This synthetic document is not for clinical use.</p>
+
+      <footer class="document-footer">
+        <div class="document-identity">
+          <strong>morzel.net Synthetic Med Data / diagnostic_type_1_ver_1</strong>
+          <span>Document for testing data retrieval and de-identification (record based on Synthea™)</span>
+        </div>
+      </footer>
+    </div>
+  </main>
+  <script>
+    (() => {
+      const selectors = ".handwritten, .written, .character-box:not(.word-space), .signature-line";
+      const roots = [...document.querySelectorAll(selectors)];
+      if (!roots.length) return;
+
+      const hash = (value) => {
+        let result = 2166136261;
+        for (let index = 0; index < value.length; index += 1) {
+          result ^= value.charCodeAt(index);
+          result = Math.imul(result, 16777619);
+        }
+        return result >>> 0;
+      };
+      const random = (state) => {
+        state.value += 0x6d2b79f5;
+        let value = state.value;
+        value = Math.imul(value ^ (value >>> 15), value | 1);
+        value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+        return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+      };
+
+      const documentSeed = hash(document.title + document.body.textContent);
+      const families = [
+        '"Synthetic Caveat", cursive',
+        '"Synthetic Reenie Beanie", cursive',
+        '"Synthetic Marck Script", cursive',
+        '"Synthetic Nothing You Could Do", cursive',
+        '"Synthetic Shadows Into Light", cursive',
+      ];
+      document.documentElement.style.setProperty(
+        "--simulated-handwriting",
+        families[documentSeed % families.length],
+      );
+
+      let glyphIndex = 0;
+      for (const root of roots) {
+        if (root.closest(".handwriting-glyph")) continue;
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        const textNodes = [];
+        while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+        for (const textNode of textNodes) {
+          const fragment = document.createDocumentFragment();
+          for (const character of textNode.data) {
+            if (/\s/.test(character)) {
+              fragment.append(character);
+              continue;
+            }
+            const state = {value: hash(`${documentSeed}:${glyphIndex}:${character}`)};
+            const glyph = document.createElement("span");
+            glyph.className = "handwriting-glyph";
+            glyph.textContent = character;
+            glyph.style.setProperty("--hw-y", `${(random(state) * 0.16 - 0.08).toFixed(3)}em`);
+            glyph.style.setProperty("--hw-rotation", `${(random(state) * 4.4 - 2.2).toFixed(2)}deg`);
+            glyph.style.setProperty("--hw-skew", `${(random(state) * 3 - 1.5).toFixed(2)}deg`);
+            glyph.style.setProperty("--hw-scale-x", (0.93 + random(state) * 0.14).toFixed(3));
+            glyph.style.setProperty("--hw-scale-y", (0.97 + random(state) * 0.06).toFixed(3));
+            glyph.style.setProperty("--hw-space", `${(random(state) * 0.035 - 0.018).toFixed(3)}em`);
+            glyph.style.setProperty("--hw-opacity", (0.88 + random(state) * 0.12).toFixed(3));
+            glyph.style.setProperty("--hw-shadow-x", `${(random(state) * 0.22 - 0.11).toFixed(2)}px`);
+            glyph.style.setProperty("--hw-shadow-y", `${(random(state) * 0.18 - 0.09).toFixed(2)}px`);
+            fragment.append(glyph);
+            glyphIndex += 1;
+          }
+          textNode.replaceWith(fragment);
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

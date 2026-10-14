@@ -1,0 +1,26 @@
+# Local load profile
+# date: 2026-10-05 18:48 +0530  commit: 78e96fc
+# environment: disposable local API (Kestrel, Development) + PostgreSQL 16 in Docker, synthetic seed data
+# command: FV_TEST_PASSWORD=<local synthetic seed password> python3 scripts/e2e/local_load_profile.py
+
+# ApacheBench load profile: 1000 requests per endpoint at concurrency 25
+# target: http://127.0.0.1:5060/api/v1
+
+Endpoint                      done  fail  non2xx     req/s   mean ms   p50   p95   p99    max
+Health check (anonymous)      1000     0       0  21438.98     1.166     1     2     2      2
+Family: own family            1000     0       0   2659.81     9.399     7    12    79     89
+Family: dashboard             1000     0       0    283.53    88.174    67   197   267    384
+Family: notifications         1000     0       0   2063.42    12.116     7    34    93    214
+Family: appointments          1000     0       0    639.41    39.098    33    73   115    191
+Family: health records        1000     0       0    731.43    34.179    27    72   115    181
+Family: vitals                1000     0       0   1041.35    24.007    19    55   120    184
+Family: lab reports           1000     0       0    938.29    26.644    23    47    81    114
+Family: triage cases          1000     0       0   1288.69    19.400    16    34    55     94
+Family: doctor directory      1000     0       0   1976.73    12.647    10    27    37     64
+Doctor: dashboard             1000     0       0    451.99    55.311    50    88   121    162
+Doctor: my cases              1000     0       0    593.34    42.135    37    78   125    242
+Doctor: case pool             1000     0       0    530.49    47.126    42    87   118    164
+Doctor: appointments          1000     0       0    639.13    39.116    21   127   560    570
+
+All 14 endpoints completed 1000 requests with zero failed and zero non-2xx responses.
+exit code: 0

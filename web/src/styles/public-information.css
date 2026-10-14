@@ -1,0 +1,63 @@
+.public-glass-container {
+  max-width: 800px;
+  flex-direction: column;
+  height: 85vh;
+  overflow: hidden;
+  padding: 0;
+  margin: auto;
+}
+
+@media (max-width: 767px) {
+  .public-glass-container {
+    height: 100vh;
+    height: 100dvh;
+    border-radius: 0;
+  }
+}
+
+.public-glass-panel {
+  flex: 1;
+  width: 100%;
+  border-radius: inherit;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.public-glass-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 40px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  flex-shrink: 0;
+}
+
+.public-glass-header a { text-decoration: none; }
+.public-glass-brand { font-size: 1.5rem; font-weight: bold; color: white; }
+.public-glass-nav { display: flex; gap: 24px; align-items: center; }
+.public-glass-link { color: white; opacity: 0.8; font-weight: 500; transition: opacity 0.2s; }
+.public-glass-link:hover { opacity: 1; }
+.public-glass-signin { background: #146CFF; color: white; padding: 8px 16px; border-radius: 8px; font-weight: bold; }
+.public-glass-signin:hover { filter: brightness(1.1); }
+
+.public-glass-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px;
+}
+
+.public-glass-eyebrow { color: #146CFF; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem; margin-bottom: 8px; }
+.public-glass-title { font-size: 2.5rem; font-weight: 800; margin: 0 0 24px 0; color: white; }
+.public-glass-lead { font-size: 1.25rem; color: white; opacity: 0.9; margin-bottom: 40px; line-height: 1.5; }
+
+.public-glass-section { margin-bottom: 32px; }
+.public-glass-section h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 12px; color: white; }
+.public-glass-section p { font-size: 1.05rem; line-height: 1.6; color: white; opacity: 0.8; margin-bottom: 12px; }
+
+@media (max-width: 600px) {
+  .public-glass-header { padding: 16px 20px; flex-direction: column; gap: 16px; align-items: flex-start; }
+  .public-glass-scroll { padding: 24px 20px; }
+  .public-glass-title { font-size: 2rem; }
+  .public-glass-nav { gap: 16px; flex-wrap: wrap; }
+}

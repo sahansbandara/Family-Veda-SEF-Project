@@ -1,0 +1,4 @@
+00:00 +0: loading /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/members_screen_test.dart
+00:00 +0: MembersScreen renders hero banner, 4 sub-tabs, and switches tabs
+00:01 +1: MembersScreen hides Head-only tabs and never calls Head-only providers for an Adult
+00:01 +2: All tests passed!

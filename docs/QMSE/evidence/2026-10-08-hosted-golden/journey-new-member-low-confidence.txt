@@ -1,0 +1,42 @@
+POST /auth/login: 200
+POST /auth/register: 201
+POST /families: 201
+POST /families/a6163066-58ff-4ef7-b891-755e1321e64c/members: 201
+GET /doctors/directory: 200
+POST /families/a6163066-58ff-4ef7-b891-755e1321e64c/doctor-requests: 201
+POST /doctors/me/family-requests/5d13fed3-9dff-445a-8a2e-5f127ddd9d3d/accept: 200
+POST /members/7835e74a-84f0-4653-9729-1be9d6f2c3e2/episodes: 201
+POST /episodes/ad2daf56-b586-4b42-b1dd-8143f8d77099/triage: 202
+CASE a36a0387-89ce-4444-8257-bf437e0f3b02
+GET /triage-cases/a36a0387-89ce-4444-8257-bf437e0f3b02/approved-guidance: 404
+CHECK PASS - guidance hidden before any doctor decision: HTTP 404
+GET /triage-cases/a36a0387-89ce-4444-8257-bf437e0f3b02/review: 403
+CHECK PASS - family user cannot open the doctor-only review (agent outputs and draft)
+GET /triage-cases/a36a0387-89ce-4444-8257-bf437e0f3b02/status: 200
+GET /triage-cases/a36a0387-89ce-4444-8257-bf437e0f3b02/status: 200
+GET /triage-cases/a36a0387-89ce-4444-8257-bf437e0f3b02/status: 200
+GET /triage-cases/a36a0387-89ce-4444-8257-bf437e0f3b02/status: 200
+GET /triage-cases/a36a0387-89ce-4444-8257-bf437e0f3b02/status: 200
+PIPELINE status=LowConfidence priority=Routine failureCode=LOW_CONFIDENCE seconds=20.2
+CHECK PASS - hosted agent pipeline reached doctor review: LowConfidence in 20.2s
+GET /triage-cases/a36a0387-89ce-4444-8257-bf437e0f3b02/review: 200
+TRACE step=0 agent=Coordinator status=Completed schemaValid=True confidence=1 latencyMs=0 allowed=[] denied=[]
+TRACE step=1 agent=Context status=NoData schemaValid=True confidence=0 latencyMs=5851 allowed=['read_member_profile', 'read_member_vitals', 'read_member_episodes', 'read_member_conditions'] denied=[]
+TRACE step=2 agent=Analysis status=NoData schemaValid=True confidence=0 latencyMs=4478 allowed=['read_lab_trends', 'compute_deviation'] denied=[]
+TRACE step=3 agent=FamilialRisk status=NoData schemaValid=True confidence=0 latencyMs=8568 allowed=['read_consented_hereditary_flags', 'read_relationship_graph', 'lookup_inheritance_pattern'] denied=[]
+TRACE step=4 agent=SafetyValidation status=Completed schemaValid=True confidence=0 latencyMs=0 allowed=[] denied=[]
+CHECK PASS - every completed agent step produced schema-valid output
+INFO low-confidence outcome: no draft advisory is produced; the doctor decides without one
+GET /triage-cases/a36a0387-89ce-4444-8257-bf437e0f3b02/approved-guidance: 404
+CHECK PASS - guidance still hidden after agents finish, before approval: HTTP 404
+GET /triage-cases/a36a0387-89ce-4444-8257-bf437e0f3b02/traces: 200
+CHECK PASS - family progress view carries step metadata only, no agent output or draft text
+POST /triage-cases/a36a0387-89ce-4444-8257-bf437e0f3b02/approve: 200
+GET /triage-cases/a36a0387-89ce-4444-8257-bf437e0f3b02/approved-guidance: 200
+CHECK PASS - family reads the doctor-approved guidance
+GET /triage-cases/a36a0387-89ce-4444-8257-bf437e0f3b02: 200
+CHECK PASS - case is Approved for the family
+CHECK PASS - internal doctor note absent from patient responses
+CHECK PASS - no overdue-review marker on the approved case
+RESULT 10 passed, 0 failed
+Hosted-agent golden journey passed

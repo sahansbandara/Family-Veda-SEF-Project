@@ -1,0 +1,32 @@
+npm verbose cli /Users/sahansandaruwan/.hermes/node/bin/node /Users/sahansandaruwan/.local/bin/npm
+npm info using npm@10.9.8
+npm info using node@v22.23.2
+npm verbose title npm run dev --host 127.0.0.1 --port 5174
+npm verbose argv "run" "dev" "--" "--host" "127.0.0.1" "--port" "5174"
+npm verbose logfile logs-max:10 dir:/Users/sahansandaruwan/.npm/_logs/2026-10-08T09_04_00_528Z-
+npm verbose logfile /Users/sahansandaruwan/.npm/_logs/2026-10-08T09_04_00_528Z-debug-0.log
+
+> family-veda-web@0.1.0 dev
+> vite --host 127.0.0.1 --port 5174
+
+2:34:00 PM [vite] (client) Re-optimizing dependencies because vite config has changed
+
+  VITE v8.2.0  ready in 227 ms
+
+  ➜  Local:   http://127.0.0.1:5174/
+2:34:39 PM [vite] (client) [console.warn] [cently:rd:site] failed to patch window.location setter TypeError: Cannot redefine property: location
+    at Object.defineProperty (<anonymous>)
+    at chrome-extension://eofcbnmajmjmplflapaojjnihcjkigck/redirectionChainSiteScript.js:1:1867
+    at chrome-extension://eofcbnmajmjmplflapaojjnihcjkigck/redirectionChainSiteScript.js:1:2646
+    at chrome-extension://eofcbnmajmjmplflapaojjnihcjkigck/redirectionChainSiteScript.js:1:2650
+2:36:47 PM [vite] (client) [console.warn] [cently:rd:site] failed to patch window.location setter TypeError: Cannot redefine property: location
+    at Object.defineProperty (<anonymous>)
+    at chrome-extension://eofcbnmajmjmplflapaojjnihcjkigck/redirectionChainSiteScript.js:1:1867
+    at chrome-extension://eofcbnmajmjmplflapaojjnihcjkigck/redirectionChainSiteScript.js:1:2646
+    at chrome-extension://eofcbnmajmjmplflapaojjnihcjkigck/redirectionChainSiteScript.js:1:2650
+npm verbose cwd /Users/sahansandaruwan/Github/SLIIT/Family-Veda/web
+npm verbose os Darwin 27.0.0
+npm verbose node v22.23.2
+npm verbose npm  v10.9.8
+npm verbose exit 143
+npm verbose code 143

@@ -1,0 +1,18 @@
+POST /auth/register: 201
+POST /auth/register: 201
+POST /auth/login: 200
+POST /families: 201
+POST /families/16a2b3a3-3e06-4e12-b612-3ba8dc0fda7c/members: 201
+POST /families/join-requests: 201
+POST /families/join-requests/90045c39-b1a5-47c5-8c97-38f6653caa05/accept: 200
+GET /families/16a2b3a3-3e06-4e12-b612-3ba8dc0fda7c/members: 200
+GET /members/me: 200
+POST /members/6d4aec92-790c-4aa4-81d0-5475a74f60a7/records: 201
+GET /members/6d4aec92-790c-4aa4-81d0-5475a74f60a7/records: 200
+Traceback (most recent call last):
+  File "/Users/sahansandaruwan/Github/SLIIT/Family-Veda/scripts/e2e/synthetic_portal_journey.py", line 63, in <module>
+    call("GET", f"/members/{adult_member['id']}/records", token=head_token, expected=(404,))
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/sahansandaruwan/Github/SLIIT/Family-Veda/scripts/e2e/synthetic_portal_journey.py", line 30, in call
+    raise AssertionError(f"Expected {expected}, got {status}: {payload[:600]!r}")
+AssertionError: Expected (404,), got 200: b'{"items":[],"page":1,"pageSize":20,"totalCount":0,"totalPages":0}'

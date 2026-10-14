@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Figure 3.3 – Agentic Triage Workflow</title>
+<style>
+@page{size:A4 portrait;margin:10mm}
+body{margin:0;padding:16px;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif}
+h1{font-size:18px;margin:0 0 10px}
+.fig{max-width:1280px;margin:0 auto}
+svg{display:block;width:100%;height:auto;max-height:232mm;margin:0 auto}
+.legend{display:flex;flex-wrap:wrap;gap:6px 22px;align-items:center;font-size:12px;margin-top:10px;border-top:1px solid #000;padding-top:8px}
+.legend span.i{display:inline-flex;align-items:center;gap:6px}
+.s{display:inline-block;box-sizing:border-box;border:1.2px solid #000;background:#fff}
+.ini{width:14px;height:14px;border-radius:50%;background:#000}
+.act{width:34px;height:16px;border-radius:7px}
+.dec{width:14px;height:14px;transform:rotate(45deg)}
+.fin{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle,#000 0 4.5px,#fff 5px)}
+@media print{body{padding:0}.fig{max-width:none}}
+</style></head><body><div class="fig">
+<h1>Figure 3.3 – Agentic Triage Workflow</h1>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 1510" role="img" aria-labelledby="t" font-family="Arial, Helvetica, sans-serif" font-size="12">
+<title id="t">Figure 3.3 – Agentic Triage Workflow</title>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M0.5,0.8 L9.5,5 L0.5,9.2" fill="none" stroke="#000" stroke-width="1.2"/></marker></defs>
+<rect x="0.6" y="0.6" width="1278.8" height="1508.8" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<rect x="0" y="0.6" width="200" height="30" fill="#eee" stroke="#000" stroke-width="1.2"/>
+<text x="100.0" y="20" text-anchor="middle" font-weight="bold" font-size="13">Family Member</text>
+<rect x="200" y="0.6" width="250" height="30" fill="#eee" stroke="#000" stroke-width="1.2"/>
+<text x="325.0" y="20" text-anchor="middle" font-weight="bold" font-size="13">ASP.NET Core API</text>
+<line x1="200" y1="30" x2="200" y2="1510" stroke="#000" stroke-width="1.2"/>
+<rect x="450" y="0.6" width="620" height="30" fill="#eee" stroke="#000" stroke-width="1.2"/>
+<text x="760.0" y="20" text-anchor="middle" font-weight="bold" font-size="13">Agent Pipeline (background worker)</text>
+<line x1="450" y1="30" x2="450" y2="1510" stroke="#000" stroke-width="1.2"/>
+<rect x="1070" y="0.6" width="210" height="30" fill="#eee" stroke="#000" stroke-width="1.2"/>
+<text x="1175.0" y="20" text-anchor="middle" font-weight="bold" font-size="13">Doctor</text>
+<line x1="1070" y1="30" x2="1070" y2="1510" stroke="#000" stroke-width="1.2"/>
+<circle cx="100" cy="62" r="10" fill="#000"/>
+<rect x="15.0" y="90" width="170" height="44" rx="14" ry="14" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<text x="100" y="109.05" text-anchor="middle" font-size="12"><tspan x="100" dy="0">Submit symptoms,</tspan><tspan x="100" dy="14.5">duration and severity</tspan></text>
+<polyline points="100,72 100,90" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<rect x="230.0" y="90" width="190" height="44" rx="14" ry="14" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<text x="325" y="109.05" text-anchor="middle" font-size="12"><tspan x="325" dy="0">Create episode and</tspan><tspan x="325" dy="14.5">triage case</tspan></text>
+<polyline points="185,112 230,112" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<rect x="230.0" y="164" width="190" height="44" rx="14" ry="14" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<text x="325" y="183.05" text-anchor="middle" font-size="12"><tspan x="325" dy="0">Queue case to</tspan><tspan x="325" dy="14.5">TriageWorker</tspan></text>
+<polyline points="325,134 325,164" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<rect x="685.0" y="164" width="190" height="44" rx="14" ry="14" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<text x="780" y="183.05" text-anchor="middle" font-size="12"><tspan x="780" dy="0">Check emergency red flags</tspan><tspan x="780" dy="14.5">(deterministic rules)</tspan></text>
+<polyline points="420,186 685,186" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<polygon points="780,240 855,270 780,300 705,270" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<polyline points="780,208 780,240" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<rect x="933.0" y="310" width="124" height="60" rx="14" ry="14" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<text x="995" y="329.8" text-anchor="middle" font-size="12"><tspan x="995" dy="0">Escalate and show</tspan><tspan x="995" dy="14.5">emergency referral</tspan><tspan x="995" dy="14.5">(no AI output)</tspan></text>
+<polyline points="855,270 995,270 995,310" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<text x="925" y="264" text-anchor="middle" font-size="11" font-style="italic"><tspan x="925" dy="0">[emergency red flag]</tspan></text>
+<circle cx="995" cy="396" r="11" fill="#fff" stroke="#000" stroke-width="1.2"/><circle cx="995" cy="396" r="6.5" fill="#000"/>
+<polyline points="995,370 995,385" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<rect x="685.0" y="330" width="190" height="44" rx="14" ry="14" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<text x="780" y="349.05" text-anchor="middle" font-size="12"><tspan x="780" dy="0">Coordinator persists</tspan><tspan x="780" dy="14.5">triage plan</tspan></text>
+<polyline points="780,300 780,330" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<text x="790" y="321" text-anchor="start" font-size="11" font-style="italic"><tspan x="790" dy="0">[else]</tspan></text>
+<rect x="685.0" y="404" width="190" height="44" rx="14" ry="14" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<text x="780" y="423.05" text-anchor="middle" font-size="12"><tspan x="780" dy="0">Run Context Agent</tspan><tspan x="780" dy="14.5">via allow-listed tools</tspan></text>
+<polyline points="780,374 780,404" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<polygon points="780,490 855,520 780,550 705,520" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<polyline points="780,448 780,490" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<polyline points="855,520 995,520" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<text x="925" y="506" text-anchor="middle" font-size="11" font-style="italic"><tspan x="925" dy="0">[invalid output, denied</tspan><tspan x="925" dy="12">tool or provider failure]</tspan></text>
+<text x="790" y="570" text-anchor="start" font-size="11" font-style="italic"><tspan x="790" dy="0">[output valid]</tspan></text>
+<rect x="685.0" y="580" width="190" height="44" rx="14" ry="14" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<text x="780" y="599.05" text-anchor="middle" font-size="12"><tspan x="780" dy="0">Run Analysis Agent</tspan><tspan x="780" dy="14.5">via allow-listed tools</tspan></text>
+<polyline points="780,550 780,580" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<polygon points="780,666 855,696 780,726 705,696" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<polyline points="780,624 780,666" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<polyline points="855,696 995,696" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<text x="925" y="682" text-anchor="middle" font-size="11" font-style="italic"><tspan x="925" dy="0">[invalid output, denied</tspan><tspan x="925" dy="12">tool or provider failure]</tspan></text>
+<text x="790" y="746" text-anchor="start" font-size="11" font-style="italic"><tspan x="790" dy="0">[output valid]</tspan></text>
+<rect x="685.0" y="756" width="190" height="44" rx="14" ry="14" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<text x="780" y="775.05" text-anchor="middle" font-size="12"><tspan x="780" dy="0">Run Familial Risk Agent</tspan><tspan x="780" dy="14.5">via allow-listed tools</tspan></text>
+<polyline points="780,726 780,756" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<polygon points="780,842 855,872 780,902 705,872" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<polyline points="780,800 780,842" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<polyline points="855,872 995,872" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<text x="925" y="858" text-anchor="middle" font-size="11" font-style="italic"><tspan x="925" dy="0">[invalid output, denied</tspan><tspan x="925" dy="12">tool or provider failure]</tspan></text>
+<text x="790" y="922" text-anchor="start" font-size="11" font-style="italic"><tspan x="790" dy="0">[output valid]</tspan></text>
+<rect x="685.0" y="932" width="190" height="44" rx="14" ry="14" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<text x="780" y="951.05" text-anchor="middle" font-size="12"><tspan x="780" dy="0">Combine outputs into</tspan><tspan x="780" dy="14.5">doctor-only draft</tspan></text>
+<polyline points="780,902 780,932" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<rect x="685.0" y="1004" width="190" height="44" rx="14" ry="14" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<text x="780" y="1023.05" text-anchor="middle" font-size="12"><tspan x="780" dy="0">Apply deterministic</tspan><tspan x="780" dy="14.5">safety validation</tspan></text>
+<polyline points="780,976 780,1004" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<polygon points="780,1090 855,1120 780,1150 705,1120" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<polyline points="780,1048 780,1090" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<rect x="685.0" y="1180" width="190" height="44" rx="14" ry="14" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<text x="780" y="1199.05" text-anchor="middle" font-size="12"><tspan x="780" dy="0">Mark case</tspan><tspan x="780" dy="14.5">PendingDoctorReview</tspan></text>
+<polyline points="780,1150 780,1180" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<text x="790" y="1170" text-anchor="start" font-size="11" font-style="italic"><tspan x="790" dy="0">[checks pass]</tspan></text>
+<rect x="485.0" y="1180" width="150" height="44" rx="14" ry="14" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<text x="560" y="1199.05" text-anchor="middle" font-size="12"><tspan x="560" dy="0">Withhold draft; mark</tspan><tspan x="560" dy="14.5">LowConfidence</tspan></text>
+<polyline points="705,1120 560,1120 560,1180" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<text x="700" y="1114" text-anchor="end" font-size="11" font-style="italic"><tspan x="700" dy="0">[confidence &lt; threshold]</tspan></text>
+<polyline points="855,1120 995,1120" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<text x="925" y="1114" text-anchor="middle" font-size="11" font-style="italic"><tspan x="925" dy="0">[prohibited content]</tspan></text>
+<rect x="927.0" y="1180" width="136" height="60" rx="14" ry="14" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<text x="995" y="1207.05" text-anchor="middle" font-size="12"><tspan x="995" dy="0">Mark case FailedSafe;</tspan><tspan x="995" dy="14.5">no patient guidance</tspan></text>
+<polyline points="995,520 995,1180" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<circle cx="995" cy="1272" r="11" fill="#fff" stroke="#000" stroke-width="1.2"/><circle cx="995" cy="1272" r="6.5" fill="#000"/>
+<polyline points="995,1240 995,1261" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<polygon points="780,1244 798,1262 780,1280 762,1262" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<polyline points="780,1224 780,1244" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<polyline points="560,1224 560,1262 762,1262" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<rect x="230.0" y="1282" width="190" height="56" rx="14" ry="14" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<text x="325" y="1299.8" text-anchor="middle" font-size="12"><tspan x="325" dy="0">Grant time-limited case</tspan><tspan x="325" dy="14.5">access to eligible</tspan><tspan x="325" dy="14.5">doctor</tspan></text>
+<polyline points="780,1280 780,1310 420,1310" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<rect x="1080.0" y="1388" width="190" height="56" rx="14" ry="14" fill="#fff" stroke="#000" stroke-width="1.2"/>
+<text x="1175" y="1405.8" text-anchor="middle" font-size="12"><tspan x="1175" dy="0">Review case at the</tspan><tspan x="1175" dy="14.5">doctor approval gate</tspan><tspan x="1175" dy="14.5">(Figure 3.5)</tspan></text>
+<polyline points="325,1338 325,1368 1175,1368 1175,1388" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+<circle cx="1175" cy="1478" r="11" fill="#fff" stroke="#000" stroke-width="1.2"/><circle cx="1175" cy="1478" r="6.5" fill="#000"/>
+<polyline points="1175,1444 1175,1467" fill="none" stroke="#000" stroke-width="1.2" stroke-linejoin="miter" marker-end="url(#ah)"/>
+</svg>
+<div class="legend"><span class="i"><span class="s ini"></span>Initial node</span><span class="i"><span class="s act"></span>Action</span><span class="i"><span class="s dec"></span>Decision / merge node</span><span class="i"><em>[guard]</em>Guard condition on an outgoing edge</span><span class="i"><span class="s fin"></span>Activity final node</span><span class="i">&rarr; Control flow</span></div>
+</div></body></html>

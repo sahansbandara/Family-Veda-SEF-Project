@@ -1,0 +1,26 @@
+[
+  {
+    "analyte": "TSH",
+    "value": "2.1",
+    "unit": "mU/L",
+    "referenceLow": null,
+    "referenceHigh": null,
+    "rangePosition": "RangeUnavailable"
+  },
+  {
+    "analyte": "Free T4",
+    "value": "1.2",
+    "unit": "ng/dL",
+    "referenceLow": null,
+    "referenceHigh": null,
+    "rangePosition": "RangeUnavailable"
+  },
+  {
+    "analyte": "CRP",
+    "value": "3.4",
+    "unit": "mg/L",
+    "referenceLow": null,
+    "referenceHigh": null,
+    "rangePosition": "RangeUnavailable"
+  }
+]

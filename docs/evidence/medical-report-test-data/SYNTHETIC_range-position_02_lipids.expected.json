@@ -1,0 +1,26 @@
+[
+  {
+    "analyte": "HDL Cholesterol",
+    "value": "34",
+    "unit": "mg/dL",
+    "referenceLow": "40",
+    "referenceHigh": "60",
+    "rangePosition": "Below"
+  },
+  {
+    "analyte": "Total Cholesterol",
+    "value": "182",
+    "unit": "mg/dL",
+    "referenceLow": "125",
+    "referenceHigh": "200",
+    "rangePosition": "Within"
+  },
+  {
+    "analyte": "Triglycerides",
+    "value": "212",
+    "unit": "mg/dL",
+    "referenceLow": "50",
+    "referenceHigh": "150",
+    "rangePosition": "Above"
+  }
+]

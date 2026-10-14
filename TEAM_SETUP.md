@@ -217,7 +217,7 @@ It is fixable while the commits are still local; it is far messier after a push.
 1. Open a pull request from your branch into `develop`.
 2. Get one approving review from another member. CODEOWNERS will request the
    right person automatically.
-3. Fill in your own `docs/individual-reports/S*.md` and
-   `docs/ai-disclosure/S*.md`.
+3. Fill in your own section in Appendix B (individual component sections) and
+   your AI-use declaration in Appendix E of `docs/university/FINAL_REPORT.md`.
 4. Section 8 of your report — the personal reflection — **write it yourself**.
    An AI-generated reflection earns no credit.

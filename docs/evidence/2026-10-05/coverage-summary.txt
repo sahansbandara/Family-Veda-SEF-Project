@@ -1,0 +1,20 @@
+# Coverage summary
+# date: 2026-10-05  commit: 613bf7e  branch: develop
+# sources: coverlet XPlat Code Coverage (cobertura), flutter test --coverage (lcov)
+
+Backend unit tests        line 20.2% (8466/41842)   branch 50.4%
+  FamilyVeda.Domain         72.4%
+  FamilyVeda.Application    76.0%
+  FamilyVeda.Infrastructure 16.4%
+  FamilyVeda.Api             5.5%
+Backend integration tests line 69.1% (28906/41842)  branch 15.9%
+  FamilyVeda.Domain         35.8%
+  FamilyVeda.Application    67.5%
+  FamilyVeda.Infrastructure 71.1%
+  FamilyVeda.Api            59.0%
+Flutter tests             line 76.4% (8036/10514)
+Web (Vitest v8)           line 69.6% (3277/4705)  statements 67.5%  branches 62.4%  functions 64.1%
+
+Note: the backend line totals include generated EF Core migration code in
+FamilyVeda.Infrastructure. The unit and integration figures are separate runs
+and have not been merged into one combined figure.

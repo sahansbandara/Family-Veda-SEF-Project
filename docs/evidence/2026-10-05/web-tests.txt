@@ -1,0 +1,12 @@
+# Web tests with coverage
+# date: 2026-10-05 17:42 +0530  commit: 613bf7e  branch: develop
+# command: npx vitest run --coverage (in web/)
+
+      Coverage enabled with v8
+     × shows the latest reading per vital and the full history without interpretation 777ms
+     × filters the history by vital type 89ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+ Test Files  1 failed | 51 passed (52)
+      Tests  2 failed | 306 passed (308)
+   Start at  17:42:02
+   Duration  22.20s (tests 42%, environment 35%, import 14%, transform 5%, worker 3%)

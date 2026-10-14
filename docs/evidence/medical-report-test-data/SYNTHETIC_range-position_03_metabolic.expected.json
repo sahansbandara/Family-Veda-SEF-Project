@@ -1,0 +1,26 @@
+[
+  {
+    "analyte": "Sodium",
+    "value": "131",
+    "unit": "mmol/L",
+    "referenceLow": "135",
+    "referenceHigh": "145",
+    "rangePosition": "Below"
+  },
+  {
+    "analyte": "Potassium",
+    "value": "4.2",
+    "unit": "mmol/L",
+    "referenceLow": "3.5",
+    "referenceHigh": "5.1",
+    "rangePosition": "Within"
+  },
+  {
+    "analyte": "Fasting Glucose",
+    "value": "118",
+    "unit": "mg/dL",
+    "referenceLow": "70",
+    "referenceHigh": "100",
+    "rangePosition": "Above"
+  }
+]

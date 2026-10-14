@@ -1,0 +1,17 @@
+npm verbose cli /Users/sahansandaruwan/.hermes/node/bin/node /Users/sahansandaruwan/.local/bin/npm
+npm info using npm@10.9.8
+npm info using node@v22.23.2
+npm verbose title npm run lint
+npm verbose argv "run" "lint"
+npm verbose logfile logs-max:10 dir:/Users/sahansandaruwan/.npm/_logs/2026-10-08T08_55_03_571Z-
+npm verbose logfile /Users/sahansandaruwan/.npm/_logs/2026-10-08T08_55_03_571Z-debug-0.log
+
+> family-veda-web@0.1.0 lint
+> eslint . --max-warnings 0
+
+npm verbose cwd /Users/sahansandaruwan/Github/SLIIT/Family-Veda/web
+npm verbose os Darwin 27.0.0
+npm verbose node v22.23.2
+npm verbose npm  v10.9.8
+npm verbose exit 0
+npm info ok

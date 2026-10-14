@@ -1,0 +1,14 @@
+Executor: Codex on current machine; member execution is not established
+Component allocation: S4
+Revision: 195c0d3f50243d136fe900935a04545dcdc6b32c
+Started UTC: 2026-10-08T16:05:07.094183+00:00
+Working directory: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile
+Command: flutter test --no-pub --reporter expanded test/screens/approved_guidance_screen_test.dart
+
+00:00 +0: loading /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/approved_guidance_screen_test.dart
+00:00 +0: unapproved output is never visible to patient
+00:00 +1: doctor-approved final advisory is visible
+00:00 +2: All tests passed!
+
+Exit code: 0
+Finished UTC: 2026-10-08T16:05:09.881001+00:00

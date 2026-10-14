@@ -1,0 +1,16 @@
+Executor: Codex on current machine; member execution is not established
+Component allocation: S3
+Revision: 195c0d3f50243d136fe900935a04545dcdc6b32c
+Started UTC: 2026-10-08T16:05:03.526910+00:00
+Working directory: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile
+Command: flutter test --no-pub --reporter expanded test/screens/case_status_screen_test.dart
+
+00:00 +0: loading /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/screens/case_status_screen_test.dart
+00:00 +0: escalated case opens emergency referral
+00:00 +1: failed-safe case shows deterministic in-person referral only
+00:00 +2: overdue doctor response shows in-person referral while review remains open
+00:00 +3: approved case hides a stale delay marker and never shows internal doctor notes
+00:00 +4: All tests passed!
+
+Exit code: 0
+Finished UTC: 2026-10-08T16:05:07.093221+00:00

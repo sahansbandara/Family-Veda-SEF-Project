@@ -1,0 +1,19 @@
+Executor: Codex on current machine; member execution is not established
+Component allocation: S4
+Revision: 195c0d3f50243d136fe900935a04545dcdc6b32c
+Started UTC: 2026-10-08T16:05:14.705362+00:00
+Working directory: /Users/sahansandaruwan/Github/SLIIT/Family-Veda
+Command: dotnet test backend/tests/IntegrationTests/FamilyVeda.IntegrationTests.csproj --no-restore --filter FullyQualifiedName~ApprovedCase_NeverReturnsInternalDoctorNotes
+
+  FamilyVeda.Domain -> /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/src/Domain/bin/Debug/net8.0/FamilyVeda.Domain.dll
+  FamilyVeda.Application -> /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/src/Application/bin/Debug/net8.0/FamilyVeda.Application.dll
+  FamilyVeda.Infrastructure -> /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/src/Infrastructure/bin/Debug/net8.0/FamilyVeda.Infrastructure.dll
+  FamilyVeda.Api -> /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/src/Api/bin/Debug/net8.0/FamilyVeda.Api.dll
+  FamilyVeda.IntegrationTests -> /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/tests/IntegrationTests/bin/Debug/net8.0/FamilyVeda.IntegrationTests.dll
+Test run for /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/tests/IntegrationTests/bin/Debug/net8.0/FamilyVeda.IntegrationTests.dll (.NETCoreApp,Version=v8.0)
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:     1, Skipped:     0, Total:     1, Duration: 2 s - FamilyVeda.IntegrationTests.dll (net8.0)
+
+Exit code: 0
+Finished UTC: 2026-10-08T16:05:25.032883+00:00

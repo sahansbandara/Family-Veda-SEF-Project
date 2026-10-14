@@ -1,0 +1,9 @@
+# Backend unit tests
+# date: 2026-10-05 17:41 +0530  commit: 613bf7e  branch: develop
+# command: dotnet test backend/tests/UnitTests/FamilyVeda.UnitTests.csproj --collect:"XPlat Code Coverage"
+
+Test run for /Users/sahansandaruwan/Github/SLIIT/Family-Veda/backend/tests/UnitTests/bin/Debug/net8.0/FamilyVeda.UnitTests.dll (.NETCoreApp,Version=v8.0)
+A total of 1 test files matched the specified pattern.
+Passed!  - Failed:     0, Passed:   337, Skipped:     0, Total:   337, Duration: 6 s - FamilyVeda.UnitTests.dll (net8.0)
+Attachments:
+  /private/tmp/claude-501/-Users-sahansandaruwan-Github-SLIIT-Family-Veda/b1aa11ab-6913-4cda-9264-53bc0da11a27/scratchpad/cov/unit/64b5d7d0-6b4b-4c7d-b224-8c5a11f07cf5/coverage.cobertura.xml

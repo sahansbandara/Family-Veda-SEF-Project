@@ -1,0 +1,138 @@
+import '@testing-library/jest-dom/vitest'
+
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+const mocks = vi.hoisted(() => ({ get: vi.fn() }))
+vi.mock('../../services/apiClient', () => ({ apiClient: mocks }))
+vi.mock('./PdfReportCanvas', () => ({ PdfReportCanvas: ({ url, label }: { url: string; label: string }) => <canvas aria-label={label} data-source={url} /> }))
+
+import { OriginalReportPreview } from './OriginalReportPreview'
+
+describe('OriginalReportPreview', () => {
+  it('dismisses More actions outside or on Escape while allowing menu actions', async () => {
+    mocks.get.mockResolvedValue({ data: new Blob(['synthetic'], { type: 'image/png' }) })
+    vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:synthetic'), revokeObjectURL: vi.fn() })
+    render(<><button>Outside viewer</button><OriginalReportPreview reportId="report-menu" originalFileName="synthetic.png" hasOriginalFile /></>)
+    await screen.findByRole('img')
+    const toggle = screen.getByRole('button', { name: 'More actions' })
+    fireEvent.click(toggle)
+    fireEvent.pointerDown(within(screen.getByRole('group', { name: 'More document actions' })).getByRole('button', { name: 'Fit width' }))
+    expect(within(screen.getByRole('group', { name: 'More document actions' })).getByRole('button', { name: 'Fit width' })).toBeInTheDocument()
+    fireEvent.click(within(screen.getByRole('group', { name: 'More document actions' })).getByRole('button', { name: 'Fit width' }))
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(toggle)
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'Outside viewer' }))
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    fireEvent.click(toggle)
+    fireEvent.pointerDown(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(toggle).toHaveFocus()
+  })
+
+  beforeEach(() => mocks.get.mockReset())
+  afterEach(() => {
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+  })
+
+  it('loads the protected image as a blob and offers the original download', async () => {
+    mocks.get.mockResolvedValue({ data: new Blob(['synthetic'], { type: 'image/png' }) })
+    vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:synthetic'), revokeObjectURL: vi.fn() })
+    render(<OriginalReportPreview reportId="report-1" originalFileName="synthetic.png" hasOriginalFile />)
+
+    expect(screen.getByText('Loading original report…')).toBeInTheDocument()
+    expect(await screen.findByRole('img', { name: 'Original report image: synthetic.png' })).toHaveAttribute('src', 'blob:synthetic')
+    expect(mocks.get).toHaveBeenCalledWith('/lab-reports/report-1/file', expect.objectContaining({ responseType: 'blob' }))
+    expect(screen.getByRole('link', { name: 'Download original image' })).toHaveAttribute('download', 'synthetic.png')
+  })
+
+  it('embeds a PDF original as a document instead of an image', async () => {
+    mocks.get.mockResolvedValue({ data: new Blob(['%PDF-synthetic'], { type: 'application/pdf' }) })
+    vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:synthetic-pdf'), revokeObjectURL: vi.fn() })
+    render(<OriginalReportPreview reportId="report-pdf" originalFileName="synthetic.pdf" hasOriginalFile />)
+
+    expect(await screen.findByLabelText('Original report document: synthetic.pdf')).toHaveAttribute('data-source', 'blob:synthetic-pdf')
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    expect(screen.getByRole('link', { name: 'Open PDF' })).toHaveAttribute('href', 'blob:synthetic-pdf')
+    expect(screen.getByRole('link', { name: 'Open PDF' })).toHaveAttribute('rel', 'noopener noreferrer')
+    expect(screen.getByRole('link', { name: 'Download original report' })).toHaveAttribute('download', 'synthetic.pdf')
+  })
+
+  it('shows unavailable without requesting a missing original', () => {
+    render(<OriginalReportPreview reportId="report-2" originalFileName="missing.png" hasOriginalFile={false} />)
+    expect(screen.getByText('Original report unavailable.')).toBeInTheDocument()
+    expect(mocks.get).not.toHaveBeenCalled()
+  })
+
+  it('aborts a stale report request and ignores its late response', async () => {
+    let resolveFirst!: (value: { data: Blob }) => void
+    const first = new Promise<{ data: Blob }>((resolve) => { resolveFirst = resolve })
+    mocks.get
+      .mockReturnValueOnce(first)
+      .mockResolvedValueOnce({ data: new Blob(['second'], { type: 'image/png' }) })
+    const createObjectURL = vi.fn(() => 'blob:second')
+    const revokeObjectURL = vi.fn()
+    vi.stubGlobal('URL', { createObjectURL, revokeObjectURL })
+
+    const view = render(<OriginalReportPreview reportId="report-1" originalFileName="first.png" hasOriginalFile />)
+    const firstSignal = mocks.get.mock.calls[0][1].signal as AbortSignal
+    view.rerender(<OriginalReportPreview reportId="report-2" originalFileName="second.png" hasOriginalFile />)
+
+    expect(firstSignal.aborted).toBe(true)
+    expect(await screen.findByRole('img', { name: 'Original report image: second.png' })).toHaveAttribute('src', 'blob:second')
+    await act(async () => {
+      resolveFirst({ data: new Blob(['first'], { type: 'image/png' }) })
+      await first
+    })
+    expect(createObjectURL).toHaveBeenCalledTimes(1)
+  })
+
+  it('revokes the ready object URL when the report changes', async () => {
+    mocks.get.mockResolvedValue({ data: new Blob(['synthetic'], { type: 'image/png' }) })
+    const createObjectURL = vi.fn(() => 'blob:first')
+    const revokeObjectURL = vi.fn()
+    vi.stubGlobal('URL', { createObjectURL, revokeObjectURL })
+
+    const view = render(<OriginalReportPreview reportId="report-1" originalFileName="first.png" hasOriginalFile />)
+    await screen.findByRole('img', { name: 'Original report image: first.png' })
+    view.rerender(<OriginalReportPreview reportId="report-2" originalFileName="second.png" hasOriginalFile={false} />)
+
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:first')
+    expect(screen.getByText('Original report unavailable.')).toBeInTheDocument()
+  })
+
+  it('changes the shell theme without fetching or replacing original bytes', async () => {
+    mocks.get.mockResolvedValue({ data: new Blob(['synthetic'], { type: 'image/png' }) })
+    vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:synthetic'), revokeObjectURL: vi.fn() })
+    render(<OriginalReportPreview reportId="report-theme" originalFileName="synthetic.png" hasOriginalFile />)
+    const image = await screen.findByRole('img', { name: 'Original report image: synthetic.png' })
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to dark mode' }))
+    expect(screen.getByRole('region', { name: 'Original report' })).toHaveAttribute('data-viewer-theme', 'dark')
+    expect(image).toHaveAttribute('src', 'blob:synthetic')
+    expect(mocks.get).toHaveBeenCalledTimes(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Switch to light mode' }))
+    expect(screen.getByRole('region', { name: 'Original report' })).toHaveAttribute('data-viewer-theme', 'light')
+  })
+  it('guards rechecking and omits it for read-only callers', async () => {
+    mocks.get.mockResolvedValue({ data: new Blob(['synthetic'], { type: 'image/png' }) })
+    vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:synthetic'), revokeObjectURL: vi.fn() })
+    const recheck = vi.fn()
+    const view = render(<OriginalReportPreview reportId="report-member" originalFileName="synthetic.png" hasOriginalFile onCheckReport={recheck} checkDisabled />)
+    await screen.findByRole('img')
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    expect(screen.getByRole('button', { name: 'Check report again' })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', { name: 'Check report again' }))
+    expect(recheck).not.toHaveBeenCalled()
+    view.rerender(<OriginalReportPreview reportId="report-member" originalFileName="synthetic.png" hasOriginalFile onCheckReport={recheck} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Check report again' }))
+    expect(recheck).toHaveBeenCalledTimes(1)
+    view.rerender(<OriginalReportPreview reportId="report-member" originalFileName="synthetic.png" hasOriginalFile />)
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    expect(screen.queryByRole('button', { name: 'Check report again' })).not.toBeInTheDocument()
+  })
+
+})

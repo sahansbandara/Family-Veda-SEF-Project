@@ -1,0 +1,13 @@
+# Flutter analyze
+# date: 2026-10-05 17:42 +0530  commit: 613bf7e  branch: develop
+# command: flutter analyze (in mobile/)
+
+Analyzing mobile...                                             
+No issues found! (ran in 6.4s)
+
+# Flutter tests with coverage
+# date: 2026-10-05 17:42 +0530  commit: 613bf7e  branch: develop
+# command: flutter test --coverage (in mobile/)
+
+02:12 +213: /Users/sahansandaruwan/Github/SLIIT/Family-Veda/mobile/test/router/doctor_shell_after_login_test.dart: a family user signing in keeps the family menu
+02:14 +214: All tests passed!

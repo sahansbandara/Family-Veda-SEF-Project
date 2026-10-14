@@ -1,0 +1,26 @@
+[
+  {
+    "analyte": "Creatinine",
+    "value": "0.9",
+    "unit": "mg/dL",
+    "referenceLow": "0.6",
+    "referenceHigh": "1.2",
+    "rangePosition": "Within"
+  },
+  {
+    "analyte": "eGFR",
+    "value": "88",
+    "unit": "mL/min",
+    "referenceLow": null,
+    "referenceHigh": null,
+    "rangePosition": "RangeUnavailable"
+  },
+  {
+    "analyte": "Urea",
+    "value": "31",
+    "unit": "mg/dL",
+    "referenceLow": null,
+    "referenceHigh": null,
+    "rangePosition": "RangeUnavailable"
+  }
+]
