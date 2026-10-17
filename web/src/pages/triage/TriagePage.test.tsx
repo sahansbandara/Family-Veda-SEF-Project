@@ -376,4 +376,43 @@ describe('TriagePage request filters', () => {
     await waitFor(() => expect(mocks.delete).toHaveBeenCalledWith('/triage-cases/case-3'))
     await waitFor(() => expect(screen.queryByText(/^Case 0012 ·/)).not.toBeInTheDocument())
   })
+
+  it('hides Delete permanently outside the Deleted filter', async () => {
+    const listedCases = [{ ...cases[0], id: 'case-3', status: 'Withdrawn', caseNumber: 12 }]
+    routeGet({ id: 'case-3', status: 'Withdrawn', priority: 'Routine' }, undefined, listedCases)
+    page('/triage?case=case-3')
+    await act(async () => { await Promise.resolve() })
+    expect(screen.queryByRole('button', { name: 'Delete permanently' })).not.toBeInTheDocument()
+    fireEvent.click(await screen.findByRole('button', { name: 'Deleted' }))
+    fireEvent.click(await screen.findByText(/^Case 0012 ·/))
+    expect(await screen.findByRole('button', { name: 'Delete permanently' })).toBeInTheDocument()
+    expect(screen.getByText('Deleted. Remove it permanently below.')).toBeInTheDocument()
+  })
+
+  it('explains when permanent delete is unavailable on the server', async () => {
+    const listedCases = [cases[0], { ...cases[0], id: 'case-3', status: 'Withdrawn', caseNumber: 12 }]
+    routeGet({ id: 'case-3', status: 'Withdrawn', priority: 'Routine' }, undefined, listedCases)
+    mocks.delete.mockRejectedValue({ response: { status: 405 } })
+    page('/triage')
+    await screen.findByText(/^Case case-1 ·/)
+    fireEvent.click(await screen.findByRole('button', { name: 'Deleted' }))
+    fireEvent.click(await screen.findByText(/^Case 0012 ·/))
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete permanently' }))
+    const buttons = screen.getAllByRole('button', { name: 'Delete permanently' })
+    fireEvent.click(buttons[buttons.length - 1])
+    expect(await screen.findByText('Permanent delete is not available on this server yet. Update the backend and try again.')).toBeInTheDocument()
+  })
+
+  it('shows an access message when the case cannot be loaded with 404', async () => {
+    routeGet({ id: 'case-1', status: 'PendingDoctorReview', priority: 'Routine' })
+    mocks.get.mockImplementation((url: string) => {
+      if (url === '/families/me') return Promise.resolve({ data: family })
+      if (url.endsWith('/triage-cases')) return Promise.resolve({ data: { items: cases } })
+      return Promise.reject({ response: { status: 404 } })
+    })
+    page('/triage')
+    fireEvent.click(await screen.findByText(/^Case case-1 ·/))
+    expect(await screen.findByText(/You no longer have access to this request/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Retry progress' })).not.toBeInTheDocument()
+  })
 })

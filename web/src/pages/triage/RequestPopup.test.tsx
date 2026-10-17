@@ -73,7 +73,9 @@ describe('patient request popup', () => {
     fireEvent.click(within(popup).getAllByRole('button', { name: 'Delete request' }).at(-1)!)
     await waitFor(() => expect(mocks.post).toHaveBeenCalledTimes(1))
     expect(mocks.post).toHaveBeenCalledWith('/triage-cases/case/withdraw')
-    expect(await within(popup).findByText('This request was withdrawn.')).toBeInTheDocument()
+    expect(await screen.findByText('Request moved to Deleted.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Deleted' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.queryByRole('button', { name: 'Delete permanently' })).not.toBeInTheDocument()
   })
 
   it('refreshes server capabilities after review wins a withdrawal race', async () => {

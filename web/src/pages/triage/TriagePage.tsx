@@ -20,7 +20,7 @@ import '../../styles/triage-redesign.css'
 type TriageStatusDto = { id: string; status: string; priority: string; failureCode?: string | null }
 type CaseView =
   | { state: 'loading' }
-  | { state: 'error' }
+  | { state: 'error'; httpStatus?: number }
   | { state: 'ready'; status: TriageStatusDto; details: TriageCaseDto; guidance: ApprovedGuidanceDto | null }
 
 const POLL_MS = 3000
@@ -211,8 +211,8 @@ export function TriagePage() {
         commit({ state: 'ready', status, details, guidance })
         setCases((items) => items.map((item) => item.id === selectedId ? { ...item, ...details, status: status.status } : item))
         if (!isTerminal(status.status, status.priority)) timer = setTimeout(() => void tick(), POLL_MS)
-      } catch {
-        commit({ state: 'error' })
+      } catch (error) {
+        commit({ state: 'error', httpStatus: (error as { response?: { status?: number } }).response?.status })
       }
     }
     void tick()
@@ -260,8 +260,15 @@ export function TriagePage() {
       setCases((items) => [updated, ...items.filter((item) => item.id !== updated.id)])
       setEditing(false)
       setConfirmWithdraw(false)
-      selectCase(updated.id)
-      setRefreshKey((value) => value + 1)
+      if (!event && updated.status === 'Withdrawn') {
+        setConfirmPurge(false)
+        setPopupOpen(false)
+        setFilter('deleted')
+        setMessage('Request moved to Deleted.')
+      } else {
+        selectCase(updated.id)
+        setRefreshKey((value) => value + 1)
+      }
       try { setCases(await loadCases(familyId)) }
       catch { setActionError('Your change was saved, but the request list could not be refreshed. Reopen the page to check your history.') }
     } catch (error) {
@@ -284,8 +291,12 @@ export function TriagePage() {
       setPopupOpen(false)
       setMessage('Request removed permanently.')
     } catch (error) {
-      const conflict = (error as { response?: { status?: number } }).response?.status === 409
-      setActionError(conflict ? 'This request can no longer be removed permanently.' : 'Could not remove the request. Try again.')
+      const code = (error as { response?: { status?: number } }).response?.status
+      setActionError(code === 409
+        ? 'This request can no longer be removed permanently.'
+        : code === 404 || code === 405
+          ? 'Permanent delete is not available on this server yet. Update the backend and try again.'
+          : 'Could not remove the request. Try again.')
     } finally { setActionBusy(false) }
   }
 
@@ -372,7 +383,7 @@ export function TriagePage() {
           ? isInactive(item.status)
           : !isInactive(item.status),
   )
-  const submitted = message.includes('submitted') || message === 'Request removed permanently.'
+  const submitted = message.includes('submitted') || message === 'Request removed permanently.' || message === 'Request moved to Deleted.'
   return (
     <div className="triage-redesign">
       <div className="shell">
@@ -613,10 +624,12 @@ export function TriagePage() {
               <LoadingState label="Loading request progress" />
             ) : caseView.state === 'error' ? (
               <div className="current-call">
-                <p>Request progress could not be loaded.</p>
-                <button className="btn tiny" type="button" onClick={() => setRefreshKey((current) => current + 1)}>
-                  Retry progress
-                </button>
+                <p>{caseView.httpStatus === 404 || caseView.httpStatus === 403 ? 'You no longer have access to this request. For a child, check guardian consent in Privacy & Access.' : 'Request progress could not be loaded.'}</p>
+                {caseView.httpStatus !== 404 && caseView.httpStatus !== 403 && (
+                  <button className="btn tiny" type="button" onClick={() => setRefreshKey((current) => current + 1)}>
+                    Retry progress
+                  </button>
+                )}
               </div>
             ) : (
               <>
@@ -646,8 +659,9 @@ export function TriagePage() {
                 ) : <div className="form-actions">{caseView.details.canEdit && <button className="btn" type="button" disabled={actionBusy} onClick={() => { setEditing(true); setConfirmWithdraw(false) }}>Edit request</button>}{caseView.details.canWithdraw && <button className="btn danger" type="button" disabled={actionBusy} onClick={() => setConfirmWithdraw(true)}>Delete request</button>}</div>}
                 {confirmWithdraw && caseView.details.canWithdraw && <div className="current-call" role="alert"><strong>Delete this request?</strong><p>It leaves your doctor’s queue and moves to Deleted. You can remove it permanently from there.</p><div className="form-actions"><button className="btn" type="button" disabled={actionBusy} onClick={() => setConfirmWithdraw(false)}>Keep request</button><button className="btn danger" type="button" disabled={actionBusy} onClick={() => void changeRequest()}>Delete request</button></div></div>}
                 {caseView.status.status === 'Claimed' && <p className="hint">A doctor has claimed this request, so it can no longer be deleted. Contact your doctor if it was sent by mistake.</p>}
-                {caseView.status.status === 'Withdrawn' && !confirmPurge && <div className="form-actions"><button className="btn danger" type="button" disabled={actionBusy} onClick={() => setConfirmPurge(true)}>Delete permanently</button></div>}
-                {caseView.status.status === 'Withdrawn' && confirmPurge && <div className="current-call" role="alert"><strong>Remove permanently?</strong><p>This erases the request and its symptoms. This cannot be undone.</p><div className="form-actions"><button className="btn" type="button" disabled={actionBusy} onClick={() => setConfirmPurge(false)}>Keep</button><button className="btn danger" type="button" disabled={actionBusy} onClick={() => void purgeRequest()}>Delete permanently</button></div></div>}
+                {caseView.status.status === 'Withdrawn' && filter === 'deleted' && <p className="hint" role="status">Deleted. Remove it permanently below.</p>}
+                {caseView.status.status === 'Withdrawn' && filter === 'deleted' && !confirmPurge && <div className="form-actions"><button className="btn danger" type="button" disabled={actionBusy} onClick={() => setConfirmPurge(true)}>Delete permanently</button></div>}
+                {caseView.status.status === 'Withdrawn' && filter === 'deleted' && confirmPurge && <div className="current-call" role="alert"><strong>Remove permanently?</strong><p>This erases the request and its symptoms. This cannot be undone.</p><div className="form-actions"><button className="btn" type="button" disabled={actionBusy} onClick={() => setConfirmPurge(false)}>Keep</button><button className="btn danger" type="button" disabled={actionBusy} onClick={() => void purgeRequest()}>Delete permanently</button></div></div>}
                 {caseView.status.status === 'FailedSafe' && caseView.status.priority !== 'Emergency' ? (
                   <div className="current-call current-call--danger" role="alert">
                     <strong>This request could not be prepared for review</strong>
@@ -661,7 +675,7 @@ export function TriagePage() {
                   </div>
                 ) : (
                   <>
-                    <FamilyCaseProgress caseStatus={caseView.status.status} doctorReceivedAt={caseView.details.doctorReceivedAt} doctorReviewStartedAt={caseView.details.doctorReviewStartedAt} />
+                    {caseView.status.status !== 'Withdrawn' && <FamilyCaseProgress caseStatus={caseView.status.status} doctorReceivedAt={caseView.details.doctorReceivedAt} doctorReviewStartedAt={caseView.details.doctorReviewStartedAt} />}
                     {caseView.guidance ? (
                       <div className="current-call current-call--ok">
                         <strong>Doctor-approved guidance</strong>
