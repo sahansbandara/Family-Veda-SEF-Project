@@ -68,10 +68,13 @@ describe('TriagePage', () => {
   })
 
   it('shows a referral instead of AI output when the case failed safe', async () => {
-    routeGet({ id: 'case-1', status: 'FailedSafe', priority: 'Routine', failureCode: 'LLM_TIMEOUT' })
+    routeGet({ id: 'case-1', status: 'FailedSafe', priority: 'Routine', failureCode: 'AGENT_UNAVAILABLE' })
     page()
     fireEvent.click(await screen.findByRole('button', { name: /Synthetic Member.*Case/ }))
-    expect(await screen.findByRole('alert')).toHaveTextContent('Please seek in-person care')
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('This request could not be prepared for review')
+    expect(alert).toHaveTextContent('The review assistant was unavailable')
+    expect(alert).not.toHaveTextContent('AGENT_UNAVAILABLE')
     expect(screen.queryByText('Doctor-approved guidance')).not.toBeInTheDocument()
   })
 

@@ -58,7 +58,7 @@ void main() {
     'failed safe preserves safety notice and eligible backend actions',
     (tester) async {
       await render(tester, request(editable: true, status: 'FAILED_SAFE'));
-      expect(find.text('Automated review unavailable'), findsOneWidget);
+      expect(find.text('This request could not be prepared for review'), findsOneWidget);
       expect(find.text('Edit request'), findsOneWidget);
       expect(find.text('Withdraw request'), findsOneWidget);
       expect(find.text('View approved guidance'), findsNothing);

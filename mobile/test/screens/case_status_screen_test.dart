@@ -62,8 +62,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Automated review unavailable'), findsOneWidget);
-    expect(find.textContaining('arrange an in-person clinical review'), findsOneWidget);
+    expect(find.text('This request could not be prepared for review'), findsOneWidget);
+    expect(find.textContaining('The review assistant was unavailable'), findsOneWidget);
+    expect(find.textContaining('see a clinician in person'), findsOneWidget);
     expect(find.textContaining('AGENT_UNAVAILABLE'), findsNothing);
     expect(find.textContaining('Guidance remains hidden'), findsNothing);
   });
