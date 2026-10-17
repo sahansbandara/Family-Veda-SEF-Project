@@ -53,7 +53,7 @@ export function FamilyCaseProgress({ caseStatus, doctorReceivedAt, doctorReviewS
           >
             <span className="dot" aria-hidden="true">{isPast ? '✓' : index + 1}</span>
             <strong>{index === 0 && doctorReceivedAt ? 'Received in doctor’s queue' : label}</strong>
-            <small>{index === 2 && isCurrent ? (doctorReviewStartedAt || caseStatus === 'Claimed' ? 'Doctor is reviewing your request' : 'Waiting for doctor review') : isPast ? 'Completed' : isCurrent ? 'Current stage' : 'Pending'}</small>
+            <small>{index === 2 && isCurrent ? (doctorReviewStartedAt || caseStatus === 'Claimed' ? 'Doctor is reviewing your request' : 'Waiting for doctor review') : index === 1 && isPast ? (caseStatus === 'LowConfidence' ? 'Stopped safely' : caseStatus === 'PendingDoctorReview' ? 'Prepared for doctor review' : doneStatuses.includes(caseStatus) ? 'Doctor response available' : 'Doctor has taken over') : isPast ? 'Completed' : isCurrent ? 'Current stage' : 'Pending'}</small>
           </li>
         )
       })}

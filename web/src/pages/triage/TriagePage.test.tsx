@@ -58,6 +58,21 @@ function page(entry = '/triage?view=guidance') {
 }
 
 describe('TriagePage', () => {
+  it('preserves submitted input when automatic preparation is interrupted', async () => {
+    const detail = { ...cases[0], status: 'FailedSafe', submittedEpisode: {
+      symptoms: ['Synthetic description'], durationDays: 2, severity: 3, notes: 'Synthetic additional note',
+    } }
+    routeGet({ id: 'case-1', status: 'FailedSafe', priority: 'Routine', failureCode: 'PROCESS_INTERRUPTED' }, undefined, [detail])
+    page()
+    fireEvent.click(await screen.findByRole('button', { name: /Synthetic Member.*Case/ }))
+    expect(await screen.findByText('Your submitted details')).toBeInTheDocument()
+    expect(screen.getByText('Synthetic description')).toBeInTheDocument()
+    expect(screen.getByText('Synthetic additional note')).toBeInTheDocument()
+    expect(screen.getByText(/Duration: 2 days/)).toHaveTextContent('Severity: 3/10')
+    expect(screen.getByText('This request could not be prepared for review')).toBeInTheDocument()
+    expect(mocks.post).not.toHaveBeenCalled()
+  })
+
   it('hides the keyboard without losing multiline symptom descriptions or submitting', async () => {
     routeGet({ id: 'case-1', status: 'PendingDoctorReview', priority: 'Routine' })
     page('/triage?view=new')

@@ -164,6 +164,11 @@ public sealed class TriageOrchestrator(
             if (!await SaveCheckpointAsync(caseId, cancellationToken)) return;
             await notificationService.SendCaseStatusAsync(caseId, triageCase.Status, cancellationToken);
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // Host shutdown is recovered at startup, not recorded as an agent/provider failure.
+            throw;
+        }
         catch (ToolDeniedException denied)
         {
             dbContext.AgentTraces.Add(NewTrace(caseId, step, denied.Agent, inputHash, [denied.Tool], [], [denied.Tool], null, 0m, status: AgentStepStatus.ToolDenied, errorCode: "TOOL_DENIED"));

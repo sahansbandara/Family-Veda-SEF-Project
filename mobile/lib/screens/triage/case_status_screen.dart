@@ -78,6 +78,10 @@ class CaseStatusScreen extends ConsumerWidget {
                       message:
                           '${failureReason(item.failureCode)} No automated guidance will be shown. Your doctor can still see this request. If you are worried or symptoms get worse, see a clinician in person. For an emergency, call 1990.',
                     ),
+                    if (item.submittedEpisode != null) ...[
+                      const SizedBox(height: 12),
+                      _SubmittedRequestCard(episode: item.submittedEpisode!),
+                    ],
                     RequestSubmissionActions(item: item),
                   ],
                 );
@@ -105,6 +109,10 @@ class CaseStatusScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 children: [
                   _ProgressCard(item: item),
+                  if (item.submittedEpisode != null) ...[
+                    const SizedBox(height: 12),
+                    _SubmittedRequestCard(episode: item.submittedEpisode!),
+                  ],
                   if (item.status == 'CLAIMED')
                     _NoticeCard(
                       icon: Icons.lock_outline,
@@ -153,6 +161,51 @@ class CaseStatusScreen extends ConsumerWidget {
   );
 }
 
+/// Only the patient's submitted input; never agent output or doctor-only notes.
+class _SubmittedRequestCard extends StatelessWidget {
+  const _SubmittedRequestCard({required this.episode});
+  final Map<String, dynamic> episode;
+
+  @override
+  Widget build(BuildContext context) {
+    final symptoms =
+        (episode['symptoms'] as List?)?.whereType<String>().toList() ??
+        const <String>[];
+    final notes = episode['notes'] as String?;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Your submitted details',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'These are the details you entered, not automated guidance.',
+            ),
+            const SizedBox(height: 12),
+            const Text('Symptoms and description'),
+            SelectableText(
+              symptoms.isEmpty ? 'No symptoms recorded' : symptoms.join(', '),
+            ),
+            const SizedBox(height: 8),
+            Text('Duration: ${episode['durationDays']} days'),
+            Text('Severity: ${episode['severity']}/10'),
+            if (notes != null && notes.trim().isNotEmpty) ...[
+              const SizedBox(height: 8),
+              const Text('Additional notes'),
+              SelectableText(notes),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Opaque card holding the progress rail — status is clinical content, so no glass.
 class _ProgressCard extends StatelessWidget {
   const _ProgressCard({required this.item});
@@ -165,11 +218,7 @@ class _ProgressCard extends StatelessWidget {
     final scheme = theme.colorScheme;
     final step = item.hasApprovedGuidance || item.latestDecisionAction != null
         ? 4
-        : item.doctorReviewStartedAt != null
-        ? 3
-        : StatusStepper.indexOf(item.status) >= 1
-        ? 2
-        : 1;
+        : StatusStepper.indexOf(item.status) + 1;
     final total = StatusStepper.stepCount;
     return Card(
       child: Padding(
@@ -229,14 +278,22 @@ class _ProgressCard extends StatelessWidget {
               ),
               (
                 'AI processing',
-                (StatusStepper.indexOf(item.status) >= 2 ||
-                        item.status == 'LOW_CONFIDENCE' ||
-                        item.doctorReviewStartedAt != null ||
-                        item.latestDecisionAction != null)
-                    ? 'Complete'
-                    : step >= 2
-                    ? 'In progress'
-                    : 'Waiting',
+                switch (item.status) {
+                  'PLANNING' ||
+                  'CONTEXT_READY' ||
+                  'ANALYSED' ||
+                  'RISK_ASSESSED' ||
+                  'VALIDATED' => 'In progress',
+                  'PENDING_DOCTOR_REVIEW' => 'Prepared for doctor review',
+                  'LOW_CONFIDENCE' || 'FAILED_SAFE' => 'Stopped safely',
+                  'CLAIMED' => 'Doctor has taken over',
+                  'APPROVED' ||
+                  'APPROVED_REVISED' ||
+                  'DELIVERED' ||
+                  'CLOSED' ||
+                  'REJECTED' => 'Doctor response available',
+                  _ => 'Waiting',
+                },
               ),
               (
                 'Doctor review',

@@ -9,13 +9,77 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
 void main() {
+  for (final status in ['PLANNING', 'PENDING_DOCTOR_REVIEW', 'FAILED_SAFE']) {
+    testWidgets(
+      'submitted details remain visible for $status without exposing internal notes',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(390, 844));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        final router = GoRouter(
+          initialLocation: '/case/synthetic-input',
+          routes: [
+            GoRoute(
+              path: '/case/:id',
+              builder: (_, state) =>
+                  CaseStatusScreen(caseId: state.pathParameters['id']!),
+            ),
+          ],
+        );
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              caseStatusProvider('synthetic-input').overrideWith(
+                (ref) => Stream.value(
+                  TriageCase(
+                    id: 'synthetic-input',
+                    status: status,
+                    submittedAt: DateTime.utc(2026, 10, 17),
+                    failureCode: status == 'FAILED_SAFE'
+                        ? 'PROCESS_INTERRUPTED'
+                        : null,
+                    latestDecisionReason: 'SYNTHETIC-INTERNAL-NOTE',
+                    submittedEpisode: {
+                      'symptoms': ['Synthetic description\nSecond line'],
+                      'durationDays': 2,
+                      'severity': 3,
+                      'notes': 'Synthetic additional note',
+                    },
+                  ),
+                ),
+              ),
+            ],
+            child: MaterialApp.router(routerConfig: router),
+          ),
+        );
+        await tester.pumpAndSettle();
+        if (status == 'PENDING_DOCTOR_REVIEW') {
+          expect(find.text('Step 3 of 4'), findsOneWidget);
+          expect(find.text('Prepared for doctor review'), findsOneWidget);
+        }
+        await tester.scrollUntilVisible(
+          find.text('Your submitted details'),
+          160,
+          scrollable: find.byType(Scrollable).first,
+        );
+        expect(find.text('Synthetic description\nSecond line'), findsOneWidget);
+        expect(find.text('Duration: 2 days'), findsOneWidget);
+        expect(find.text('Severity: 3/10'), findsOneWidget);
+        expect(find.text('Synthetic additional note'), findsOneWidget);
+        expect(find.textContaining('SYNTHETIC-INTERNAL-NOTE'), findsNothing);
+        expect(find.text('Complete'), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
   testWidgets('escalated case opens emergency referral', (tester) async {
     final router = GoRouter(
       initialLocation: '/case/synthetic-case-01',
       routes: [
         GoRoute(
           path: '/case/:id',
-          builder: (_, state) => CaseStatusScreen(caseId: state.pathParameters['id']!),
+          builder: (_, state) =>
+              CaseStatusScreen(caseId: state.pathParameters['id']!),
         ),
         GoRoute(
           path: '/emergency',
@@ -45,16 +109,31 @@ void main() {
     expect(find.text('Emergency referral'), findsOneWidget);
   });
 
-  testWidgets('failed-safe case shows deterministic in-person referral only', (tester) async {
+  testWidgets('failed-safe case shows deterministic in-person referral only', (
+    tester,
+  ) async {
     final router = GoRouter(
       initialLocation: '/case/synthetic-case-02',
-      routes: [GoRoute(path: '/case/:id', builder: (_, state) => CaseStatusScreen(caseId: state.pathParameters['id']!))],
+      routes: [
+        GoRoute(
+          path: '/case/:id',
+          builder: (_, state) =>
+              CaseStatusScreen(caseId: state.pathParameters['id']!),
+        ),
+      ],
     );
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           caseStatusProvider('synthetic-case-02').overrideWith(
-            (ref) => Stream.value(TriageCase(id: 'synthetic-case-02', status: 'FAILED_SAFE', failureCode: 'AGENT_UNAVAILABLE', submittedAt: DateTime.utc(2026, 8, 4))),
+            (ref) => Stream.value(
+              TriageCase(
+                id: 'synthetic-case-02',
+                status: 'FAILED_SAFE',
+                failureCode: 'AGENT_UNAVAILABLE',
+                submittedAt: DateTime.utc(2026, 8, 4),
+              ),
+            ),
           ),
         ],
         child: MaterialApp.router(routerConfig: router),
@@ -62,33 +141,113 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('This request could not be prepared for review'), findsOneWidget);
-    expect(find.textContaining('The review assistant was unavailable'), findsOneWidget);
+    expect(
+      find.text('This request could not be prepared for review'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('The review assistant was unavailable'),
+      findsOneWidget,
+    );
     expect(find.textContaining('see a clinician in person'), findsOneWidget);
     expect(find.textContaining('AGENT_UNAVAILABLE'), findsNothing);
     expect(find.textContaining('Guidance remains hidden'), findsNothing);
   });
 
-  testWidgets('overdue doctor response shows in-person referral while review remains open', (tester) async {
-    final router = GoRouter(initialLocation: '/case/synthetic-case-03', routes: [GoRoute(path: '/case/:id', builder: (_, state) => CaseStatusScreen(caseId: state.pathParameters['id']!))]);
-    await tester.pumpWidget(ProviderScope(overrides: [caseStatusProvider('synthetic-case-03').overrideWith((ref) => Stream.value(TriageCase(id: 'synthetic-case-03', status: 'PENDING_DOCTOR_REVIEW', failureCode: 'DOCTOR_RESPONSE_DELAY', submittedAt: DateTime.utc(2026, 8, 4))))], child: MaterialApp.router(routerConfig: router)));
-    await tester.pumpAndSettle();
-    await tester.drag(find.byType(ListView).first, const Offset(0, -400));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'overdue doctor response shows in-person referral while review remains open',
+    (tester) async {
+      final router = GoRouter(
+        initialLocation: '/case/synthetic-case-03',
+        routes: [
+          GoRoute(
+            path: '/case/:id',
+            builder: (_, state) =>
+                CaseStatusScreen(caseId: state.pathParameters['id']!),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            caseStatusProvider('synthetic-case-03').overrideWith(
+              (ref) => Stream.value(
+                TriageCase(
+                  id: 'synthetic-case-03',
+                  status: 'PENDING_DOCTOR_REVIEW',
+                  failureCode: 'DOCTOR_RESPONSE_DELAY',
+                  submittedAt: DateTime.utc(2026, 8, 4),
+                ),
+              ),
+            ),
+          ],
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView).first, const Offset(0, -400));
+      await tester.pumpAndSettle();
 
-    expect(find.textContaining('has not responded within the expected review window'), findsOneWidget);
-    expect(find.textContaining('arrange an in-person clinical review'), findsOneWidget);
-  });
+      expect(
+        find.textContaining(
+          'has not responded within the expected review window',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('arrange an in-person clinical review'),
+        findsOneWidget,
+      );
+    },
+  );
 
-  testWidgets('approved case hides a stale delay marker and never shows internal doctor notes', (tester) async {
-    final router = GoRouter(initialLocation: '/case/synthetic-case-04', routes: [GoRoute(path: '/case/:id', builder: (_, state) => CaseStatusScreen(caseId: state.pathParameters['id']!))]);
-    await tester.pumpWidget(ProviderScope(overrides: [caseStatusProvider('synthetic-case-04').overrideWith((ref) => Stream.value(TriageCase(id: 'synthetic-case-04', status: 'APPROVED', failureCode: 'DOCTOR_RESPONSE_DELAY', latestDecisionAction: 'Approve', latestDecisionReason: 'SYNTHETIC-INTERNAL-NOTE-MARKER', submittedAt: DateTime.utc(2026, 8, 4))))], child: MaterialApp.router(routerConfig: router)));
-    await tester.pumpAndSettle();
-    await tester.drag(find.byType(ListView).first, const Offset(0, -400));
-    await tester.pumpAndSettle();
+  testWidgets(
+    'approved case hides a stale delay marker and never shows internal doctor notes',
+    (tester) async {
+      final router = GoRouter(
+        initialLocation: '/case/synthetic-case-04',
+        routes: [
+          GoRoute(
+            path: '/case/:id',
+            builder: (_, state) =>
+                CaseStatusScreen(caseId: state.pathParameters['id']!),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            caseStatusProvider('synthetic-case-04').overrideWith(
+              (ref) => Stream.value(
+                TriageCase(
+                  id: 'synthetic-case-04',
+                  status: 'APPROVED',
+                  failureCode: 'DOCTOR_RESPONSE_DELAY',
+                  latestDecisionAction: 'Approve',
+                  latestDecisionReason: 'SYNTHETIC-INTERNAL-NOTE-MARKER',
+                  submittedAt: DateTime.utc(2026, 8, 4),
+                ),
+              ),
+            ),
+          ],
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.drag(find.byType(ListView).first, const Offset(0, -400));
+      await tester.pumpAndSettle();
 
-    expect(find.text('View approved guidance'), findsOneWidget);
-    expect(find.textContaining('has not responded within the expected review window'), findsNothing);
-    expect(find.textContaining('SYNTHETIC-INTERNAL-NOTE-MARKER'), findsNothing);
-  });
+      expect(find.text('View approved guidance'), findsOneWidget);
+      expect(
+        find.textContaining(
+          'has not responded within the expected review window',
+        ),
+        findsNothing,
+      );
+      expect(
+        find.textContaining('SYNTHETIC-INTERNAL-NOTE-MARKER'),
+        findsNothing,
+      );
+    },
+  );
 }

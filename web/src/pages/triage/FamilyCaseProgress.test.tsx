@@ -21,5 +21,7 @@ describe('FamilyCaseProgress', () => {
     render(<FamilyCaseProgress caseStatus="LowConfidence" />)
     expect(screen.getByText('Doctor review')).toBeInTheDocument()
     expect(screen.getByText('Waiting for doctor review')).toBeInTheDocument()
+    expect(screen.getByText('Stopped safely')).toBeInTheDocument()
+    expect(screen.queryByText('Doctor has taken over')).not.toBeInTheDocument()
   })
 })

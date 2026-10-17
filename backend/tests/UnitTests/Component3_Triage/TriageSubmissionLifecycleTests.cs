@@ -19,6 +19,49 @@ namespace FamilyVeda.UnitTests;
 public sealed class TriageSubmissionLifecycleTests
 {
     [Fact]
+    public async Task FailedSafe_OwnerCanReadExactSubmittedEpisode_WithoutAiDraft()
+    {
+        await using var f = await Fixture.CreateAsync();
+        f.Episode.SymptomsJson = "[\"Synthetic cough\",\"Synthetic tiredness\"]";
+        f.Episode.DurationDays = 4;
+        f.Episode.Severity = 6;
+        f.Episode.Notes = "Synthetic original context\nSecond original line";
+        await f.Db.SaveChangesAsync();
+        var submitted = await f.Patient.SubmitTriageAsync(f.Episode.Id, default);
+        var item = await f.Db.TriageCases.SingleAsync();
+        item.Status = TriageStatus.FailedSafe;
+        item.FailureCode = "PROCESS_INTERRUPTED";
+        item.DraftAdvisoryJson = null;
+        await f.Db.SaveChangesAsync();
+
+        var ownCase = await f.Patient.GetCaseAsync(submitted.Id, default);
+
+        ownCase.Status.Should().Be(TriageStatus.FailedSafe);
+        ownCase.FailureCode.Should().Be("PROCESS_INTERRUPTED");
+        ownCase.SubmittedEpisode.Should().NotBeNull();
+        ownCase.SubmittedEpisode!.Id.Should().Be(f.Episode.Id);
+        ownCase.SubmittedEpisode.MemberId.Should().Be(f.Episode.MemberId);
+        ownCase.SubmittedEpisode.Symptoms.Should().Equal("Synthetic cough", "Synthetic tiredness");
+        ownCase.SubmittedEpisode.DurationDays.Should().Be(4);
+        ownCase.SubmittedEpisode.Severity.Should().Be(6);
+        ownCase.SubmittedEpisode.Notes.Should().Be("Synthetic original context\nSecond original line");
+    }
+
+    [Fact]
+    public async Task FailedSafe_DoesNotReleaseAnotherAdultsSubmittedEpisodeToFamilyHead()
+    {
+        await using var f = await Fixture.CreateAsync();
+        var adultUser = new UserAccount { Email = "synthetic-other-adult@example.invalid", PasswordHash = "synthetic", DisplayName = "Synthetic adult", UserType = UserType.FamilyUser };
+        var adult = new Member { FamilyId = f.Episode.Member!.FamilyId, User = adultUser, DisplayName = "Synthetic adult", DateOfBirth = new(1991, 1, 1), Role = FamilyRole.AdultMember };
+        var episode = new Episode { Member = adult, SymptomsJson = "[\"Synthetic private adult symptom\"]", DurationDays = 2, Severity = 3, Notes = "Synthetic private adult context" };
+        var item = new TriageCase { Member = adult, Episode = episode, Status = TriageStatus.FailedSafe, FailureCode = "PROCESS_INTERRUPTED" };
+        f.Db.Add(item);
+        await f.Db.SaveChangesAsync();
+
+        await Assert.ThrowsAsync<NotFoundException>(() => f.Patient.GetCaseAsync(item.Id, default));
+    }
+
+    [Fact]
     public async Task Submission_IsReceivedImmediately_WithoutClinicalGrant_AndOnlyAssignedDoctorSeesMetadata()
     {
         await using var f = await Fixture.CreateAsync();

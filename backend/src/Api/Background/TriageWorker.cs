@@ -60,23 +60,23 @@ public sealed class TriageWorker(
         };
         var cases = await dbContext.TriageCases
             .Where(x => activeStatuses.Contains(x.Status))
-            .Select(x => new { Case = x, HasTraces = x.Traces.Any() })
             .ToListAsync(cancellationToken);
         var recoveredCases = new Queue<Guid>();
         foreach (var item in cases)
         {
-            await using var gate = await CaseLifecycleLock.AcquireAsync(dbContext, item.Case.Id, cancellationToken);
-            await dbContext.Entry(item.Case).ReloadAsync(cancellationToken);
-            if (!CaseLifecycle.IsProcessing(item.Case.Status)) continue;
-            if (item.Case.Status is TriageStatus.Submitted or TriageStatus.Planning && !item.HasTraces)
+            await using var gate = await CaseLifecycleLock.AcquireAsync(dbContext, item.Id, cancellationToken);
+            await dbContext.Entry(item).ReloadAsync(cancellationToken);
+            if (!CaseLifecycle.IsProcessing(item.Status)) continue;
+            var hasTraces = await dbContext.AgentTraces.AnyAsync(x => x.TriageCaseId == item.Id, cancellationToken);
+            if (item.Status is TriageStatus.Submitted or TriageStatus.Planning && !hasTraces)
             {
-                recoveredCases.Enqueue(item.Case.Id);
+                recoveredCases.Enqueue(item.Id);
             }
             else
             {
-                item.Case.Status = TriageStatus.FailedSafe;
-                item.Case.FailureCode = "PROCESS_INTERRUPTED";
-                item.Case.DraftAdvisoryJson = null;
+                item.Status = TriageStatus.FailedSafe;
+                item.FailureCode = "PROCESS_INTERRUPTED";
+                item.DraftAdvisoryJson = null;
             }
             await dbContext.SaveChangesAsync(cancellationToken);
             await gate.CompleteAsync(cancellationToken);

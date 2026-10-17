@@ -682,7 +682,7 @@ export function TriagePage() {
 
                 <p className="sub">{caseView.details.doctorReceivedAt ? 'Added to your assigned doctor’s queue.' : 'Request received by the service; awaiting doctor assignment.'} Queue receipt does not mean the doctor has read it.</p>
                 {caseView.details.latestDecisionAction && <div className="current-call"><strong>Doctor response</strong><p>{decisionLabels[caseView.details.latestDecisionAction] ?? 'Your doctor recorded a response to this request.'}</p></div>}
-                {caseView.details.submittedEpisode && !editing && <div className="review-box"><strong>Your submitted symptoms</strong><p>{caseView.details.submittedEpisode.symptoms.join(', ')}</p><p>Duration: {caseView.details.submittedEpisode.durationDays} days · Severity: {caseView.details.submittedEpisode.severity}/10</p>{caseView.details.submittedEpisode.notes && <p>{caseView.details.submittedEpisode.notes}</p>}</div>}
+                {caseView.details.submittedEpisode && !editing && <div className="review-box"><strong>Your submitted details</strong><p>These are the details you entered, not automated guidance.</p><p>{caseView.details.submittedEpisode.symptoms.join(', ')}</p><p>Duration: {caseView.details.submittedEpisode.durationDays} days · Severity: {caseView.details.submittedEpisode.severity}/10</p>{caseView.details.submittedEpisode.notes && <p>{caseView.details.submittedEpisode.notes}</p>}</div>}
                 {actionError && <p role="alert" className="error">{actionError}</p>}
                 {editing && caseView.details.canEdit && caseView.details.submittedEpisode ? (
                   <form onSubmit={(event) => void changeRequest(event)} className="request-edit" key={selectedId}>

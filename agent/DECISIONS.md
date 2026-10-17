@@ -446,3 +446,12 @@ Context and Analysis previously reported NoData unless the member had prior hist
 - Responsive web exposes a Hide keyboard action while either draft textarea is focused. It blurs the field without form submission or text loss.
 - Rejected: turning Return into submit/next or removing multiline entry; users need paragraphs. No triage validation, clinical rules, authorization, API, schema, signing, or dependency change.
 - Work on codex/triage-keyboard-dismiss. New task has no commit/push/deploy authorization. Pre-existing deleted iOS Package.resolved is external work and is not intentionally restored/changed.
+
+## 2026-10-17 — Preserve triage input and identify deployment interruptions
+- User explicitly approved bounded plan, iPhone reinstall and develop push: show submitted details across React/Flutter, truthful progress labels, backend-only Railway watch paths, caller-shutdown cancellation handling and locked recovery trace refresh. No schema, ownership lease or automatic replay.
+- Evidence: Railway runtime logs at22:14:03 Asia/Colombo show container shutdown canceled an agent step (TaskCanceledException), followed by AGENT_UNAVAILABLE. This supports deployment interruption, not a verified malformed model response. No patient input or real case identifiers retained here.
+- Current GetCaseAsync already authorizes/returns the family's own submitted episode; no API permission/DTO expansion needed. Flutter now renders that input independently of AI success; web labels it explicitly as submitted input. Never display drafts/internal doctor notes.
+- Native progress uses actual stages; no success inference from doctor claim/decision. LowConfidence says Stopped safely; pending review says Prepared for doctor review. Existing fail-safe/in-person safety routing remains in place.
+- Railway production service watchPatterns updated to /backend/** with explicit approval. Frontend/mobile-only pushes should no longer restart the backend once config applies. Backend deployments can still interrupt in-flight work; existing startup safe-failure remains intentional.
+- Rejected automatic retry, clearing traces and new durable queue/lease schema: would require separate concurrency/clinical/audit design. Existing failed cases remain failed; user can use existing edit/resubmit flow.
+- Shutdown OperationCanceledException is propagated when caller token is canceled; uncanceled provider failure behavior preserved. Startup re-reads trace existence under lifecycle lock after case reload to avoid stale snapshot race.
