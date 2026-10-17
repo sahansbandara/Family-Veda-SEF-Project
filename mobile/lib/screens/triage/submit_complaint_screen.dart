@@ -188,6 +188,7 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
     });
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text(
           widget.replacementCase == null
@@ -196,314 +197,355 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
         ),
       ),
       body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            controller: _scrollController,
-            padding: const EdgeInsets.all(16),
-            children: [
-              Card(
-                child: Padding(
+        child: Column(
+          children: [
+            Expanded(
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  controller: _scrollController,
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
                   padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          for (int i = 0; i < 3; i++) ...[
-                            Expanded(
-                              flex: 3,
-                              child: TextButton(
-                                style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                    vertical: 4,
-                                  ),
-                                ),
-                                onPressed: i < _step
-                                    ? () => setState(() => _step = i)
-                                    : null,
-                                child: Column(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 12,
-                                      backgroundColor: _step >= i
-                                          ? Theme.of(
-                                              context,
-                                            ).colorScheme.primary
-                                          : Theme.of(context).disabledColor
-                                                .withValues(alpha: 0.2),
-                                      child: Text(
-                                        _step > i ? '✓' : '${i + 1}',
-                                        style: TextStyle(
-                                          color: _step >= i
-                                              ? Theme.of(
-                                                  context,
-                                                ).colorScheme.onPrimary
-                                              : null,
-                                          fontSize: 12,
+                  children: [
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                for (int i = 0; i < 3; i++) ...[
+                                  Expanded(
+                                    flex: 3,
+                                    child: TextButton(
+                                      style: TextButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                          vertical: 4,
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Text(
-                                        ['Symptoms', 'Details', 'Review'][i],
-                                        style: const TextStyle(fontSize: 12),
-                                        maxLines: 1,
-                                        softWrap: false,
+                                      onPressed: i < _step
+                                          ? () => setState(() => _step = i)
+                                          : null,
+                                      child: Column(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 12,
+                                            backgroundColor: _step >= i
+                                                ? Theme.of(
+                                                    context,
+                                                  ).colorScheme.primary
+                                                : Theme.of(context)
+                                                      .disabledColor
+                                                      .withValues(alpha: 0.2),
+                                            child: Text(
+                                              _step > i ? '✓' : '${i + 1}',
+                                              style: TextStyle(
+                                                color: _step >= i
+                                                    ? Theme.of(
+                                                        context,
+                                                      ).colorScheme.onPrimary
+                                                    : null,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Text(
+                                              [
+                                                'Symptoms',
+                                                'Details',
+                                                'Review',
+                                              ][i],
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                              ),
+                                              maxLines: 1,
+                                              softWrap: false,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ],
+                                  ),
+                                  if (i < 2) const Expanded(child: Divider()),
+                                ],
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    if (_step == 0) ...[
+                      membersAsync.when(
+                        data: (members) => DropdownButtonFormField<String>(
+                          initialValue: _selectedMemberId,
+                          decoration: const InputDecoration(
+                            labelText: 'Who is this request for?',
+                            helperText:
+                                'Adults submit their own requests. For a child, guardian health-condition consent is required.',
+                            helperMaxLines: 3,
+                          ),
+                          items: members
+                              .map(
+                                (m) => DropdownMenuItem(
+                                  value: m.id,
+                                  child: Text(m.displayName),
                                 ),
+                              )
+                              .toList(),
+                          onChanged: widget.replacementCase != null
+                              ? null
+                              : (val) =>
+                                    setState(() => _selectedMemberId = val),
+                        ),
+                        loading: () => const CircularProgressIndicator(),
+                        error: (_, _) => const Text('Could not load members'),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text('What symptoms are you experiencing?'),
+                      const Text(
+                        'Select any that apply.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final symptom in _symptomOptions)
+                            SymptomChip(
+                              label: symptom,
+                              selected: _selectedSymptoms.contains(symptom),
+                              onSelected: (selected) => setState(() {
+                                selected
+                                    ? _selectedSymptoms.add(symptom)
+                                    : _selectedSymptoms.remove(symptom);
+                              }),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      TextFormField(
+                        key: const Key('chief_complaint_field'),
+                        controller: _typedSymptomsController,
+                        keyboardType: TextInputType.multiline,
+                        textInputAction: TextInputAction.newline,
+                        onTapOutside: (_) => FocusScope.of(context).unfocus(),
+                        maxLines: 3,
+                        maxLength: 500,
+                        decoration: const InputDecoration(
+                          labelText:
+                              'Describe the symptoms in your own words (optional)',
+                          hintText:
+                              'Tell the doctor what you have noticed, when it started...',
+                          alignLabelWithHint: true,
+                        ),
+                      ),
+                    ],
+
+                    if (_step == 1) ...[
+                      Text(
+                        'More about these symptoms',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        key: const Key('duration_field'),
+                        controller: _durationController,
+                        keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) =>
+                            FocusScope.of(context).unfocus(),
+                        onTapOutside: (_) => FocusScope.of(context).unfocus(),
+                        decoration: const InputDecoration(
+                          labelText: 'How many days have you had them?',
+                        ),
+                        validator: (value) {
+                          final days = int.tryParse(value ?? '');
+                          return days == null || days < 0 || days > 365
+                              ? 'Enter a duration from 0 to 365 days'
+                              : null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<int>(
+                        initialValue: _severity,
+                        decoration: const InputDecoration(
+                          labelText: 'How severe do they feel?',
+                        ),
+                        items: [
+                          if (![3, 6, 9].contains(_severity))
+                            DropdownMenuItem(
+                              value: _severity,
+                              child: Text(
+                                'Submitted severity $_severity of 10',
                               ),
                             ),
-                            if (i < 2) const Expanded(child: Divider()),
-                          ],
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              if (_step == 0) ...[
-                membersAsync.when(
-                  data: (members) => DropdownButtonFormField<String>(
-                    initialValue: _selectedMemberId,
-                    decoration: const InputDecoration(
-                      labelText: 'Who is this request for?',
-                      helperText:
-                          'Adults submit their own requests. For a child, guardian health-condition consent is required.',
-                      helperMaxLines: 3,
-                    ),
-                    items: members
-                        .map(
-                          (m) => DropdownMenuItem(
-                            value: m.id,
-                            child: Text(m.displayName),
+                          const DropdownMenuItem(value: 3, child: Text('Mild')),
+                          const DropdownMenuItem(
+                            value: 6,
+                            child: Text('Moderate'),
                           ),
-                        )
-                        .toList(),
-                    onChanged: widget.replacementCase != null
-                        ? null
-                        : (val) => setState(() => _selectedMemberId = val),
-                  ),
-                  loading: () => const CircularProgressIndicator(),
-                  error: (_, _) => const Text('Could not load members'),
-                ),
-                const SizedBox(height: 24),
-                const Text('What symptoms are you experiencing?'),
-                const Text(
-                  'Select any that apply.',
-                  style: TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final symptom in _symptomOptions)
-                      SymptomChip(
-                        label: symptom,
-                        selected: _selectedSymptoms.contains(symptom),
-                        onSelected: (selected) => setState(() {
-                          selected
-                              ? _selectedSymptoms.add(symptom)
-                              : _selectedSymptoms.remove(symptom);
-                        }),
+                          const DropdownMenuItem(
+                            value: 9,
+                            child: Text('Severe'),
+                          ),
+                        ],
+                        onChanged: (val) =>
+                            setState(() => _severity = val ?? 3),
                       ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                TextFormField(
-                  key: const Key('chief_complaint_field'),
-                  controller: _typedSymptomsController,
-                  maxLines: 3,
-                  maxLength: 500,
-                  decoration: const InputDecoration(
-                    labelText:
-                        'Describe the symptoms in your own words (optional)',
-                    hintText:
-                        'Tell the doctor what you have noticed, when it started...',
-                    alignLabelWithHint: true,
-                  ),
-                ),
-              ],
-
-              if (_step == 1) ...[
-                Text(
-                  'More about these symptoms',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  key: const Key('duration_field'),
-                  controller: _durationController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'How many days have you had them?',
-                  ),
-                  validator: (value) {
-                    final days = int.tryParse(value ?? '');
-                    return days == null || days < 0 || days > 365
-                        ? 'Enter a duration from 0 to 365 days'
-                        : null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<int>(
-                  initialValue: _severity,
-                  decoration: const InputDecoration(
-                    labelText: 'How severe do they feel?',
-                  ),
-                  items: [
-                    if (![3, 6, 9].contains(_severity))
-                      DropdownMenuItem(
-                        value: _severity,
-                        child: Text('Submitted severity $_severity of 10'),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _notesController,
+                        keyboardType: TextInputType.multiline,
+                        textInputAction: TextInputAction.newline,
+                        onTapOutside: (_) => FocusScope.of(context).unfocus(),
+                        maxLines: 3,
+                        maxLength: 1000,
+                        decoration: const InputDecoration(
+                          labelText:
+                              'Anything else the doctor should know? (optional)',
+                          hintText: 'Add relevant context in your own words...',
+                          alignLabelWithHint: true,
+                        ),
                       ),
-                    const DropdownMenuItem(value: 3, child: Text('Mild')),
-                    const DropdownMenuItem(value: 6, child: Text('Moderate')),
-                    const DropdownMenuItem(value: 9, child: Text('Severe')),
-                  ],
-                  onChanged: (val) => setState(() => _severity = val ?? 3),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _notesController,
-                  maxLines: 3,
-                  maxLength: 1000,
-                  decoration: const InputDecoration(
-                    labelText:
-                        'Anything else the doctor should know? (optional)',
-                    hintText: 'Add relevant context in your own words...',
-                    alignLabelWithHint: true,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Text(
-                          'Emergency decisions are not made by this form. If you need urgent help, use emergency services.',
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(width: 12),
+                            const Expanded(
+                              child: Text(
+                                'Emergency decisions are not made by this form. If you need urgent help, use emergency services.',
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
-                  ),
-                ),
-              ],
 
-              if (_step == 2) ...[
-                Text(
-                  'Check your request before submitting',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Family member',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          membersAsync.valueOrNull
-                                  ?.where((m) => m.id == _selectedMemberId)
-                                  .firstOrNull
-                                  ?.displayName ??
-                              'Family member',
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Symptoms and description',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        if (_selectedSymptoms.isNotEmpty)
-                          Wrap(
-                            spacing: 4,
+                    if (_step == 2) ...[
+                      Text(
+                        'Check your request before submitting',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 16),
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              for (final s in _selectedSymptoms)
-                                Chip(label: Text(s)),
+                              const Text(
+                                'Family member',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                membersAsync.valueOrNull
+                                        ?.where(
+                                          (m) => m.id == _selectedMemberId,
+                                        )
+                                        .firstOrNull
+                                        ?.displayName ??
+                                    'Family member',
+                              ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                'Symptoms and description',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              if (_selectedSymptoms.isNotEmpty)
+                                Wrap(
+                                  spacing: 4,
+                                  children: [
+                                    for (final s in _selectedSymptoms)
+                                      Chip(label: Text(s)),
+                                  ],
+                                ),
+                              if (_typedSymptomsController.text
+                                  .trim()
+                                  .isNotEmpty)
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    top: _selectedSymptoms.isNotEmpty ? 8 : 0,
+                                  ),
+                                  child: Text(
+                                    _typedSymptomsController.text.trim(),
+                                    key: const Key('review_description'),
+                                  ),
+                                ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                'Further details',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                'Duration: ${formatDurationDays(_durationController.text)} · Severity: ${_severity == 3
+                                    ? 'Mild'
+                                    : _severity == 6
+                                    ? 'Moderate'
+                                    : 'Severe'}',
+                              ),
+                              if (_notesController.text.trim().isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Additional context: ${_notesController.text.trim()}',
+                                ),
+                              ],
                             ],
                           ),
-                        if (_typedSymptomsController.text.trim().isNotEmpty)
-                          Padding(
-                            padding: EdgeInsets.only(
-                              top: _selectedSymptoms.isNotEmpty ? 8 : 0,
-                            ),
-                            child: Text(
-                              _typedSymptomsController.text.trim(),
-                              key: const Key('review_description'),
-                            ),
-                          ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Further details',
-                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        Text(
-                          'Duration: ${formatDurationDays(_durationController.text)} · Severity: ${_severity == 3
-                              ? 'Mild'
-                              : _severity == 6
-                              ? 'Moderate'
-                              : 'Severe'}',
-                        ),
-                        if (_notesController.text.trim().isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            'Additional context: ${_notesController.text.trim()}',
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.tertiaryContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.security,
-                        color: Theme.of(context).colorScheme.tertiary,
                       ),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Text(
-                          'A doctor reviews this request before any guidance is shared with you.',
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.tertiaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.security,
+                              color: Theme.of(context).colorScheme.tertiary,
+                            ),
+                            const SizedBox(width: 12),
+                            const Expanded(
+                              child: Text(
+                                'A doctor reviews this request before any guidance is shared with you.',
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
-                  ),
+                  ],
                 ),
-              ],
-            ],
-          ),
+              ),
+            ),
+            _buildActionBar(context),
+          ],
         ),
       ),
-      bottomNavigationBar: _buildActionBar(context),
     );
   }
 
@@ -518,6 +560,16 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (MediaQuery.viewInsetsOf(context).bottom > 0)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    key: const Key('hide_triage_keyboard'),
+                    onPressed: () => FocusScope.of(context).unfocus(),
+                    icon: const Icon(Icons.keyboard_hide_outlined),
+                    label: const Text('Hide keyboard'),
+                  ),
+                ),
               if (_error != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
@@ -544,51 +596,54 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
                       child: const Text('Back'),
                     ),
                   const SizedBox(width: 8),
-                  FilledButton(
-                    key: const Key('submit_complaint_button'),
-                    onPressed: _submitting
-                        ? null
-                        : () {
-                            if (_step < 2) {
-                              if (_step == 0 &&
-                                  _selectedSymptoms.isEmpty &&
-                                  _typedSymptomsController.text
-                                      .trim()
-                                      .isEmpty) {
+                  Flexible(
+                    child: FilledButton(
+                      key: const Key('submit_complaint_button'),
+                      onPressed: _submitting
+                          ? null
+                          : () {
+                              if (_step < 2) {
+                                if (_step == 0 &&
+                                    _selectedSymptoms.isEmpty &&
+                                    _typedSymptomsController.text
+                                        .trim()
+                                        .isEmpty) {
+                                  setState(() {
+                                    _error =
+                                        'Choose a symptom or describe it in your own words.';
+                                  });
+                                  return;
+                                }
+                                if (_step == 1 &&
+                                    !(_formKey.currentState?.validate() ??
+                                        false)) {
+                                  return;
+                                }
+                                FocusScope.of(context).unfocus();
                                 setState(() {
-                                  _error =
-                                      'Choose a symptom or describe it in your own words.';
+                                  _step++;
+                                  _error = null;
                                 });
-                                return;
+                                _scrollController.jumpTo(0);
+                              } else {
+                                _submit();
                               }
-                              if (_step == 1 &&
-                                  !(_formKey.currentState?.validate() ??
-                                      false)) {
-                                return;
-                              }
-                              FocusScope.of(context).unfocus();
-                              setState(() {
-                                _step++;
-                                _error = null;
-                              });
-                              _scrollController.jumpTo(0);
-                            } else {
-                              _submit();
-                            }
-                          },
-                    child: _submitting
-                        ? const SizedBox.square(
-                            dimension: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
+                            },
+                      child: _submitting
+                          ? const SizedBox.square(
+                              dimension: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Text(
+                              _step == 2
+                                  ? 'Submit for doctor review ✓'
+                                  : 'Continue',
+                              textAlign: TextAlign.center,
                             ),
-                          )
-                        : Text(
-                            _step == 2
-                                ? 'Submit for doctor review ✓'
-                                : 'Continue',
-                          ),
+                    ),
                   ),
                 ],
               ),

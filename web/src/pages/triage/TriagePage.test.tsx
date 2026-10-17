@@ -58,6 +58,31 @@ function page(entry = '/triage?view=guidance') {
 }
 
 describe('TriagePage', () => {
+  it('hides the keyboard without losing multiline symptom descriptions or submitting', async () => {
+    routeGet({ id: 'case-1', status: 'PendingDoctorReview', priority: 'Routine' })
+    page('/triage?view=new')
+    const description = await screen.findByLabelText(/Describe the symptoms in your own words/i)
+    act(() => description.focus())
+    fireEvent.change(description, { target: { value: 'Synthetic first line\nSynthetic second line' } })
+    const hide = await screen.findByRole('button', { name: 'Hide keyboard' })
+    fireEvent.blur(description, { relatedTarget: hide })
+    act(() => hide.focus())
+    expect(hide).toHaveFocus()
+    fireEvent.click(hide)
+    expect(description).not.toHaveFocus()
+    expect(description).toHaveValue('Synthetic first line\nSynthetic second line')
+    expect(screen.queryByRole('button', { name: 'Hide keyboard' })).not.toBeInTheDocument()
+    expect(mocks.post).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: /Continue/ }))
+    const notes = await screen.findByLabelText(/Anything else the doctor should know/i)
+    act(() => notes.focus())
+    fireEvent.change(notes, { target: { value: 'Synthetic note\nSecond line' } })
+    fireEvent.click(await screen.findByRole('button', { name: 'Hide keyboard' }))
+    expect(notes).not.toHaveFocus()
+    expect(notes).toHaveValue('Synthetic note\nSecond line')
+    expect(mocks.post).not.toHaveBeenCalled()
+  })
+
   beforeEach(() => {
     mocks.get.mockReset()
     mocks.post.mockReset()

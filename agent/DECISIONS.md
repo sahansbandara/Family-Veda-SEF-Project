@@ -439,3 +439,10 @@ Context and Analysis previously reported NoData unless the member had prior hist
 - Rejected: a second review screen or backend schema/API changes; existing review supports corrections, confirmation, extraction status and retry. No clinical interpretation, auth changes, migration, production web deployment or commit.
 - User reported login was working again during investigation. No credential/auth changes made. Release iOS app does not require its USB cable; API access needs internet and free-team signing expires independently.
 - Required rules/common/*, agent/BRIEF.md and blueprint are absent in this checkout. Used current CLAUDE.md, agent context, docs/OWNERSHIP.tsv and university requirements/audit; rechecked A1 specification PDF pages 2–3.
+
+## 2026-10-17 — Keep triage actions above the on-screen keyboard
+- User approved multiline-preserving keyboard dismissal and accessible Continue on iOS, plus matching web behavior and reinstall. After an external reset at 22:04:10 removed edits/tests, user confirmed the other session paused and explicitly directed continuation.
+- Root cause: native Continue action was in Scaffold.bottomNavigationBar, which can remain underneath the iOS keyboard. Keep the existing action bar inside the resized body below Expanded scrollable form; expose Hide keyboard when viewInsets.bottom is nonzero. Outside taps and scroll drags dismiss, numeric duration uses Done, multiline descriptions/notes retain newline.
+- Responsive web exposes a Hide keyboard action while either draft textarea is focused. It blurs the field without form submission or text loss.
+- Rejected: turning Return into submit/next or removing multiline entry; users need paragraphs. No triage validation, clinical rules, authorization, API, schema, signing, or dependency change.
+- Work on codex/triage-keyboard-dismiss. New task has no commit/push/deploy authorization. Pre-existing deleted iOS Package.resolved is external work and is not intentionally restored/changed.

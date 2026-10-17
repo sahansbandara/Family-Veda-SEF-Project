@@ -154,6 +154,7 @@ export function TriagePage() {
   const [caseView, setCaseView] = useState<CaseView | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
   const [filter, setFilter] = useState<RequestFilter>('all')
+  const [focusedDraftField, setFocusedDraftField] = useState<string | null>(null)
   const [descriptionLength, setDescriptionLength] = useState(0)
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([])
   const [severity, setSeverity] = useState(3)
@@ -499,10 +500,17 @@ export function TriagePage() {
                     <textarea
                       id="symptoms"
                       name="symptoms"
+                      onFocus={() => setFocusedDraftField('symptoms')}
+                      onBlur={(event) => { if (!(event.relatedTarget instanceof HTMLElement && event.relatedTarget.dataset.keyboardDismiss === 'symptoms')) setFocusedDraftField(null) }}
                       maxLength={500}
                       placeholder="Tell the doctor what you have noticed, when it started, and anything else relevant."
                       onChange={(event) => setDescriptionLength(event.target.value.length)}
                     />
+                    {focusedDraftField === 'symptoms' && <button type="button" className="btn" data-keyboard-dismiss="symptoms" onBlur={() => setFocusedDraftField(null)}
+                      onPointerDown={(event) => event.preventDefault()}
+                      onClick={() => { document.getElementById('symptoms')?.blur(); setFocusedDraftField(null) }}>
+                      Hide keyboard
+                    </button>}
                     <p className="hint counter">{descriptionLength}/500</p>
                   </div>
                 </div>
@@ -524,8 +532,13 @@ export function TriagePage() {
 
                   <div className="field">
                     <label htmlFor="notes">Anything else the doctor should know? <span className="optional">(optional)</span></label>
-                    <textarea id="notes" name="notes" maxLength={1000} placeholder="Add relevant context in your own words. Do not enter someone else's private health details." />
+                    <textarea id="notes" name="notes" onFocus={() => setFocusedDraftField('notes')} onBlur={(event) => { if (!(event.relatedTarget instanceof HTMLElement && event.relatedTarget.dataset.keyboardDismiss === 'notes')) setFocusedDraftField(null) }} maxLength={1000} placeholder="Add relevant context in your own words. Do not enter someone else's private health details." />
                   </div>
+                  {focusedDraftField === 'notes' && <button type="button" className="btn" data-keyboard-dismiss="notes" onBlur={() => setFocusedDraftField(null)}
+                    onPointerDown={(event) => event.preventDefault()}
+                    onClick={() => { document.getElementById('notes')?.blur(); setFocusedDraftField(null) }}>
+                    Hide keyboard
+                  </button>}
                   <div className="notice notice--flush">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3 8 8 11 5-3 8-6 8-11V5z"/><path d="m9 12 2 2 4-4"/></svg>
                     <div>Emergency decisions are not made by this form. If you need urgent help, use emergency services instead of waiting for this request.</div>
