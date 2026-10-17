@@ -474,14 +474,32 @@
 }
 
 .triage-redesign .btn.primary {
-  background: var(--triage-primary);
-  border-color: var(--triage-primary);
+  background: #146cff;
+  border-color: #146cff;
   color: #fff;
   box-shadow: 0 4px 14px rgba(20, 108, 255, 0.22);
 }
 
-.triage-redesign .btn.primary:hover {
-  filter: brightness(1.08);
+.triage-redesign .btn.primary:hover:not(:disabled),
+.triage-redesign .btn.primary:focus-visible {
+  background: #0b57d9;
+  border-color: #0b57d9;
+  color: #fff;
+}
+
+/* Dark: must out-specify ":root[data-theme=dark] .triage-redesign .btn".
+   White on #2563eb = 5.2:1, on #1d4ed8 = 6.7:1. */
+:root[data-theme="dark"] .triage-redesign .btn.primary {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+:root[data-theme="dark"] .triage-redesign .btn.primary:hover:not(:disabled),
+:root[data-theme="dark"] .triage-redesign .btn.primary:focus-visible {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #fff;
 }
 
 .triage-redesign .btn:hover {
