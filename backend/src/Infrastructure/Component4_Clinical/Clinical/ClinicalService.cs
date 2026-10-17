@@ -592,7 +592,7 @@ public sealed class ClinicalService(
         if (await EmergencyCaseAccess.IsClosedAsync(dbContext, caseId, cancellationToken)) throw new NotFoundException();
         var now = DateTimeOffset.UtcNow;
         var slaCutoff = now.AddHours(-configuration.GetValue("Sla:DoctorResponseHours", 6));
-        var existingUnrevokedGrants = await dbContext.CaseAccessGrants
+        var existingUnrevokedGrants = await dbContext.CaseAccessGrants.IgnoreQueryFilters()
             .Where(x => x.TriageCaseId == caseId && x.RevokedAt == null)
             .ToListAsync(cancellationToken);
         if (existingUnrevokedGrants.Any(x => x.ExpiresAt > now && x.CreatedAt > slaCutoff))
@@ -709,7 +709,7 @@ public sealed class ClinicalService(
         dbContext.Approvals.Add(approval);
         if (triageCase.Status is TriageStatus.Approved or TriageStatus.ApprovedRevised or TriageStatus.Rejected or TriageStatus.Escalated)
         {
-            var activeGrants = await dbContext.CaseAccessGrants
+            var activeGrants = await dbContext.CaseAccessGrants.IgnoreQueryFilters()
                 .Where(x => x.TriageCaseId == caseId && x.RevokedAt == null)
                 .ToListAsync(cancellationToken);
             foreach (var activeGrant in activeGrants) activeGrant.RevokedAt = approval.DecidedAt;
@@ -770,7 +770,7 @@ public sealed class ClinicalService(
 
     private async Task<Doctor> RequireVerifiedDoctorAsync(CancellationToken cancellationToken) =>
         currentUser.UserType == UserType.Doctor
-            ? await dbContext.Doctors.SingleOrDefaultAsync(x => x.UserId == currentUser.UserId && x.VerificationStatus == VerificationStatus.Verified && !x.ClaimDisputed, cancellationToken)
+            ? await dbContext.Doctors.SingleOrDefaultAsync(x => x.UserId == currentUser.UserId && x.VerificationStatus == VerificationStatus.Verified && !x.AccessFrozen, cancellationToken)
                 ?? throw new ForbiddenException()
             : throw new ForbiddenException();
 

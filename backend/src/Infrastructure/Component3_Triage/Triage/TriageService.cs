@@ -142,7 +142,8 @@ public sealed class TriageService(
     {
         item.Status = status;
         item.CompletedAt = DateTimeOffset.UtcNow;
-        var grants = await dbContext.CaseAccessGrants.Where(x => x.TriageCaseId == item.Id && x.RevokedAt == null).ToListAsync(ct);
+        // IgnoreQueryFilters: a grant frozen by an SLMC dispute must still be revoked when the case closes.
+        var grants = await dbContext.CaseAccessGrants.IgnoreQueryFilters().Where(x => x.TriageCaseId == item.Id && x.RevokedAt == null).ToListAsync(ct);
         foreach (var grant in grants) grant.RevokedAt = item.CompletedAt;
         dbContext.AuditLogs.Add(new AuditLog { ActorUserId = currentUser.UserId, SubjectMemberId = item.MemberId, EventType = status == TriageStatus.Withdrawn ? "CASE_WITHDRAWN" : "CASE_SUPERSEDED", ResourceType = "TriageCase", ResourceId = item.Id, Outcome = "SUCCESS" });
     }

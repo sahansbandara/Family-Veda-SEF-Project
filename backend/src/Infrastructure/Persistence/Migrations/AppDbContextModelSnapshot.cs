@@ -231,6 +231,10 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("accepting_new_families");
 
+                    b.Property<bool>("AccessFrozen")
+                        .HasColumnType("boolean")
+                        .HasColumnName("access_frozen");
+
                     b.Property<string>("City")
                         .HasMaxLength(60)
                         .HasColumnType("character varying(60)")

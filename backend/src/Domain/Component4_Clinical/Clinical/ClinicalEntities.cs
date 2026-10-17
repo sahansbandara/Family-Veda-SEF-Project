@@ -26,6 +26,8 @@ public sealed class Doctor : Entity
     public int SlotMinutes { get; set; } = 30;
     // SLMC contested claims: true while another account claims the same registration number.
     public bool ClaimDisputed { get; set; }
+    // Verified claimant whose clinical access is frozen until the dispute is resolved.
+    public bool AccessFrozen { get; set; }
 }
 
 /// <summary>Synthetic stand-in for the SLMC register (Rule 7: no real register data). Keyed by the same hash as Doctor.</summary>

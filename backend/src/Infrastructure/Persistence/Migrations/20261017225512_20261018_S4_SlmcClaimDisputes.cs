@@ -16,6 +16,13 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
                 table: "doctors");
 
             migrationBuilder.AddColumn<bool>(
+                name: "access_frozen",
+                table: "doctors",
+                type: "boolean",
+                nullable: false,
+                defaultValue: false);
+
+            migrationBuilder.AddColumn<bool>(
                 name: "claim_disputed",
                 table: "doctors",
                 type: "boolean",
@@ -95,6 +102,10 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
 
             migrationBuilder.DropIndex(
                 name: "ux_doctors_registration_number_hash_verified",
+                table: "doctors");
+
+            migrationBuilder.DropColumn(
+                name: "access_frozen",
                 table: "doctors");
 
             migrationBuilder.DropColumn(

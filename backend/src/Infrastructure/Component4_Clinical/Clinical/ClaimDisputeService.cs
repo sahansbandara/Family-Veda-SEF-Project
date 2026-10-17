@@ -39,17 +39,24 @@ public sealed class ClaimDisputeService(AppDbContext dbContext, ICurrentUser cur
             dbContext.DoctorClaimDisputes.Add(dispute);
         }
 
+        // A Verified doctor an admin already confirmed in an earlier dispute is re-flagged for review,
+        // but a fresh unverified claim cannot freeze their case access again (anti-griefing).
+        var confirmedWinners = await dbContext.DoctorClaimDisputes
+            .Where(x => x.RegistrationNumberHash == newDoctor.RegistrationNumberHash && x.Status == ClaimDisputeStatus.Resolved && x.WinnerDoctorId != null)
+            .Select(x => x.WinnerDoctorId!.Value).ToListAsync(cancellationToken);
+
         foreach (var claimant in existing)
         {
             claimant.ClaimDisputed = true;
             var frozen = 0;
-            if (claimant.VerificationStatus == VerificationStatus.Verified)
+            if (claimant.VerificationStatus == VerificationStatus.Verified && !confirmedWinners.Contains(claimant.Id))
             {
                 var grants = await dbContext.CaseAccessGrants
                     .Where(x => x.DoctorId == claimant.Id && x.RevokedAt == null && x.ExpiresAt > now)
                     .ToListAsync(cancellationToken);
                 foreach (var grant in grants) grant.FrozenAt = now;
                 frozen = grants.Count;
+                claimant.AccessFrozen = true;
             }
             Audit(dbContext, actorUserId, "SLMC_CLAIM_DISPUTED", claimant.Id, "FLAGGED", new { DisputeId = dispute.Id, FrozenGrants = frozen });
         }
@@ -100,6 +107,7 @@ public sealed class ClaimDisputeService(AppDbContext dbContext, ICurrentUser cur
             var previous = loser.VerificationStatus;
             loser.VerificationStatus = VerificationStatus.Suspended;
             loser.ClaimDisputed = false;
+            loser.AccessFrozen = false;
             if (loser.User is not null)
             {
                 loser.User.IsActive = false;
@@ -124,9 +132,11 @@ public sealed class ClaimDisputeService(AppDbContext dbContext, ICurrentUser cur
         var winnerPrevious = winner.VerificationStatus;
         winner.VerificationStatus = VerificationStatus.Verified;
         winner.ClaimDisputed = false;
+        winner.AccessFrozen = false;
         if (winner.User is not null) winner.User.IsActive = true;
         var unfrozen = 0;
-        foreach (var grant in grants.Where(x => x.DoctorId == winner.Id && x.FrozenAt != null))
+        // Only still-live grants come back; a case closed during the dispute had its grant revoked already.
+        foreach (var grant in grants.Where(x => x.DoctorId == winner.Id && x.FrozenAt != null && x.ExpiresAt > now))
         {
             grant.FrozenAt = null;
             unfrozen++;

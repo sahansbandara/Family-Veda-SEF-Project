@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FamilyVeda.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261017224944_20261018_S4_SlmcClaimDisputes")]
+    [Migration("20261017225512_20261018_S4_SlmcClaimDisputes")]
     partial class _20261018_S4_SlmcClaimDisputes
     {
         /// <inheritdoc />
@@ -233,6 +233,10 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(true)
                         .HasColumnName("accepting_new_families");
+
+                    b.Property<bool>("AccessFrozen")
+                        .HasColumnType("boolean")
+                        .HasColumnName("access_frozen");
 
                     b.Property<string>("City")
                         .HasMaxLength(60)

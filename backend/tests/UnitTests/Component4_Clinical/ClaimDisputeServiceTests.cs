@@ -57,6 +57,7 @@ public sealed class ClaimDisputeServiceTests
         disputed.Should().BeTrue();
         (await db.Doctors.CountAsync(x => x.ClaimDisputed)).Should().Be(2);
         first.VerificationStatus.Should().Be(VerificationStatus.Verified);
+        first.AccessFrozen.Should().BeTrue();
         (await db.CaseAccessGrants.CountAsync()).Should().Be(0, "frozen grants are hidden by the grant query filter");
         (await db.CaseAccessGrants.IgnoreQueryFilters().SingleAsync()).FrozenAt.Should().NotBeNull();
         (await db.DoctorClaimDisputes.SingleAsync()).Status.Should().Be(ClaimDisputeStatus.Open);
@@ -121,6 +122,24 @@ public sealed class ClaimDisputeServiceTests
         await service.ResolveAsync(dispute.Id, new ResolveClaimDisputeRequest(real.Id, "Original holder"), CancellationToken.None);
 
         (await db.CaseAccessGrants.SingleAsync()).DoctorId.Should().Be(real.Id);
+    }
+
+    [Fact]
+    public async Task NewClaim_AgainstConfirmedWinner_IsReviewed_ButDoesNotRefreezeAccess()
+    {
+        await using var db = NewDb();
+        var real = NewDoctor(db, "Dr Synthetic Real", VerificationStatus.Verified);
+        db.DoctorClaimDisputes.Add(new DoctorClaimDispute { RegistrationNumberHash = "SYN-HASH", Status = ClaimDisputeStatus.Resolved, WinnerDoctorId = real.Id });
+        db.CaseAccessGrants.Add(new CaseAccessGrant { TriageCaseId = Guid.NewGuid(), DoctorId = real.Id, ExpiresAt = DateTimeOffset.UtcNow.AddHours(4), Reason = "synthetic" });
+        await db.SaveChangesAsync();
+        var griefer = NewDoctor(db, "Dr Synthetic Griefer", VerificationStatus.Pending);
+
+        (await ClaimDisputeService.StageClaimAsync(db, griefer, griefer.UserId, CancellationToken.None)).Should().BeTrue();
+        await db.SaveChangesAsync();
+
+        real.ClaimDisputed.Should().BeTrue();
+        real.AccessFrozen.Should().BeFalse();
+        (await db.CaseAccessGrants.CountAsync()).Should().Be(1);
     }
 
     [Fact]
