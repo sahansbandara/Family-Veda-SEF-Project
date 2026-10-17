@@ -28,6 +28,14 @@ describe('ApprovalsPage', () => {
     mocks.post.mockReset()
   })
 
+  it('points an empty queue to the Available cases tab', async () => {
+    mocks.get.mockResolvedValue({ data: { items: [] } })
+    render(<MemoryRouter><ApprovalsPage /></MemoryRouter>)
+
+    expect(await screen.findByText('No cases awaiting approval')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /go to available cases/i })).toHaveAttribute('href', '/cases?tab=available')
+  })
+
   it('shows a retryable error when selected case evidence fails to load', async () => {
     mocks.get
       .mockResolvedValueOnce({ data: { items: [queuedCase('synthetic-case-01')] } })

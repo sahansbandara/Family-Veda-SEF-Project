@@ -183,8 +183,12 @@ export function ApprovalsPage() {
       ) : cases.length === 0 ? (
         <EmptyState
           title="No cases awaiting approval"
-          message="Cases appear here only with an active grant and pending doctor review."
-        />
+          message="Claim a case from Triage Cases → Available to review it here. Cases assigned to you by your family's primary-doctor link appear automatically."
+        >
+          <Link className="button" to="/cases?tab=available">
+            Go to Available cases
+          </Link>
+        </EmptyState>
       ) : (
         <>
           <section className="care-metrics" aria-label="Approval queue summary">
