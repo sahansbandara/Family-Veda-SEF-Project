@@ -73,15 +73,17 @@ class CaseStatusScreen extends ConsumerWidget {
                 );
               }
               if ({'WITHDRAWN', 'SUPERSEDED'}.contains(item.status)) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(
+                return ListView(
+                  padding: const EdgeInsets.all(24),
+                  children: [
+                    Text(
                       item.status == 'WITHDRAWN'
                           ? 'This request was withdrawn.'
                           : 'This request was replaced by your edited submission.',
                     ),
-                  ),
+                    if (item.status == 'WITHDRAWN')
+                      RequestSubmissionActions(item: item),
+                  ],
                 );
               }
               // A decided case is no longer overdue, even if an older delay marker is still present.
@@ -94,6 +96,14 @@ class CaseStatusScreen extends ConsumerWidget {
                 children: [
                   _ProgressCard(item: item),
                   RequestSubmissionActions(item: item),
+                  if (item.status == 'CLAIMED')
+                    _NoticeCard(
+                      icon: Icons.lock_outline,
+                      color: Theme.of(context).colorScheme.primary,
+                      title: 'Claimed by a doctor',
+                      message:
+                          'A doctor has claimed this request, so it can no longer be deleted. Contact your doctor if it was sent by mistake.',
+                    ),
                   if (item.latestDecisionAction != null)
                     _NoticeCard(
                       icon: Icons.message_outlined,

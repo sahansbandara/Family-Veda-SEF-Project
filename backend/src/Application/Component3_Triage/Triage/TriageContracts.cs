@@ -25,6 +25,7 @@ public interface ITriageService
     Task<TriageCaseDto> SubmitTriageAsync(Guid episodeId, CancellationToken cancellationToken);
     Task<TriageCaseDto> ReplaceSubmissionAsync(Guid caseId, CreateEpisodeRequest request, CancellationToken cancellationToken);
     Task<TriageCaseDto> WithdrawAsync(Guid caseId, CancellationToken cancellationToken);
+    Task PurgeWithdrawnAsync(Guid caseId, CancellationToken cancellationToken);
     Task<TriageCaseDto> GetCaseAsync(Guid caseId, CancellationToken cancellationToken);
     Task<TriageStatusDto> GetStatusAsync(Guid caseId, CancellationToken cancellationToken);
     Task<IReadOnlyList<AgentTraceDto>> GetTracesAsync(Guid caseId, CancellationToken cancellationToken);
