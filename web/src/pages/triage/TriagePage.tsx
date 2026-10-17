@@ -62,6 +62,20 @@ const decisionLabels: Record<string, string> = { Approve: 'Your doctor approved 
 function needsInformation(status: string) {
   return status === 'RequestInformation' || status === 'RequestedInformation'
 }
+// Patient-safe reasons only: no model, provider or internal detail is shown (RULE 2, RULE 9).
+const failureReasons: Record<string, string> = {
+  AGENT_UNAVAILABLE: 'The review assistant was unavailable when your request arrived.',
+  INVALID_AGENT_SCHEMA: 'The automatic check could not produce a safe summary for your doctor.',
+  MISSING_REQUIRED_AGENT_EVIDENCE: 'The automatic check could not produce a safe summary for your doctor.',
+  SAFETY_VALIDATION_FAILED: 'The automatic check could not produce a safe summary for your doctor.',
+  TOOL_DENIED: 'Some health information needed for the check could not be used under the current privacy settings.',
+  PROCESS_INTERRUPTED: 'The service was interrupted while preparing your request.',
+  WORKER_FAILURE: 'The service was interrupted while preparing your request.',
+  DOCTOR_RESPONSE_DELAY: 'A doctor did not respond within the expected time.',
+}
+export function failureReason(code?: string | null) {
+  return (code && failureReasons[code]) || 'The request could not be prepared automatically.'
+}
 function needsInPersonCare(status: string, priority: string) {
   return status === 'Escalated' || status === 'FailedSafe' || priority === 'Emergency'
 }
@@ -570,10 +584,15 @@ export function TriagePage() {
           <dialog ref={dialogRef} className="panel progress-panel request-dialog" aria-labelledby="request-progress-title" onCancel={() => setPopupOpen(false)} onClose={() => setPopupOpen(false)}><section aria-live="polite">
             <div className="req-head">
               <div>
-                <h2 id="request-progress-title">Request progress</h2>
+                <div className="req-title">
+                  <h2 id="request-progress-title">Request progress</h2>
+                  {selectedCase && <span className="count">Case {caseReference(selectedCase)}</span>}
+                </div>
                 <p className="sub">Selected request · See where it is in the review process.</p>
               </div>
-              <div className="form-actions">{selectedCase && <span className="count">Case {caseReference(selectedCase)}</span>}<button type="button" className="btn" onClick={() => setPopupOpen(false)}>Close</button></div>
+              <button type="button" className="icon-close" aria-label="Close" onClick={() => setPopupOpen(false)}>
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+              </button>
             </div>
 
             {!caseView || caseView.state === 'loading' ? (
@@ -612,7 +631,13 @@ export function TriagePage() {
                   </form>
                 ) : <div className="form-actions">{caseView.details.canEdit && <button className="btn" type="button" disabled={actionBusy} onClick={() => { setEditing(true); setConfirmWithdraw(false) }}>Edit request</button>}{caseView.details.canWithdraw && <button className="btn danger" type="button" disabled={actionBusy} onClick={() => setConfirmWithdraw(true)}>Delete request</button>}</div>}
                 {confirmWithdraw && caseView.details.canWithdraw && <div className="current-call" role="alert"><strong>Withdraw this request?</strong><p>It will be removed from the active doctor queue. Its history is retained.</p><div className="form-actions"><button className="btn" type="button" disabled={actionBusy} onClick={() => setConfirmWithdraw(false)}>Keep request</button><button className="btn danger" type="button" disabled={actionBusy} onClick={() => void changeRequest()}>Confirm withdrawal</button></div></div>}
-                {needsInPersonCare(caseView.status.status, caseView.status.priority) ? (
+                {caseView.status.status === 'FailedSafe' && caseView.status.priority !== 'Emergency' ? (
+                  <div className="current-call current-call--danger" role="alert">
+                    <strong>This request could not be prepared for review</strong>
+                    <p>{failureReason(caseView.status.failureCode)}</p>
+                    <p>No automated guidance will be shown. Your doctor can still see this request. If you are worried or symptoms get worse, see a clinician in person. For an emergency, call <a href="tel:1990">1990</a>.</p>
+                  </div>
+                ) : needsInPersonCare(caseView.status.status, caseView.status.priority) ? (
                   <div className="current-call current-call--danger" role="alert">
                     <strong>Please seek in-person care</strong>
                     <p>This request needs an in-person clinician. No automated guidance will be shown. For an emergency, call <a href="tel:1990">1990</a>.</p>

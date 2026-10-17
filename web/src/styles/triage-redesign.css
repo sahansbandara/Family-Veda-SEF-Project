@@ -1240,4 +1240,11 @@
 .request-dialog::backdrop { background: rgb(0 0 0 / 65%); }
 .triage-redesign .request-dialog .form-actions { flex-wrap: wrap; }
 .triage-redesign .request-edit { margin-block: 20px; }
-@media (max-width: 600px) { .triage-redesign .request-dialog { width: calc(100vw - 16px); max-height: calc(100dvh - 16px); padding: 16px; } .triage-redesign .request-dialog .req-head { align-items: flex-start; gap: 12px; flex-wrap: wrap; } }
+@media (max-width: 600px) { .triage-redesign .request-dialog { width: calc(100vw - 16px); max-height: calc(100dvh - 16px); padding: 16px; } .triage-redesign .request-dialog .req-head { align-items: flex-start; gap: 12px; flex-wrap: nowrap; } }
+
+.triage-redesign .req-title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.triage-redesign .req-title h2 { margin: 0; }
+.triage-redesign .request-dialog .req-head { align-items: flex-start; }
+.triage-redesign .icon-close { display: inline-grid; place-items: center; width: 40px; height: 40px; flex: none; border: 1px solid var(--line, #dbe3ef); border-radius: 50%; background: transparent; color: inherit; cursor: pointer; }
+.triage-redesign .icon-close:hover { background: rgba(127, 140, 160, 0.12); }
+.triage-redesign .icon-close:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
