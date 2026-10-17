@@ -34,9 +34,13 @@ const maxLicenceBytes = 5 * 1024 * 1024
 // ── Validation schemas ────────────────────────────────────────────────────────
 
 const accountSchema = z.object({
-  displayName: z.string().trim().min(1, 'Enter your full name.').max(120, 'Name is too long.'),
-  email: z.string().email('Enter a valid email address.'),
-  password: z.string().min(8, 'Password must be at least 8 characters.').max(128),
+  displayName: z.string().trim().regex(/^[\p{L}][\p{L} .'-]{1,119}$/u, 'Enter your full name (2–120 letters).'),
+  email: z.string().trim().max(254).email('Enter a valid email address.'),
+  password: z.string().min(8, 'Password must be at least 8 characters.').max(128)
+    .regex(/[A-Z]/, 'Include an uppercase letter.')
+    .regex(/[a-z]/, 'Include a lowercase letter.')
+    .regex(/[0-9]/, 'Include a number.')
+    .regex(/[^A-Za-z0-9]/, 'Include a symbol.'),
   confirm: z.string().min(1, 'Confirm your password.'),
 }).refine((d) => d.password === d.confirm, {
   message: 'Passwords do not match.',
@@ -45,12 +49,12 @@ const accountSchema = z.object({
 
 const professionalSchema = z.object({
   registrationNumber: z.string().trim()
-    .min(4, 'Enter your registration number (min 4 characters).')
-    .max(30)
-    .regex(/^(?:SLMC[ -]?)?\d{4,10}$/i, 'SLMC registration number must be 4–10 digits (e.g. 12345 or SLMC-12345).'),
-  specialty: z.string().trim().max(120).optional(),
-  hospitalClinic: z.string().trim().max(200).optional(),
-  phoneNumber: z.string().trim().max(20).optional(),
+    .min(4, 'SLMC registration number must be 4–10 digits.')
+    .max(10)
+    .regex(/^[0-9]{4,10}$/, 'SLMC registration number must be 4–10 digits.'),
+  specialty: z.string().trim().min(1, 'Specialization is required.').max(120),
+  hospitalClinic: z.string().trim().min(1, 'Hospital or clinic is required.').max(160),
+  phoneNumber: z.string().trim().regex(/^(?:0|\+94)7[0-9]{8}$/, 'Enter a Sri Lankan mobile number, e.g. 0771234567 or +94771234567.'),
 })
 
 // Step 0 is the role chosen on /register — shown as done so the stepper matches the other wizards.
@@ -191,6 +195,10 @@ export function DoctorRegisterPage() {
     event.preventDefault()
     if (step < STEPS.length - 1) { handleNext(); return }
     clearErrors()
+    for (const current of [1, 2, 3]) {
+      const errors = validateStep(current)
+      if (Object.keys(errors).length) { setStep(current); setFieldErrors(errors); return }
+    }
     if (!acceptTerms) {
       setFieldErrors({ acceptTerms: 'Accept the terms and privacy notice to continue.' })
       setApiError('Check the highlighted details.')
@@ -203,12 +211,12 @@ export function DoctorRegisterPage() {
       const form = new FormData()
       form.append('fullName', displayName.trim())
       form.append('email', email.trim())
-      form.append('mobileNumber', phoneNumber.trim() || '0771234567')
+      form.append('mobileNumber', phoneNumber.trim())
       form.append('password', password)
       form.append('confirmPassword', confirm)
       form.append('registrationNumber', registrationNumber.trim())
-      form.append('specialization', specialty.trim() || 'General Practice')
-      form.append('hospitalClinic', hospitalClinic.trim() || 'General Hospital')
+      form.append('specialization', specialty.trim())
+      form.append('hospitalClinic', hospitalClinic.trim())
       form.append('practiceCity', practiceCity.trim())
       form.append('district', district)
       languages.forEach((language) => form.append('languages', language))
@@ -256,7 +264,7 @@ export function DoctorRegisterPage() {
 
   const reviewSections: ReviewSection[] = [
     { title: 'Account', step: 1, rows: [['Full name', displayName], ['Email', email]] },
-    { title: 'Professional', step: 2, rows: [['SLMC registration', registrationNumber], ['Specialization', specialty || 'General Practice'], ['Hospital / clinic', hospitalClinic || 'General Hospital'], ['Phone', phoneNumber || '0771234567']] },
+    { title: 'Professional', step: 2, rows: [['SLMC registration', registrationNumber], ['Specialization', specialty], ['Hospital / clinic', hospitalClinic], ['Phone', phoneNumber]] },
     { title: 'Practice', step: 3, rows: [['City', practiceCity], ['District', district], ['Languages', languages.join(', ')], ['Licence', licenseDocument?.name ?? '']] },
   ]
 
@@ -320,7 +328,7 @@ export function DoctorRegisterPage() {
                 <div>
                   <div className="auth-form-group">
                     <label htmlFor="doc-regno">SLMC Registration Number</label>
-                    <input id="doc-regno" className="auth-form-input" placeholder="e.g. 12345 or SLMC-12345" value={registrationNumber} maxLength={30} onChange={(e) => setRegistrationNumber(e.target.value)} />
+                    <input id="doc-regno" className="auth-form-input" inputMode="numeric" pattern="[0-9]{4,10}" placeholder="e.g. 12345" value={registrationNumber} maxLength={10} onChange={(e) => { if (/^[0-9]*$/.test(e.target.value)) setRegistrationNumber(e.target.value) }} />
                     {fieldError('registrationNumber')}
                   </div>
                   <div className="auth-form-group">
@@ -330,12 +338,12 @@ export function DoctorRegisterPage() {
                   </div>
                   <div className="auth-form-group">
                     <label htmlFor="doc-hospital">Hospital / Clinic</label>
-                    <input id="doc-hospital" className="auth-form-input" placeholder="e.g. City General Hospital, Family Clinic..." value={hospitalClinic} maxLength={200} onChange={(e) => setHospitalClinic(e.target.value)} />
+                    <input id="doc-hospital" className="auth-form-input" placeholder="e.g. City General Hospital, Family Clinic..." value={hospitalClinic} maxLength={160} onChange={(e) => setHospitalClinic(e.target.value)} />
                     {fieldError('hospitalClinic')}
                   </div>
                   <div className="auth-form-group">
                     <label htmlFor="doc-phone">Professional Mobile Number</label>
-                    <input id="doc-phone" type="tel" className="auth-form-input" placeholder="e.g. 0771234567 or +94771234567" value={phoneNumber} maxLength={20} autoComplete="tel" onChange={(e) => setPhoneNumber(e.target.value)} />
+                    <input id="doc-phone" type="tel" className="auth-form-input" placeholder="e.g. 0771234567 or +94771234567" value={phoneNumber} maxLength={12} autoComplete="tel" onChange={(e) => { if (/^\+?[0-9]*$/.test(e.target.value)) setPhoneNumber(e.target.value) }} />
                     {fieldError('phoneNumber')}
                   </div>
                 </div>

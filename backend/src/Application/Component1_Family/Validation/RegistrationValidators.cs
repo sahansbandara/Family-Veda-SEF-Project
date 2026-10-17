@@ -9,14 +9,18 @@ namespace FamilyVeda.Application.Validation;
 public static partial class RegistrationRules
 {
     [GeneratedRegex(@"^[\p{L}][\p{L} .'\-]{1,119}$")] public static partial Regex FullName();
-    [GeneratedRegex(@"^(?:0|\+94)7\d{8}$")] public static partial Regex SriLankaMobile();
-    [GeneratedRegex(@"^(?:\d{9}[VvXx]|\d{12})$")] public static partial Regex NationalId();
-    [GeneratedRegex(@"^\d{5}$")] public static partial Regex PostalCode();
+    [GeneratedRegex(@"^(?:0|\+94)7[0-9]{8}$")] public static partial Regex SriLankaMobile();
+    [GeneratedRegex(@"^(?:[0-9]{9}[VvXx]|[0-9]{12})$")] public static partial Regex NationalId();
+    [GeneratedRegex(@"^[0-9]{5}$")] public static partial Regex PostalCode();
     [GeneratedRegex(@"^FV-[A-HJ-NP-Z2-9]{6}$")] public static partial Regex FamilyCode();
-    [GeneratedRegex(@"^(?:SLMC[ -]?)?\d{4,10}$", RegexOptions.IgnoreCase)] public static partial Regex SlmcNumber();
+    [GeneratedRegex(@"^[0-9]{4,10}$")] public static partial Regex SlmcNumber();
 
     public static bool StrongPassword(string? value) =>
-        value is { Length: >= 8 and <= 128 };
+        value is { Length: >= 8 and <= 128 }
+        && value.Any(c => c is >= 'A' and <= 'Z')
+        && value.Any(c => c is >= 'a' and <= 'z')
+        && value.Any(c => c is >= '0' and <= '9')
+        && value.Any(c => !((c is >= 'A' and <= 'Z') || (c is >= 'a' and <= 'z') || (c is >= '0' and <= '9')));
 
     public static bool IsAdult(DateOnly dateOfBirth) => dateOfBirth.AddYears(18) <= DateOnly.FromDateTime(DateTime.UtcNow);
 }
@@ -28,10 +32,10 @@ public sealed class AccountDetailsValidator : AbstractValidator<AccountDetails>
         RuleFor(x => x.FullName).Must(v => v is not null && RegistrationRules.FullName().IsMatch(v.Trim()))
             .WithMessage("Enter your full name (2–120 letters; spaces, dots, apostrophes and hyphens allowed).");
         RuleFor(x => x.Email).NotEmpty().MaximumLength(254).EmailAddress().WithMessage("Enter a valid email address.");
-        RuleFor(x => x.MobileNumber).Must(v => v is not null && RegistrationRules.SriLankaMobile().IsMatch(v.Replace(" ", "")))
+        RuleFor(x => x.MobileNumber).Must(v => v is not null && RegistrationRules.SriLankaMobile().IsMatch(v.Trim()))
             .WithMessage("Enter a Sri Lankan mobile number, e.g. 0771234567 or +94771234567.");
         RuleFor(x => x.Password).Must(RegistrationRules.StrongPassword)
-            .WithMessage("Password must be at least 8 characters.");
+            .WithMessage("Password must be 8–128 characters and include uppercase, lowercase, a number and a symbol.");
         RuleFor(x => x.ConfirmPassword).Equal(x => x.Password).WithMessage("Passwords do not match.");
     }
 }

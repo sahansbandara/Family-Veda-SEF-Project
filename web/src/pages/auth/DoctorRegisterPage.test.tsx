@@ -131,6 +131,26 @@ describe('DoctorRegisterPage — Premium Redesign', () => {
     })
   })
 
+  it('blocks letters and requires real professional details before continuing', () => {
+    renderPage()
+    fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Synthetic Doctor' } })
+    fireEvent.change(screen.getByLabelText(/email address/i), { target: { value: 'doctor@example.invalid' } })
+    fireEvent.change(screen.getByLabelText(/^password/i), { target: { value: 'Synthetic-Pass-42!' } })
+    fireEvent.change(screen.getByLabelText(/confirm password/i), { target: { value: 'Synthetic-Pass-42!' } })
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+    const slmc = screen.getByLabelText(/slmc registration number/i)
+    const phone = screen.getByLabelText(/professional mobile/i)
+    fireEvent.change(slmc, { target: { value: 'letters' } })
+    fireEvent.change(phone, { target: { value: 'letters' } })
+    expect(slmc).toHaveValue('')
+    expect(phone).toHaveValue('')
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+    expect(screen.getByText(/enter a Sri Lankan mobile number/i)).toBeInTheDocument()
+    expect(screen.getByText('Specialization is required.')).toBeInTheDocument()
+    expect(screen.getByText('Hospital or clinic is required.')).toBeInTheDocument()
+    expect(screen.queryByLabelText(/practice city/i)).not.toBeInTheDocument()
+  })
+
   // ── Step navigation ────────────────────────────────────────────────────────
 
   it('advances to Step 2 when Step 1 is valid', async () => {
@@ -189,7 +209,7 @@ describe('DoctorRegisterPage — Premium Redesign', () => {
     fireEvent.click(screen.getByRole('button', { name: /continue/i }))
 
     await waitFor(() => {
-      expect(screen.getByText(/enter your registration number/i)).toBeInTheDocument()
+      expect(screen.getByText(/SLMC registration number must be 4–10 digits/i)).toBeInTheDocument()
     })
   })
 
@@ -208,7 +228,10 @@ describe('DoctorRegisterPage — Premium Redesign', () => {
     await waitFor(() => screen.getByLabelText(/slmc registration number/i))
 
     // Step 2
-    fireEvent.change(screen.getByLabelText(/slmc registration number/i), { target: { value: 'SLMC-1234' } })
+    fireEvent.change(screen.getByLabelText(/slmc registration number/i), { target: { value: '1234' } })
+    fireEvent.change(screen.getByLabelText(/specialization/i), { target: { value: 'Synthetic specialty' } })
+    fireEvent.change(screen.getByLabelText(/hospital \/ clinic/i), { target: { value: 'Synthetic clinic' } })
+    fireEvent.change(screen.getByLabelText(/professional mobile/i), { target: { value: '0771234567' } })
     fireEvent.click(screen.getByRole('button', { name: /continue/i }))
 
     // Step 3 — practice & licence
@@ -220,7 +243,7 @@ describe('DoctorRegisterPage — Premium Redesign', () => {
       expect(screen.getByText('Review & submit')).toBeInTheDocument()
       expect(screen.getByText('Dr. Jane Smith')).toBeInTheDocument()
       expect(screen.getByText('jane@hospital.lk')).toBeInTheDocument()
-      expect(screen.getByText('SLMC-1234')).toBeInTheDocument()
+      expect(screen.getByText('1234')).toBeInTheDocument()
     })
   })
 
@@ -237,7 +260,10 @@ describe('DoctorRegisterPage — Premium Redesign', () => {
     await waitFor(() => screen.getByLabelText(/slmc registration number/i))
 
     // Step 2
-    fireEvent.change(screen.getByLabelText(/slmc registration number/i), { target: { value: 'SLMC-1234' } })
+    fireEvent.change(screen.getByLabelText(/slmc registration number/i), { target: { value: '1234' } })
+    fireEvent.change(screen.getByLabelText(/specialization/i), { target: { value: 'Synthetic specialty' } })
+    fireEvent.change(screen.getByLabelText(/hospital \/ clinic/i), { target: { value: 'Synthetic clinic' } })
+    fireEvent.change(screen.getByLabelText(/professional mobile/i), { target: { value: '0771234567' } })
     fireEvent.click(screen.getByRole('button', { name: /continue/i }))
 
     // Step 3 — practice & licence
@@ -262,7 +288,10 @@ describe('DoctorRegisterPage — Premium Redesign', () => {
     fireEvent.change(screen.getByLabelText(/confirm password/i),{ target: { value: 'ValidPassword1!' } })
     fireEvent.click(screen.getByRole('button', { name: /continue/i }))
     await waitFor(() => screen.getByLabelText(/slmc registration number/i))
-    fireEvent.change(screen.getByLabelText(/slmc registration number/i), { target: { value: 'SLMC-1234' } })
+    fireEvent.change(screen.getByLabelText(/slmc registration number/i), { target: { value: '1234' } })
+    fireEvent.change(screen.getByLabelText(/specialization/i), { target: { value: 'Synthetic specialty' } })
+    fireEvent.change(screen.getByLabelText(/hospital \/ clinic/i), { target: { value: 'Synthetic clinic' } })
+    fireEvent.change(screen.getByLabelText(/professional mobile/i), { target: { value: '0771234567' } })
     fireEvent.click(screen.getByRole('button', { name: /continue/i }))
     await waitFor(() => screen.getByLabelText(/practice city/i))
 

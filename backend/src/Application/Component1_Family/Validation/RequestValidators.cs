@@ -7,6 +7,7 @@
 // defined in RecordContracts.cs (S2) and TriageContracts.cs (S3) and will be
 // present on this branch only after those PRs are merged into develop.
 using FamilyVeda.Application.Auth;
+using FamilyVeda.Application.Clinical;
 using FamilyVeda.Application.Families;
 using FamilyVeda.Domain.Common;
 using FluentValidation;
@@ -18,14 +19,18 @@ public sealed class RegisterRequestValidator : AbstractValidator<RegisterRequest
     public RegisterRequestValidator()
     {
         RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(254);
-        RuleFor(x => x.Password).MinimumLength(8).MaximumLength(128);
-        RuleFor(x => x.DisplayName).NotEmpty().MaximumLength(120);
+        RuleFor(x => x.Password).Must(RegistrationRules.StrongPassword).WithMessage("Password must be 8–128 characters and include uppercase, lowercase, a number and a symbol.");
+        RuleFor(x => x.DisplayName).Must(v => v is not null && RegistrationRules.FullName().IsMatch(v.Trim()));
         RuleFor(x => x.UserType).Must(type => type is UserType.FamilyUser or UserType.Doctor)
             .WithMessage("Public registration supports family users and doctors only.");
-        RuleFor(x => x.RegistrationNumber).MaximumLength(50);
+        RuleFor(x => x.RegistrationNumber).Must(v => v is not null && RegistrationRules.SlmcNumber().IsMatch(v.Trim()))
+            .WithMessage("SLMC registration number must be 4–10 digits.").When(x => x.UserType == UserType.Doctor);
         RuleFor(x => x.Specialty).MaximumLength(120);
         RuleFor(x => x.HospitalClinic).MaximumLength(200);
-        RuleFor(x => x.PhoneNumber).MaximumLength(50);
+        RuleFor(x => x.PhoneNumber).Must(v => v is not null && RegistrationRules.SriLankaMobile().IsMatch(v.Trim()))
+            .WithMessage("Enter a Sri Lankan mobile number.").When(x => x.UserType == UserType.Doctor || !string.IsNullOrEmpty(x.PhoneNumber));
+        RuleFor(x => x.Specialty).NotEmpty().When(x => x.UserType == UserType.Doctor);
+        RuleFor(x => x.HospitalClinic).NotEmpty().MaximumLength(160).When(x => x.UserType == UserType.Doctor);
     }
 }
 
@@ -77,5 +82,19 @@ public sealed class CreateMemberRequestValidator : AbstractValidator<CreateMembe
         RuleFor(x => x.DisplayName).NotEmpty().MaximumLength(120);
         RuleFor(x => x.DateOfBirth).LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow));
         RuleFor(x => x.SexForClinicalReference).IsInEnum();
+    }
+}
+
+// The legacy authenticated profile endpoint uses the same professional field rules.
+public sealed class RegisterDoctorRequestValidator : AbstractValidator<RegisterDoctorRequest>
+{
+    public RegisterDoctorRequestValidator()
+    {
+        RuleFor(x => x.RegistrationNumber).Must(v => v is not null && RegistrationRules.SlmcNumber().IsMatch(v.Trim()))
+            .WithMessage("SLMC registration number must be 4–10 digits.");
+        RuleFor(x => x.Specialty).NotEmpty().MaximumLength(120);
+        RuleFor(x => x.HospitalClinic).NotEmpty().MaximumLength(160);
+        RuleFor(x => x.PhoneNumber).Must(v => v is not null && RegistrationRules.SriLankaMobile().IsMatch(v.Trim()))
+            .WithMessage("Enter a Sri Lankan mobile number.");
     }
 }

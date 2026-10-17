@@ -100,7 +100,7 @@ public sealed class DoctorRegistrationTests : IAsyncLifetime
         var pdf = Encoding.ASCII.GetBytes("%PDF-1.4 synthetic licence");
         var first = await client.PostAsync("/api/v1/auth/register/doctor", DoctorForm("synthetic-first-claim@example.invalid", "77001", pdf, "application/pdf", "Dr Synthetic Impostor"));
         first.StatusCode.Should().Be(HttpStatusCode.Created);
-        var second = await client.PostAsync("/api/v1/auth/register/doctor", DoctorForm("synthetic-second-claim@example.invalid", "SLMC 77001", pdf, "application/pdf", "Dr Synthetic Real"));
+        var second = await client.PostAsync("/api/v1/auth/register/doctor", DoctorForm("synthetic-second-claim@example.invalid", "77001", pdf, "application/pdf", "Dr Synthetic Real"));
         second.StatusCode.Should().Be(HttpStatusCode.Created, "a duplicate SLMC number is a dispute, not a 409");
         var secondAuth = await second.Content.ReadFromJsonAsync<JsonElement>();
         secondAuth.GetProperty("doctorVerificationStatus").GetString().Should().Be("Pending");
@@ -167,13 +167,36 @@ public sealed class DoctorRegistrationTests : IAsyncLifetime
         return (await login.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("accessToken").GetString()!;
     }
 
-    private static MultipartFormDataContent DoctorForm(string email, string slmc, byte[] document, string contentType, string fullName = "Synthetic Doctor")
+    [Theory]
+    [InlineData("letters", "0771234567")]
+    [InlineData("SLMC-12345", "0771234567")]
+    [InlineData("１２３４５", "0771234567")]
+    [InlineData("12345", "077abc4567")]
+    public async Task Doctor_Registration_RejectsInvalidNumbers_AndCreatesNothing(string slmc, string phone)
+    {
+        var email = $"synthetic-invalid-{Guid.NewGuid():N}@example.invalid";
+        var client = _factory!.CreateClient();
+        var response = await client.PostAsJsonAsync("/api/v1/auth/register", new
+        {
+            email, password = "Synthetic-Pass-42!", displayName = "Synthetic Doctor", userType = "Doctor",
+            registrationNumber = slmc, specialty = "Synthetic specialty", hospitalClinic = "Synthetic clinic", phoneNumber = phone
+        });
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        using var form = DoctorForm(email, slmc, Encoding.ASCII.GetBytes("%PDF-1.4 synthetic document"), "application/pdf", phone: phone);
+        var multipart = await client.PostAsync("/api/v1/auth/register/doctor", form);
+        multipart.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        (await db.Users.AnyAsync(x => x.Email == email)).Should().BeFalse();
+    }
+
+    private static MultipartFormDataContent DoctorForm(string email, string slmc, byte[] document, string contentType, string fullName = "Synthetic Doctor", string phone = "0771234567")
     {
         var form = new MultipartFormDataContent
         {
             { new StringContent(fullName), "fullName" },
             { new StringContent(email), "email" },
-            { new StringContent("0771234567"), "mobileNumber" },
+            { new StringContent(phone), "mobileNumber" },
             { new StringContent("Synthetic-Pass-42!"), "password" },
             { new StringContent("Synthetic-Pass-42!"), "confirmPassword" },
             { new StringContent(slmc), "registrationNumber" },

@@ -4,6 +4,7 @@ using FamilyVeda.Application.Clinical;
 using FamilyVeda.Application.Common;
 using FamilyVeda.Application.Triage;
 using FamilyVeda.Domain.Common;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,8 +15,9 @@ public sealed class ClinicalController(IClinicalService clinicalService, IEmerge
 {
     [HttpPost("doctors/register")]
     [Authorize(Policy = "Doctor")]
-    public async Task<ActionResult<DoctorDto>> RegisterDoctor(RegisterDoctorRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<DoctorDto>> RegisterDoctor(RegisterDoctorRequest request, IValidator<RegisterDoctorRequest> validator, CancellationToken cancellationToken)
     {
+        await ValidateAsync(validator, request, cancellationToken);
         var doctor = await clinicalService.RegisterDoctorAsync(request, cancellationToken);
         return Created("/api/v1/doctors/me", doctor);
     }

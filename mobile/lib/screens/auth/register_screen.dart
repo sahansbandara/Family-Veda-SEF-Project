@@ -4,6 +4,7 @@ import 'package:family_veda/providers/auth_provider.dart';
 import 'package:family_veda/providers/core_providers.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -147,10 +148,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (x.isEmpty) return 'Password is required.';
     if (x.length < 8) return 'Password must be at least 8 characters.';
     if (x.length > 128) return 'Password cannot exceed 128 characters.';
-    if (!RegExp(r'[A-Z]').hasMatch(x)) return 'Must include at least one uppercase letter (A-Z).';
-    if (!RegExp(r'[a-z]').hasMatch(x)) return 'Must include at least one lowercase letter (a-z).';
-    if (!RegExp(r'\d').hasMatch(x)) return 'Must include at least one number (0-9).';
-    if (!RegExp(r'[^A-Za-z0-9]').hasMatch(x)) return 'Must include at least one symbol (e.g. !@#\$%).';
+    if (!RegExp(r'[A-Z]').hasMatch(x)) {
+      return 'Must include at least one uppercase letter (A-Z).';
+    }
+    if (!RegExp(r'[a-z]').hasMatch(x)) {
+      return 'Must include at least one lowercase letter (a-z).';
+    }
+    if (!RegExp(r'[0-9]').hasMatch(x)) {
+      return 'Must include at least one number (0-9).';
+    }
+    if (!RegExp(r'[^A-Za-z0-9]').hasMatch(x)) {
+      return 'Must include at least one symbol (e.g. !@#\$%).';
+    }
     return null;
   }
 
@@ -351,18 +360,51 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           controller: c,
           obscureText: obscure,
           keyboardType: type,
+          inputFormatters: [
+            if (key == 'registrationnumber' || key == 'address.postalcode')
+              TextInputFormatter.withFunction(
+                (oldValue, newValue) =>
+                    RegExp(r'^[0-9]*$').hasMatch(newValue.text)
+                    ? newValue
+                    : oldValue,
+              ),
+            if (key == 'account.mobilenumber')
+              TextInputFormatter.withFunction(
+                (oldValue, newValue) =>
+                    RegExp(r'^\+?[0-9]*$').hasMatch(newValue.text)
+                    ? newValue
+                    : oldValue,
+              ),
+          ],
           readOnly: readOnly,
           onTap: onTap,
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          validator: validator,
+          validator: (v) {
+            final limit = <String, int>{
+              'account.email': 254,
+              'registrationnumber': 10,
+              'specialization': 120,
+              'hospitalclinic': 160,
+              'practicecity': 80,
+              'familyname': 120,
+              'connection.invitationtoken': 200,
+              'address.addressline1': 120,
+              'address.addressline2': 120,
+              'address.city': 80,
+            }[key];
+            return validator?.call(v) ??
+                (limit != null && (v?.trim().length ?? 0) > limit
+                    ? 'Use at most $limit characters.'
+                    : null);
+          },
           onChanged: onChanged,
           decoration: InputDecoration(
             labelText: label,
             errorMaxLines: 3,
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: Theme.of(context).brightness == Brightness.dark 
-                ? Colors.black.withValues(alpha: 0.3) 
+            fillColor: Theme.of(context).brightness == Brightness.dark
+                ? Colors.black.withValues(alpha: 0.3)
                 : Colors.white.withValues(alpha: 0.5),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -404,8 +446,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           decoration: InputDecoration(
             labelText: label,
             filled: true,
-            fillColor: Theme.of(context).brightness == Brightness.dark 
-                ? Colors.black.withValues(alpha: 0.3) 
+            fillColor: Theme.of(context).brightness == Brightness.dark
+                ? Colors.black.withValues(alpha: 0.3)
                 : Colors.white.withValues(alpha: 0.5),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -439,7 +481,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         decoration: BoxDecoration(
           color: role == id
               ? Colors.blue.withValues(alpha: .2)
-              : (isDark ? Colors.white.withValues(alpha: .05) : Colors.black.withValues(alpha: .04)),
+              : (isDark
+                    ? Colors.white.withValues(alpha: .05)
+                    : Colors.black.withValues(alpha: .04)),
           border: Border.all(
             color: role == id ? Colors.blue : Colors.transparent,
           ),
@@ -454,7 +498,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   Text(
                     title,
                     style: TextStyle(
-                      fontWeight: FontWeight.bold, 
+                      fontWeight: FontWeight.bold,
                       fontSize: 16,
                       color: isDark ? Colors.white : Colors.black87,
                     ),
@@ -462,20 +506,27 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   const SizedBox(height: 4),
                   Text(
                     detail,
-                    style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.black54,
+                    ),
                   ),
                 ],
               ),
             ),
             Icon(
-              role == id ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-              color: role == id ? Colors.blue : (isDark ? Colors.white54 : Colors.black38),
+              role == id
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
+              color: role == id
+                  ? Colors.blue
+                  : (isDark ? Colors.white54 : Colors.black38),
             ),
           ],
         ),
       ),
     );
   }
+
   Widget stepIndicator() => Row(
     children: List.generate(labels.length, (index) {
       final complete = index < step;
@@ -588,9 +639,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           mobile,
           key: 'account.mobilenumber',
           validator: (v) =>
-              RegExp(
-                r'^(?:0|\+94)7\d{8}$',
-              ).hasMatch((v ?? '').replaceAll(' ', ''))
+              RegExp(r'^(?:0|\+94)7\d{8}$').hasMatch((v ?? '').trim())
               ? null
               : 'Use 0771234567 or +94771234567.',
           type: TextInputType.phone,
@@ -615,11 +664,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
               IconButton(
                 icon: Icon(
-                  _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                  _obscurePassword
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
                   size: 20,
                   color: isDark ? Colors.white70 : Colors.black54,
                 ),
-                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                onPressed: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
                 tooltip: _obscurePassword ? 'Show password' : 'Hide password',
               ),
             ],
@@ -630,7 +682,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.03),
+              color: isDark
+                  ? Colors.black26
+                  : Colors.black.withValues(alpha: 0.03),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: isDark ? Colors.white12 : Colors.black12,
@@ -680,11 +734,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
               IconButton(
                 icon: Icon(
-                  _obscureConfirm ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                  _obscureConfirm
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
                   size: 20,
                   color: isDark ? Colors.white70 : Colors.black54,
                 ),
-                onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                onPressed: () =>
+                    setState(() => _obscureConfirm = !_obscureConfirm),
                 tooltip: _obscureConfirm ? 'Show password' : 'Hide password',
               ),
             ],
@@ -693,6 +750,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       ],
     );
   }
+
   Widget personal() => Column(
     children: [
       field(
@@ -747,7 +805,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         postal,
         key: 'address.postalcode',
         validator: (v) =>
-            v == null || v.isEmpty || RegExp(r'^\d{5}$').hasMatch(v)
+            v == null || v.isEmpty || RegExp(r'^[0-9]{5}$').hasMatch(v)
             ? null
             : 'Postal code must be 5 digits.',
         type: TextInputType.number,
@@ -760,7 +818,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         'SLMC registration number',
         slmc,
         key: 'registrationnumber',
-        validator: (v) => RegExp(r'^\d{4,10}$').hasMatch(v?.trim() ?? '')
+        validator: (v) => RegExp(r'^[0-9]{4,10}$').hasMatch(v?.trim() ?? '')
             ? null
             : 'SLMC number must be 4–10 digits.',
         type: TextInputType.number,
@@ -769,13 +827,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         'Specialization',
         specialization,
         key: 'specialization',
-        validator: required,
+        validator: (v) =>
+            required(v) ??
+            (v!.trim().length > 120 ? 'Use at most 120 characters.' : null),
       ),
       field(
         'Hospital or clinic',
         hospital,
         key: 'hospitalclinic',
-        validator: required,
+        validator: (v) =>
+            required(v) ??
+            (v!.trim().length > 160 ? 'Use at most 160 characters.' : null),
       ),
       field(
         'Practice city',
@@ -796,14 +858,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         child: Text('Languages (select 1–3)'),
       ),
       ...['Sinhala', 'Tamil', 'English'].map(
-        (x) => CheckboxListTile(
-          contentPadding: EdgeInsets.zero,
-          title: Text(x),
-          value: languages.contains(x),
-          onChanged: (v) => setState(() {
-            if (v == true && languages.length < 3) languages.add(x);
-            if (v != true) languages.remove(x);
-          }),
+        (x) => Material(
+          color: Colors.transparent,
+          child: CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(x),
+            value: languages.contains(x),
+            onChanged: (v) => setState(() {
+              if (v == true && languages.length < 3) languages.add(x);
+              if (v != true) languages.remove(x);
+            }),
+          ),
         ),
       ),
       if (languages.isEmpty)
@@ -918,11 +983,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         children: [
           card('Family Head', 'Create a family workspace.', 'FAMILY_HEAD'),
           card('Adult Member', 'Join an existing family.', 'MEMBER'),
-          card(
-            'Doctor',
-            'Register with verifiable credentials.',
-            'DOCTOR',
-          ),
+          card('Doctor', 'Register with verifiable credentials.', 'DOCTOR'),
         ],
       ),
       1 => account(),
@@ -969,9 +1030,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ? Colors.black.withValues(alpha: 0.5)
                   : Colors.white.withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.2),
-              ),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
             ),
             padding: const EdgeInsets.all(32),
             child: Form(
@@ -992,10 +1051,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   if (step > 0) const SizedBox(height: 20),
                   content,
                   if (error case final message?)
-                    Text(
-                      message,
-                      style: const TextStyle(color: Colors.red),
-                    ),
+                    Text(message, style: const TextStyle(color: Colors.red)),
                   const SizedBox(height: 20),
                   Row(
                     children: [
@@ -1060,7 +1116,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
+          icon: Icon(
+            Icons.arrow_back,
+            color: isDark ? Colors.white : Colors.black,
+          ),
           onPressed: () => context.pop(),
         ),
         backgroundColor: Colors.transparent,
@@ -1095,7 +1154,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                     style: TextStyle(
                                       fontSize: 48,
                                       fontWeight: FontWeight.bold,
-                                      color: isDark ? Colors.white : Colors.black87,
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
                                     ),
                                   ),
                                   const SizedBox(height: 16),
@@ -1103,7 +1164,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                     'Secure access to your health, family and clinical care. Create a unified workspace for seamless clinical decision support and familial risk mapping.',
                                     style: TextStyle(
                                       fontSize: 18,
-                                      color: isDark ? Colors.white70 : Colors.black54,
+                                      color: isDark
+                                          ? Colors.white70
+                                          : Colors.black54,
                                     ),
                                   ),
                                 ],

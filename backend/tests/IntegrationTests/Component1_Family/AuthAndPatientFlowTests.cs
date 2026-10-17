@@ -66,16 +66,12 @@ public sealed class AuthAndPatientFlowTests : IAsyncLifetime
         var doctorRegistration = await doctorClient.PostAsJsonAsync("/api/v1/auth/register", new
         {
             email = "synthetic-legacy-doctor@example.invalid", password = "Synthetic-Test-Password-42!",
-            displayName = "Synthetic Legacy Doctor", userType = "Doctor"
+            displayName = "Synthetic Legacy Doctor", userType = "Doctor",
+            registrationNumber = "991234", specialty = "Synthetic specialty", hospitalClinic = "Synthetic clinic", phoneNumber = "0771234567"
         });
         doctorRegistration.StatusCode.Should().Be(HttpStatusCode.Created);
         var doctorAuth = await doctorRegistration.Content.ReadFromJsonAsync<JsonElement>();
         doctorClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", doctorAuth.GetProperty("accessToken").GetString());
-        var profileResponse = await doctorClient.PostAsJsonAsync("/api/v1/doctors/register", new
-        {
-            registrationNumber = "SYNTHETIC-LEGACY-DOCTOR", specialty = "Synthetic specialty"
-        });
-        profileResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         Guid requestId, doctorId;
         await using (var scope = _factory.Services.CreateAsyncScope())
@@ -312,13 +308,12 @@ public sealed class AuthAndPatientFlowTests : IAsyncLifetime
             email = "synthetic-pending-doctor@example.invalid",
             password = "Synthetic-Test-Password-42!",
             displayName = "Synthetic Pending Doctor",
-            userType = "Doctor"
+            userType = "Doctor", registrationNumber = "991235", specialty = "Synthetic specialty",
+            hospitalClinic = "Synthetic clinic", phoneNumber = "0771234567"
         });
         register.StatusCode.Should().Be(HttpStatusCode.Created);
         var auth = await register.Content.ReadFromJsonAsync<JsonElement>();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.GetProperty("accessToken").GetString());
-        var profile = await client.PostAsJsonAsync("/api/v1/doctors/register", new { registrationNumber = "SYNTHETIC-DOCTOR-0001", specialty = "Synthetic specialty" });
-        profile.StatusCode.Should().Be(HttpStatusCode.Created);
         var caseId = Guid.NewGuid();
 
         var responses = new[]

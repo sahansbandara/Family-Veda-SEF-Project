@@ -15,15 +15,19 @@ import registerBg from '../../assets/Register.webp'
 import '../../styles/commercial-auth.css'
 
 const signInSchema = z.object({
-  email: z.string().email('Enter a valid email address.'),
+  email: z.string().trim().max(254).email('Enter a valid email address.'),
   password: z.string().min(1, 'Enter your password.'),
 })
 
 const accountSchema = z.object({
   displayName: z.string().trim().regex(/^[\p{L}][\p{L} .'-]{1,119}$/u, 'Enter your full name (2–120 letters; spaces, dots, apostrophes and hyphens allowed).'),
-  email: z.string().email('Enter a valid email address.'),
+  email: z.string().trim().max(254).email('Enter a valid email address.'),
   mobileNumber: z.string().trim().regex(/^(?:0|\+94)7\d{8}$/, 'Enter a Sri Lankan mobile number, e.g. 0771234567 or +94771234567.'),
-  password: z.string().min(8, 'Password must be at least 8 characters.').max(128),
+  password: z.string().min(8, 'Password must be at least 8 characters.').max(128)
+    .regex(/[A-Z]/, 'Include an uppercase letter.')
+    .regex(/[a-z]/, 'Include a lowercase letter.')
+    .regex(/[0-9]/, 'Include a number.')
+    .regex(/[^A-Za-z0-9]/, 'Include a symbol.'),
   confirm: z.string().min(1, 'Confirm your password.'),
 }).refine((d) => d.password === d.confirm, {
   message: 'Passwords do not match.',
@@ -220,7 +224,7 @@ export function AuthPage() {
         if (!dateOfBirth || Number.isNaN(dob.valueOf()) || dob < new Date('1900-01-01') || dob >= new Date()) errors.dateofbirth = 'Enter a valid date of birth.'
         else if (dob > adultCutoff) errors.dateofbirth = 'You must be at least 18 years old to register.'
         if (!clinicalSexes.includes(sexForClinicalReference as typeof clinicalSexes[number])) errors.sexforclinicalreference = 'Choose Male, Female or Not specified.'
-        if (role === 'FAMILY_HEAD' && !familyName.trim()) errors.familyname = 'Family name is required.'
+        if (role === 'FAMILY_HEAD' && (!familyName.trim() || familyName.trim().length > 120)) errors.familyname = 'Enter a family name (1–120 characters).'
         if (role === 'FAMILY_HEAD' && !/^(?:\d{9}[VvXx]|\d{12})$/.test(nationalId.trim())) errors.nationalid = 'Enter a synthetic NIC: 9 digits followed by V or X, or 12 digits.'
         if (Object.keys(errors).length) { setFieldErrors(errors); setRegError('Check the highlighted details.'); return }
       }
@@ -241,11 +245,11 @@ export function AuthPage() {
     }
 
     if (stepKey === 'connection') {
-      if (connectionMethod === 'INVITATION' && !invitationToken) {
+      if (connectionMethod === 'INVITATION' && (!invitationToken.trim() || invitationToken.trim().length > 200)) {
         setFieldErrors({ 'connection.invitationtoken': 'Enter your invitation token.' }); setRegError('Check the highlighted details.'); return
       }
       if (connectionMethod === 'FAMILY_CODE' && (!/^FV-[A-HJ-NP-Z2-9]{6}$/.test(familyCode.trim().toUpperCase()) || !relationship)) {
-        setFieldErrors({ ...(familyCode ? {} : { 'connection.familycode': 'Family codes look like FV-ABC234.' }), ...(relationship ? {} : { 'connection.relationship': 'Choose your relationship to the family.' }) }); setRegError('Check the highlighted details.'); return
+        setFieldErrors({ ...(/^FV-[A-HJ-NP-Z2-9]{6}$/.test(familyCode.trim().toUpperCase()) ? {} : { 'connection.familycode': 'Family codes look like FV-ABC234.' }), ...(relationship ? {} : { 'connection.relationship': 'Choose your relationship to the family.' }) }); setRegError('Check the highlighted details.'); return
       }
     }
 
@@ -470,7 +474,7 @@ export function AuthPage() {
                   </div>
                   <div className="auth-form-group">
                     <label htmlFor="reg-mobile">Mobile Number</label>
-                    <input id="reg-mobile" type="tel" className="auth-form-input" value={mobileNumber} required autoComplete="tel" placeholder="0771234567" onChange={(e) => setMobileNumber(e.target.value)} />
+                    <input id="reg-mobile" type="tel" className="auth-form-input" value={mobileNumber} required autoComplete="tel" placeholder="0771234567" maxLength={12} onChange={(e) => { if (/^\+?[0-9]*$/.test(e.target.value)) setMobileNumber(e.target.value) }} />
                     {fieldError('mobilenumber')}
                   </div>
                   <div className="auth-form-group">
@@ -572,7 +576,7 @@ export function AuthPage() {
                       </div>
                       <div className="auth-form-group">
                         <label htmlFor="reg-postal">Postal Code <em>(optional)</em></label>
-                        <input id="reg-postal" inputMode="numeric" className="auth-form-input" value={postalCode} autoComplete="postal-code" onChange={(e) => setPostalCode(e.target.value)} />
+                        <input id="reg-postal" inputMode="numeric" className="auth-form-input" value={postalCode} maxLength={5} autoComplete="postal-code" onChange={(e) => { if (/^[0-9]*$/.test(e.target.value)) setPostalCode(e.target.value) }} />
                         {fieldError('postalcode')}
                       </div>
                     </>

@@ -36,7 +36,6 @@ public sealed class RegistrationValidatorTests
     [Theory]
     [InlineData("0771234567")]
     [InlineData("+94771234567")]
-    [InlineData("077 123 4567")]
     public void MobileNumber_AcceptsSriLankanFormats(string mobile) => Errors(Head(mobile: mobile)).Should().BeEmpty();
 
     [Theory]
@@ -44,10 +43,17 @@ public sealed class RegistrationValidatorTests
     [InlineData("077123456")]
     [InlineData("+1771234567")]
     [InlineData("abc")]
+    [InlineData("077 123 4567")]
+    [InlineData("077123abc7")]
+    [InlineData("０７７１２３４５６７")]
     public void MobileNumber_RejectsOtherFormats(string mobile) => Errors(Head(mobile: mobile)).Should().Contain("Account.MobileNumber");
 
     [Theory]
     [InlineData("short")]
+    [InlineData("alllowercase1!")]
+    [InlineData("ALLUPPERCASE1!")]
+    [InlineData("NoNumberHere!")]
+    [InlineData("NoSymbolHere1")]
     [InlineData("1234567")]
     [InlineData("abc")]
     public void Password_RequiresMinimumLength(string password) =>
@@ -125,6 +131,8 @@ public sealed class RegistrationValidatorTests
     [InlineData("12345", new[] { "Sinhala" }, true)]
     [InlineData("123", new[] { "Sinhala" }, false)]
     [InlineData("12345678901", new[] { "Sinhala" }, false)]
+    [InlineData("SLMC-12345", new[] { "Sinhala" }, false)]
+    [InlineData("１２３４５", new[] { "Sinhala" }, false)]
     [InlineData("SLMC12", new[] { "Sinhala" }, false)]
     [InlineData("12345", new string[0], false)]
     [InlineData("12345", new[] { "French" }, false)]
@@ -136,4 +144,20 @@ public sealed class RegistrationValidatorTests
             slmc, "General Practice", "Synthetic Clinic", "Kandy", "Kandy", languages, true);
         new RegisterDoctorAccountRequestValidator().Validate(request).IsValid.Should().Be(valid);
     }
+    [Theory]
+    [InlineData("1234", "0771234567", true)]
+    [InlineData("1234567890", "+94771234567", true)]
+    [InlineData("SLMC-12345", "0771234567", false)]
+    [InlineData("１２３４５", "0771234567", false)]
+    [InlineData("12345", "letters", false)]
+    [InlineData("12345", "077123abc7", false)]
+    public void LegacyDoctorPaths_ValidateProfessionalNumbers(string slmc, string mobile, bool valid)
+    {
+        var legacy = new RegisterRequest("doctor@example.invalid", Password, "Synthetic Doctor",
+            UserType.Doctor, RegistrationNumber: slmc, Specialty: "Synthetic specialty", HospitalClinic: "Synthetic clinic", PhoneNumber: mobile);
+        new RegisterRequestValidator().Validate(legacy).IsValid.Should().Be(valid);
+        var profile = new FamilyVeda.Application.Clinical.RegisterDoctorRequest(slmc, "Synthetic specialty", "Synthetic clinic", mobile);
+        new RegisterDoctorRequestValidator().Validate(profile).IsValid.Should().Be(valid);
+    }
+
 }

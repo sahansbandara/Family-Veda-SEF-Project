@@ -226,3 +226,12 @@ Android debug demo APK build PASSED (assembleDebug 516.6s): mobile/build/app/out
 - Playwright mocked-only pending/failed case details smoke passed375/390/768/1440px: submitted description/notes visible without horizontal page overflow. Evidence screenshots in /Users/sahansandaruwan/.codex/visualizations/2026/10/17/01a14a90-2bbd-77d3-8e10-97b9d109f8c1/triage-case-evidence/. Native live case flow still needs user smoke; no real clinical request submitted by agent.
 - Final delivery: code3818b8c pushed/remote verified on develop. Railway deployment3bcbe7f1-90fe-42d5-905f-1e36680b1099 SUCCESS for that exact commit; active manifest confirms build.watchPatterns=[/backend/**], API /health HTTP200. No live AI triage request submitted; model processing end-to-end remains user smoke check.
 - iOS release build passed after user approved keychain prompt (205.1s); installed on connected iPhone16ProMax (installation sequence3684) and devicectl confirmed launch. Android debug build passed10.6s; no Android device run or native screenshot. Generated Flutter machine-specific files remain local/excluded. Web source pushed; frontend hosting rollout not independently verified.
+
+# Registration validation notes — 2026-10-18
+
+- Family Head and Adult Member web flows share `web/src/pages/auth/AuthPage.tsx`; doctor registration uses `DoctorRegisterPage.tsx`. Flutter shares `mobile/lib/screens/auth/register_screen.dart`.
+- Backend `RegistrationRules` is shared by modern and legacy registration validators. `ClinicalController.RegisterDoctor` explicitly invokes the validator before the service.
+- Legacy doctor account registration now requires professional details and already creates the Pending doctor profile atomically. Do not follow it with another profile creation in test fixtures.
+- C# `\d` permits Unicode digits; professional registration numbers and postal codes use `[0-9]`.
+- Flutter professional-step checkbox tiles need a local transparent Material inside the decorated registration card to avoid Flutter debug assertions.
+- This checkout lacks referenced `rules/common/*`, university reference docs and the blueprint. Use the available ownership map and report those source gaps.

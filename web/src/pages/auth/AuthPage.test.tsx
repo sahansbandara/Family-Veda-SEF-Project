@@ -48,6 +48,23 @@ function completeAddress() {
 describe('AuthPage', () => {
   beforeEach(() => vi.restoreAllMocks())
 
+  it.each(['Family Head', 'Adult Member'])('%s blocks phone letters and invalid account submission', (role) => {
+    const post = vi.spyOn(apiClient, 'post')
+    renderAuth('/register')
+    if (role !== 'Family Head') fireEvent.click(screen.getByText(role))
+    continueRegistration()
+    const phone = screen.getAllByLabelText('Mobile Number')[0]
+    change('Mobile Number', 'letters')
+    expect(phone).toHaveValue('')
+    change('Mobile Number', '+94771234567')
+    change('Mobile Number', '+94771234567abc')
+    expect(phone).toHaveValue('+94771234567')
+    change('Mobile Number', '077')
+    continueRegistration()
+    expect(screen.getByText(/Enter a Sri Lankan mobile number/)).toBeInTheDocument()
+    expect(post).not.toHaveBeenCalled()
+  })
+
   it('sends doctors to the dedicated registration form with licence upload', () => {
     renderAuth('/register')
     fireEvent.click(screen.getByText('Doctor'))

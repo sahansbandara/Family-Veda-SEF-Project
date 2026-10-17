@@ -455,3 +455,13 @@ Context and Analysis previously reported NoData unless the member had prior hist
 - Railway production service watchPatterns updated to /backend/** with explicit approval. Frontend/mobile-only pushes should no longer restart the backend once config applies. Backend deployments can still interrupt in-flight work; existing startup safe-failure remains intentional.
 - Rejected automatic retry, clearing traces and new durable queue/lease schema: would require separate concurrency/clinical/audit design. Existing failed cases remain failed; user can use existing edit/resubmit flow.
 - Shutdown OperationCanceledException is propagated when caller token is canceled; uncanceled provider failure behavior preserved. Startup re-reads trace existence under lifecycle lock after case reload to avoid stale snapshot race.
+
+# Registration validation — 2026-10-18
+
+User approved changes across S1/S4 registration flows and requested checking all registration paths.
+
+- SLMC accepts 4–10 ASCII digits; prefixed values were rejected to match the user's digits-only requirement. Stored as a string so leading zeros survive.
+- Mobile numbers retain Sri Lankan local (`07XXXXXXXX`) and international (`+947XXXXXXXX`) formats. Letters and embedded spaces are rejected consistently; a numeric HTML input was rejected because it cannot preserve phone semantics reliably.
+- Validation applies to React, Flutter, multipart registration, legacy account registration and the authenticated doctor-profile endpoint. Client filtering alone cannot protect the API.
+- Removed fabricated doctor phone/specialty/clinic defaults. Required professional details must come from the user.
+- No schema, dependency, deployment or authentication-policy changes.
