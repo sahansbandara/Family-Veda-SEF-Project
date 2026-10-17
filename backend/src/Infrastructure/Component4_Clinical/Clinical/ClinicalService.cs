@@ -507,14 +507,13 @@ public sealed class ClinicalService(
         var now = DateTimeOffset.UtcNow;
         var query = dbContext.CaseAccessGrants.AsNoTracking()
             .Where(x => x.DoctorId == doctor.Id && x.RevokedAt == null && x.ExpiresAt > now)
-            .Select(x => x.TriageCase!)
-            .OrderByDescending(x => x.Priority).ThenBy(x => x.CreatedAt);
+            .OrderByDescending(x => x.TriageCase!.Priority).ThenBy(x => x.TriageCase!.CreatedAt);
         var total = await query.CountAsync(cancellationToken);
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize)
             // Names are released only for cases this doctor holds an active grant on.
-            .Select(x => new TriageCaseDto(x.Id, x.EpisodeId, x.MemberId, x.Status, x.Priority, x.CreatedAt,
-                x.CaseNumber, x.Member!.DisplayName, x.Member!.Family!.Name,
-                dbContext.Approvals.Any(a => a.TriageCaseId == x.Id && a.Action == ApprovalAction.CloseReferral), x.SubmittedAt, null, null, false, false, null, null, null, x.FailureCode))
+            .Select(g => new TriageCaseDto(g.TriageCase!.Id, g.TriageCase.EpisodeId, g.TriageCase.MemberId, g.TriageCase.Status, g.TriageCase.Priority, g.TriageCase.CreatedAt,
+                g.TriageCase.CaseNumber, g.TriageCase.Member!.DisplayName, g.TriageCase.Member!.Family!.Name,
+                dbContext.Approvals.Any(a => a.TriageCaseId == g.TriageCaseId && a.Action == ApprovalAction.CloseReferral), g.TriageCase.SubmittedAt, null, null, false, false, null, null, null, g.TriageCase.FailureCode, g.ExpiresAt))
             .ToListAsync(cancellationToken);
         dbContext.AuditLogs.Add(new AuditLog
         {

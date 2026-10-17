@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom'
 
 import { apiClient, type CaseReviewDto } from '../../services/apiClient'
 import { EmergencyFollowUp } from './EmergencyFollowUp'
+import { GrantExpiryChip } from './GrantExpiryChip'
 import {
   actionFor,
   caseReference,
@@ -101,6 +102,7 @@ export function CasePreview({ item, open, busy, onClose, onClaim, onFollowUp }: 
               </p>
             )}
             <p className="care-caption">Submitted {formatSubmitted(item.createdAt)}</p>
+            {item.mine && <GrantExpiryChip expiresAt={item.grantExpiresAt} />}
           </div>
           <button type="button" className="button button--secondary triage-preview__close" onClick={onClose}>
             Close

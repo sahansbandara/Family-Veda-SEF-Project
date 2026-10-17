@@ -31,6 +31,7 @@ class DoctorQueueCase {
     this.familyName,
     this.complaint,
     this.referralClosed = false,
+    this.grantExpiresAt,
   });
 
   /// A case from /doctors/me/cases: the doctor holds an active grant.
@@ -45,6 +46,9 @@ class DoctorQueueCase {
     memberDisplayName: json['memberDisplayName'] as String?,
     familyName: json['familyName'] as String?,
     referralClosed: json['referralClosed'] as bool? ?? false,
+    grantExpiresAt: json['grantExpiresAt'] is String
+        ? DateTime.tryParse(json['grantExpiresAt'] as String)
+        : null,
   );
 
   /// A case from /doctors/case-pool: limited metadata, claimable.
@@ -77,6 +81,9 @@ class DoctorQueueCase {
 
   /// The complaint the pool released so the doctor can decide whether to claim. Never an identity.
   final SubmittedComplaint? complaint;
+
+  /// When this doctor's case grant ends. Present only on granted cases.
+  final DateTime? grantExpiresAt;
 
   /// A doctor closed this emergency referral. The patient still sees the referral.
   final bool referralClosed;
@@ -360,4 +367,29 @@ class SubmittedComplaint {
       if ((ageBand ?? '').isNotEmpty) 'Age $ageBand',
     ].join(' · ');
   }
+}
+
+/// Countdown for the doctor's case grant: amber inside 12h, red once access has ended.
+({String label, QueueTone tone})? grantCountdown(
+  DateTime? expiresAt,
+  DateTime now,
+) {
+  if (expiresAt == null) return null;
+  final left = expiresAt.difference(now);
+  if (left <= Duration.zero) {
+    return (label: 'Access expired', tone: QueueTone.danger);
+  }
+  final h = left.inHours;
+  final m = left.inMinutes % 60;
+  final span = h >= 24
+      ? '${h ~/ 24}d ${h % 24}h'
+      : h >= 1
+      ? '${h}h ${m}m'
+      : '${left.inMinutes < 1 ? 1 : left.inMinutes}m';
+  return (
+    label: 'Access ends in $span',
+    tone: left < const Duration(hours: 12)
+        ? QueueTone.warning
+        : QueueTone.muted,
+  );
 }
