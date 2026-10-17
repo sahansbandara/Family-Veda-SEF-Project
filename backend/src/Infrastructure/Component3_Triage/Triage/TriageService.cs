@@ -106,6 +106,27 @@ public sealed class TriageService(
         return await MapCaseAsync(item, cancellationToken);
     }
 
+    public Task PurgeWithdrawnAsync(Guid caseId, CancellationToken cancellationToken) =>
+        dbContext.Database.CreateExecutionStrategy().ExecuteAsync(() => PurgeWithdrawnAsyncCore(caseId, cancellationToken));
+
+    // Erases a withdrawn request no doctor ever opened. The episode delete cascades to the case,
+    // its traces, approvals and grants; audit rows hold only ids, so the trail survives (RULE 8).
+    private async Task PurgeWithdrawnAsyncCore(Guid caseId, CancellationToken cancellationToken)
+    {
+        await using var gate = await CaseLifecycleLock.AcquireAsync(dbContext, caseId, cancellationToken);
+        var item = await dbContext.TriageCases.SingleOrDefaultAsync(x => x.Id == caseId, cancellationToken) ?? throw new NotFoundException();
+        await dbContext.Entry(item).ReloadAsync(cancellationToken);
+        await RequirePatientAccessAsync(item.MemberId, cancellationToken);
+        if (item.Status != TriageStatus.Withdrawn || await CaseLifecycle.ReviewHasStartedAsync(dbContext, caseId, cancellationToken))
+            throw new ConflictException("Only a deleted request that no doctor opened can be removed permanently.");
+        var sharesEpisode = await dbContext.TriageCases.AnyAsync(x => x.EpisodeId == item.EpisodeId && x.Id != item.Id, cancellationToken);
+        if (sharesEpisode) dbContext.TriageCases.Remove(item);
+        else dbContext.Episodes.Remove(await dbContext.Episodes.SingleAsync(x => x.Id == item.EpisodeId, cancellationToken));
+        dbContext.AuditLogs.Add(new AuditLog { ActorUserId = currentUser.UserId, SubjectMemberId = item.MemberId, EventType = "CASE_PURGED", ResourceType = "TriageCase", ResourceId = item.Id, Outcome = "SUCCESS" });
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await gate.CompleteAsync(cancellationToken);
+    }
+
     private async Task<TriageCase> RequireChangeAsync(Guid caseId, CancellationToken ct)
     {
         var item = await dbContext.TriageCases.SingleOrDefaultAsync(x => x.Id == caseId, ct) ?? throw new NotFoundException();

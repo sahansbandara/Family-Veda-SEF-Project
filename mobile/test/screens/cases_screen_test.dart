@@ -61,4 +61,60 @@ void main() {
     expect(find.text('Waiting for doctor review'), findsOneWidget);
     expect(find.text('Guidance available'), findsNothing);
   });
+
+  testWidgets('withdrawn requests move out of All into Deleted', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeMemberProvider.overrideWith((ref) => 'synthetic-member'),
+          membersProvider.overrideWith((ref) async => const []),
+          memberCasesProvider.overrideWith(
+            (ref) async => [
+              _case('synthetic-pending', 'PENDING_DOCTOR_REVIEW'),
+              _case('synthetic-withdrawn', 'WITHDRAWN'),
+            ],
+          ),
+        ],
+        child: const MaterialApp(home: CasesScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Waiting for doctor review'), findsOneWidget);
+    expect(find.text('Withdrawn'), findsNothing);
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Deleted'));
+    await tester.pumpAndSettle();
+    expect(find.text('Withdrawn'), findsOneWidget);
+    expect(find.text('Waiting for doctor review'), findsNothing);
+  });
+
+  testWidgets('Claimed filter lists only claimed requests', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeMemberProvider.overrideWith((ref) => 'synthetic-member'),
+          membersProvider.overrideWith((ref) async => const []),
+          memberCasesProvider.overrideWith(
+            (ref) async => [
+              _case('synthetic-pending', 'PENDING_DOCTOR_REVIEW'),
+              _case('synthetic-claimed', 'CLAIMED'),
+            ],
+          ),
+        ],
+        child: const MaterialApp(home: CasesScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Claimed'));
+    await tester.pumpAndSettle();
+    expect(find.text('Waiting for doctor review'), findsNothing);
+    expect(find.byType(Card), findsWidgets);
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'In review'));
+    await tester.pumpAndSettle();
+    expect(find.text('Waiting for doctor review'), findsOneWidget);
+  });
 }

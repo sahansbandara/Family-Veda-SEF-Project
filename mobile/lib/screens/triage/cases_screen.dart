@@ -10,7 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-enum _RequestFilter { all, inReview, guidanceReady }
+enum _RequestFilter { all, inReview, claimed, guidanceReady, deleted }
 
 enum _Tone { info, success, warning, danger, neutral }
 
@@ -40,12 +40,23 @@ class _CasesScreenState extends ConsumerState<CasesScreen> {
     }
   }
 
+  // Withdrawn and replaced requests leave the active list but stay visible (history is kept).
+  static bool _inactive(TriageCase item) =>
+      item.status == 'WITHDRAWN' || item.status == 'SUPERSEDED';
+
   bool _matches(TriageCase item) => switch (_filter) {
-    _RequestFilter.all => true,
+    _RequestFilter.all => !_inactive(item),
+    _RequestFilter.deleted => _inactive(item),
+    _RequestFilter.claimed => item.status == 'CLAIMED',
     _RequestFilter.guidanceReady => item.hasApprovedGuidance,
     _RequestFilter.inReview =>
       !item.hasApprovedGuidance &&
-          !{'REJECTED', 'WITHDRAWN', 'SUPERSEDED'}.contains(item.status) &&
+          !{
+            'REJECTED',
+            'WITHDRAWN',
+            'SUPERSEDED',
+            'CLAIMED',
+          }.contains(item.status) &&
           !_needsInPersonCare.contains(item.status),
   };
 
@@ -119,7 +130,9 @@ class _CasesScreenState extends ConsumerState<CasesScreen> {
                           for (final (filter, label) in const [
                             (_RequestFilter.all, 'All'),
                             (_RequestFilter.inReview, 'In review'),
+                            (_RequestFilter.claimed, 'Claimed'),
                             (_RequestFilter.guidanceReady, 'Guidance ready'),
+                            (_RequestFilter.deleted, 'Deleted'),
                           ])
                             ChoiceChip(
                               label: Text(label),

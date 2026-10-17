@@ -27,7 +27,7 @@ class _RequestSubmissionActionsState
       builder: (context) => AlertDialog(
         title: const Text('Withdraw this request?'),
         content: const Text(
-          'This stops the request. You can submit a new request later.',
+          'This moves the request to Deleted, where you can remove it permanently. You can submit a new request later.',
         ),
         actions: [
           TextButton(
@@ -58,6 +58,50 @@ class _RequestSubmissionActionsState
       if (mounted) setState(() => _error = userFacingApiError(error));
     } finally {
       ref.invalidate(caseStatusProvider(widget.item.id));
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _purge() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remove permanently?'),
+        content: const Text(
+          'This erases the request and its symptoms. This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep request'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete permanently'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _busy = true);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    try {
+      await ref
+          .read(apiClientProvider)
+          .dio
+          .delete<void>('/triage-cases/${widget.item.id}');
+      ref.invalidate(memberCasesProvider);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Request removed permanently.')),
+      );
+      if (navigator.canPop()) navigator.pop();
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('This request can no longer be removed permanently.'),
+        ),
+      );
       if (mounted) setState(() => _busy = false);
     }
   }
@@ -104,6 +148,15 @@ class _RequestSubmissionActionsState
           ],
         ),
       ],
+      if (widget.item.status == 'WITHDRAWN')
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: _busy ? null : _purge,
+            icon: const Icon(Icons.delete_forever_outlined),
+            label: const Text('Delete permanently'),
+          ),
+        ),
       if (_error != null)
         Text(
           _error!,
