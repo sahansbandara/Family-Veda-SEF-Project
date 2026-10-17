@@ -34,6 +34,8 @@ public enum VerificationStatus { Pending, Verified, MoreInformationRequired, Rej
 public enum SlmcRegisterStatus { Active, Inactive }
 public enum RegisterMatch { Match, NameMismatch, NotInRegister }
 public enum ClaimDisputeStatus { Open, Resolved }
+public enum EvidenceKind { SlmcCertificate, NationalIdCopy, HospitalLetter, Other }
+public enum EvidenceRequestStatus { Open, Submitted, Expired, Cancelled }
 public enum ApprovalAction { Approve, ReviseAndApprove, RequestInformation, Reject, Escalate, CloseReferral }
 public enum AgentKind { Extraction, Coordinator, Context, Analysis, FamilialRisk, SafetyValidation }
 public enum AgentStepStatus { Started, Completed, Failed, ToolDenied, SafeFailure, NoData }

@@ -61,6 +61,37 @@ internal sealed class DoctorClaimDisputeConfiguration : IEntityTypeConfiguration
     }
 }
 
+internal sealed class ClaimEvidenceRequestConfiguration : IEntityTypeConfiguration<ClaimEvidenceRequest>
+{
+    public void Configure(EntityTypeBuilder<ClaimEvidenceRequest> builder)
+    {
+        builder.ToTable("claim_evidence_requests");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.RequestedItems).HasMaxLength(200).IsRequired();
+        builder.Property(x => x.Note).HasMaxLength(1000);
+        builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+        builder.HasOne(x => x.Dispute).WithMany().HasForeignKey(x => x.DisputeId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(x => x.Doctor).WithMany().HasForeignKey(x => x.DoctorId).OnDelete(DeleteBehavior.Cascade);
+        builder.HasIndex(x => new { x.Status, x.DueAt });
+        builder.HasIndex(x => new { x.DoctorId, x.Status });
+    }
+}
+
+internal sealed class ClaimEvidenceFileConfiguration : IEntityTypeConfiguration<ClaimEvidenceFile>
+{
+    public void Configure(EntityTypeBuilder<ClaimEvidenceFile> builder)
+    {
+        builder.ToTable("claim_evidence_files");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.Kind).HasConversion<string>().HasMaxLength(30);
+        builder.Property(x => x.FileName).HasMaxLength(255).IsRequired();
+        builder.Property(x => x.ContentType).HasMaxLength(64).IsRequired();
+        builder.Property(x => x.Sha256).HasMaxLength(64).IsRequired();
+        builder.Property(x => x.StorageKey).HasMaxLength(200);
+        builder.HasOne(x => x.Request).WithMany().HasForeignKey(x => x.RequestId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
 internal sealed class DoctorVerificationLogConfiguration : IEntityTypeConfiguration<DoctorVerificationLog>
 {
     public void Configure(EntityTypeBuilder<DoctorVerificationLog> builder)

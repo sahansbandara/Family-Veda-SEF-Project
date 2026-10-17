@@ -18,6 +18,19 @@ public sealed class ClaimDisputesController(IClaimDisputeService disputes) : Api
     public async Task<ActionResult<ClaimDisputeDto>> Resolve(Guid disputeId, ResolveClaimDisputeRequest request, CancellationToken cancellationToken) =>
         Ok(await disputes.ResolveAsync(disputeId, request, cancellationToken));
 
+    [HttpPost("disputes/{disputeId:guid}/evidence-requests")]
+    public async Task<ActionResult<EvidenceRequestDto>> RequestEvidence(Guid disputeId, CreateEvidenceRequest request, CancellationToken cancellationToken) =>
+        Ok(await disputes.RequestEvidenceAsync(disputeId, request, cancellationToken));
+
+    [HttpGet("evidence-files/{fileId:guid}")]
+    [Produces("application/pdf", "image/png", "image/jpeg")]
+    public async Task<IActionResult> GetEvidenceFile(Guid fileId, CancellationToken cancellationToken)
+    {
+        var file = await disputes.GetEvidenceFileAsync(fileId, cancellationToken);
+        Response.Headers["X-Content-Type-Options"] = "nosniff";
+        return File(file.Content, file.ContentType, file.FileName);
+    }
+
     [HttpGet("doctors/{doctorId:guid}/license-document")]
     [Produces("application/pdf", "image/png", "image/jpeg")]
     public async Task<IActionResult> GetLicenseDocument(Guid doctorId, CancellationToken cancellationToken)

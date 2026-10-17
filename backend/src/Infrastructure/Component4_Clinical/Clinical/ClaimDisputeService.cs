@@ -4,6 +4,7 @@
 using System.Text.Json;
 using FamilyVeda.Application.Clinical;
 using FamilyVeda.Application.Common;
+using FamilyVeda.Application.Records;
 using FamilyVeda.Domain.Clinical;
 using FamilyVeda.Domain.Common;
 using FamilyVeda.Infrastructure.Persistence;
@@ -11,24 +12,33 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FamilyVeda.Infrastructure.Clinical;
 
-public sealed class ClaimDisputeService(AppDbContext dbContext, ICurrentUser currentUser) : IClaimDisputeService
+public sealed class ClaimDisputeService(AppDbContext dbContext, ICurrentUser currentUser, IExternalReportFileStore? fileStore = null) : IClaimDisputeService
 {
     public const string FraudulentClaimReason = "FraudulentClaim";
 
     /// <summary>
-    /// Called while staging a new doctor. If live claimants already hold this hash, the new doctor joins
-    /// (or opens) a dispute, every live claimant is flagged, and a Verified claimant's case grants are frozen.
-    /// Returns true when the claim is disputed. Caller commits.
+    /// Called while staging a new doctor. The incumbent keeps working: nothing is frozen.
+    /// A number whose owner an admin already confirmed auto-rejects the new claim; otherwise a dispute opens
+    /// for admin review and an identical licence file is flagged. Caller commits.
     /// </summary>
-    public static async Task<bool> StageClaimAsync(AppDbContext dbContext, Doctor newDoctor, Guid actorUserId, CancellationToken cancellationToken)
+    public static async Task<ClaimOutcome> StageClaimAsync(AppDbContext dbContext, Doctor newDoctor, Guid actorUserId, CancellationToken cancellationToken, string? licenseSha256 = null)
     {
         var existing = await dbContext.Doctors
             .Where(x => x.RegistrationNumberHash == newDoctor.RegistrationNumberHash && x.Id != newDoctor.Id
                 && x.VerificationStatus != VerificationStatus.Rejected && x.VerificationStatus != VerificationStatus.Suspended)
             .ToListAsync(cancellationToken);
-        if (existing.Count == 0) return false;
+        if (existing.Count == 0) return ClaimOutcome.None;
 
-        var now = DateTimeOffset.UtcNow;
+        if (existing.Any(x => x.VerificationStatus == VerificationStatus.Verified && x.OwnershipConfirmedAt != null))
+        {
+            newDoctor.VerificationStatus = VerificationStatus.Rejected;
+            newDoctor.ClaimDisputed = false;
+            Audit(dbContext, actorUserId, "SLMC_CLAIM_AUTO_REJECTED", newDoctor.Id, "REJECTED", new { Reason = "OwnershipAlreadyConfirmed" });
+            await ClaimNotifications.NotifyAdminsAsync(dbContext, "SLMC_CLAIM_AUTO_REJECTED", "SLMC claim auto-rejected",
+                $"A new registration claimed SLMC ••••{newDoctor.RegistrationNumberLastFour}, whose owner is already confirmed. It was rejected automatically; reopen it if it looks genuine.", cancellationToken);
+            return ClaimOutcome.AutoRejected;
+        }
+
         newDoctor.VerificationStatus = VerificationStatus.Pending;
         newDoctor.ClaimDisputed = true;
         var dispute = await dbContext.DoctorClaimDisputes
@@ -38,30 +48,23 @@ public sealed class ClaimDisputeService(AppDbContext dbContext, ICurrentUser cur
             dispute = new DoctorClaimDispute { RegistrationNumberHash = newDoctor.RegistrationNumberHash };
             dbContext.DoctorClaimDisputes.Add(dispute);
         }
-
-        // A Verified doctor an admin already confirmed in an earlier dispute is re-flagged for review,
-        // but a fresh unverified claim cannot freeze their case access again (anti-griefing).
-        var confirmedWinners = await dbContext.DoctorClaimDisputes
-            .Where(x => x.RegistrationNumberHash == newDoctor.RegistrationNumberHash && x.Status == ClaimDisputeStatus.Resolved && x.WinnerDoctorId != null)
-            .Select(x => x.WinnerDoctorId!.Value).ToListAsync(cancellationToken);
+        if (licenseSha256 is not null)
+        {
+            var ids = existing.Select(x => x.Id).ToList();
+            if (await dbContext.DoctorLicenseDocuments.AnyAsync(x => ids.Contains(x.DoctorId) && x.Sha256 == licenseSha256, cancellationToken))
+                dispute.DuplicateLicenseFile = true;
+        }
 
         foreach (var claimant in existing)
         {
             claimant.ClaimDisputed = true;
-            var frozen = 0;
-            if (claimant.VerificationStatus == VerificationStatus.Verified && !confirmedWinners.Contains(claimant.Id))
-            {
-                var grants = await dbContext.CaseAccessGrants
-                    .Where(x => x.DoctorId == claimant.Id && x.RevokedAt == null && x.ExpiresAt > now)
-                    .ToListAsync(cancellationToken);
-                foreach (var grant in grants) grant.FrozenAt = now;
-                frozen = grants.Count;
-                claimant.AccessFrozen = true;
-            }
-            Audit(dbContext, actorUserId, "SLMC_CLAIM_DISPUTED", claimant.Id, "FLAGGED", new { DisputeId = dispute.Id, FrozenGrants = frozen });
+            Audit(dbContext, actorUserId, "SLMC_CLAIM_DISPUTED", claimant.Id, "FLAGGED", new { DisputeId = dispute.Id });
         }
-        Audit(dbContext, actorUserId, "SLMC_CLAIM_DISPUTED", newDoctor.Id, "PENDING", new { DisputeId = dispute.Id, ExistingClaimants = existing.Count });
-        return true;
+        Audit(dbContext, actorUserId, "SLMC_CLAIM_DISPUTED", newDoctor.Id, "PENDING",
+            new { DisputeId = dispute.Id, ExistingClaimants = existing.Count, dispute.DuplicateLicenseFile });
+        await ClaimNotifications.NotifyAdminsAsync(dbContext, "SLMC_CLAIM_DISPUTED", "New SLMC claim dispute",
+            $"Another account claims SLMC ••••{newDoctor.RegistrationNumberLastFour}." + (dispute.DuplicateLicenseFile ? " The licence file is identical to an existing claimant's." : ""), cancellationToken);
+        return ClaimOutcome.Disputed;
     }
 
     public async Task<IReadOnlyList<ClaimDisputeDto>> GetDisputesAsync(bool includeResolved, CancellationToken cancellationToken)
@@ -133,6 +136,13 @@ public sealed class ClaimDisputeService(AppDbContext dbContext, ICurrentUser cur
         winner.VerificationStatus = VerificationStatus.Verified;
         winner.ClaimDisputed = false;
         winner.AccessFrozen = false;
+        winner.OwnershipConfirmedAt = now;
+        var openRequests = await dbContext.ClaimEvidenceRequests
+            .Where(x => x.DisputeId == dispute.Id && x.Status == EvidenceRequestStatus.Open).ToListAsync(cancellationToken);
+        foreach (var open in openRequests) open.Status = EvidenceRequestStatus.Cancelled;
+        if (winner.User is not null)
+            ClaimNotifications.Notify(dbContext, winner.UserId, "SLMC_OWNERSHIP_CONFIRMED", "SLMC ownership confirmed",
+                "An administrator confirmed you hold this SLMC number. No further action is needed.", "/dashboard");
         if (winner.User is not null) winner.User.IsActive = true;
         var unfrozen = 0;
         // Only still-live grants come back; a case closed during the dispute had its grant revoked already.
@@ -168,6 +178,58 @@ public sealed class ClaimDisputeService(AppDbContext dbContext, ICurrentUser cur
         return new LicenseDocumentFile(document.FileName, document.ContentType, document.Content);
     }
 
+    public async Task<EvidenceRequestDto> RequestEvidenceAsync(Guid disputeId, CreateEvidenceRequest request, CancellationToken cancellationToken)
+    {
+        RequireAdmin();
+        var items = (request.Items ?? []).Distinct().ToList();
+        if (items.Count == 0)
+            throw new ValidationException(new Dictionary<string, string[]> { ["items"] = ["Choose at least one kind of evidence."] });
+        var dispute = await dbContext.DoctorClaimDisputes.SingleOrDefaultAsync(x => x.Id == disputeId, cancellationToken) ?? throw new NotFoundException();
+        if (dispute.Status != ClaimDisputeStatus.Open) throw new ConflictException("This dispute is already resolved.");
+        var doctor = await dbContext.Doctors.SingleOrDefaultAsync(
+            x => x.Id == request.DoctorId && x.RegistrationNumberHash == dispute.RegistrationNumberHash && x.ClaimDisputed, cancellationToken)
+            ?? throw new ValidationException(new Dictionary<string, string[]> { ["doctorId"] = ["The doctor must be one of the dispute's claimants."] });
+
+        var now = DateTimeOffset.UtcNow;
+        var previous = await dbContext.ClaimEvidenceRequests
+            .Where(x => x.DisputeId == dispute.Id && x.DoctorId == doctor.Id && x.Status == EvidenceRequestStatus.Open).ToListAsync(cancellationToken);
+        foreach (var old in previous) old.Status = EvidenceRequestStatus.Cancelled;
+
+        var evidence = new ClaimEvidenceRequest
+        {
+            DisputeId = dispute.Id, DoctorId = doctor.Id, RequestedByUserId = currentUser.UserId,
+            RequestedItems = string.Join(',', items), Note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim(),
+            IsChallenge = request.IsChallenge, DueAt = now.Add(request.IsChallenge ? ChallengeWindow : StandardWindow)
+        };
+        dbContext.ClaimEvidenceRequests.Add(evidence);
+        ClaimNotifications.Notify(dbContext, doctor.UserId, "SLMC_EVIDENCE_REQUESTED",
+            request.IsChallenge ? "Someone has claimed your SLMC number" : "Evidence needed for your SLMC number",
+            request.IsChallenge
+                ? "Upload evidence within 3 days that you hold this SLMC number, or your account will be suspended."
+                : "Upload the requested evidence within 30 days, or your account will be suspended.",
+            "/dashboard");
+        Audit(dbContext, currentUser.UserId, "SLMC_EVIDENCE_REQUESTED", doctor.Id, "OPEN",
+            new { DisputeId = dispute.Id, Items = items.Select(x => x.ToString()), request.IsChallenge, DueAt = evidence.DueAt });
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return ClaimEvidenceService.Map(evidence, []);
+    }
+
+    public async Task<LicenseDocumentFile> GetEvidenceFileAsync(Guid fileId, CancellationToken cancellationToken)
+    {
+        RequireAdmin();
+        var file = await dbContext.ClaimEvidenceFiles.AsNoTracking().SingleOrDefaultAsync(x => x.Id == fileId, cancellationToken) ?? throw new NotFoundException();
+        var content = file.Content;
+        if (content is null && file.StorageKey is not null && fileStore is not null && fileStore.Owns(file.StorageKey))
+            content = await fileStore.ReadAsync(file.StorageKey, cancellationToken);
+        if (content is null) throw new NotFoundException();
+        Audit(dbContext, currentUser.UserId, "SLMC_EVIDENCE_FILE_READ", file.Id, "SUCCESS", new { file.RequestId, Kind = file.Kind.ToString() }, "ClaimEvidenceFile");
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return new LicenseDocumentFile(file.FileName, file.ContentType, content);
+    }
+
+    public static readonly TimeSpan ChallengeWindow = TimeSpan.FromDays(3);
+    public static readonly TimeSpan StandardWindow = TimeSpan.FromDays(30);
+
     private async Task<ClaimDisputeDto> MapAsync(DoctorClaimDispute dispute, CancellationToken cancellationToken)
     {
         var register = await dbContext.SlmcRegisterEntries.AsNoTracking()
@@ -182,10 +244,17 @@ public sealed class ClaimDisputeService(AppDbContext dbContext, ICurrentUser cur
         var withDocs = await dbContext.DoctorLicenseDocuments.AsNoTracking()
             .Where(x => ids.Contains(x.DoctorId)).Select(x => x.DoctorId).Distinct().ToListAsync(cancellationToken);
         var lastFour = claimants.FirstOrDefault()?.RegistrationNumberLastFour ?? "";
+        var requests = await dbContext.ClaimEvidenceRequests.AsNoTracking()
+            .Where(x => x.DisputeId == dispute.Id).OrderByDescending(x => x.CreatedAt).ToListAsync(cancellationToken);
+        var requestIds = requests.Select(x => x.Id).ToList();
+        var files = await dbContext.ClaimEvidenceFiles.AsNoTracking().Where(x => requestIds.Contains(x.RequestId)).ToListAsync(cancellationToken);
         return new ClaimDisputeDto(dispute.Id, lastFour, dispute.Status, register, dispute.CreatedAt, dispute.WinnerDoctorId,
             dispute.ResolvedAt, dispute.ResolutionReason,
             claimants.Select(x => new ClaimDisputeClaimantDto(x.Id, x.UserId, x.User?.DisplayName, x.User?.Email, x.VerificationStatus,
-                SlmcNameMatcher.Classify(x.User?.DisplayName, register), withDocs.Contains(x.Id), x.CreatedAt)).ToList());
+                SlmcNameMatcher.Classify(x.User?.DisplayName, register), withDocs.Contains(x.Id), x.CreatedAt,
+                x.OwnershipConfirmedAt != null,
+                requests.Where(r => r.DoctorId == x.Id).Select(r => ClaimEvidenceService.Map(r, files.Where(f => f.RequestId == r.Id))).ToList())).ToList(),
+            dispute.DuplicateLicenseFile);
     }
 
     private void RequireAdmin()

@@ -53,6 +53,9 @@ public static class DependencyInjection
             client.BaseAddress = new Uri("https://fcm.googleapis.com/"));
         services.AddScoped<IClinicalService, ClinicalService>();
         services.AddScoped<IClaimDisputeService, ClaimDisputeService>();
+        services.AddScoped<ClaimEvidenceService>();
+        services.AddScoped<IClaimEvidenceService>(sp => sp.GetRequiredService<ClaimEvidenceService>());
+        services.AddScoped<IClaimEvidenceDeadlineProcessor>(sp => sp.GetRequiredService<ClaimEvidenceService>());
         services.AddScoped<IEmergencyFollowUpService, EmergencyFollowUpService>();
         services.AddSingleton<ITriageWorkQueue, TriageWorkQueue>();
         services.AddSingleton<SafetyValidationService>();

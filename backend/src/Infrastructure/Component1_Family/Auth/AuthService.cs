@@ -214,6 +214,9 @@ public sealed partial class AuthService(
             : null;
         var doctorClaimUnderReview = user.UserType == UserType.Doctor
             && await dbContext.Doctors.AnyAsync(x => x.UserId == user.Id && x.ClaimDisputed, cancellationToken);
+        var doctorClaimRejected = user.UserType == UserType.Doctor
+            && await dbContext.AuditLogs.AnyAsync(a => a.EventType == "SLMC_CLAIM_AUTO_REJECTED"
+                && dbContext.Doctors.Any(d => d.UserId == user.Id && d.Id == a.ResourceId && d.VerificationStatus == VerificationStatus.Rejected), cancellationToken);
 
         VerificationStatus? familyHeadVerificationStatus = null;
         string? familyCode = null;
@@ -275,7 +278,8 @@ public sealed partial class AuthService(
             accessExpires,
             familyHeadVerificationStatus,
             familyCode,
-            doctorClaimUnderReview);
+            doctorClaimUnderReview,
+            doctorClaimRejected);
     }
 
     public async Task<ResetPasswordResponse> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken)

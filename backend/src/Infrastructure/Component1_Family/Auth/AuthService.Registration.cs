@@ -95,7 +95,8 @@ public sealed partial class AuthService : IRegistrationService
         };
         dbContext.Doctors.Add(doctor);
         // A number someone else already claims opens an admin dispute instead of locking the real doctor out.
-        var disputed = await FamilyVeda.Infrastructure.Clinical.ClaimDisputeService.StageClaimAsync(dbContext, doctor, user.Id, cancellationToken);
+        var licenseSha256 = Convert.ToHexString(SHA256.HashData(content));
+        var claimOutcome = await FamilyVeda.Infrastructure.Clinical.ClaimDisputeService.StageClaimAsync(dbContext, doctor, user.Id, cancellationToken, licenseSha256);
         dbContext.UserProfiles.Add(new UserProfile { UserId = user.Id, PhoneNumber = doctor.PhoneNumber, TermsAcceptedAt = DateTimeOffset.UtcNow });
         dbContext.DoctorLicenseDocuments.Add(new DoctorLicenseDocument
         {
@@ -103,10 +104,11 @@ public sealed partial class AuthService : IRegistrationService
             FileName = Path.GetFileName(document.FileName),
             ContentType = document.ContentType.ToLowerInvariant(),
             SizeBytes = content.Length,
-            Content = content
+            Content = content,
+            Sha256 = licenseSha256
         });
         AddRegistrationAudit(user.Id, "DOCTOR_REGISTERED", "Doctor", doctor.Id, "PENDING",
-            new { RegistrationNumberLastFour = doctor.RegistrationNumberLastFour, LicenseDocument = true, ClaimDisputed = disputed });
+            new { RegistrationNumberLastFour = doctor.RegistrationNumberLastFour, LicenseDocument = true, ClaimOutcome = claimOutcome.ToString() });
         return await CommitAsync(user, cancellationToken);
     }
 

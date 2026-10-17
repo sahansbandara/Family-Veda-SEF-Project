@@ -43,6 +43,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<DoctorVerificationLog> DoctorVerificationLogs => Set<DoctorVerificationLog>();
     public DbSet<SlmcRegisterEntry> SlmcRegisterEntries => Set<SlmcRegisterEntry>();
     public DbSet<DoctorClaimDispute> DoctorClaimDisputes => Set<DoctorClaimDispute>();
+    public DbSet<ClaimEvidenceRequest> ClaimEvidenceRequests => Set<ClaimEvidenceRequest>();
+    public DbSet<ClaimEvidenceFile> ClaimEvidenceFiles => Set<ClaimEvidenceFile>();
     public DbSet<FamilyDoctorAssignment> FamilyDoctorAssignments => Set<FamilyDoctorAssignment>();
     public DbSet<CaseAccessGrant> CaseAccessGrants => Set<CaseAccessGrant>();
     public DbSet<Approval> Approvals => Set<Approval>();
