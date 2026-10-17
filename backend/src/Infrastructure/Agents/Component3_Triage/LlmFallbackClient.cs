@@ -53,7 +53,7 @@ public sealed class LlmFallbackClient(
             }
             catch (Exception exception) when (!cancellationToken.IsCancellationRequested)
             {
-                logger.LogWarning("LLM provider {Provider} failed ({ErrorType}); falling back to the next configured provider.", name, exception.GetType().Name);
+                logger.LogWarning("LLM provider {Provider} failed ({ErrorType}: {InnerType}); falling back to the next configured provider.", name, exception.GetType().Name, exception.InnerException?.GetType().Name ?? "none");
                 lastError = exception;
             }
         }
