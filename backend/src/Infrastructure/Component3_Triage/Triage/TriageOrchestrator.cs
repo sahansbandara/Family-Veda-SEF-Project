@@ -13,6 +13,8 @@ using FamilyVeda.Domain.Triage;
 using FamilyVeda.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace FamilyVeda.Infrastructure.Triage;
 
@@ -21,8 +23,11 @@ public sealed class TriageOrchestrator(
     IEnumerable<IAgent> agents,
     SafetyValidationService safetyValidationService,
     INotificationService notificationService,
-    IConfiguration configuration) : ITriageOrchestrator
+    IConfiguration configuration,
+    ILogger<TriageOrchestrator>? logger = null) : ITriageOrchestrator
 {
+    private readonly ILogger log = logger ?? NullLogger<TriageOrchestrator>.Instance;
+
     public async Task RunAsync(Guid caseId, CancellationToken cancellationToken)
     {
         var triageCase = await dbContext.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
@@ -168,6 +173,8 @@ public sealed class TriageOrchestrator(
         }
         catch (Exception exception) when (exception is InvalidOperationException or HttpRequestException or JsonException or TaskCanceledException)
         {
+            // Exception type and message only: agent errors carry no patient text.
+            log.LogWarning("Triage case {CaseId} agent step {Step} failed: {ExceptionType}: {Message}", caseId, step, exception.GetType().Name, exception.Message);
             SetSafeFailure(triageCase, "AGENT_UNAVAILABLE");
             dbContext.AgentTraces.Add(NewTrace(caseId, step, AgentKind.Coordinator, inputHash, [], [], [], null, 0m, status: AgentStepStatus.SafeFailure, errorCode: "AGENT_UNAVAILABLE"));
             if (!await SaveCheckpointAsync(caseId, cancellationToken)) return;
@@ -228,8 +235,9 @@ public sealed class TriageOrchestrator(
         }
     }
 
-    private static void SetSafeFailure(TriageCase triageCase, string code)
+    private void SetSafeFailure(TriageCase triageCase, string code)
     {
+        log.LogWarning("Triage case {CaseId} stopped safely: {FailureCode}", triageCase.Id, code);
         triageCase.Status = TriageStatus.FailedSafe;
         triageCase.FailureCode = code;
         triageCase.DraftAdvisoryJson = null;
