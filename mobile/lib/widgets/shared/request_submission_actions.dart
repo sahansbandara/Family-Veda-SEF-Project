@@ -33,18 +33,23 @@ class _RequestSubmissionActionsState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Withdraw this request?'),
         content: const Text(
-          'This moves the request to Deleted, where you can remove it permanently. You can submit a new request later.',
+          'It moves to Deleted. You can remove it permanently there.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Keep request'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Withdraw'),
+            child: const Text('Delete request'),
           ),
         ],
       ),
@@ -81,16 +86,19 @@ class _RequestSubmissionActionsState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Remove permanently?'),
-        content: const Text(
-          'This erases the request and its symptoms. This cannot be undone.',
-        ),
+        content: const Text('This erases the request and cannot be undone.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Keep request'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Delete permanently'),
           ),

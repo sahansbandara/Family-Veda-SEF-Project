@@ -162,7 +162,7 @@ void main() {
     await tester.tap(find.text('Delete request'));
     await tester.pumpAndSettle();
     expect(requests, isEmpty);
-    await tester.tap(find.text('Withdraw'));
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete request'));
     await tester.pumpAndSettle();
     expect(requests.single.method, 'POST');
     expect(requests.single.path, '/triage-cases/synthetic-request/withdraw');
