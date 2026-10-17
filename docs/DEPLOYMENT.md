@@ -61,6 +61,18 @@ Env var to set in Vercel: `VITE_API_BASE_URL=https://family-veda-api-production.
 
 The backend tries Gemini first, falls back to Groq automatically on any failure or rate limit (HTTP 429 or 5xx). If both are unconfigured or fail, the agent step throws and the case defers to the doctor (Rule 9) rather than blocking.
 
+### Running the AI locally
+
+Local runs have no keys by default, so every non-emergency case stops safely (`AGENT_UNAVAILABLE`). To get real AI drafts locally, store your own free key in .NET user-secrets. It lives in your home folder, never in the repo:
+
+```bash
+cd backend/src/Api
+dotnet user-secrets set "Gemini:ApiKey" "<your Gemini key>"
+dotnet user-secrets set "Llm:ApiKey" "<your Groq key>"   # optional fallback
+```
+
+User-secrets load only when `ASPNETCORE_ENVIRONMENT=Development`. Restart the API afterwards. Never put keys in `appsettings*.json`, `.env` files or commits.
+
 ## 5. Mobile — Android (signed release APK)
 
 No paid account needed. Generate a keystore once:

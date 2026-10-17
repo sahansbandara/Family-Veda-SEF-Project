@@ -3,6 +3,8 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
+    <!-- Local-only LLM keys live in dotnet user-secrets, outside the repo. See docs/DEPLOYMENT.md. -->
+    <UserSecretsId>family-veda-api-local</UserSecretsId>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
