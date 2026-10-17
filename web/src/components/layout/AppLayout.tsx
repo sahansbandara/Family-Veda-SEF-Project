@@ -11,6 +11,7 @@ import markUrl from '../../assets/logo-mark.png'
 // ===== S4 Feature: notifications + three-portal nav (docs/Three_Portal_Feature_Spec.md) =====
 import { NotificationBell } from '../shared/NotificationBell'
 import { HeadTransferBanner } from '../../pages/family/HeadTransferBanner'
+import { EvidenceRequestBanner } from '../doctor/EvidenceRequestBanner'
 
 type NavItem = {
   label: string
@@ -281,6 +282,7 @@ export function AppLayout() {
       <div className="app-main" style={{ padding: '24px clamp(16px, 2.5vw, 40px)' }}>
         <main id="main-content" className="main-content" tabIndex={-1} style={{ paddingTop: 0 }}>
           {user?.role === 'MEMBER' && <HeadTransferBanner />}
+          {user?.role === 'DOCTOR' && <EvidenceRequestBanner />}
           <Outlet />
         </main>
         <footer className="app-footer">

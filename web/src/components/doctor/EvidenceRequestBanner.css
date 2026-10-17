@@ -1,0 +1,13 @@
+/* Owner: S4 · SLMC evidence request banner. Mobile first. */
+.evidence-banners { display: grid; gap: 12px; margin-bottom: 16px; min-width: 0; }
+.evidence-banner { border: 1px solid rgba(245, 158, 11, 0.5); border-left: 4px solid #f59e0b; border-radius: 10px; padding: 12px 14px; background: rgba(245, 158, 11, 0.1); min-width: 0; overflow-wrap: anywhere; display: grid; gap: 8px; }
+.evidence-banner--challenge { border-color: rgba(239, 68, 68, 0.5); border-left-color: #dc2626; background: rgba(239, 68, 68, 0.08); }
+.evidence-banner p { margin: 0; }
+.evidence-banner__countdown { font-variant-numeric: tabular-nums; font-weight: 600; }
+.evidence-banner__items { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.evidence-banner__item { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+.evidence-banner__kind { flex: 1 1 100%; min-width: 0; font-weight: 600; }
+.evidence-banner__item input[type='file'] { flex: 1 1 200px; min-width: 0; max-width: 100%; }
+.evidence-banner__item button { min-height: 40px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (min-width: 640px) { .evidence-banner__kind { flex: 0 1 220px; } }

@@ -5,13 +5,14 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { ErrorState } from '../../components/shared/ViewState'
 import { apiClient, type ClaimDisputeDto } from '../../services/apiClient'
+import { ClaimantEvidence } from './ClaimantEvidence'
 import { RegisterMatchBadge } from './RegisterMatchBadge'
 import { openLicenseDocument } from './claimDisputes'
 import './claimDisputes.css'
 
 type Props = { onResolved?: () => void }
 
-function DisputeCard({ dispute, onResolved }: { dispute: ClaimDisputeDto; onResolved: () => void }) {
+function DisputeCard({ dispute, onResolved, onChanged }: { dispute: ClaimDisputeDto; onResolved: () => void; onChanged: () => void }) {
   const [winner, setWinner] = useState('')
   const [reason, setReason] = useState('')
   const [error, setError] = useState('')
@@ -38,15 +39,20 @@ function DisputeCard({ dispute, onResolved }: { dispute: ClaimDisputeDto; onReso
         <h3>SLMC ••••{dispute.registrationNumberLastFour} · {dispute.claimants.length} claimants</h3>
         <span className="muted">Register name: {dispute.registeredName ?? 'Not in register'}</span>
       </div>
+      {dispute.duplicateLicenseFile && (
+        <p className="claim-dispute__warning" role="alert">Duplicate licence file: the same licence document was uploaded by more than one claimant.</p>
+      )}
       <div className="claim-dispute__claimants" role="radiogroup" aria-label="Claimants">
         {dispute.claimants.map((claimant) => (
-          <label key={claimant.doctorId} className={`claim-claimant${winner === claimant.doctorId ? ' claim-claimant--selected' : ''}`}>
+          <div key={claimant.doctorId} className="claim-claimant-wrap">
+          <label className={`claim-claimant${winner === claimant.doctorId ? ' claim-claimant--selected' : ''}`}>
             <span>
               <input type="radio" name={`winner-${dispute.id}`} value={claimant.doctorId}
                 checked={winner === claimant.doctorId} onChange={() => setWinner(claimant.doctorId)} />
               <strong>{claimant.displayName ?? 'Doctor applicant'}</strong>
             </span>
             <RegisterMatchBadge match={claimant.registerMatch} />
+            {claimant.ownershipConfirmed && <span className="ownership-badge">Ownership confirmed</span>}
             <dl>
               <dt>Email</dt><dd>{claimant.email ?? '—'}</dd>
               <dt>Status</dt><dd>{claimant.verificationStatus}</dd>
@@ -61,13 +67,15 @@ function DisputeCard({ dispute, onResolved }: { dispute: ClaimDisputeDto; onReso
               </dd>
             </dl>
           </label>
+          <ClaimantEvidence disputeId={dispute.id} claimant={claimant} onChanged={onChanged} />
+          </div>
         ))}
       </div>
       <div className="claim-dispute__resolve">
         <label htmlFor={`reason-${dispute.id}`}>Reason (required, audited)</label>
         <textarea id={`reason-${dispute.id}`} value={reason} maxLength={1000} onChange={(event) => setReason(event.target.value)} />
         {error && <p className="form-error" role="alert">{error}</p>}
-        <p className="muted">The chosen claimant is verified. Every other claimant is suspended for a fraudulent claim, deactivated, and loses case access.</p>
+        <p className="muted">If you choose the claimant whose evidence convinces you, every other claimant is suspended immediately. The chosen claimant is verified; the others are deactivated and lose case access.</p>
         <div className="claim-dispute__actions">
           <button type="button" className="fv-btn fv-btn--primary" disabled={busy} onClick={() => void resolve()}>
             {busy ? 'Resolving…' : 'Resolve dispute'}
@@ -102,7 +110,7 @@ export function ClaimDisputesPanel({ onResolved }: Props) {
         <p className="muted">More than one account claims these registration numbers. Compare the claimants and decide who holds the number.</p>
       </div>
       {disputes.map((dispute) => (
-        <DisputeCard key={dispute.id} dispute={dispute} onResolved={() => { void load(); onResolved?.() }} />
+        <DisputeCard key={dispute.id} dispute={dispute} onResolved={() => { void load(); onResolved?.() }} onChanged={() => void load()} />
       ))}
     </section>
   )
