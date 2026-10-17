@@ -61,4 +61,33 @@ void main() {
     expect(find.text('Waiting for doctor review'), findsOneWidget);
     expect(find.text('Guidance available'), findsNothing);
   });
+
+  testWidgets('withdrawn requests move out of All into Withdrawn', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeMemberProvider.overrideWith((ref) => 'synthetic-member'),
+          membersProvider.overrideWith((ref) async => const []),
+          memberCasesProvider.overrideWith(
+            (ref) async => [
+              _case('synthetic-pending', 'PENDING_DOCTOR_REVIEW'),
+              _case('synthetic-withdrawn', 'WITHDRAWN'),
+            ],
+          ),
+        ],
+        child: const MaterialApp(home: CasesScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Waiting for doctor review'), findsOneWidget);
+    // Only the filter chip says "Withdrawn" while the All filter is active.
+    expect(find.text('Withdrawn'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Withdrawn'));
+    await tester.pumpAndSettle();
+    expect(find.text('Withdrawn'), findsNWidgets(2));
+    expect(find.text('Waiting for doctor review'), findsNothing);
+  });
 }
