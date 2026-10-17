@@ -259,6 +259,32 @@ describe('TriagePage', () => {
     expect(mocks.get).not.toHaveBeenCalledWith('/triage-cases/case-1/approved-guidance')
   })
 
+  it('explains refused member access and preserves the draft', async () => {
+    routeGet({ id: 'case-1', status: 'Submitted', priority: 'Routine' })
+    mocks.post.mockRejectedValueOnce({ response: { status: 404 } })
+    page('/triage')
+    fireEvent.click(await screen.findByRole('button', { name: 'Fever' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Submit for doctor review' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Adults must submit their own requests')
+    expect(screen.getByRole('alert')).toHaveTextContent('guardian must grant health-condition consent')
+    expect(mocks.post).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('button', { name: 'Submit for doctor review' })).toBeEnabled()
+  })
+
+  it('warns against duplicate submission after an uncertain triage response', async () => {
+    routeGet({ id: 'case-1', status: 'Submitted', priority: 'Routine' })
+    mocks.post.mockResolvedValueOnce({ data: { id: 'synthetic-episode' } }).mockRejectedValueOnce(new Error('timeout'))
+    page('/triage')
+    fireEvent.click(await screen.findByRole('button', { name: 'Fever' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Submit for doctor review' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Check your requests before retrying')
+    expect(mocks.post).toHaveBeenCalledTimes(2)
+  })
+
   it('submits selected symptoms with the existing duration and severity contract', async () => {
     routeGet({ id: 'case-2', status: 'Submitted', priority: 'Routine' }, undefined, [
       { ...cases[0], id: 'case-2', status: 'Submitted' },

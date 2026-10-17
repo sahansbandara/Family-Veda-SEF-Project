@@ -5,6 +5,7 @@ import 'package:family_veda/providers/cases_provider.dart';
 import 'package:family_veda/providers/core_providers.dart';
 import 'package:family_veda/providers/members_provider.dart';
 import 'package:family_veda/services/api/auth_api.dart';
+import 'package:family_veda/services/api/patient_api.dart';
 import 'package:family_veda/widgets/shared/symptom_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -155,7 +156,13 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
         }
       }
     } on Object catch (error) {
-      if (mounted) setState(() => _error = userFacingApiError(error));
+      if (mounted) {
+        setState(
+          () => _error = error is ComplaintSubmissionException
+              ? error.message
+              : userFacingApiError(error),
+        );
+      }
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -270,7 +277,7 @@ class _SubmitComplaintScreenState extends ConsumerState<SubmitComplaintScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Who is this request for?',
                       helperText:
-                          'Only members you are authorized to submit for appear here.',
+                          'Adults submit their own requests. For a child, guardian health-condition consent is required.',
                       helperMaxLines: 3,
                     ),
                     items: members

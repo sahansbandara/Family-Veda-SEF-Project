@@ -181,3 +181,12 @@ Android debug demo APK build PASSED (assembleDebug 516.6s): mobile/build/app/out
 - Add value now sits immediately below editable rows/cards in React and Flutter. New rows append before this control; name field is scrolled into view and focused.
 - Flutter's visible bottom Add control ensures the appended lazy-list card is built for post-frame ensureVisible. Each draft owns/disposes its GlobalKey/FocusNode; callbacks check mounted and draft presence.
 - Regression coverage includes placement, two successive additions after five existing phone rows, disposal before the next callback, and Undo focus at the row cap. Browser checks cover 1440/375/390/768 widths. Backend unchanged.
+
+
+## 2026-10-17 ? Symptom submission feedback correction
+- User approved S1/S3 edits for the screenshot submission failure. Work is on fix/s3-mobile-submission-errors; no commit, push or deployment authorized.
+- Confirmed Flutter maps privacy-preserving 404/refused submission and malformed responses to a misleading connection message. Backend contracts match the mobile payload. Production /health returned HTTP 200; the screenshot request response remains unavailable, so its exact cause is unverified.
+- Use static stage-aware complaint errors: first-call 403/404 explains self/guardian consent, validation/session/rate-limit cases have distinct messages, and unknown/second-stage failures direct users to check requests before retrying. Validate response IDs before dependent requests. Preserve draft and backend authorization/auditing. Web retains equivalent handling and gains the same adult/guardian wording.
+- Rejected bypassing consent, exposing raw errors, automatically retrying POSTs, or claiming a live submission fix from health alone. Referenced project rules/skills/blueprint/BRIEF and university source PDFs are absent in this checkout.
+- Pre-existing four Android/iOS generated-file modifications are outside this patch and retained. Native Android/iOS runtime and live authenticated submission remain unverified.
+- Verification: targeted Flutter service/screen tests 44 passed; patient_api.dart line coverage 66/67 (98.5%); flutter analyze no issues; web triage suites 19 passed; web build and lint passed. Scoped code/security reviews found no CRITICAL/HIGH issues. Scoped git diff --check clean; pre-existing generated Package.swift whitespace remains outside this patch. No viewport screenshots or authenticated device submission were captured.

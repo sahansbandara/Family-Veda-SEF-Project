@@ -324,7 +324,7 @@ export function TriagePage() {
       const status = (error as { response?: { status?: number } })?.response?.status
       // Nothing was saved when the first call is refused, so retrying cannot create a duplicate.
       if (!episodeSaved && (status === 403 || status === 404)) {
-        setMessage('This request could not be sent for this family member. For a child, a guardian must grant health-condition consent in Privacy & Access first.')
+        setMessage('This request could not be sent for this family member. Adults must submit their own requests. For a child, a guardian must grant health-condition consent in Privacy & Access first.')
       } else if (!episodeSaved && status !== undefined) {
         setMessage('This request was not sent. Check the details and try again.')
       } else {
@@ -411,7 +411,7 @@ export function TriagePage() {
                         </option>
                       ))}
                     </select>
-                    <p className="hint">Only members you are authorized to submit for appear here. Adult members submit their own private requests.</p>
+                    <p className="hint">Adults submit their own requests. For a child, guardian health-condition consent is required.</p>
                   </div>
 
                   <div className="field">

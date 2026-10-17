@@ -1,3 +1,7 @@
+import 'package:family_veda/models/member.dart';
+import 'package:family_veda/providers/core_providers.dart';
+import 'package:family_veda/providers/members_provider.dart';
+import 'package:family_veda/services/api/patient_api.dart';
 import 'package:family_veda/screens/records/lab_upload_screen.dart';
 import 'package:family_veda/screens/triage/submit_complaint_screen.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +10,28 @@ import 'package:family_veda/providers/records_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+class _DeniedPatientApi implements PatientApi {
+  int submissions = 0;
+
+  @override
+  Future<String> submitComplaint({
+    required String memberId,
+    required String chiefComplaint,
+    required int durationDays,
+    required int severity,
+    required List<String> symptoms,
+    String? notes,
+  }) async {
+    submissions++;
+    throw const ComplaintSubmissionException(
+      'Synthetic permission refusal: guardian consent required.',
+    );
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 void _tallScreen(WidgetTester tester) {
   tester.view.physicalSize = const Size(800, 1400);
   tester.view.devicePixelRatio = 1;
@@ -13,6 +39,54 @@ void _tallScreen(WidgetTester tester) {
 }
 
 void main() {
+  testWidgets(
+    'submission displays safe API feedback and retains the review draft',
+    (tester) async {
+      _tallScreen(tester);
+      final api = _DeniedPatientApi();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            activeMemberProvider.overrideWith((ref) => 'synthetic-self'),
+            membersProvider.overrideWith(
+              (ref) async => const [
+                Member(
+                  id: 'synthetic-self',
+                  displayName: 'Synthetic Member',
+                  relationshipLabel: 'Self',
+                  isSelf: true,
+                ),
+              ],
+            ),
+            patientApiProvider.overrideWithValue(api),
+          ],
+          child: const MaterialApp(home: SubmitComplaintScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('chief_complaint_field')),
+        'Synthetic fever',
+      );
+      await tester.tap(find.byKey(const Key('submit_complaint_button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('submit_complaint_button')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('submit_complaint_button')));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Synthetic permission refusal: guardian consent required.'),
+        findsOneWidget,
+      );
+      expect(find.text('Synthetic fever'), findsOneWidget);
+      expect(
+        find.text('Could not connect. Check your connection and try again.'),
+        findsNothing,
+      );
+      expect(api.submissions, 1);
+    },
+  );
+
   test('formatDurationDays uses singular and plural', () {
     expect(formatDurationDays('1'), '1 day');
     expect(formatDurationDays('2'), '2 days');

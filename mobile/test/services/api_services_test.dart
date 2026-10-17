@@ -222,6 +222,178 @@ void main() {
 
   tearDown(() => tokenStore.expirations.close());
 
+  Future<String> submitSyntheticComplaint() =>
+      DioPatientApi(
+        client,
+        devicePlatform: MobileDevicePlatform.android,
+      ).submitComplaint(
+        memberId: 'member-1',
+        chiefComplaint: 'Fever',
+        durationDays: 2,
+        severity: 3,
+        symptoms: const [],
+        notes: 'Synthetic description',
+      );
+
+  test(
+    'refused episode explains access without claiming connection failure',
+    () async {
+      adapter.respond(
+        '/api/v1/members/member-1/episodes',
+        status: 404,
+        body: {},
+      );
+      await expectLater(
+        submitSyntheticComplaint(),
+        throwsA(
+          isA<ComplaintSubmissionException>().having(
+            (e) => e.message,
+            'message',
+            contains('guardian'),
+          ),
+        ),
+      );
+      expect(adapter.requests, hasLength(1));
+    },
+  );
+
+  test('invalid episode explains details and does not start triage', () async {
+    adapter.respond('/api/v1/members/member-1/episodes', status: 400, body: {});
+    await expectLater(
+      submitSyntheticComplaint(),
+      throwsA(
+        isA<ComplaintSubmissionException>().having(
+          (e) => e.message,
+          'message',
+          contains('Check the details'),
+        ),
+      ),
+    );
+    expect(adapter.requests, hasLength(1));
+  });
+
+  test(
+    'triage timeout warns about uncertain receipt without automatically retrying',
+    () async {
+      adapter.fail(
+        '/api/v1/episodes/episode-1/triage',
+        DioException(
+          requestOptions: RequestOptions(path: '/episodes/episode-1/triage'),
+          type: DioExceptionType.receiveTimeout,
+        ),
+      );
+      await expectLater(
+        submitSyntheticComplaint(),
+        throwsA(
+          isA<ComplaintSubmissionException>().having(
+            (e) => e.message,
+            'message',
+            contains('Check your requests before retrying'),
+          ),
+        ),
+      );
+      expect(adapter.requests, hasLength(2));
+    },
+  );
+
+  for (final invalidId in [null, 42, '']) {
+    test(
+      'malformed episode id $invalidId never starts triage or claims offline',
+      () async {
+        adapter.respond(
+          '/api/v1/members/member-1/episodes',
+          status: 201,
+          body: {'id': invalidId},
+        );
+        await expectLater(
+          submitSyntheticComplaint(),
+          throwsA(
+            isA<ComplaintSubmissionException>().having(
+              (e) => e.message,
+              'message',
+              contains('Could not confirm submission'),
+            ),
+          ),
+        );
+        expect(adapter.requests, hasLength(1));
+      },
+    );
+  }
+
+  test(
+    'malformed case id is uncertain submission rather than connection error',
+    () async {
+      adapter.respond(
+        '/api/v1/episodes/episode-1/triage',
+        status: 202,
+        body: {},
+      );
+      await expectLater(
+        submitSyntheticComplaint(),
+        throwsA(
+          isA<ComplaintSubmissionException>().having(
+            (e) => e.message,
+            'message',
+            contains('Could not confirm submission'),
+          ),
+        ),
+      );
+    },
+  );
+
+  for (final scenario in [
+    (401, 'session has expired'),
+    (403, 'guardian'),
+    (422, 'Check the details'),
+    (429, 'Too many requests'),
+    (500, 'Could not confirm submission'),
+  ]) {
+    test('episode status ${scenario.$1} gives safe feedback', () async {
+      adapter.respond(
+        '/api/v1/members/member-1/episodes',
+        status: scenario.$1,
+        body: {'detail': 'private server detail'},
+      );
+      await expectLater(
+        submitSyntheticComplaint(),
+        throwsA(
+          isA<ComplaintSubmissionException>()
+              .having((e) => e.message, 'message', contains(scenario.$2))
+              .having(
+                (e) => e.message,
+                'safe message',
+                isNot(contains('private server detail')),
+              ),
+        ),
+      );
+      expect(adapter.requests, hasLength(1));
+    });
+  }
+
+  test(
+    'first request transport failure does not promise that nothing was saved',
+    () async {
+      adapter.fail(
+        '/api/v1/members/member-1/episodes',
+        DioException(
+          requestOptions: RequestOptions(path: '/members/member-1/episodes'),
+          type: DioExceptionType.connectionError,
+        ),
+      );
+      await expectLater(
+        submitSyntheticComplaint(),
+        throwsA(
+          isA<ComplaintSubmissionException>().having(
+            (e) => e.message,
+            'message',
+            contains('Check your requests before retrying'),
+          ),
+        ),
+      );
+      expect(adapter.requests, hasLength(1));
+    },
+  );
+
   test(
     'report review uses authenticated detail and review routes with exact payload',
     () async {
