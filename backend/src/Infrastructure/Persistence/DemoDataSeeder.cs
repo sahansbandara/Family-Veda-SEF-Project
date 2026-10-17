@@ -49,7 +49,7 @@ public static class DemoDataSeeder
             var member = new Member { Family = family, User = user, DisplayName = name, DateOfBirth = dob, Role = role };
             db.Members.Add(member);
             foreach (var category in Enum.GetValues<ConsentCategory>())
-                db.Consents.Add(new Consent { Member = member, Category = category, Status = ConsentStatus.Granted });
+                db.Consents.Add(new Consent { Member = member, Category = category, Status = ConsentStatus.Granted, GrantedByGuardian = role == FamilyRole.MinorMember });
             return member;
         }
 
@@ -70,7 +70,11 @@ public static class DemoDataSeeder
         var tharushiUser = NewUser(SentinelEmail, "Tharushi Perera", UserType.FamilyUser);
         var tharushi = NewMember(family, tharushiUser, "Tharushi Perera", new DateOnly(1998, 4, 2), FamilyRole.AdultMember);
         foreach (var consent in await db.Consents.Where(x => x.MemberId == nimal.Id || x.MemberId == amaya.Id || x.MemberId == kasun.Id).ToListAsync(ct))
+        {
             consent.Status = ConsentStatus.Granted;
+            // A minor's consent counts only when a guardian granted it; triage and records check this flag.
+            consent.GrantedByGuardian = consent.MemberId == kasun.Id;
+        }
 
         // ---- Doctors ----
         var doctor = await db.Doctors.SingleAsync(x => x.UserId == doctorUser.Id, ct);

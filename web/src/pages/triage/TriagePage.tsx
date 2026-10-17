@@ -296,6 +296,7 @@ export function TriagePage() {
     }
     setSubmitting(true)
     setMessage('')
+    let episodeSaved = false
     try {
       const { data: episode } = await apiClient.post<EpisodeDto>(
         `/members/${form.get('memberId')}/episodes`,
@@ -306,6 +307,7 @@ export function TriagePage() {
           notes: String(form.get('notes') ?? '').trim() || null,
         },
       )
+      episodeSaved = true
       const { data: triageCase } = await apiClient.post<TriageCaseDto>(`/episodes/${episode.id}/triage`)
       setCases((items) => [triageCase, ...items.filter((item) => item.id !== triageCase.id)])
       setSelectedSymptoms([])
@@ -317,8 +319,16 @@ export function TriagePage() {
       selectCase(triageCase.id)
       try { setCases(await loadCases(familyId)) }
       catch { setMessage('Your request was submitted for review. The request list could not be refreshed; reopen this page to check it. Guidance appears only after doctor approval.') }
-    } catch {
-      setMessage('Could not confirm submission. Check your requests before retrying to avoid sending the same request twice.')
+    } catch (error) {
+      const status = (error as { response?: { status?: number } })?.response?.status
+      // Nothing was saved when the first call is refused, so retrying cannot create a duplicate.
+      if (!episodeSaved && (status === 403 || status === 404)) {
+        setMessage('This request could not be sent for this family member. For a child, a guardian must grant health-condition consent in Privacy & Access first.')
+      } else if (!episodeSaved && status !== undefined) {
+        setMessage('This request was not sent. Check the details and try again.')
+      } else {
+        setMessage('Could not confirm submission. Check your requests before retrying to avoid sending the same request twice.')
+      }
     } finally {
       setSubmitting(false)
     }
