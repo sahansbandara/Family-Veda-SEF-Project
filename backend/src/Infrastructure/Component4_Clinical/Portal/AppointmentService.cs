@@ -334,7 +334,7 @@ public sealed class AppointmentService(AppDbContext dbContext, ICurrentUser curr
     }
 
     private async Task<Doctor> RequireDoctorAsync(CancellationToken cancellationToken) =>
-        await dbContext.Doctors.SingleOrDefaultAsync(x => x.UserId == currentUser.UserId && x.VerificationStatus == Domain.Common.VerificationStatus.Verified, cancellationToken)
+        await dbContext.Doctors.SingleOrDefaultAsync(x => x.UserId == currentUser.UserId && x.VerificationStatus == Domain.Common.VerificationStatus.Verified && !x.AccessFrozen, cancellationToken)
             ?? throw new ForbiddenException();
 
     /// <summary>

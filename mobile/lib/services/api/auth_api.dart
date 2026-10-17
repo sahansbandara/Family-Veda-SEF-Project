@@ -12,7 +12,21 @@ class AuthTokens {
     this.displayName,
     this.userType,
     this.familyRole,
+    this.claimUnderReview = false,
   });
+
+  /// Registration responses: same token fields, plus the SLMC dispute flag for doctors.
+  factory AuthTokens.fromRegistration(Map<String, dynamic>? data) {
+    if (data == null) {
+      throw const FormatException('Empty registration response');
+    }
+    return AuthTokens(
+      userId: data['userId'] as String,
+      accessToken: data['accessToken'] as String,
+      refreshToken: data['refreshToken'] as String,
+      claimUnderReview: data['doctorClaimUnderReview'] == true,
+    );
+  }
 
   final String userId;
   final String accessToken;
@@ -20,6 +34,9 @@ class AuthTokens {
   final String? displayName;
   final String? userType;
   final String? familyRole;
+
+  /// True when another account already claims this SLMC number; an admin reviews both claims.
+  final bool claimUnderReview;
 }
 
 abstract class AuthApi {
@@ -82,16 +99,8 @@ class DioAuthApi implements AuthApi {
   @override
   Future<void> logout() => _client.dio.post<void>('/auth/logout');
 
-  AuthTokens _tokens(Map<String, dynamic>? data) {
-    if (data == null) {
-      throw const FormatException('Empty registration response');
-    }
-    return AuthTokens(
-      userId: data['userId'] as String,
-      accessToken: data['accessToken'] as String,
-      refreshToken: data['refreshToken'] as String,
-    );
-  }
+  AuthTokens _tokens(Map<String, dynamic>? data) =>
+      AuthTokens.fromRegistration(data);
 
   @override
   Future<AuthTokens> registerFamilyHead(Map<String, dynamic> body) async =>

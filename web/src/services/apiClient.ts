@@ -115,6 +115,7 @@ export type AuthResponse = {
   doctorVerificationStatus?: 'Pending' | 'Verified' | 'MoreInformationRequired' | 'Rejected' | 'Suspended' | null
   familyHeadVerificationStatus?: 'Pending' | 'Verified' | 'MoreInformationRequired' | 'Rejected' | 'Suspended' | null
   familyCode?: string | null
+  doctorClaimUnderReview?: boolean
   accessToken: string
   refreshToken: string
   accessTokenExpiresAt: string
@@ -139,7 +140,10 @@ export type ApprovalDto = { id: string; triageCaseId: string; doctorId: string; 
 export type CaseReviewDto = { id: string; memberId: string; status: string; priority: string; contextJson?: string; analysisJson?: string; familialRiskJson?: string; draftAdvisoryJson?: string; traces: AgentTraceDto[]; submittedEpisode?: { id: string; memberId: string; symptoms: string[]; durationDays: number; severity: number; notes?: string | null; createdAt: string } | null; caseNumber?: number; memberDisplayName?: string | null; familyName?: string | null }
 export type ConsentDto = { id: string; memberId: string; category: string; status: string; grantedByGuardian: boolean }
 export type RelationshipDto = { id: string; memberId: string; relatedMemberId: string; relationshipType: string; isBiological: boolean }
-export type DoctorDto = { id: string; userId: string; registrationNumberLastFour: string; verificationStatus: string; specialty?: string; hospitalClinic?: string; phoneNumber?: string; displayName?: string; email?: string; registrationNumber?: string }
+export type DoctorDto = { id: string; userId: string; registrationNumberLastFour: string; verificationStatus: string; specialty?: string; hospitalClinic?: string; phoneNumber?: string; displayName?: string; email?: string; registrationNumber?: string; registerMatch?: RegisterMatch | null; claimDisputed?: boolean }
+export type RegisterMatch = 'Match' | 'NameMismatch' | 'NotInRegister'
+export type ClaimDisputeClaimantDto = { doctorId: string; userId: string; displayName?: string | null; email?: string | null; verificationStatus: string; registerMatch: RegisterMatch; hasLicenseDocument: boolean; submittedAt: string }
+export type ClaimDisputeDto = { id: string; registrationNumberLastFour: string; status: 'Open' | 'Resolved'; registeredName?: string | null; openedAt: string; winnerDoctorId?: string | null; resolvedAt?: string | null; resolutionReason?: string | null; claimants: ClaimDisputeClaimantDto[] }
 export type FamilyHeadDto = { id: string; userId: string; familyId: string; familyName: string; displayName: string; email: string; memberCount: number; verificationStatus: string; isActive: boolean; createdAt: string; nic?: string | null; address?: string | null; familyCode?: string | null }
 export type AdminUserDto = { userId: string; email: string; displayName: string; userType: string; isActive: boolean; createdAt: string; status?: string; roleDetail?: string }
 export type ResetPasswordResponse = { success: boolean; message: string; resetToken?: string | null }

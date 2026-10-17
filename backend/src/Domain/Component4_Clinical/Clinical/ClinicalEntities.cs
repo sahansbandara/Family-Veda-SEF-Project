@@ -24,6 +24,29 @@ public sealed class Doctor : Entity
     public string? ConsultationModes { get; set; }
     public bool AcceptingNewFamilies { get; set; } = true;
     public int SlotMinutes { get; set; } = 30;
+    // SLMC contested claims: true while another account claims the same registration number.
+    public bool ClaimDisputed { get; set; }
+    // Verified claimant whose clinical access is frozen until the dispute is resolved.
+    public bool AccessFrozen { get; set; }
+}
+
+/// <summary>Synthetic stand-in for the SLMC register (Rule 7: no real register data). Keyed by the same hash as Doctor.</summary>
+public sealed class SlmcRegisterEntry : Entity
+{
+    public required string RegistrationNumberHash { get; set; }
+    public required string FullName { get; set; }
+    public SlmcRegisterStatus Status { get; set; } = SlmcRegisterStatus.Active;
+}
+
+/// <summary>Two or more accounts claim one SLMC number. Claimants are every doctor sharing the hash; an admin picks the winner.</summary>
+public sealed class DoctorClaimDispute : Entity
+{
+    public required string RegistrationNumberHash { get; set; }
+    public ClaimDisputeStatus Status { get; set; } = ClaimDisputeStatus.Open;
+    public Guid? WinnerDoctorId { get; set; }
+    public Guid? ResolvedByUserId { get; set; }
+    public DateTimeOffset? ResolvedAt { get; set; }
+    public string? ResolutionReason { get; set; }
 }
 
 /// <summary>Synthetic licence / registration document uploaded at doctor sign-up; reviewed by admins only.</summary>
@@ -66,6 +89,8 @@ public sealed class CaseAccessGrant : Entity
     public Doctor? Doctor { get; set; }
     public DateTimeOffset ExpiresAt { get; set; }
     public DateTimeOffset? RevokedAt { get; set; }
+    // Set while the doctor's SLMC claim is disputed; a frozen grant gives no access (global query filter).
+    public DateTimeOffset? FrozenAt { get; set; }
     public required string Reason { get; set; }
 }
 

@@ -276,6 +276,9 @@ public static class DatabaseInitializer
             // ===== Viva synthetic accounts — isolated demo logins, idempotent =====
             await VivaDemoSeeder.SeedAsync(dbContext, hasher, password, cancellationToken);
             // ===== end Viva synthetic accounts =====
+            // ===== S4 — synthetic SLMC register =====
+            await SlmcRegisterSeeder.SeedAsync(dbContext, configuration["Jwt:Key"], cancellationToken);
+            // ===== end S4 =====
             return;
         }
         // ===== end S4 =====
@@ -339,5 +342,8 @@ public static class DatabaseInitializer
         // ===== Viva synthetic accounts — isolated demo logins, idempotent =====
         await VivaDemoSeeder.SeedAsync(dbContext, hasher, password, cancellationToken);
         // ===== end Viva synthetic accounts =====
+        // ===== S4 — synthetic SLMC register =====
+        await SlmcRegisterSeeder.SeedAsync(dbContext, configuration["Jwt:Key"], cancellationToken);
+        // ===== end S4 =====
     }
 }

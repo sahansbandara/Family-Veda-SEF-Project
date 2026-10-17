@@ -22,7 +22,7 @@ internal static class EmergencyCaseAccess
     {
         if (currentUser.UserType != UserType.Doctor) throw new ForbiddenException();
         var doctor = await dbContext.Doctors.Include(x => x.User)
-            .SingleOrDefaultAsync(x => x.UserId == currentUser.UserId && x.VerificationStatus == VerificationStatus.Verified, cancellationToken)
+            .SingleOrDefaultAsync(x => x.UserId == currentUser.UserId && x.VerificationStatus == VerificationStatus.Verified && !x.AccessFrozen, cancellationToken)
             ?? throw new ForbiddenException();
         var triageCase = await dbContext.TriageCases
             .SingleOrDefaultAsync(x => x.Id == caseId && x.Status == TriageStatus.Escalated, cancellationToken)

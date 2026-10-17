@@ -15,7 +15,9 @@ public sealed record DoctorDto(
     string? PhoneNumber = null,
     string? DisplayName = null,
     string? Email = null,
-    string? RegistrationNumber = null);
+    string? RegistrationNumber = null,
+    RegisterMatch? RegisterMatch = null,
+    bool ClaimDisputed = false);
 public sealed record RegisterDoctorRequest(
     string RegistrationNumber,
     string? Specialty,

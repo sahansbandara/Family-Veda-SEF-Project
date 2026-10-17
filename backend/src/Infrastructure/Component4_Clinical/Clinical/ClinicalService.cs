@@ -43,11 +43,6 @@ public sealed class ClinicalService(
             ?? throw new InvalidOperationException("Registration:HashKey or Jwt:Key is required.");
         var purposeKey = SHA256.HashData(Encoding.UTF8.GetBytes($"FamilyVeda.DoctorRegistration.v1:{configuredHashKey}"));
         var hash = Convert.ToHexString(HMACSHA256.HashData(purposeKey, Encoding.UTF8.GetBytes(normalized)));
-        if (await dbContext.Doctors.AnyAsync(x => x.RegistrationNumberHash == hash, cancellationToken))
-        {
-            throw new ConflictException("Registration number is already registered.");
-        }
-
         var doctor = new Doctor
         {
             UserId = currentUser.UserId,
@@ -58,6 +53,7 @@ public sealed class ClinicalService(
             PhoneNumber = request.PhoneNumber?.Trim()
         };
         dbContext.Doctors.Add(doctor);
+        await ClaimDisputeService.StageClaimAsync(dbContext, doctor, currentUser.UserId, cancellationToken);
         var metadata = System.Text.Json.JsonSerializer.Serialize(new
         {
             RegistrationNumber = request.RegistrationNumber?.Trim(),
@@ -94,6 +90,11 @@ public sealed class ClinicalService(
             .Where(a => a.ResourceType == "Doctor" && a.ResourceId.HasValue && (doctorIds.Contains(a.ResourceId.Value) || userIds.Contains(a.ResourceId.Value)))
             .OrderByDescending(a => a.CreatedAt)
             .ToListAsync(cancellationToken);
+
+        var hashes = doctors.Select(d => d.RegistrationNumberHash).Distinct().ToList();
+        var register = await dbContext.SlmcRegisterEntries.AsNoTracking()
+            .Where(r => hashes.Contains(r.RegistrationNumberHash) && r.Status == SlmcRegisterStatus.Active)
+            .ToDictionaryAsync(r => r.RegistrationNumberHash, r => r.FullName, cancellationToken);
 
         var auditsByDoctor = auditLogs
             .GroupBy(a => a.ResourceId!.Value)
@@ -137,7 +138,9 @@ public sealed class ClinicalService(
                 phone,
                 x.User?.DisplayName ?? "Doctor Account",
                 x.User?.Email,
-                regNumber
+                regNumber,
+                SlmcNameMatcher.Classify(x.User?.DisplayName, register.GetValueOrDefault(x.RegistrationNumberHash)),
+                x.ClaimDisputed
             );
         }).ToList();
 
@@ -152,6 +155,10 @@ public sealed class ClinicalService(
         var doctor = await dbContext.Doctors.Include(x => x.User).SingleOrDefaultAsync(x => x.Id == doctorId, cancellationToken)
             ?? await dbContext.Doctors.Include(x => x.User).SingleOrDefaultAsync(x => x.UserId == doctorId, cancellationToken)
             ?? throw new NotFoundException();
+        if (doctor.ClaimDisputed && request.Status == VerificationStatus.Verified)
+        {
+            throw new ConflictException("This SLMC number is disputed. Resolve the claim dispute to verify a claimant.");
+        }
         var previous = doctor.VerificationStatus;
         doctor.VerificationStatus = request.Status;
 
@@ -584,10 +591,10 @@ public sealed class ClinicalService(
         if (await EmergencyCaseAccess.IsClosedAsync(dbContext, caseId, cancellationToken)) throw new NotFoundException();
         var now = DateTimeOffset.UtcNow;
         var slaCutoff = now.AddHours(-configuration.GetValue("Sla:DoctorResponseHours", 6));
-        var existingUnrevokedGrants = await dbContext.CaseAccessGrants
+        var existingUnrevokedGrants = await dbContext.CaseAccessGrants.IgnoreQueryFilters()
             .Where(x => x.TriageCaseId == caseId && x.RevokedAt == null)
             .ToListAsync(cancellationToken);
-        if (existingUnrevokedGrants.Any(x => x.ExpiresAt > now && x.CreatedAt > slaCutoff))
+        if (existingUnrevokedGrants.Any(x => x.FrozenAt == null && x.ExpiresAt > now && x.CreatedAt > slaCutoff))
         {
             throw new ConflictException("Case is already claimed.");
         }
@@ -701,7 +708,7 @@ public sealed class ClinicalService(
         dbContext.Approvals.Add(approval);
         if (triageCase.Status is TriageStatus.Approved or TriageStatus.ApprovedRevised or TriageStatus.Rejected or TriageStatus.Escalated)
         {
-            var activeGrants = await dbContext.CaseAccessGrants
+            var activeGrants = await dbContext.CaseAccessGrants.IgnoreQueryFilters()
                 .Where(x => x.TriageCaseId == caseId && x.RevokedAt == null)
                 .ToListAsync(cancellationToken);
             foreach (var activeGrant in activeGrants) activeGrant.RevokedAt = approval.DecidedAt;
@@ -762,7 +769,7 @@ public sealed class ClinicalService(
 
     private async Task<Doctor> RequireVerifiedDoctorAsync(CancellationToken cancellationToken) =>
         currentUser.UserType == UserType.Doctor
-            ? await dbContext.Doctors.SingleOrDefaultAsync(x => x.UserId == currentUser.UserId && x.VerificationStatus == VerificationStatus.Verified, cancellationToken)
+            ? await dbContext.Doctors.SingleOrDefaultAsync(x => x.UserId == currentUser.UserId && x.VerificationStatus == VerificationStatus.Verified && !x.AccessFrozen, cancellationToken)
                 ?? throw new ForbiddenException()
             : throw new ForbiddenException();
 
@@ -845,7 +852,7 @@ public sealed class ClinicalService(
     }
 
     private static DoctorDto MapDoctor(Doctor x, string? registrationNumber = null) =>
-        new(x.Id, x.UserId, x.RegistrationNumberLastFour, x.VerificationStatus, x.Specialty, x.HospitalClinic, x.PhoneNumber, x.User?.DisplayName, x.User?.Email, registrationNumber);
+        new(x.Id, x.UserId, x.RegistrationNumberLastFour, x.VerificationStatus, x.Specialty, x.HospitalClinic, x.PhoneNumber, x.User?.DisplayName, x.User?.Email, registrationNumber, ClaimDisputed: x.ClaimDisputed);
     private static ApprovalDto MapApproval(Approval x) => new(x.Id, x.TriageCaseId, x.DoctorId, x.Action, x.DecidedAt);
     private static (int Page, int PageSize) NormalizePage(int page, int pageSize) => (Math.Max(page, 1), Math.Clamp(pageSize, 1, 100));
 

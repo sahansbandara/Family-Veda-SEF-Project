@@ -18,7 +18,7 @@ public sealed record RegisterRequest(
     string? PhoneNumber = null);
 public sealed record LoginRequest(string Email, string Password);
 public sealed record RefreshRequest(string RefreshToken);
-public sealed record AuthResponse(Guid UserId, string DisplayName, UserType UserType, FamilyRole? FamilyRole, VerificationStatus? DoctorVerificationStatus, string AccessToken, string RefreshToken, DateTimeOffset AccessTokenExpiresAt, VerificationStatus? FamilyHeadVerificationStatus = null, string? FamilyCode = null);
+public sealed record AuthResponse(Guid UserId, string DisplayName, UserType UserType, FamilyRole? FamilyRole, VerificationStatus? DoctorVerificationStatus, string AccessToken, string RefreshToken, DateTimeOffset AccessTokenExpiresAt, VerificationStatus? FamilyHeadVerificationStatus = null, string? FamilyCode = null, bool DoctorClaimUnderReview = false);
 
 public sealed record ForgotPasswordRequest(string Email);
 public sealed record ResetPasswordRequest(string Email, string Token, string NewPassword);

@@ -16,7 +16,7 @@ public sealed class FamilyDoctorService(AppDbContext dbContext, ICurrentUser cur
 {
     public async Task<IReadOnlyList<DoctorSummaryDto>> GetDirectoryAsync(string? search, string? district, CancellationToken cancellationToken)
     {
-        var query = dbContext.Doctors.AsNoTracking().Where(x => x.VerificationStatus == VerificationStatus.Verified && x.AcceptingNewFamilies);
+        var query = dbContext.Doctors.AsNoTracking().Where(x => x.VerificationStatus == VerificationStatus.Verified && !x.AccessFrozen && x.AcceptingNewFamilies);
         if (!string.IsNullOrWhiteSpace(search))
         {
             var term = search.Trim();
@@ -45,7 +45,7 @@ public sealed class FamilyDoctorService(AppDbContext dbContext, ICurrentUser cur
     public async Task<DoctorRequestDto> RequestAsync(Guid familyId, CreateDoctorRequest request, CancellationToken cancellationToken)
     {
         await RequireHeadAsync(familyId, cancellationToken);
-        var doctor = await dbContext.Doctors.SingleOrDefaultAsync(x => x.Id == request.DoctorId && x.VerificationStatus == VerificationStatus.Verified && x.AcceptingNewFamilies, cancellationToken)
+        var doctor = await dbContext.Doctors.SingleOrDefaultAsync(x => x.Id == request.DoctorId && x.VerificationStatus == VerificationStatus.Verified && !x.AccessFrozen && x.AcceptingNewFamilies, cancellationToken)
             ?? throw new NotFoundException();
         if (await dbContext.FamilyDoctorRequests.AnyAsync(x => x.FamilyId == familyId && x.Status == PortalRequestStatus.Pending, cancellationToken))
         {
@@ -298,7 +298,7 @@ public sealed class FamilyDoctorService(AppDbContext dbContext, ICurrentUser cur
     }
 
     private async Task<Doctor> RequireDoctorAsync(CancellationToken cancellationToken) =>
-        await dbContext.Doctors.SingleOrDefaultAsync(x => x.UserId == currentUser.UserId && x.VerificationStatus == VerificationStatus.Verified, cancellationToken)
+        await dbContext.Doctors.SingleOrDefaultAsync(x => x.UserId == currentUser.UserId && x.VerificationStatus == VerificationStatus.Verified && !x.AccessFrozen, cancellationToken)
             ?? throw new ForbiddenException();
 
     private async Task<DoctorRequestDto> MapRequestAsync(FamilyDoctorRequest request, CancellationToken cancellationToken)

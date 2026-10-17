@@ -9,6 +9,74 @@ import { useAppSelector } from '../../store/hooks'
 import { apiClient, type AdminUserDto, type AuditDto, type DoctorDto, type PagedResult } from '../../services/apiClient'
 import { Badge, Metric, PageHero } from '../dashboard/dashboardParts'
 import { describeAccessEvent } from '../family/privacyWording'
+import { RegisterMatchBadge } from './RegisterMatchBadge'
+import './claimDisputes.css'
+
+type DoctorAction = 'verify' | 'request-info' | 'reject'
+const ACTION_LABEL: Record<DoctorAction, string> = { verify: 'Verify', 'request-info': 'Request info', reject: 'Reject' }
+
+/** One Needs Attention card. Every decision needs a written reason; the backend re-checks role and dispute state. */
+function AttentionCard({ doctor, onDone }: { doctor: DoctorDto; onDone: () => void }) {
+  const [action, setAction] = useState<DoctorAction | null>(null)
+  const [reason, setReason] = useState('')
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const disputed = Boolean(doctor.claimDisputed)
+
+  const submit = async () => {
+    if (!action) return
+    if (!reason.trim()) return setError('A reason is required.')
+    setBusy(true)
+    setError('')
+    try {
+      await apiClient.post(`/admin/doctors/${doctor.id}/${action}`, { reason: reason.trim() })
+      setAction(null)
+      setReason('')
+      onDone()
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } }).response?.status
+      setError(status === 409 ? 'This SLMC number is disputed. Resolve the claim dispute first.' : 'The decision could not be saved. Try again.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="fv-item">
+      <div className="fv-row">
+        <b>{doctor.displayName ?? doctor.email ?? 'Doctor application'}</b>
+        <Badge tone="warn">{upper(doctor.verificationStatus) === 'PENDING' ? 'Pending' : 'More info requested'}</Badge>
+      </div>
+      <p>{doctor.specialty ?? 'Specialty not given'} · SLMC ••••{doctor.registrationNumberLastFour}</p>
+      <div className="attention-actions">
+        <RegisterMatchBadge match={doctor.registerMatch} />
+        {disputed && <span className="register-match register-match--danger">Disputed claim</span>}
+      </div>
+      {disputed && <p className="muted">Another account claims this number. Resolve it in the dispute panel before verifying.</p>}
+      <div className="attention-actions" role="group" aria-label={`Decide ${doctor.displayName ?? 'doctor'}`}>
+        {(Object.keys(ACTION_LABEL) as DoctorAction[]).map((key) => (
+          <button key={key} type="button" className={`fv-btn${action === key ? ' fv-btn--primary' : ''}`}
+            disabled={busy || (key === 'verify' && disputed)} onClick={() => { setAction(key); setError('') }}>
+            {ACTION_LABEL[key]}
+          </button>
+        ))}
+      </div>
+      {action && (
+        <div className="attention-action">
+          <label htmlFor={`attention-reason-${doctor.id}`}>Reason for “{ACTION_LABEL[action]}” (required, audited)</label>
+          <textarea id={`attention-reason-${doctor.id}`} value={reason} maxLength={1000} onChange={(event) => setReason(event.target.value)} />
+          {error && <p className="form-error" role="alert">{error}</p>}
+          <div className="attention-actions">
+            <button type="button" className="fv-btn fv-btn--primary" disabled={busy} onClick={() => void submit()}>
+              {busy ? 'Saving…' : `Confirm ${ACTION_LABEL[action].toLowerCase()}`}
+            </button>
+            <button type="button" className="fv-btn" disabled={busy} onClick={() => { setAction(null); setReason(''); setError('') }}>Cancel</button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 type Snapshot = {
   doctors: DoctorDto[]
@@ -84,10 +152,7 @@ export function AdminDashboardPanel() {
           ) : (
             <div className="fv-stack">
               {pending.slice(0, 5).map((doctor) => (
-                <div className="fv-item" key={doctor.id}>
-                  <div className="fv-row"><b>{doctor.displayName ?? doctor.email ?? 'Doctor application'}</b><Badge tone="warn">{upper(doctor.verificationStatus) === 'PENDING' ? 'Pending' : 'More info requested'}</Badge></div>
-                  <p>{doctor.specialty ?? 'Specialty not given'} · SLMC ••••{doctor.registrationNumberLastFour}</p>
-                </div>
+                <AttentionCard key={doctor.id} doctor={doctor} onDone={() => void load()} />
               ))}
             </div>
           )}

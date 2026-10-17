@@ -212,6 +212,8 @@ public sealed partial class AuthService(
         var doctorVerificationStatus = user.UserType == UserType.Doctor
             ? await dbContext.Doctors.Where(x => x.UserId == user.Id).Select(x => (VerificationStatus?)x.VerificationStatus).SingleOrDefaultAsync(cancellationToken)
             : null;
+        var doctorClaimUnderReview = user.UserType == UserType.Doctor
+            && await dbContext.Doctors.AnyAsync(x => x.UserId == user.Id && x.ClaimDisputed, cancellationToken);
 
         VerificationStatus? familyHeadVerificationStatus = null;
         string? familyCode = null;
@@ -272,7 +274,8 @@ public sealed partial class AuthService(
             refreshToken,
             accessExpires,
             familyHeadVerificationStatus,
-            familyCode);
+            familyCode,
+            doctorClaimUnderReview);
     }
 
     public async Task<ResetPasswordResponse> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken)

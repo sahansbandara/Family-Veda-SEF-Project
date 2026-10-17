@@ -14,6 +14,7 @@ export type SessionUser = {
   verificationStatus?: VerificationStatus
   familyHeadVerificationStatus?: VerificationStatus
   familyCode?: string | null
+  claimUnderReview?: boolean
 }
 
 export function mapAuthResponse(data: AuthResponse): SessionUser {
@@ -54,6 +55,7 @@ export function mapAuthResponse(data: AuthResponse): SessionUser {
     verificationStatus,
     familyHeadVerificationStatus,
     familyCode: data.familyCode,
+    ...(data.doctorClaimUnderReview ? { claimUnderReview: true } : {}),
   }
 }
 

@@ -1,0 +1,23 @@
+/* Owner: S4 · SLMC claim disputes and register-match badge. Mobile first. */
+.register-match { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; border: 1px solid transparent; white-space: nowrap; }
+.register-match--ok { background: rgba(16, 185, 129, 0.12); color: #059669; border-color: rgba(16, 185, 129, 0.35); }
+.register-match--warn { background: rgba(245, 158, 11, 0.14); color: #b45309; border-color: rgba(245, 158, 11, 0.35); }
+.register-match--danger { background: rgba(239, 68, 68, 0.12); color: #dc2626; border-color: rgba(239, 68, 68, 0.35); }
+.claim-disputes { display: grid; gap: 16px; margin-bottom: 20px; }
+.claim-dispute { border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 12px; padding: 14px; background: rgba(239, 68, 68, 0.04); min-width: 0; }
+.claim-dispute__head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline; }
+.claim-dispute__head h3 { margin: 0; font-size: 1rem; }
+.claim-dispute__claimants { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 12px 0; }
+@media (min-width: 640px) { .claim-dispute__claimants { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); } }
+.claim-claimant { display: grid; gap: 6px; border: 1px solid var(--border-color, #e5e7eb); border-radius: 10px; padding: 12px; cursor: pointer; min-width: 0; overflow-wrap: anywhere; }
+.claim-claimant--selected { border-color: var(--primary, #2563eb); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary, #2563eb) 25%, transparent); }
+.claim-claimant input[type='radio'] { margin-right: 6px; }
+.claim-claimant dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0; font-size: 0.85rem; }
+.claim-claimant dt { color: var(--text-muted, #6b7280); }
+.claim-claimant dd { margin: 0; min-width: 0; }
+.claim-dispute__resolve { display: grid; gap: 8px; }
+.claim-dispute__resolve textarea, .attention-action textarea { width: 100%; min-height: 64px; box-sizing: border-box; font: inherit; padding: 8px; border-radius: 8px; border: 1px solid var(--border-color, #d1d5db); background: transparent; color: inherit; }
+.claim-dispute__actions, .attention-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.claim-dispute__actions .fv-btn, .attention-actions .fv-btn, .claim-dispute__actions button, .attention-actions button { min-height: 40px; }
+.attention-action { display: grid; gap: 8px; margin-top: 8px; }
+.link-button { background: none; border: none; padding: 0; color: var(--primary, #2563eb); text-decoration: underline; cursor: pointer; font: inherit; }
