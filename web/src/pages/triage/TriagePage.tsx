@@ -14,6 +14,7 @@ import {
   type TriageCaseDto,
 } from '../../services/apiClient'
 import { FamilyCaseProgress } from './FamilyCaseProgress'
+import { failureReason } from './failureReason'
 import '../../styles/triage-redesign.css'
 
 type TriageStatusDto = { id: string; status: string; priority: string; failureCode?: string | null }
@@ -61,20 +62,6 @@ const decisionLabels: Record<string, string> = { Approve: 'Your doctor approved 
 
 function needsInformation(status: string) {
   return status === 'RequestInformation' || status === 'RequestedInformation'
-}
-// Patient-safe reasons only: no model, provider or internal detail is shown (RULE 2, RULE 9).
-const failureReasons: Record<string, string> = {
-  AGENT_UNAVAILABLE: 'The review assistant was unavailable when your request arrived.',
-  INVALID_AGENT_SCHEMA: 'The automatic check could not produce a safe summary for your doctor.',
-  MISSING_REQUIRED_AGENT_EVIDENCE: 'The automatic check could not produce a safe summary for your doctor.',
-  SAFETY_VALIDATION_FAILED: 'The automatic check could not produce a safe summary for your doctor.',
-  TOOL_DENIED: 'Some health information needed for the check could not be used under the current privacy settings.',
-  PROCESS_INTERRUPTED: 'The service was interrupted while preparing your request.',
-  WORKER_FAILURE: 'The service was interrupted while preparing your request.',
-  DOCTOR_RESPONSE_DELAY: 'A doctor did not respond within the expected time.',
-}
-export function failureReason(code?: string | null) {
-  return (code && failureReasons[code]) || 'The request could not be prepared automatically.'
 }
 function needsInPersonCare(status: string, priority: string) {
   return status === 'Escalated' || status === 'FailedSafe' || priority === 'Emergency'
