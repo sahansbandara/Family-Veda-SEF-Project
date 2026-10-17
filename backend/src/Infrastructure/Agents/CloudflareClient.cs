@@ -49,6 +49,8 @@ public sealed class CloudflareClient(HttpClient httpClient, IOptions<CloudflareO
                     Content = JsonContent.Create(new
                     {
                         temperature = 0,
+                        // Workers AI defaults to 256 output tokens, which truncates agent JSON mid-object.
+                        max_tokens = 2048,
                         messages = new[]
                         {
                             new { role = "system", content = fullPrompt },
