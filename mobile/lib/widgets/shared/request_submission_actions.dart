@@ -1,4 +1,5 @@
 // Owner: S3 · whole-project ownership waiver.
+import 'package:dio/dio.dart';
 import 'package:family_veda/models/triage_case.dart';
 import 'package:family_veda/providers/cases_provider.dart';
 import 'package:family_veda/providers/core_providers.dart';
@@ -9,8 +10,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class RequestSubmissionActions extends ConsumerStatefulWidget {
-  const RequestSubmissionActions({super.key, required this.item});
+  const RequestSubmissionActions({
+    super.key,
+    required this.item,
+    this.allowPurge = false,
+  });
   final TriageCase item;
+
+  /// Permanent delete is offered only when opened from the Deleted filter.
+  final bool allowPurge;
   @override
   ConsumerState<RequestSubmissionActions> createState() =>
       _RequestSubmissionActionsState();
@@ -46,6 +54,8 @@ class _RequestSubmissionActionsState
       _busy = true;
       _error = null;
     });
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
     try {
       await ref
           .read(apiClientProvider)
@@ -54,6 +64,11 @@ class _RequestSubmissionActionsState
             '/triage-cases/${widget.item.id}/withdraw',
           );
       ref.invalidate(memberCasesProvider);
+      ref.read(showDeletedRequestsProvider.notifier).state = true;
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Request moved to Deleted.')),
+      );
+      if (navigator.canPop()) navigator.pop();
     } catch (error) {
       if (mounted) setState(() => _error = userFacingApiError(error));
     } finally {
@@ -96,12 +111,14 @@ class _RequestSubmissionActionsState
         const SnackBar(content: Text('Request removed permanently.')),
       );
       if (navigator.canPop()) navigator.pop();
-    } catch (_) {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('This request can no longer be removed permanently.'),
-        ),
-      );
+    } catch (error) {
+      final status = error is DioException ? error.response?.statusCode : null;
+      final message = switch (status) {
+        409 => 'This request can no longer be removed permanently.',
+        404 || 405 => 'Permanent delete is not available on this server yet.',
+        _ => 'Could not remove the request. Try again.',
+      };
+      messenger.showSnackBar(SnackBar(content: Text(message)));
       if (mounted) setState(() => _busy = false);
     }
   }
@@ -148,7 +165,7 @@ class _RequestSubmissionActionsState
           ],
         ),
       ],
-      if (widget.item.status == 'WITHDRAWN')
+      if (widget.allowPurge && widget.item.status == 'WITHDRAWN')
         Align(
           alignment: Alignment.centerLeft,
           child: TextButton.icon(

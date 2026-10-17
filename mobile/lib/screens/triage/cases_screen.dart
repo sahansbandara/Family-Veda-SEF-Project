@@ -62,6 +62,11 @@ class _CasesScreenState extends ConsumerState<CasesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<bool>(showDeletedRequestsProvider, (_, show) {
+      if (!show) return;
+      setState(() => _filter = _RequestFilter.deleted);
+      ref.read(showDeletedRequestsProvider.notifier).state = false;
+    });
     final theme = Theme.of(context);
     final activeMemberId = ref.watch(activeMemberProvider);
     final memberName =
@@ -156,7 +161,11 @@ class _CasesScreenState extends ConsumerState<CasesScreen> {
                         _RequestCard(
                           item: item,
                           memberName: memberName,
-                          onTap: () => showCaseProgressSheet(context, item.id),
+                          onTap: () => showCaseProgressSheet(
+                            context,
+                            item.id,
+                            fromDeleted: _filter == _RequestFilter.deleted,
+                          ),
                         ),
                     ],
                     const SizedBox(height: 16),

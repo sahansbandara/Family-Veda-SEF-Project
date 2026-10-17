@@ -49,3 +49,6 @@ final caseStatusProvider = StreamProvider.autoDispose
         await Future<void>.delayed(const Duration(seconds: 3));
       }
     });
+
+/// Set to true after a withdraw so the requests list switches to its Deleted filter.
+final showDeletedRequestsProvider = StateProvider<bool>((ref) => false);

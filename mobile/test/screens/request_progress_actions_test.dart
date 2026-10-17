@@ -58,7 +58,10 @@ void main() {
     'failed safe preserves safety notice and eligible backend actions',
     (tester) async {
       await render(tester, request(editable: true, status: 'FAILED_SAFE'));
-      expect(find.text('This request could not be prepared for review'), findsOneWidget);
+      expect(
+        find.text('This request could not be prepared for review'),
+        findsOneWidget,
+      );
       expect(find.text('Edit request'), findsOneWidget);
       expect(find.text('Withdraw request'), findsOneWidget);
       expect(find.text('View approved guidance'), findsNothing);
@@ -201,8 +204,27 @@ void main() {
     tester,
   ) async {
     await render(tester, request(status: 'WITHDRAWN'));
-    expect(find.text('This request was withdrawn.'), findsOneWidget);
+    expect(find.text('This request was deleted.'), findsOneWidget);
     expect(find.text('Waiting for doctor approval'), findsNothing);
+    expect(find.text('Delete permanently'), findsNothing);
+  });
+
+  testWidgets('delete permanently shown only when opened from Deleted', (
+    tester,
+  ) async {
+    final item = request(status: 'WITHDRAWN');
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          caseStatusProvider(item.id).overrideWith((_) => Stream.value(item)),
+        ],
+        child: MaterialApp(
+          home: CaseStatusScreen(caseId: item.id, fromDeleted: true),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Delete permanently'), findsOneWidget);
   });
 
   testWidgets('processing section exposes only reference time and stage', (
