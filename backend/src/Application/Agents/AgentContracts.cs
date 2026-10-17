@@ -95,6 +95,14 @@ public static class AgentInputData
         };
     }
 
+    /// <summary>
+    /// The submitted complaint is real clinical input, so Context and Analysis always have data when it is present.
+    /// Recorded history (vitals, conditions, earlier episodes, lab trends) adds to it but is not required.
+    /// Missing, invalid or empty agent output still fails closed in the orchestrator.
+    /// </summary>
+    public static bool HasComplaint(string? submittedJson) =>
+        !string.IsNullOrWhiteSpace(submittedJson) && submittedJson.Trim() is not ("{}" or "[]" or "null");
+
     /// <summary>An agent with no input data reports confidence 0 and is excluded from the confidence check.</summary>
     public static AgentRunResult MarkNoDataIfEmpty(AgentRunResult result, bool hasData) =>
         hasData ? result : result with { Confidence = 0m, HasData = false };

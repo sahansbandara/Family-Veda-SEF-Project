@@ -422,3 +422,7 @@ User explicitly requested actual app integration and develop push. React dialog,
 - Rejected bypassing consent, exposing raw errors, automatically retrying POSTs, or claiming a live submission fix from health alone. Referenced project rules/skills/blueprint/BRIEF and university source PDFs are absent in this checkout.
 - Pre-existing four Android/iOS generated-file modifications are outside this patch and retained. Native Android/iOS runtime and live authenticated submission remain unverified.
 - Verification: targeted Flutter service/screen tests 44 passed; patient_api.dart line coverage 66/67 (98.5%); flutter analyze no issues; web triage suites 19 passed; web build and lint passed. Scoped code/security reviews found no CRITICAL/HIGH issues. Scoped git diff --check clean; pre-existing generated Package.swift whitespace remains outside this patch. No viewport screenshots or authenticated device submission were captured.
+
+## 2026-10-17 — Submitted complaint counts as required agent evidence (amends a78bc87 rule)
+
+Context and Analysis previously reported NoData unless the member had prior history or lab trends, so every member without labs failed with `MISSING_REQUIRED_AGENT_EVIDENCE` even when the agent returned valid output. User approved: the submitted complaint itself is agent input data. Missing, invalid or empty agent output still fails closed; confidence rules still route weak drafts to LowConfidence for doctor review. No patient-visible change; RULE 2 approval gate unchanged.
