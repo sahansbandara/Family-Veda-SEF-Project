@@ -235,6 +235,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       serverErrors = {};
     });
     var claimUnderReview = false;
+    var claimRejected = false;
     final account = {
       'fullName': name.text.trim(),
       'email': email.text.trim(),
@@ -307,10 +308,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         }),
       );
       claimUnderReview = tokens.claimUnderReview;
+      claimRejected = tokens.claimRejected;
       return tokens;
     });
     if (!mounted) return;
-    if (ok && claimUnderReview) {
+    if (ok && claimRejected) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => const ClaimRejectedDialog(),
+      );
+      if (!mounted) return;
+    } else if (ok && claimUnderReview) {
       await showDialog<void>(
         context: context,
         builder: (_) => const ClaimUnderReviewDialog(),
@@ -1138,6 +1146,27 @@ class ClaimUnderReviewDialog extends StatelessWidget {
       '$claimUnderReviewMessage An administrator will compare the licence '
       'documents and confirm who holds it. You do not need to register again.',
     ),
+    actions: [
+      FilledButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text('OK'),
+      ),
+    ],
+  );
+}
+
+const claimRejectedMessage =
+    'This SLMC number already belongs to a confirmed doctor. Your registration was rejected. Contact the administrator if you believe this is wrong.';
+
+/// Shown after doctor sign-up when the SLMC number belongs to a confirmed doctor.
+class ClaimRejectedDialog extends StatelessWidget {
+  const ClaimRejectedDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    icon: const Icon(Icons.block),
+    title: const Text('Registration rejected'),
+    content: const Text(claimRejectedMessage),
     actions: [
       FilledButton(
         onPressed: () => Navigator.of(context).pop(),
