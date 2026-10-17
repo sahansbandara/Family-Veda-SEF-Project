@@ -15,6 +15,8 @@ import {
   type PagedResult,
 } from '../../services/apiClient'
 import './ClinicAdminPortal.css'
+import { ClaimDisputesPanel } from './ClaimDisputesPanel'
+import { RegisterMatchBadge } from './RegisterMatchBadge'
 
 export type AdminTab =
   | 'dashboard'
@@ -232,8 +234,9 @@ export function ClinicAdminPortal({ initialTab = 'dashboard' }: Props) {
       if (selectedDoctor?.id === id) {
         setSelectedDoctor(null)
       }
-    } catch {
-      showToast('Failed to update doctor verification status.')
+    } catch (error: unknown) {
+      const status = (error as { response?: { status?: number } }).response?.status
+      showToast(status === 409 ? 'This SLMC number is disputed. Resolve the claim dispute first.' : 'Failed to update doctor verification status.')
     }
   }
 
@@ -527,6 +530,8 @@ export function ClinicAdminPortal({ initialTab = 'dashboard' }: Props) {
             </button>
           </div>
 
+          <ClaimDisputesPanel onResolved={() => void loadDoctors()} />
+
           {/* Filter & Search Bar */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
             <div className="filter-btn-group">
@@ -617,7 +622,9 @@ export function ClinicAdminPortal({ initialTab = 'dashboard' }: Props) {
                     return (
                       <tr key={doc.id}>
                         <td>
-                          <strong>{doc.displayName ?? 'Doctor Applicant'}</strong>
+                          <strong>{doc.displayName ?? 'Doctor Applicant'}</strong>{' '}
+                          <RegisterMatchBadge match={doc.registerMatch} />
+                          {doc.claimDisputed && <span className="register-match register-match--danger">Disputed claim</span>}
                           <br />
                           <small style={{ color: 'var(--muted)' }}>{doc.email ?? '—'}</small>
                         </td>

@@ -10,6 +10,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { signedIn } from '../../store/slices/authSlice'
 import { SearchableSelect } from '../../components/shared/SearchableSelect'
 import { HOSPITAL_OPTIONS, SPECIALIZATIONS } from './practiceOptions'
+import { CLAIM_UNDER_REVIEW_MESSAGE } from '../admin/claimDisputes'
 
 export function DoctorStatusPage() {
   const dispatch = useAppDispatch()
@@ -101,6 +102,13 @@ export function DoctorStatusPage() {
         </div>
         {doctor?.verificationStatus && <StatusBadge status={doctor.verificationStatus} />}
       </header>
+
+      {(doctor ? doctor.claimDisputed : user?.claimUnderReview) && (
+        <section className="panel" role="status" aria-live="polite" style={{ borderLeft: '4px solid #f59e0b' }}>
+          <h2 style={{ marginTop: 0 }}>Claim under review</h2>
+          <p style={{ margin: 0 }}>{CLAIM_UNDER_REVIEW_MESSAGE} An administrator will compare the licence documents and confirm who holds it. You do not need to register again.</p>
+        </section>
+      )}
 
       <section className="panel">
         {state === 'missing' ? (
