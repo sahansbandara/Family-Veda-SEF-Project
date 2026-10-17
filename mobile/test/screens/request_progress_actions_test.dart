@@ -63,7 +63,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Edit request'), findsOneWidget);
-      expect(find.text('Withdraw request'), findsOneWidget);
+      expect(find.text('Delete request'), findsOneWidget);
       expect(find.text('View approved guidance'), findsNothing);
     },
   );
@@ -154,12 +154,12 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('Withdraw request'), 200);
+    await tester.scrollUntilVisible(find.text('Delete request'), 200);
     await tester.ensureVisible(
-      find.widgetWithText(TextButton, 'Withdraw request'),
+      find.widgetWithText(OutlinedButton, 'Delete request'),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Withdraw request'));
+    await tester.tap(find.text('Delete request'));
     await tester.pumpAndSettle();
     expect(requests, isEmpty);
     await tester.tap(find.text('Withdraw'));
@@ -187,7 +187,7 @@ void main() {
     expect(find.text('Not started'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('Edit request'), 200);
     expect(find.text('Edit request'), findsOneWidget);
-    expect(find.text('Withdraw request'), findsOneWidget);
+    expect(find.text('Delete request'), findsOneWidget);
     expect(find.text('View approved guidance'), findsNothing);
   });
 
@@ -196,7 +196,7 @@ void main() {
   ) async {
     await render(tester, request(started: DateTime.utc(2026, 10, 5, 0, 2)));
     expect(find.text('Edit request'), findsNothing);
-    expect(find.text('Withdraw request'), findsNothing);
+    expect(find.text('Delete request'), findsNothing);
     expect(find.textContaining('Started'), findsOneWidget);
   });
 

@@ -105,7 +105,6 @@ class CaseStatusScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(16),
                 children: [
                   _ProgressCard(item: item),
-                  RequestSubmissionActions(item: item),
                   if (item.status == 'CLAIMED')
                     _NoticeCard(
                       icon: Icons.lock_outline,
@@ -144,6 +143,8 @@ class CaseStatusScreen extends ConsumerWidget {
                       message:
                           'Guidance remains hidden until a doctor reviews and approves it.',
                     ),
+                  const SizedBox(height: 16),
+                  RequestSubmissionActions(item: item),
                 ],
               );
             },

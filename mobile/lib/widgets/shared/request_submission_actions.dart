@@ -123,62 +123,103 @@ class _RequestSubmissionActionsState
     }
   }
 
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      if (widget.item.canEdit || widget.item.canWithdraw) ...[
-        const Text(
-          'You can change or withdraw this request until a doctor starts reviewing it.',
-        ),
-        Wrap(
-          spacing: 8,
-          children: [
-            if (widget.item.canEdit && widget.item.submittedEpisode != null)
-              OutlinedButton.icon(
-                onPressed: _busy
-                    ? null
-                    : () async {
-                        final replacementId = await Navigator.of(context)
-                            .push<String>(
-                              MaterialPageRoute<String>(
-                                builder: (_) => SubmitComplaintScreen(
-                                  replacementCase: widget.item,
-                                ),
-                              ),
-                            );
-                        if (!mounted || !context.mounted) return;
-                        ref.invalidate(caseStatusProvider(widget.item.id));
-                        if (replacementId != null) {
-                          await showCaseProgressSheet(context, replacementId);
-                        }
-                      },
-                icon: const Icon(Icons.edit_outlined),
-                label: const Text('Edit request'),
-              ),
-            if (widget.item.canWithdraw)
-              TextButton.icon(
-                onPressed: _busy ? null : _withdraw,
-                icon: const Icon(Icons.cancel_outlined),
-                label: const Text('Withdraw request'),
-              ),
-          ],
-        ),
-      ],
-      if (widget.allowPurge && widget.item.status == 'WITHDRAWN')
-        Align(
-          alignment: Alignment.centerLeft,
-          child: TextButton.icon(
-            onPressed: _busy ? null : _purge,
-            icon: const Icon(Icons.delete_forever_outlined),
-            label: const Text('Delete permanently'),
-          ),
-        ),
-      if (_error != null)
-        Text(
-          _error!,
-          style: TextStyle(color: Theme.of(context).colorScheme.error),
-        ),
-    ],
+  Widget _pill({
+    required BuildContext context,
+    required Color color,
+    required IconData icon,
+    required String label,
+    required VoidCallback? onPressed,
+  }) => SizedBox(
+    height: 44,
+    child: OutlinedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 18),
+      label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+      style: OutlinedButton.styleFrom(
+        backgroundColor: color.withValues(alpha: .10),
+        foregroundColor: color,
+        side: BorderSide(color: color.withValues(alpha: .35)),
+        shape: const StadiumBorder(),
+        minimumSize: const Size(0, 44),
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        textStyle: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+    ),
   );
+
+  Future<void> _edit() async {
+    final replacementId = await Navigator.of(context).push<String>(
+      MaterialPageRoute<String>(
+        builder: (_) => SubmitComplaintScreen(replacementCase: widget.item),
+      ),
+    );
+    if (!mounted || !context.mounted) return;
+    ref.invalidate(caseStatusProvider(widget.item.id));
+    if (replacementId != null) {
+      await showCaseProgressSheet(context, replacementId);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final showEdit =
+        widget.item.canEdit && widget.item.submittedEpisode != null;
+    final showDelete = widget.item.canWithdraw;
+    final narrow = MediaQuery.sizeOf(context).width < 400;
+    final buttons = <Widget>[
+      if (showEdit)
+        _pill(
+          context: context,
+          color: scheme.primary,
+          icon: Icons.edit_outlined,
+          label: 'Edit request',
+          onPressed: _busy ? null : _edit,
+        ),
+      if (showDelete)
+        _pill(
+          context: context,
+          color: scheme.error,
+          icon: Icons.delete_outline,
+          label: 'Delete request',
+          onPressed: _busy ? null : _withdraw,
+        ),
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (widget.item.canEdit || widget.item.canWithdraw) ...[
+          const Text(
+            'You can change or withdraw this request until a doctor starts reviewing it.',
+          ),
+          const SizedBox(height: 12),
+          if (narrow)
+            Row(
+              children: [
+                for (var i = 0; i < buttons.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 8),
+                  Expanded(child: buttons[i]),
+                ],
+              ],
+            )
+          else
+            Align(
+              alignment: Alignment.centerRight,
+              child: Wrap(spacing: 8, runSpacing: 8, children: buttons),
+            ),
+        ],
+        if (widget.allowPurge && widget.item.status == 'WITHDRAWN')
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: _busy ? null : _purge,
+              icon: const Icon(Icons.delete_forever_outlined),
+              label: const Text('Delete permanently'),
+            ),
+          ),
+        if (_error != null)
+          Text(_error!, style: TextStyle(color: scheme.error)),
+      ],
+    );
+  }
 }

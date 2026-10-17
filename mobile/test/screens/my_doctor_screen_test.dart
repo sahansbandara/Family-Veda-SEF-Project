@@ -182,7 +182,7 @@ void main() {
     );
 
     await _reveal(tester, find.textContaining('Change request pending'));
-    expect(find.text('Withdraw request'), findsNothing);
+    expect(find.text('Delete request'), findsNothing);
     expect(find.text('Explore directory'), findsNothing);
   });
 }
