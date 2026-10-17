@@ -24,7 +24,7 @@ public sealed class AnalysisAgent(IToolDispatcher dispatcher, IOllamaClient olla
             new { context = context.InputJson, toolData },
             cancellationToken);
         if (result.Value.Confidence is < 0 or > 1) throw new JsonException("Confidence must be between zero and one.");
-        var hasData = AgentInputData.HasAny(toolData["read_lab_trends"]);
+        var hasData = AgentInputData.HasComplaint(context.InputJson) || AgentInputData.HasAny(toolData["read_lab_trends"]);
         return AgentInputData.MarkNoDataIfEmpty(
             new AgentRunResult(Kind, JsonSerializer.Serialize(result.Value), result.Value.Confidence, Tools, Tools, [], true, result.ModelName, result.InputTokens, result.OutputTokens),
             hasData);

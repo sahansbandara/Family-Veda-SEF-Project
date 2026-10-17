@@ -116,4 +116,15 @@ public sealed class TriageOrchestratorNoDataTests
         public Task SendCaseStatusAsync(Guid caseId, TriageStatus status, CancellationToken cancellationToken) => Task.CompletedTask;
         public Task<FamilyVeda.Application.Common.PagedResult<NotificationDto>> GetInboxAsync(int page, int pageSize, CancellationToken cancellationToken) => throw new NotSupportedException();
     }
+
+    [Theory]
+    [InlineData("[\"headache\"]", true)]
+    [InlineData("{\"symptoms\":[\"cough\"]}", true)]
+    [InlineData("", false)]
+    [InlineData("  ", false)]
+    [InlineData("[]", false)]
+    [InlineData("{}", false)]
+    [InlineData(null, false)]
+    public void SubmittedComplaint_CountsAsAgentInputData(string? submitted, bool expected) =>
+        AgentInputData.HasComplaint(submitted).Should().Be(expected);
 }
