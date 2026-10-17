@@ -234,6 +234,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       error = null;
       serverErrors = {};
     });
+    var claimUnderReview = false;
     final account = {
       'fullName': name.text.trim(),
       'email': email.text.trim(),
@@ -289,7 +290,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         });
       }
       final f = licence!;
-      return api.registerDoctor(
+      final tokens = await api.registerDoctor(
         FormData.fromMap({
           ...account,
           'registrationNumber': slmc.text.trim(),
@@ -305,8 +306,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ),
         }),
       );
+      claimUnderReview = tokens.claimUnderReview;
+      return tokens;
     });
     if (!mounted) return;
+    if (ok && claimUnderReview) {
+      await showDialog<void>(
+        context: context,
+        builder: (_) => const ClaimUnderReviewDialog(),
+      );
+      if (!mounted) return;
+    }
     if (ok) {
       context.go(role == 'FAMILY_HEAD' ? '/family-head-status' : '/dashboard');
     } else {
@@ -1111,4 +1121,28 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       ),
     );
   }
+}
+
+const claimUnderReviewMessage =
+    'Your claim is under review because this number is already registered.';
+
+/// Shown after doctor sign-up when the SLMC number is already claimed. Not an error: an admin reviews both claims.
+class ClaimUnderReviewDialog extends StatelessWidget {
+  const ClaimUnderReviewDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    icon: const Icon(Icons.hourglass_top_rounded),
+    title: const Text('Claim under review'),
+    content: const Text(
+      '$claimUnderReviewMessage An administrator will compare the licence '
+      'documents and confirm who holds it. You do not need to register again.',
+    ),
+    actions: [
+      FilledButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text('OK'),
+      ),
+    ],
+  );
 }
