@@ -152,7 +152,7 @@ public sealed class TriageService(
     {
         dbContext.AuditLogs.Add(new AuditLog { ActorUserId = currentUser.UserId, SubjectMemberId = item.MemberId, EventType = CaseLifecycle.Submitted, ResourceType = "TriageCase", ResourceId = item.Id, Outcome = "SUCCESS" });
         var familyId = await dbContext.Members.Where(x => x.Id == item.MemberId).Select(x => x.FamilyId).SingleAsync(ct);
-        var doctorUserId = await dbContext.FamilyDoctorAssignments.AsNoTracking().Where(x => x.FamilyId == familyId && x.IsPrimary && x.EndedAt == null && x.Doctor!.VerificationStatus == VerificationStatus.Verified).Select(x => (Guid?)x.Doctor!.UserId).FirstOrDefaultAsync(ct);
+        var doctorUserId = await dbContext.FamilyDoctorAssignments.AsNoTracking().Where(x => x.FamilyId == familyId && x.IsPrimary && x.EndedAt == null && x.Doctor!.VerificationStatus == VerificationStatus.Verified && !x.Doctor.AccessFrozen).Select(x => (Guid?)x.Doctor!.UserId).FirstOrDefaultAsync(ct);
         if (doctorUserId is not null)
             dbContext.AuditLogs.Add(new AuditLog { ActorUserId = doctorUserId, SubjectMemberId = item.MemberId, EventType = CaseLifecycle.Received, ResourceType = "TriageCase", ResourceId = item.Id, Outcome = "SUCCESS" });
     }

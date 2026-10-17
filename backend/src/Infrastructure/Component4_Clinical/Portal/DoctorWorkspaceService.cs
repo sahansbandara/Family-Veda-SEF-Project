@@ -345,7 +345,7 @@ public sealed class DoctorWorkspaceService(AppDbContext dbContext, ICurrentUser 
     {
         var query = dbContext.Doctors.AsQueryable();
         if (includeUser) query = query.Include(x => x.User);
-        return await query.SingleOrDefaultAsync(x => x.UserId == currentUser.UserId && x.VerificationStatus == VerificationStatus.Verified, cancellationToken)
+        return await query.SingleOrDefaultAsync(x => x.UserId == currentUser.UserId && x.VerificationStatus == VerificationStatus.Verified && !x.AccessFrozen, cancellationToken)
             ?? throw new ForbiddenException();
     }
 

@@ -595,7 +595,7 @@ public sealed class ClinicalService(
         var existingUnrevokedGrants = await dbContext.CaseAccessGrants.IgnoreQueryFilters()
             .Where(x => x.TriageCaseId == caseId && x.RevokedAt == null)
             .ToListAsync(cancellationToken);
-        if (existingUnrevokedGrants.Any(x => x.ExpiresAt > now && x.CreatedAt > slaCutoff))
+        if (existingUnrevokedGrants.Any(x => x.FrozenAt == null && x.ExpiresAt > now && x.CreatedAt > slaCutoff))
         {
             throw new ConflictException("Case is already claimed.");
         }

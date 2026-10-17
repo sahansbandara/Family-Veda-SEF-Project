@@ -209,7 +209,7 @@ public sealed class TriageOrchestrator(
     {
         var familyId = await dbContext.Members.Where(x => x.Id == triageCase.MemberId).Select(x => x.FamilyId).SingleAsync(cancellationToken);
         var doctorId = await dbContext.FamilyDoctorAssignments.AsNoTracking()
-            .Where(x => x.FamilyId == familyId && x.IsPrimary && x.EndedAt == null && x.Doctor!.VerificationStatus == VerificationStatus.Verified)
+            .Where(x => x.FamilyId == familyId && x.IsPrimary && x.EndedAt == null && x.Doctor!.VerificationStatus == VerificationStatus.Verified && !x.Doctor.AccessFrozen)
             .Select(x => (Guid?)x.DoctorId).FirstOrDefaultAsync(cancellationToken);
         if (doctorId is null) return;
         dbContext.CaseAccessGrants.Add(new CaseAccessGrant

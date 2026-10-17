@@ -100,7 +100,7 @@ public sealed class NotificationService(
             };
         userIds.AddRange(await dbContext.CaseAccessGrants.AsNoTracking()
             .Where(x => x.TriageCaseId == caseId && x.RevokedAt == null && x.ExpiresAt > DateTimeOffset.UtcNow &&
-                x.Doctor!.VerificationStatus == VerificationStatus.Verified)
+                x.Doctor!.VerificationStatus == VerificationStatus.Verified && !x.Doctor.AccessFrozen)
             .Select(x => (Guid?)x.Doctor!.UserId)
             .ToListAsync(cancellationToken));
         var recipientIds = userIds
