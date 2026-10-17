@@ -71,9 +71,9 @@ void main() {
     'low confidence finishes AI without implying doctor review started',
     (tester) async {
       await render(tester, request(status: 'LOW_CONFIDENCE'));
-      expect(find.text('Complete'), findsOneWidget);
+      expect(find.text('Stopped safely'), findsOneWidget);
       expect(find.text('Not started'), findsOneWidget);
-      expect(find.text('Step 2 of 4'), findsOneWidget);
+      expect(find.text('Step 3 of 4'), findsOneWidget);
       expect(find.text('View approved guidance'), findsNothing);
     },
   );
@@ -154,7 +154,11 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(find.text('Delete request'), 200);
+    await tester.scrollUntilVisible(
+      find.text('Delete request'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.ensureVisible(
       find.widgetWithText(OutlinedButton, 'Delete request'),
     );
@@ -185,7 +189,11 @@ void main() {
     await render(tester, request(editable: true));
     expect(find.text('Doctor received request'), findsOneWidget);
     expect(find.text('Not started'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('Edit request'), 200);
+    await tester.scrollUntilVisible(
+      find.text('Edit request'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('Edit request'), findsOneWidget);
     expect(find.text('Delete request'), findsOneWidget);
     expect(find.text('View approved guidance'), findsNothing);
