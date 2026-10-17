@@ -101,12 +101,13 @@ const symptomOptions = [
   { name: 'Other symptom', icon: 'M12 11v5M12 7.5h.01 M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18' },
 ]
 const severityLabels: Record<number, string> = { 3: 'Mild', 6: 'Moderate', 9: 'Severe' }
-type RequestFilter = 'all' | 'review' | 'ready' | 'withdrawn'
+type RequestFilter = 'all' | 'review' | 'ready' | 'claimed' | 'deleted'
 const requestFilters: { id: RequestFilter; label: string }[] = [
   { id: 'all', label: 'All' },
   { id: 'review', label: 'In review' },
+  { id: 'claimed', label: 'Claimed' },
   { id: 'ready', label: 'Guidance ready' },
-  { id: 'withdrawn', label: 'Withdrawn' },
+  { id: 'deleted', label: 'Deleted' },
 ]
 // Withdrawn and replaced requests leave the active list but stay visible here (history is kept).
 const isInactive = (status: string) => status === 'Withdrawn' || status === 'Superseded'
@@ -122,6 +123,7 @@ export function TriagePage() {
   const [popupOpen, setPopupOpen] = useState(false)
   const [editing, setEditing] = useState(false)
   const [confirmWithdraw, setConfirmWithdraw] = useState(false)
+  const [confirmPurge, setConfirmPurge] = useState(false)
   const [actionBusy, setActionBusy] = useState(false)
   const [actionError, setActionError] = useState('')
   const selectedCaseRef = useRef('')
@@ -147,6 +149,7 @@ export function TriagePage() {
     setPopupOpen(true)
     setEditing(false)
     setConfirmWithdraw(false)
+    setConfirmPurge(false)
     setActionError('')
     if (id === selectedCaseRef.current) { setRefreshKey((value) => value + 1); return }
     selectedCaseRef.current = id
@@ -269,6 +272,23 @@ export function TriagePage() {
     } finally { setActionBusy(false) }
   }
 
+  async function purgeRequest() {
+    if (actionBusy || !selectedId) return
+    const targetId = selectedId
+    setActionBusy(true)
+    setActionError('')
+    try {
+      await apiClient.delete(`/triage-cases/${targetId}`)
+      setCases((items) => items.filter((item) => item.id !== targetId))
+      setConfirmPurge(false)
+      setPopupOpen(false)
+      setMessage('Request removed permanently.')
+    } catch (error) {
+      const conflict = (error as { response?: { status?: number } }).response?.status === 409
+      setActionError(conflict ? 'This request can no longer be removed permanently.' : 'Could not remove the request. Try again.')
+    } finally { setActionBusy(false) }
+  }
+
   function toggleSymptom(symptom: string) {
     setSelectedSymptoms((current) =>
       current.includes(symptom) ? current.filter((item) => item !== symptom) : [...current, symptom],
@@ -344,13 +364,15 @@ export function TriagePage() {
   const visibleCases = cases.filter((item) =>
     filter === 'ready'
       ? isApproved(item.status)
+      : filter === 'claimed'
+        ? item.status === 'Claimed'
       : filter === 'review'
-        ? !isApproved(item.status) && !['Rejected', 'Withdrawn', 'Superseded'].includes(item.status) && !needsInPersonCare(item.status, item.priority)
-        : filter === 'withdrawn'
+        ? !isApproved(item.status) && !['Rejected', 'Withdrawn', 'Superseded', 'Claimed'].includes(item.status) && !needsInPersonCare(item.status, item.priority)
+        : filter === 'deleted'
           ? isInactive(item.status)
           : !isInactive(item.status),
   )
-  const submitted = message.includes('submitted')
+  const submitted = message.includes('submitted') || message === 'Request removed permanently.'
   return (
     <div className="triage-redesign">
       <div className="shell">
@@ -622,7 +644,10 @@ export function TriagePage() {
                     <div className="form-actions"><button className="btn" type="button" disabled={actionBusy} onClick={() => setEditing(false)}>Cancel edit</button><button className="btn primary" disabled={actionBusy}>Save and resubmit</button></div>
                   </form>
                 ) : <div className="form-actions">{caseView.details.canEdit && <button className="btn" type="button" disabled={actionBusy} onClick={() => { setEditing(true); setConfirmWithdraw(false) }}>Edit request</button>}{caseView.details.canWithdraw && <button className="btn danger" type="button" disabled={actionBusy} onClick={() => setConfirmWithdraw(true)}>Delete request</button>}</div>}
-                {confirmWithdraw && caseView.details.canWithdraw && <div className="current-call" role="alert"><strong>Withdraw this request?</strong><p>It will be removed from the active doctor queue. Its history is retained.</p><div className="form-actions"><button className="btn" type="button" disabled={actionBusy} onClick={() => setConfirmWithdraw(false)}>Keep request</button><button className="btn danger" type="button" disabled={actionBusy} onClick={() => void changeRequest()}>Confirm withdrawal</button></div></div>}
+                {confirmWithdraw && caseView.details.canWithdraw && <div className="current-call" role="alert"><strong>Delete this request?</strong><p>It leaves your doctor’s queue and moves to Deleted. You can remove it permanently from there.</p><div className="form-actions"><button className="btn" type="button" disabled={actionBusy} onClick={() => setConfirmWithdraw(false)}>Keep request</button><button className="btn danger" type="button" disabled={actionBusy} onClick={() => void changeRequest()}>Delete request</button></div></div>}
+                {caseView.status.status === 'Claimed' && <p className="hint">A doctor has claimed this request, so it can no longer be deleted. Contact your doctor if it was sent by mistake.</p>}
+                {caseView.status.status === 'Withdrawn' && !confirmPurge && <div className="form-actions"><button className="btn danger" type="button" disabled={actionBusy} onClick={() => setConfirmPurge(true)}>Delete permanently</button></div>}
+                {caseView.status.status === 'Withdrawn' && confirmPurge && <div className="current-call" role="alert"><strong>Remove permanently?</strong><p>This erases the request and its symptoms. This cannot be undone.</p><div className="form-actions"><button className="btn" type="button" disabled={actionBusy} onClick={() => setConfirmPurge(false)}>Keep</button><button className="btn danger" type="button" disabled={actionBusy} onClick={() => void purgeRequest()}>Delete permanently</button></div></div>}
                 {caseView.status.status === 'FailedSafe' && caseView.status.priority !== 'Emergency' ? (
                   <div className="current-call current-call--danger" role="alert">
                     <strong>This request could not be prepared for review</strong>

@@ -1,11 +1,11 @@
 // Owner: S3 · Triage & Agent Orchestration — Karunathilaka K.D.J.C (IT24100551)
 import '@testing-library/jest-dom/vitest'
 
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), put: vi.fn() }))
+const mocks = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), put: vi.fn(), delete: vi.fn() }))
 vi.mock('../../services/apiClient', () => ({ apiClient: mocks }))
 
 import { TriagePage } from './TriagePage'
@@ -62,6 +62,7 @@ describe('TriagePage', () => {
     mocks.get.mockReset()
     mocks.post.mockReset()
     mocks.put.mockReset()
+    mocks.delete.mockReset()
   })
   afterEach(() => {
     vi.useRealTimers()
@@ -290,10 +291,12 @@ describe('TriagePage', () => {
 })
 
 describe('TriagePage request filters', () => {
+  afterEach(() => { cleanup() })
   beforeEach(() => {
     mocks.get.mockReset()
     mocks.post.mockReset()
     mocks.put.mockReset()
+    mocks.delete.mockReset()
   })
 
   it('filters the request list by review state without changing the selected case', async () => {
@@ -309,14 +312,42 @@ describe('TriagePage request filters', () => {
     expect(screen.queryByText(/^Case case-1 ·/)).not.toBeInTheDocument()
   })
 
-  it('moves withdrawn requests out of All into the Withdrawn filter', async () => {
+  it('moves withdrawn requests out of All into the Deleted filter', async () => {
     const listedCases = [cases[0], { ...cases[0], id: 'case-3', status: 'Withdrawn', caseNumber: 12 }]
     routeGet({ id: 'case-1', status: 'PendingDoctorReview', priority: 'Routine' }, undefined, listedCases)
     page('/triage')
     expect(await screen.findByText(/^Case case-1 ·/)).toBeInTheDocument()
     expect(screen.queryByText(/^Case 0012 ·/)).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Withdrawn' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Deleted' }))
     expect(screen.getByText(/^Case 0012 ·/)).toBeInTheDocument()
     expect(screen.queryByText(/^Case case-1 ·/)).not.toBeInTheDocument()
+  })
+
+  it('shows only claimed requests in the Claimed filter and keeps them out of In review', async () => {
+    const listedCases = [cases[0], { ...cases[0], id: 'case-4', status: 'Claimed', caseNumber: 14 }]
+    routeGet({ id: 'case-1', status: 'PendingDoctorReview', priority: 'Routine' }, undefined, listedCases)
+    page('/triage')
+    expect(await screen.findByText(/^Case case-1 ·/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'In review' }))
+    expect(screen.queryByText(/^Case 0014 ·/)).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Claimed' }))
+    expect(screen.getByText(/^Case 0014 ·/)).toBeInTheDocument()
+    expect(screen.queryByText(/^Case case-1 ·/)).not.toBeInTheDocument()
+  })
+
+  it('permanently deletes a withdrawn request after confirmation', async () => {
+    const listedCases = [cases[0], { ...cases[0], id: 'case-3', status: 'Withdrawn', caseNumber: 12 }]
+    routeGet({ id: 'case-3', status: 'Withdrawn', priority: 'Routine' }, undefined, listedCases)
+    mocks.delete.mockResolvedValue({ status: 204 })
+    page('/triage')
+    await screen.findByText(/^Case case-1 ·/)
+    fireEvent.click(await screen.findByRole('button', { name: 'Deleted' }))
+    fireEvent.click(await screen.findByText(/^Case 0012 ·/))
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete permanently' }))
+    expect(screen.getByText(/This cannot be undone/)).toBeInTheDocument()
+    const buttons = screen.getAllByRole('button', { name: 'Delete permanently' })
+    fireEvent.click(buttons[buttons.length - 1])
+    await waitFor(() => expect(mocks.delete).toHaveBeenCalledWith('/triage-cases/case-3'))
+    await waitFor(() => expect(screen.queryByText(/^Case 0012 ·/)).not.toBeInTheDocument())
   })
 })

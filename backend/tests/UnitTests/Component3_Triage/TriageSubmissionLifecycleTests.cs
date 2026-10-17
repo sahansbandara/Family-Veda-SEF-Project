@@ -147,6 +147,33 @@ public sealed class TriageSubmissionLifecycleTests
     }
 
     [Fact]
+    public async Task Purge_WithdrawnUnopenedRequest_ErasesCaseAndEpisode_ButKeepsAuditTrail()
+    {
+        await using var f = await Fixture.CreateAsync();
+        var submitted = await f.Patient.SubmitTriageAsync(f.Episode.Id, default);
+        await f.Patient.WithdrawAsync(submitted.Id, default);
+        await f.Patient.PurgeWithdrawnAsync(submitted.Id, default);
+        f.Db.ChangeTracker.Clear();
+        f.Db.TriageCases.Should().BeEmpty();
+        f.Db.Episodes.Should().NotContain(x => x.Id == submitted.EpisodeId);
+        f.Db.AuditLogs.Should().Contain(x => x.EventType == "CASE_WITHDRAWN" && x.ResourceId == submitted.Id);
+        f.Db.AuditLogs.Should().Contain(x => x.EventType == "CASE_PURGED" && x.ResourceId == submitted.Id && x.MetadataJson == null);
+    }
+
+    [Fact]
+    public async Task Purge_IsRefused_ForActiveRequests_AndForWithdrawnRequestsADoctorOpened()
+    {
+        await using var f = await Fixture.CreateAsync();
+        var submitted = await f.Patient.SubmitTriageAsync(f.Episode.Id, default);
+        await Assert.ThrowsAsync<ConflictException>(() => f.Patient.PurgeWithdrawnAsync(submitted.Id, default));
+        await f.Patient.WithdrawAsync(submitted.Id, default);
+        f.Db.AuditLogs.Add(new AuditLog { ActorUserId = f.Doctor.UserId, EventType = CaseLifecycle.ReviewStarted, ResourceType = "TriageCase", ResourceId = submitted.Id, Outcome = "SUCCESS" });
+        await f.Db.SaveChangesAsync();
+        await Assert.ThrowsAsync<ConflictException>(() => f.Patient.PurgeWithdrawnAsync(submitted.Id, default));
+        f.Db.TriageCases.Should().ContainSingle(x => x.Id == submitted.Id);
+    }
+
+    [Fact]
     public async Task Claim_StartsReview_WithoutReplacingEmergencyStatus()
     {
         await using var f = await Fixture.CreateAsync();

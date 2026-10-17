@@ -47,6 +47,14 @@ public sealed class TriageController(ITriageService triageService, INotification
     public async Task<ActionResult<TriageCaseDto>> Withdraw(Guid caseId, CancellationToken cancellationToken) =>
         Ok(await triageService.WithdrawAsync(caseId, cancellationToken));
 
+    [HttpDelete("triage-cases/{caseId:guid}")]
+    [Authorize(Policy = "FamilyUser")]
+    public async Task<IActionResult> PurgeWithdrawn(Guid caseId, CancellationToken cancellationToken)
+    {
+        await triageService.PurgeWithdrawnAsync(caseId, cancellationToken);
+        return NoContent();
+    }
+
     [HttpGet("triage-cases/{caseId:guid}")]
     public async Task<ActionResult<TriageCaseDto>> GetCase(Guid caseId, CancellationToken cancellationToken) =>
         Ok(await triageService.GetCaseAsync(caseId, cancellationToken));
