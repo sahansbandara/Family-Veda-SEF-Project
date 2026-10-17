@@ -656,12 +656,9 @@ export function TriagePage() {
                     <p className="hint">Saving replaces this request and runs the checks again. The original stays in your history.</p>
                     <div className="form-actions"><button className="btn" type="button" disabled={actionBusy} onClick={() => setEditing(false)}>Cancel edit</button><button className="btn primary" disabled={actionBusy}>Save and resubmit</button></div>
                   </form>
-                ) : <div className="form-actions">{caseView.details.canEdit && <button className="btn" type="button" disabled={actionBusy} onClick={() => { setEditing(true); setConfirmWithdraw(false) }}>Edit request</button>}{caseView.details.canWithdraw && <button className="btn danger" type="button" disabled={actionBusy} onClick={() => setConfirmWithdraw(true)}>Delete request</button>}</div>}
-                {confirmWithdraw && caseView.details.canWithdraw && <div className="current-call" role="alert"><strong>Delete this request?</strong><p>It leaves your doctor’s queue and moves to Deleted. You can remove it permanently from there.</p><div className="form-actions"><button className="btn" type="button" disabled={actionBusy} onClick={() => setConfirmWithdraw(false)}>Keep request</button><button className="btn danger" type="button" disabled={actionBusy} onClick={() => void changeRequest()}>Delete request</button></div></div>}
+                ) : null}
                 {caseView.status.status === 'Claimed' && <p className="hint">A doctor has claimed this request, so it can no longer be deleted. Contact your doctor if it was sent by mistake.</p>}
                 {caseView.status.status === 'Withdrawn' && filter === 'deleted' && <p className="hint" role="status">Deleted. Remove it permanently below.</p>}
-                {caseView.status.status === 'Withdrawn' && filter === 'deleted' && !confirmPurge && <div className="form-actions"><button className="btn danger" type="button" disabled={actionBusy} onClick={() => setConfirmPurge(true)}>Delete permanently</button></div>}
-                {caseView.status.status === 'Withdrawn' && filter === 'deleted' && confirmPurge && <div className="current-call" role="alert"><strong>Remove permanently?</strong><p>This erases the request and its symptoms. This cannot be undone.</p><div className="form-actions"><button className="btn" type="button" disabled={actionBusy} onClick={() => setConfirmPurge(false)}>Keep</button><button className="btn danger" type="button" disabled={actionBusy} onClick={() => void purgeRequest()}>Delete permanently</button></div></div>}
                 {caseView.status.status === 'FailedSafe' && caseView.status.priority !== 'Emergency' ? (
                   <div className="current-call current-call--danger" role="alert">
                     <strong>This request could not be prepared for review</strong>
@@ -688,6 +685,15 @@ export function TriagePage() {
                       </div>
                     )}
                   </>
+                )}
+                {confirmWithdraw && caseView.details.canWithdraw && <div className="current-call" role="alert"><strong>Delete this request?</strong><p>It leaves your doctor’s queue and moves to Deleted. You can remove it permanently from there.</p><div className="form-actions"><button className="btn pill pill--edit" type="button" disabled={actionBusy} onClick={() => setConfirmWithdraw(false)}>Keep request</button><button className="btn pill pill--danger" type="button" disabled={actionBusy} onClick={() => void changeRequest()}>Delete request</button></div></div>}
+                {caseView.status.status === 'Withdrawn' && filter === 'deleted' && confirmPurge && <div className="current-call" role="alert"><strong>Remove permanently?</strong><p>This erases the request and its symptoms. This cannot be undone.</p><div className="form-actions"><button className="btn pill pill--edit" type="button" disabled={actionBusy} onClick={() => setConfirmPurge(false)}>Keep</button><button className="btn pill pill--danger" type="button" disabled={actionBusy} onClick={() => void purgeRequest()}>Delete permanently</button></div></div>}
+                {!editing && (caseView.details.canEdit || caseView.details.canWithdraw || (caseView.status.status === 'Withdrawn' && filter === 'deleted' && !confirmPurge)) && (
+                  <div className="request-dialog__footer">
+                    {caseView.details.canEdit && <button className="btn pill pill--edit" type="button" disabled={actionBusy} onClick={() => { setEditing(true); setConfirmWithdraw(false) }}><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span>Edit request</span></button>}
+                    {caseView.details.canWithdraw && <button className="btn pill pill--danger" type="button" disabled={actionBusy} onClick={() => setConfirmWithdraw(true)}><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg><span>Delete request</span></button>}
+                    {caseView.status.status === 'Withdrawn' && filter === 'deleted' && !confirmPurge && <button className="btn pill pill--danger" type="button" disabled={actionBusy} onClick={() => setConfirmPurge(true)}><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg><span>Delete permanently</span></button>}
+                  </div>
                 )}
               </>
             )}
