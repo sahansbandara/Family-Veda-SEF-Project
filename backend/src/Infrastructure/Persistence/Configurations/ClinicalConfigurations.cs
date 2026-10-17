@@ -26,7 +26,38 @@ internal sealed class DoctorConfiguration : IEntityTypeConfiguration<Doctor>
         builder.Property(x => x.SlotMinutes).HasDefaultValue(30);
         builder.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(x => x.UserId).IsUnique();
+        // Unique only among Verified doctors: duplicate claims become disputes instead of a permanent 409.
+        builder.HasIndex(x => x.RegistrationNumberHash).IsUnique()
+            .HasDatabaseName("ux_doctors_registration_number_hash_verified")
+            .HasFilter("verification_status = 'Verified'");
+    }
+}
+
+internal sealed class SlmcRegisterEntryConfiguration : IEntityTypeConfiguration<SlmcRegisterEntry>
+{
+    public void Configure(EntityTypeBuilder<SlmcRegisterEntry> builder)
+    {
+        builder.ToTable("slmc_register_entries");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.RegistrationNumberHash).HasMaxLength(128).IsRequired();
+        builder.Property(x => x.FullName).HasMaxLength(200).IsRequired();
+        builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
         builder.HasIndex(x => x.RegistrationNumberHash).IsUnique();
+    }
+}
+
+internal sealed class DoctorClaimDisputeConfiguration : IEntityTypeConfiguration<DoctorClaimDispute>
+{
+    public void Configure(EntityTypeBuilder<DoctorClaimDispute> builder)
+    {
+        builder.ToTable("doctor_claim_disputes");
+        builder.HasKey(x => x.Id);
+        builder.Property(x => x.RegistrationNumberHash).HasMaxLength(128).IsRequired();
+        builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+        builder.Property(x => x.ResolutionReason).HasMaxLength(1000);
+        builder.HasIndex(x => x.RegistrationNumberHash).IsUnique()
+            .HasDatabaseName("ux_doctor_claim_disputes_open_hash")
+            .HasFilter("status = 'Open'");
     }
 }
 
@@ -72,6 +103,8 @@ internal sealed class CaseAccessGrantConfiguration : IEntityTypeConfiguration<Ca
         builder.HasIndex(x => new { x.TriageCaseId, x.DoctorId });
         builder.HasIndex(x => x.TriageCaseId).IsUnique().HasFilter("revoked_at IS NULL");
         builder.HasIndex(x => x.ExpiresAt);
+        // Grant policy: a grant frozen by an SLMC claim dispute is invisible, so it gives no access anywhere.
+        builder.HasQueryFilter(x => x.FrozenAt == null);
     }
 }
 

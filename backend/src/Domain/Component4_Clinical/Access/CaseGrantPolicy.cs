@@ -7,5 +7,6 @@ public static class CaseGrantPolicy
     public static bool HasAccess(
         DateTimeOffset expiresAt,
         DateTimeOffset? revokedAt,
-        DateTimeOffset now) => revokedAt is null && expiresAt > now;
+        DateTimeOffset now,
+        DateTimeOffset? frozenAt = null) => revokedAt is null && frozenAt is null && expiresAt > now;
 }

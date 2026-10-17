@@ -31,6 +31,9 @@ public enum TriageStatus
 }
 
 public enum VerificationStatus { Pending, Verified, MoreInformationRequired, Rejected, Suspended }
+public enum SlmcRegisterStatus { Active, Inactive }
+public enum RegisterMatch { Match, NameMismatch, NotInRegister }
+public enum ClaimDisputeStatus { Open, Resolved }
 public enum ApprovalAction { Approve, ReviseAndApprove, RequestInformation, Reject, Escalate, CloseReferral }
 public enum AgentKind { Extraction, Coordinator, Context, Analysis, FamilialRisk, SafetyValidation }
 public enum AgentStepStatus { Started, Completed, Failed, ToolDenied, SafeFailure, NoData }

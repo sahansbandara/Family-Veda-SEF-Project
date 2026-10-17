@@ -175,6 +175,10 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
 
+                    b.Property<DateTimeOffset?>("FrozenAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("frozen_at");
+
                     b.Property<string>("Reason")
                         .IsRequired()
                         .HasMaxLength(160)
@@ -231,6 +235,10 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
                         .HasMaxLength(60)
                         .HasColumnType("character varying(60)")
                         .HasColumnName("city");
+
+                    b.Property<bool>("ClaimDisputed")
+                        .HasColumnType("boolean")
+                        .HasColumnName("claim_disputed");
 
                     b.Property<string>("ConsultationModes")
                         .HasMaxLength(60)
@@ -303,13 +311,70 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("RegistrationNumberHash")
                         .IsUnique()
-                        .HasDatabaseName("ix_doctors_registration_number_hash");
+                        .HasDatabaseName("ux_doctors_registration_number_hash_verified")
+                        .HasFilter("verification_status = 'Verified'");
 
                     b.HasIndex("UserId")
                         .IsUnique()
                         .HasDatabaseName("ix_doctors_user_id");
 
                     b.ToTable("doctors", (string)null);
+                });
+
+            modelBuilder.Entity("FamilyVeda.Domain.Clinical.DoctorClaimDispute", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("RegistrationNumberHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("registration_number_hash");
+
+                    b.Property<string>("ResolutionReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("resolution_reason");
+
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resolved_at");
+
+                    b.Property<Guid?>("ResolvedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("resolved_by_user_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("WinnerDoctorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("winner_doctor_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_doctor_claim_disputes");
+
+                    b.HasIndex("RegistrationNumberHash")
+                        .IsUnique()
+                        .HasDatabaseName("ux_doctor_claim_disputes_open_hash")
+                        .HasFilter("status = 'Open'");
+
+                    b.ToTable("doctor_claim_disputes", (string)null);
                 });
 
             modelBuilder.Entity("FamilyVeda.Domain.Clinical.DoctorLicenseDocument", b =>
@@ -462,6 +527,50 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_family_doctor_assignments_family_id_doctor_id");
 
                     b.ToTable("family_doctor_assignments", (string)null);
+                });
+
+            modelBuilder.Entity("FamilyVeda.Domain.Clinical.SlmcRegisterEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("full_name");
+
+                    b.Property<string>("RegistrationNumberHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("registration_number_hash");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_slmc_register_entries");
+
+                    b.HasIndex("RegistrationNumberHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_slmc_register_entries_registration_number_hash");
+
+                    b.ToTable("slmc_register_entries", (string)null);
                 });
 
             modelBuilder.Entity("FamilyVeda.Domain.Identity.Consent", b =>

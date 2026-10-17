@@ -41,6 +41,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     // S4 — doctor, approval, grants and audit
     public DbSet<Doctor> Doctors => Set<Doctor>();
     public DbSet<DoctorVerificationLog> DoctorVerificationLogs => Set<DoctorVerificationLog>();
+    public DbSet<SlmcRegisterEntry> SlmcRegisterEntries => Set<SlmcRegisterEntry>();
+    public DbSet<DoctorClaimDispute> DoctorClaimDisputes => Set<DoctorClaimDispute>();
     public DbSet<FamilyDoctorAssignment> FamilyDoctorAssignments => Set<FamilyDoctorAssignment>();
     public DbSet<CaseAccessGrant> CaseAccessGrants => Set<CaseAccessGrant>();
     public DbSet<Approval> Approvals => Set<Approval>();

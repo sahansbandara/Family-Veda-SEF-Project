@@ -6,7 +6,10 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using FluentAssertions;
+using FamilyVeda.Domain.Clinical;
 using FamilyVeda.Domain.Common;
+using FamilyVeda.Domain.Identity;
+using Microsoft.AspNetCore.Identity;
 using FamilyVeda.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -90,11 +93,85 @@ public sealed class DoctorRegistrationTests : IAsyncLifetime
         (await db.Users.AnyAsync(x => x.Email.EndsWith("-doctor@example.invalid"))).Should().BeFalse();
     }
 
-    private static MultipartFormDataContent DoctorForm(string email, string slmc, byte[] document, string contentType)
+    [Fact]
+    public async Task DuplicateSlmc_OpensDispute_AndAdminResolvesIt()
+    {
+        var client = _factory!.CreateClient();
+        var pdf = Encoding.ASCII.GetBytes("%PDF-1.4 synthetic licence");
+        var first = await client.PostAsync("/api/v1/auth/register/doctor", DoctorForm("synthetic-first-claim@example.invalid", "77001", pdf, "application/pdf", "Dr Synthetic Impostor"));
+        first.StatusCode.Should().Be(HttpStatusCode.Created);
+        var second = await client.PostAsync("/api/v1/auth/register/doctor", DoctorForm("synthetic-second-claim@example.invalid", "SLMC 77001", pdf, "application/pdf", "Dr Synthetic Real"));
+        second.StatusCode.Should().Be(HttpStatusCode.Created, "a duplicate SLMC number is a dispute, not a 409");
+        var secondAuth = await second.Content.ReadFromJsonAsync<JsonElement>();
+        secondAuth.GetProperty("doctorVerificationStatus").GetString().Should().Be("Pending");
+        secondAuth.GetProperty("doctorClaimUnderReview").GetBoolean().Should().BeTrue();
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await AdminTokenAsync(client));
+        var disputes = await client.GetFromJsonAsync<JsonElement>("/api/v1/admin/disputes");
+        disputes.GetArrayLength().Should().Be(1);
+        var dispute = disputes[0];
+        dispute.GetProperty("claimants").GetArrayLength().Should().Be(2);
+        var realId = dispute.GetProperty("claimants").EnumerateArray()
+            .Single(x => x.GetProperty("displayName").GetString() == "Dr Synthetic Real").GetProperty("doctorId").GetGuid();
+
+        var noReason = await client.PostAsJsonAsync($"/api/v1/admin/disputes/{dispute.GetProperty("id").GetGuid()}/resolve", new { winnerDoctorId = realId, reason = "" });
+        noReason.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var resolved = await client.PostAsJsonAsync($"/api/v1/admin/disputes/{dispute.GetProperty("id").GetGuid()}/resolve", new { winnerDoctorId = realId, reason = "Synthetic licence matches" });
+        resolved.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var doctors = await db.Doctors.Include(x => x.User).Where(x => x.RegistrationNumberLastFour == "7001").ToListAsync();
+        doctors.Single(x => x.Id == realId).VerificationStatus.Should().Be(VerificationStatus.Verified);
+        var loser = doctors.Single(x => x.Id != realId);
+        loser.VerificationStatus.Should().Be(VerificationStatus.Suspended);
+        loser.User!.IsActive.Should().BeFalse();
+        (await db.AuditLogs.AnyAsync(x => x.EventType == "SLMC_CLAIM_DISPUTE_RESOLVED")).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task PartialUniqueIndex_AllowsDuplicatePending_ButRejectsTwoVerified()
+    {
+        await using var scope = _factory!.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Doctor Add(VerificationStatus status)
+        {
+            var user = new UserAccount { Email = $"{Guid.NewGuid():N}@example.invalid", PasswordHash = "x", DisplayName = "Dr Synthetic Index", UserType = UserType.Doctor };
+            var doctor = new Doctor { User = user, RegistrationNumberHash = "SYNTHETIC-INDEX", RegistrationNumberLastFour = "0009", VerificationStatus = status };
+            db.AddRange(user, doctor);
+            return doctor;
+        }
+        Add(VerificationStatus.Verified);
+        Add(VerificationStatus.Pending);
+        await db.SaveChangesAsync();
+
+        Add(VerificationStatus.Verified);
+        var act = () => db.SaveChangesAsync();
+        await act.Should().ThrowAsync<DbUpdateException>();
+    }
+
+    private async Task<string> AdminTokenAsync(HttpClient client)
+    {
+        const string password = "Synthetic-Admin-Pass-42!";
+        await using (var scope = _factory!.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<UserAccount>>();
+            var admin = new UserAccount { Email = "synthetic-admin@example.invalid", DisplayName = "Synthetic Admin", PasswordHash = "", UserType = UserType.Admin };
+            admin.PasswordHash = hasher.HashPassword(admin, password);
+            db.Users.Add(admin);
+            await db.SaveChangesAsync();
+        }
+        var login = await client.PostAsJsonAsync("/api/v1/auth/login", new { email = "synthetic-admin@example.invalid", password });
+        login.EnsureSuccessStatusCode();
+        return (await login.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("accessToken").GetString()!;
+    }
+
+    private static MultipartFormDataContent DoctorForm(string email, string slmc, byte[] document, string contentType, string fullName = "Synthetic Doctor")
     {
         var form = new MultipartFormDataContent
         {
-            { new StringContent("Synthetic Doctor"), "fullName" },
+            { new StringContent(fullName), "fullName" },
             { new StringContent(email), "email" },
             { new StringContent("0771234567"), "mobileNumber" },
             { new StringContent("Synthetic-Pass-42!"), "password" },

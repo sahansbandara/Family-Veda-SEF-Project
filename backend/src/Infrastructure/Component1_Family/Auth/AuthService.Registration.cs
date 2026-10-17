@@ -80,11 +80,6 @@ public sealed partial class AuthService : IRegistrationService
         var registrationHash = Convert.ToHexString(HMACSHA256.HashData(
             SHA256.HashData(Encoding.UTF8.GetBytes($"FamilyVeda.DoctorRegistration.v1:{_options.Key}")),
             Encoding.UTF8.GetBytes(registrationNumber.ToUpperInvariant())));
-        if (await dbContext.Doctors.AnyAsync(x => x.RegistrationNumberHash == registrationHash, cancellationToken))
-        {
-            throw new ConflictException("Registration number is already registered.");
-        }
-
         var doctor = new Doctor
         {
             UserId = user.Id,
@@ -99,6 +94,8 @@ public sealed partial class AuthService : IRegistrationService
             Languages = string.Join(", ", request.Languages)
         };
         dbContext.Doctors.Add(doctor);
+        // A number someone else already claims opens an admin dispute instead of locking the real doctor out.
+        var disputed = await FamilyVeda.Infrastructure.Clinical.ClaimDisputeService.StageClaimAsync(dbContext, doctor, user.Id, cancellationToken);
         dbContext.UserProfiles.Add(new UserProfile { UserId = user.Id, PhoneNumber = doctor.PhoneNumber, TermsAcceptedAt = DateTimeOffset.UtcNow });
         dbContext.DoctorLicenseDocuments.Add(new DoctorLicenseDocument
         {
@@ -109,7 +106,7 @@ public sealed partial class AuthService : IRegistrationService
             Content = content
         });
         AddRegistrationAudit(user.Id, "DOCTOR_REGISTERED", "Doctor", doctor.Id, "PENDING",
-            new { RegistrationNumberLastFour = doctor.RegistrationNumberLastFour, LicenseDocument = true });
+            new { RegistrationNumberLastFour = doctor.RegistrationNumberLastFour, LicenseDocument = true, ClaimDisputed = disputed });
         return await CommitAsync(user, cancellationToken);
     }
 
