@@ -1268,3 +1268,70 @@
 .triage-redesign .icon-close { display: inline-grid; place-items: center; width: 40px; height: 40px; flex: none; border: 1px solid var(--line, #dbe3ef); border-radius: 50%; background: transparent; color: inherit; cursor: pointer; }
 .triage-redesign .icon-close:hover { background: rgba(127, 140, 160, 0.12); }
 .triage-redesign .icon-close:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+
+/* Request dialog footer actions (pill buttons) */
+.triage-redesign .request-dialog__footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(100, 116, 139, 0.22);
+}
+
+.triage-redesign .btn.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  font-weight: 600;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.triage-redesign .btn.pill svg { flex: none; }
+.triage-redesign .btn.pill:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.triage-redesign .btn.pill:disabled { opacity: 0.55; }
+
+.triage-redesign .btn.pill--edit { background: #eef4ff; color: #146cff; border-color: #146cff; }
+.triage-redesign .btn.pill--edit:hover:not(:disabled) { background: #dbe8ff; border-color: #0f56cc; color: #0f56cc; }
+:root[data-theme="dark"] .triage-redesign .btn.pill--edit { background: rgba(59, 130, 246, 0.16); color: #93c5fd; border-color: #93c5fd; }
+:root[data-theme="dark"] .triage-redesign .btn.pill--edit:hover:not(:disabled) { background: rgba(59, 130, 246, 0.28); border-color: #bfdbfe; color: #bfdbfe; }
+
+.triage-redesign .btn.pill--danger { background: #fdecec; color: #c62828; border-color: #c62828; }
+.triage-redesign .btn.pill--danger:hover:not(:disabled) { background: #dc2626; color: #fff; border-color: #dc2626; }
+:root[data-theme="dark"] .triage-redesign .btn.pill--danger { background: rgba(239, 68, 68, 0.16); color: #fca5a5; border-color: #fca5a5; }
+:root[data-theme="dark"] .triage-redesign .btn.pill--danger:hover:not(:disabled) { background: #dc2626; color: #fff; border-color: #dc2626; }
+
+@media (max-width: 600px) {
+  .triage-redesign .request-dialog__footer .btn.pill { flex: 1; padding: 0 12px; }
+}
+
+/* Nested confirm popup */
+.triage-redesign .confirm-dialog {
+  width: min(420px, calc(100vw - 32px));
+  max-width: 420px;
+  margin: auto;
+  padding: 24px;
+  border: 1px solid rgba(100, 116, 139, 0.28);
+  border-radius: 20px;
+  background: var(--triage-panel, #fff);
+  color: inherit;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+}
+.triage-redesign .confirm-dialog::backdrop { background: rgba(15, 23, 42, 0.45); }
+.triage-redesign .confirm-dialog h3 { margin: 0 0 8px; font-size: 18px; }
+.triage-redesign .confirm-dialog p { margin: 0 0 20px; }
+.triage-redesign .confirm-dialog__actions { display: flex; justify-content: flex-end; gap: 10px; }
+.triage-redesign .btn.pill--neutral { background: transparent; color: inherit; border-color: rgba(100, 116, 139, 0.55); }
+.triage-redesign .btn.pill--neutral:hover:not(:disabled) { background: rgba(127, 140, 160, 0.14); }
+.triage-redesign .btn.pill--solid-danger { background: #dc2626; color: #fff; border-color: #dc2626; }
+.triage-redesign .btn.pill--solid-danger:hover:not(:disabled) { background: #b91c1c; border-color: #b91c1c; }
+@media (max-width: 600px) {
+  .triage-redesign .confirm-dialog__actions { flex-direction: column-reverse; }
+  .triage-redesign .confirm-dialog__actions .btn.pill { width: 100%; }
+}
