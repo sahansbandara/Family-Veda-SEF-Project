@@ -13,20 +13,30 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-Future<void> showCaseProgressSheet(BuildContext context, String caseId) =>
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
-      builder: (_) => FractionallySizedBox(
-        heightFactor: 0.9,
-        child: CaseStatusScreen(caseId: caseId),
-      ),
-    );
+Future<void> showCaseProgressSheet(
+  BuildContext context,
+  String caseId, {
+  bool fromDeleted = false,
+}) => showModalBottomSheet<void>(
+  context: context,
+  isScrollControlled: true,
+  useSafeArea: true,
+  showDragHandle: true,
+  builder: (_) => FractionallySizedBox(
+    heightFactor: 0.9,
+    child: CaseStatusScreen(caseId: caseId, fromDeleted: fromDeleted),
+  ),
+);
 
 class CaseStatusScreen extends ConsumerWidget {
-  const CaseStatusScreen({super.key, required this.caseId});
+  const CaseStatusScreen({
+    super.key,
+    required this.caseId,
+    this.fromDeleted = false,
+  });
+
+  /// True only when opened from the Deleted filter; enables permanent delete.
+  final bool fromDeleted;
 
   final String caseId;
 
@@ -78,11 +88,11 @@ class CaseStatusScreen extends ConsumerWidget {
                   children: [
                     Text(
                       item.status == 'WITHDRAWN'
-                          ? 'This request was withdrawn.'
+                          ? 'This request was deleted.'
                           : 'This request was replaced by your edited submission.',
                     ),
-                    if (item.status == 'WITHDRAWN')
-                      RequestSubmissionActions(item: item),
+                    if (item.status == 'WITHDRAWN' && fromDeleted)
+                      RequestSubmissionActions(item: item, allowPurge: true),
                   ],
                 );
               }
