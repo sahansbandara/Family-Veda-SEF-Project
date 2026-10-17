@@ -110,6 +110,13 @@ export function DoctorStatusPage() {
         </section>
       )}
 
+      {(user?.claimRejected || doctor?.verificationStatus === 'Rejected') && (
+        <section className="panel" role="alert" style={{ borderLeft: '4px solid #dc2626' }}>
+          <h2 style={{ marginTop: 0 }}>Registration rejected</h2>
+          <p style={{ margin: 0 }}>This SLMC number already belongs to a confirmed doctor. Your registration was rejected. Contact the administrator if you believe this is wrong.</p>
+        </section>
+      )}
+
       <section className="panel">
         {state === 'missing' ? (
           <>

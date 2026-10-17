@@ -39,5 +39,6 @@ internal sealed class DoctorLicenseDocumentConfiguration : IEntityTypeConfigurat
         builder.Property(x => x.FileName).HasMaxLength(255).IsRequired();
         builder.Property(x => x.ContentType).HasMaxLength(64).IsRequired();
         builder.Property(x => x.Content).IsRequired();
+        builder.Property(x => x.Sha256).HasMaxLength(64);
     }
 }

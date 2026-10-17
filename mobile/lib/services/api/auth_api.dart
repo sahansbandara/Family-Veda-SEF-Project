@@ -13,6 +13,7 @@ class AuthTokens {
     this.userType,
     this.familyRole,
     this.claimUnderReview = false,
+    this.claimRejected = false,
   });
 
   /// Registration responses: same token fields, plus the SLMC dispute flag for doctors.
@@ -25,6 +26,7 @@ class AuthTokens {
       accessToken: data['accessToken'] as String,
       refreshToken: data['refreshToken'] as String,
       claimUnderReview: data['doctorClaimUnderReview'] == true,
+      claimRejected: data['doctorClaimRejected'] == true,
     );
   }
 
@@ -37,6 +39,9 @@ class AuthTokens {
 
   /// True when another account already claims this SLMC number; an admin reviews both claims.
   final bool claimUnderReview;
+
+  /// True when the number belongs to a confirmed doctor, so the claim was auto-rejected.
+  final bool claimRejected;
 }
 
 abstract class AuthApi {

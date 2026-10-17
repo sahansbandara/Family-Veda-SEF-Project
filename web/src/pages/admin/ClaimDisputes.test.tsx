@@ -14,10 +14,10 @@ import { AdminDashboardPanel } from './AdminDashboardPanel'
 import { ClaimDisputesPanel } from './ClaimDisputesPanel'
 
 const dispute = {
-  id: 'dispute-1', registrationNumberLastFour: '7001', status: 'Open', registeredName: 'Dr. Synthetic Real', openedAt: '2026-10-18T00:00:00Z',
+  id: 'dispute-1', registrationNumberLastFour: '7001', status: 'Open', registeredName: 'Dr. Synthetic Real', openedAt: '2026-10-18T00:00:00Z', duplicateLicenseFile: false,
   claimants: [
-    { doctorId: 'doc-a', userId: 'u-a', displayName: 'Dr Synthetic Impostor', email: 'a@example.invalid', verificationStatus: 'Verified', registerMatch: 'NameMismatch', hasLicenseDocument: true, submittedAt: '2026-10-01T00:00:00Z' },
-    { doctorId: 'doc-b', userId: 'u-b', displayName: 'Dr Synthetic Real', email: 'b@example.invalid', verificationStatus: 'Pending', registerMatch: 'Match', hasLicenseDocument: true, submittedAt: '2026-10-18T00:00:00Z' },
+    { doctorId: 'doc-a', userId: 'u-a', displayName: 'Dr Synthetic Impostor', email: 'a@example.invalid', verificationStatus: 'Verified', registerMatch: 'NameMismatch', hasLicenseDocument: true, submittedAt: '2026-10-01T00:00:00Z', ownershipConfirmed: false, evidenceRequests: [] },
+    { doctorId: 'doc-b', userId: 'u-b', displayName: 'Dr Synthetic Real', email: 'b@example.invalid', verificationStatus: 'Pending', registerMatch: 'Match', hasLicenseDocument: true, submittedAt: '2026-10-18T00:00:00Z', ownershipConfirmed: false, evidenceRequests: [] },
   ],
 }
 

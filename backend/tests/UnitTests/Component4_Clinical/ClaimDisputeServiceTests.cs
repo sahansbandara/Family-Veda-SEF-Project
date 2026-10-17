@@ -43,25 +43,23 @@ public sealed class ClaimDisputeServiceTests
         CaseGrantPolicy.HasAccess(DateTimeOffset.UtcNow.AddHours(1), null, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow).Should().BeFalse();
 
     [Fact]
-    public async Task DuplicateClaim_OpensDispute_FlagsBoth_AndFreezesVerifiedGrants()
+    public async Task DuplicateClaim_OpensDispute_FlagsBoth_AndIncumbentKeepsWorking()
     {
         await using var db = NewDb();
-        var first = NewDoctor(db, "Dr Synthetic Impostor", VerificationStatus.Verified);
+        var first = NewDoctor(db, "Dr Synthetic Incumbent", VerificationStatus.Verified);
         db.CaseAccessGrants.Add(new CaseAccessGrant { TriageCaseId = Guid.NewGuid(), DoctorId = first.Id, ExpiresAt = DateTimeOffset.UtcNow.AddHours(4), Reason = "synthetic" });
+        db.DoctorLicenseDocuments.Add(new DoctorLicenseDocument { DoctorId = first.Id, FileName = "l.pdf", ContentType = "application/pdf", Content = [1], Sha256 = "SAMEFILE" });
         await db.SaveChangesAsync();
 
-        var second = NewDoctor(db, "Dr Synthetic Real", VerificationStatus.Pending);
-        var disputed = await ClaimDisputeService.StageClaimAsync(db, second, second.UserId, CancellationToken.None);
+        var second = NewDoctor(db, "Dr Synthetic Claimant", VerificationStatus.Pending);
+        var outcome = await ClaimDisputeService.StageClaimAsync(db, second, second.UserId, CancellationToken.None, "SAMEFILE");
         await db.SaveChangesAsync();
 
-        disputed.Should().BeTrue();
+        outcome.Should().Be(ClaimOutcome.Disputed);
         (await db.Doctors.CountAsync(x => x.ClaimDisputed)).Should().Be(2);
-        first.VerificationStatus.Should().Be(VerificationStatus.Verified);
-        first.AccessFrozen.Should().BeTrue();
-        (await db.CaseAccessGrants.CountAsync()).Should().Be(0, "frozen grants are hidden by the grant query filter");
-        (await db.CaseAccessGrants.IgnoreQueryFilters().SingleAsync()).FrozenAt.Should().NotBeNull();
-        (await db.DoctorClaimDisputes.SingleAsync()).Status.Should().Be(ClaimDisputeStatus.Open);
-        (await db.AuditLogs.CountAsync(x => x.EventType == "SLMC_CLAIM_DISPUTED")).Should().Be(2);
+        first.AccessFrozen.Should().BeFalse();
+        (await db.CaseAccessGrants.CountAsync()).Should().Be(1, "the incumbent keeps case access while the dispute is reviewed");
+        (await db.DoctorClaimDisputes.SingleAsync()).DuplicateLicenseFile.Should().BeTrue();
     }
 
     [Fact]
@@ -72,12 +70,31 @@ public sealed class ClaimDisputeServiceTests
         await db.SaveChangesAsync();
         var doctor = NewDoctor(db, "Dr Synthetic New", VerificationStatus.Pending);
 
-        (await ClaimDisputeService.StageClaimAsync(db, doctor, doctor.UserId, CancellationToken.None)).Should().BeFalse();
+        (await ClaimDisputeService.StageClaimAsync(db, doctor, doctor.UserId, CancellationToken.None)).Should().Be(ClaimOutcome.None);
         doctor.ClaimDisputed.Should().BeFalse();
     }
 
     [Fact]
-    public async Task Resolve_VerifiesWinner_SuspendsLoser_RevokesLoserGrants_UnfreezesWinner()
+    public async Task ClaimOnConfirmedOwner_IsAutoRejected_AndAdminsNotified()
+    {
+        await using var db = NewDb();
+        var owner = NewDoctor(db, "Dr Synthetic Owner", VerificationStatus.Verified);
+        owner.OwnershipConfirmedAt = DateTimeOffset.UtcNow;
+        db.Users.Add(new UserAccount { Email = "admin@example.invalid", PasswordHash = "x", DisplayName = "Admin", UserType = UserType.Admin });
+        await db.SaveChangesAsync();
+        var third = NewDoctor(db, "Dr Synthetic Third", VerificationStatus.Pending);
+
+        (await ClaimDisputeService.StageClaimAsync(db, third, third.UserId, CancellationToken.None)).Should().Be(ClaimOutcome.AutoRejected);
+        await db.SaveChangesAsync();
+
+        third.VerificationStatus.Should().Be(VerificationStatus.Rejected);
+        owner.ClaimDisputed.Should().BeFalse();
+        (await db.DoctorClaimDisputes.AnyAsync()).Should().BeFalse();
+        (await db.PortalNotifications.AnyAsync(x => x.Type == "SLMC_CLAIM_AUTO_REJECTED")).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Resolve_VerifiesWinner_SuspendsLoser_RevokesLoserGrants()
     {
         await using var db = NewDb();
         var impostor = NewDoctor(db, "Dr Synthetic Impostor", VerificationStatus.Verified);
@@ -107,39 +124,58 @@ public sealed class ClaimDisputeServiceTests
     }
 
     [Fact]
-    public async Task Resolve_WinnerKeepsFrozenGrants_AfterUnfreeze()
+    public async Task Resolve_ConfirmsWinnerOwnership_AndCancelsOpenEvidenceRequests()
     {
         await using var db = NewDb();
         var real = NewDoctor(db, "Dr Synthetic Real", VerificationStatus.Verified);
-        db.CaseAccessGrants.Add(new CaseAccessGrant { TriageCaseId = Guid.NewGuid(), DoctorId = real.Id, ExpiresAt = DateTimeOffset.UtcNow.AddHours(4), Reason = "synthetic" });
         await db.SaveChangesAsync();
         var impostor = NewDoctor(db, "Dr Synthetic Impostor", VerificationStatus.Pending);
         await ClaimDisputeService.StageClaimAsync(db, impostor, impostor.UserId, CancellationToken.None);
         await db.SaveChangesAsync();
         var service = new ClaimDisputeService(db, new StubCurrentUser(Guid.NewGuid(), UserType.Admin));
         var dispute = await db.DoctorClaimDisputes.SingleAsync();
+        await service.RequestEvidenceAsync(dispute.Id, new CreateEvidenceRequest(impostor.Id, [EvidenceKind.NationalIdCopy], null, false), CancellationToken.None);
 
         await service.ResolveAsync(dispute.Id, new ResolveClaimDisputeRequest(real.Id, "Original holder"), CancellationToken.None);
 
-        (await db.CaseAccessGrants.SingleAsync()).DoctorId.Should().Be(real.Id);
+        real.OwnershipConfirmedAt.Should().NotBeNull();
+        (await db.ClaimEvidenceRequests.SingleAsync()).Status.Should().Be(EvidenceRequestStatus.Cancelled);
     }
 
     [Fact]
-    public async Task NewClaim_AgainstConfirmedWinner_IsReviewed_ButDoesNotRefreezeAccess()
+    public async Task ChallengeDeadline_IsThreeDays_UploadSubmits_AndMissedDeadlineSuspends()
     {
         await using var db = NewDb();
-        var real = NewDoctor(db, "Dr Synthetic Real", VerificationStatus.Verified);
-        db.DoctorClaimDisputes.Add(new DoctorClaimDispute { RegistrationNumberHash = "SYN-HASH", Status = ClaimDisputeStatus.Resolved, WinnerDoctorId = real.Id });
-        db.CaseAccessGrants.Add(new CaseAccessGrant { TriageCaseId = Guid.NewGuid(), DoctorId = real.Id, ExpiresAt = DateTimeOffset.UtcNow.AddHours(4), Reason = "synthetic" });
+        var incumbent = NewDoctor(db, "Dr Synthetic Incumbent", VerificationStatus.Verified);
         await db.SaveChangesAsync();
-        var griefer = NewDoctor(db, "Dr Synthetic Griefer", VerificationStatus.Pending);
-
-        (await ClaimDisputeService.StageClaimAsync(db, griefer, griefer.UserId, CancellationToken.None)).Should().BeTrue();
+        var claimant = NewDoctor(db, "Dr Synthetic Claimant", VerificationStatus.Pending);
+        await ClaimDisputeService.StageClaimAsync(db, claimant, claimant.UserId, CancellationToken.None);
         await db.SaveChangesAsync();
+        var admin = new ClaimDisputeService(db, new StubCurrentUser(Guid.NewGuid(), UserType.Admin));
+        var dispute = await db.DoctorClaimDisputes.SingleAsync();
 
-        real.ClaimDisputed.Should().BeTrue();
-        real.AccessFrozen.Should().BeFalse();
-        (await db.CaseAccessGrants.CountAsync()).Should().Be(1);
+        var challenge = await admin.RequestEvidenceAsync(dispute.Id, new CreateEvidenceRequest(incumbent.Id, [EvidenceKind.SlmcCertificate], null, true), CancellationToken.None);
+        var standard = await admin.RequestEvidenceAsync(dispute.Id, new CreateEvidenceRequest(claimant.Id, [EvidenceKind.NationalIdCopy], null, false), CancellationToken.None);
+        (challenge.DueAt - challenge.RequestedAt).TotalDays.Should().BeApproximately(3, 0.01);
+        (standard.DueAt - standard.RequestedAt).TotalDays.Should().BeApproximately(30, 0.01);
+        (await db.PortalNotifications.AnyAsync(x => x.UserId == incumbent.UserId && x.Type == "SLMC_EVIDENCE_REQUESTED")).Should().BeTrue();
+
+        var doctorSide = new ClaimEvidenceService(db, new StubCurrentUser(incumbent.UserId, UserType.Doctor));
+        var pdf = new MemoryStream("%PDF-1.4 synthetic certificate"u8.ToArray());
+        var uploaded = await doctorSide.UploadAsync(challenge.Id, new EvidenceUpload(EvidenceKind.SlmcCertificate, "cert.pdf", "application/pdf", pdf.Length, pdf), CancellationToken.None);
+        uploaded.Status.Should().Be(EvidenceRequestStatus.Submitted);
+        var fake = new MemoryStream("not a pdf"u8.ToArray());
+        await doctorSide.Invoking(s => s.UploadAsync(challenge.Id, new EvidenceUpload(EvidenceKind.SlmcCertificate, "x.pdf", "application/pdf", fake.Length, fake), CancellationToken.None))
+            .Should().ThrowAsync<ConflictException>("a submitted request is closed");
+
+        (await db.ClaimEvidenceRequests.SingleAsync(x => x.Id == standard.Id)).DueAt = DateTimeOffset.UtcNow.AddMinutes(-1);
+        await db.SaveChangesAsync();
+        (await new ClaimEvidenceService(db, new StubCurrentUser(Guid.Empty, UserType.Admin)).ProcessExpiredAsync(CancellationToken.None)).Should().Be(1);
+
+        claimant.VerificationStatus.Should().Be(VerificationStatus.Suspended);
+        claimant.User!.IsActive.Should().BeFalse();
+        incumbent.VerificationStatus.Should().Be(VerificationStatus.Verified, "the incumbent answered in time");
+        (await db.DoctorVerificationLogs.SingleAsync(x => x.DoctorId == claimant.Id)).Reason.Should().StartWith("EvidenceDeadlineMissed");
     }
 
     [Fact]

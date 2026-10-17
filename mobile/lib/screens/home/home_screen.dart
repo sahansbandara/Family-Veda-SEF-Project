@@ -9,7 +9,9 @@ import 'package:family_veda/providers/core_providers.dart';
 // role-aware dashboard cards + unread notifications badge.
 import 'package:family_veda/providers/family_portal_provider.dart';
 import 'package:family_veda/providers/members_provider.dart';
+import 'package:family_veda/providers/evidence_provider.dart';
 import 'package:family_veda/providers/notifications_provider.dart';
+import 'package:family_veda/widgets/doctor/evidence_request_banner.dart';
 import 'package:family_veda/providers/records_provider.dart';
 import 'package:family_veda/theme/app_theme.dart';
 import 'package:family_veda/theme/glass.dart';
@@ -483,6 +485,7 @@ class HomeScreen extends ConsumerWidget {
         child: RefreshIndicator(
           onRefresh: () async {
             ref.invalidate(familyDashboardProvider);
+            if (isDoctor) ref.invalidate(evidenceRequestsProvider);
             ref.invalidate(membersProvider);
             ref.invalidate(unreadNotificationsCountProvider);
             ref.invalidate(memberRecordsProvider);
@@ -505,6 +508,7 @@ class HomeScreen extends ConsumerWidget {
             ),
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
             children: [
+              if (isDoctor) const EvidenceRequestBanner(),
             // If the user is Head of Family, HeadDashboardSection renders the unified Family Head Hero + Metrics!
             // If not Head, render the standard active patient profile hero.
             if (!isHead) ...[

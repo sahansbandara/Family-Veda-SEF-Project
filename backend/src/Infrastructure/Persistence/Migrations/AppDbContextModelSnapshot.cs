@@ -217,6 +217,144 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
                     b.ToTable("case_access_grants", (string)null);
                 });
 
+            modelBuilder.Entity("FamilyVeda.Domain.Clinical.ClaimEvidenceFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<byte[]>("Content")
+                        .HasColumnType("bytea")
+                        .HasColumnName("content");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("content_type");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("file_name");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("kind");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("request_id");
+
+                    b.Property<string>("Sha256")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("sha256");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint")
+                        .HasColumnName("size_bytes");
+
+                    b.Property<string>("StorageKey")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("storage_key");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_claim_evidence_files");
+
+                    b.HasIndex("RequestId")
+                        .HasDatabaseName("ix_claim_evidence_files_request_id");
+
+                    b.ToTable("claim_evidence_files", (string)null);
+                });
+
+            modelBuilder.Entity("FamilyVeda.Domain.Clinical.ClaimEvidenceRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<Guid>("DisputeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("dispute_id");
+
+                    b.Property<Guid>("DoctorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("doctor_id");
+
+                    b.Property<DateTimeOffset>("DueAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("due_at");
+
+                    b.Property<bool>("IsChallenge")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_challenge");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("note");
+
+                    b.Property<Guid>("RequestedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("requested_by_user_id");
+
+                    b.Property<string>("RequestedItems")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("requested_items");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset?>("SubmittedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("submitted_at");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_claim_evidence_requests");
+
+                    b.HasIndex("DisputeId")
+                        .HasDatabaseName("ix_claim_evidence_requests_dispute_id");
+
+                    b.HasIndex("DoctorId", "Status")
+                        .HasDatabaseName("ix_claim_evidence_requests_doctor_id_status");
+
+                    b.HasIndex("Status", "DueAt")
+                        .HasDatabaseName("ix_claim_evidence_requests_status_due_at");
+
+                    b.ToTable("claim_evidence_requests", (string)null);
+                });
+
             modelBuilder.Entity("FamilyVeda.Domain.Clinical.Doctor", b =>
                 {
                     b.Property<Guid>("Id")
@@ -267,6 +405,10 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)")
                         .HasColumnName("languages");
+
+                    b.Property<DateTimeOffset?>("OwnershipConfirmedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("ownership_confirmed_at");
 
                     b.Property<string>("PhoneNumber")
                         .HasMaxLength(50)
@@ -336,6 +478,10 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<bool>("DuplicateLicenseFile")
+                        .HasColumnType("boolean")
+                        .HasColumnName("duplicate_license_file");
 
                     b.Property<string>("RegistrationNumberHash")
                         .IsRequired()
@@ -413,6 +559,11 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("file_name");
+
+                    b.Property<string>("Sha256")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("sha256");
 
                     b.Property<long>("SizeBytes")
                         .HasColumnType("bigint")
@@ -2371,6 +2522,39 @@ namespace FamilyVeda.Infrastructure.Persistence.Migrations
                     b.Navigation("Doctor");
 
                     b.Navigation("TriageCase");
+                });
+
+            modelBuilder.Entity("FamilyVeda.Domain.Clinical.ClaimEvidenceFile", b =>
+                {
+                    b.HasOne("FamilyVeda.Domain.Clinical.ClaimEvidenceRequest", "Request")
+                        .WithMany()
+                        .HasForeignKey("RequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_claim_evidence_files_claim_evidence_requests_request_id");
+
+                    b.Navigation("Request");
+                });
+
+            modelBuilder.Entity("FamilyVeda.Domain.Clinical.ClaimEvidenceRequest", b =>
+                {
+                    b.HasOne("FamilyVeda.Domain.Clinical.DoctorClaimDispute", "Dispute")
+                        .WithMany()
+                        .HasForeignKey("DisputeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_claim_evidence_requests_doctor_claim_disputes_dispute_id");
+
+                    b.HasOne("FamilyVeda.Domain.Clinical.Doctor", "Doctor")
+                        .WithMany()
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_claim_evidence_requests_doctors_doctor_id");
+
+                    b.Navigation("Dispute");
+
+                    b.Navigation("Doctor");
                 });
 
             modelBuilder.Entity("FamilyVeda.Domain.Clinical.Doctor", b =>

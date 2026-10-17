@@ -28,6 +28,8 @@ public sealed class Doctor : Entity
     public bool ClaimDisputed { get; set; }
     // Verified claimant whose clinical access is frozen until the dispute is resolved.
     public bool AccessFrozen { get; set; }
+    // Set when an admin confirms this doctor as the real holder; later claims on the number are auto-rejected.
+    public DateTimeOffset? OwnershipConfirmedAt { get; set; }
 }
 
 /// <summary>Synthetic stand-in for the SLMC register (Rule 7: no real register data). Keyed by the same hash as Doctor.</summary>
@@ -47,6 +49,38 @@ public sealed class DoctorClaimDispute : Entity
     public Guid? ResolvedByUserId { get; set; }
     public DateTimeOffset? ResolvedAt { get; set; }
     public string? ResolutionReason { get; set; }
+    public bool DuplicateLicenseFile { get; set; }
+}
+
+/// <summary>Admin request for ownership evidence from one claimant. A challenge has a 3-day deadline, otherwise 30 days.</summary>
+public sealed class ClaimEvidenceRequest : Entity
+{
+    public Guid DisputeId { get; set; }
+    public DoctorClaimDispute? Dispute { get; set; }
+    public Guid DoctorId { get; set; }
+    public Doctor? Doctor { get; set; }
+    public Guid RequestedByUserId { get; set; }
+    /// <summary>Comma-separated <see cref="FamilyVeda.Domain.Common.EvidenceKind"/> names.</summary>
+    public required string RequestedItems { get; set; }
+    public string? Note { get; set; }
+    public bool IsChallenge { get; set; }
+    public DateTimeOffset DueAt { get; set; }
+    public EvidenceRequestStatus Status { get; set; } = EvidenceRequestStatus.Open;
+    public DateTimeOffset? SubmittedAt { get; set; }
+}
+
+/// <summary>One uploaded evidence file. Bytes live in Google Drive when configured (StorageKey), else in Content.</summary>
+public sealed class ClaimEvidenceFile : Entity
+{
+    public Guid RequestId { get; set; }
+    public ClaimEvidenceRequest? Request { get; set; }
+    public EvidenceKind Kind { get; set; }
+    public required string FileName { get; set; }
+    public required string ContentType { get; set; }
+    public long SizeBytes { get; set; }
+    public required string Sha256 { get; set; }
+    public string? StorageKey { get; set; }
+    public byte[]? Content { get; set; }
 }
 
 /// <summary>Synthetic licence / registration document uploaded at doctor sign-up; reviewed by admins only.</summary>
@@ -58,6 +92,8 @@ public sealed class DoctorLicenseDocument : Entity
     public required string ContentType { get; set; }
     public long SizeBytes { get; set; }
     public required byte[] Content { get; set; }
+    // SHA-256 of the file, so an identical licence file reused by another claimant is detected.
+    public string? Sha256 { get; set; }
 }
 
 public sealed class DoctorVerificationLog : Entity

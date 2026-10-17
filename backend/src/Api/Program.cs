@@ -131,6 +131,7 @@ builder.Services.AddHealthChecks();
 builder.Services.AddHostedService<TriageWorker>();
 builder.Services.AddHostedService<LabExtractionWorker>();
 builder.Services.AddHostedService<CaseSlaWorker>();
+builder.Services.AddHostedService<FamilyVeda.Api.Background.ClaimEvidenceDeadlineWorker>();
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
