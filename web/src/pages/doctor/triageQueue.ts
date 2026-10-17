@@ -28,6 +28,8 @@ export type QueueCase = {
   referralClosed?: boolean
   /** The complaint released for a pooled case so the doctor can decide whether to claim it. */
   complaint?: PoolComplaintDto | null
+  /** When this doctor's case grant ends. Present only on granted cases. */
+  grantExpiresAt?: string | null
 }
 
 export type QueueAction = { kind: QueueActionKind; label: string; message?: string }
@@ -63,6 +65,7 @@ export function mergeQueue(assigned: TriageCaseDto[], pool: AvailableCaseDto[], 
       mine: true,
       claimable: false,
       referralClosed: item.referralClosed ?? false,
+      grantExpiresAt: item.grantExpiresAt ?? null,
     })),
     ...pool
       .filter((item) => !mineIds.has(item.id))
@@ -77,6 +80,19 @@ export function mergeQueue(assigned: TriageCaseDto[], pool: AvailableCaseDto[], 
         complaint: item.complaint ?? null,
       })),
   ]
+}
+
+const HOUR = 3_600_000
+/** Countdown for the doctor's case grant: amber inside 12h, red once access has ended. */
+export function grantCountdown(expiresAt: string | null | undefined, now: number = Date.now()): { label: string; tone: QueueTone } | null {
+  if (!expiresAt) return null
+  const left = new Date(expiresAt).getTime() - now
+  if (Number.isNaN(left)) return null
+  if (left <= 0) return { label: 'Access expired', tone: 'danger' }
+  const hours = Math.floor(left / HOUR)
+  const minutes = Math.floor((left % HOUR) / 60_000)
+  const span = hours >= 24 ? `${Math.floor(hours / 24)}d ${hours % 24}h` : hours >= 1 ? `${hours}h ${minutes}m` : `${Math.max(minutes, 1)}m`
+  return { label: `Access ends in ${span}`, tone: left < 12 * HOUR ? 'warning' : 'muted' }
 }
 
 /** An escalated case that still needs a doctor; a closed referral is finished queue work. */

@@ -16,6 +16,7 @@ import {
   type TriageCaseDto,
 } from '../../services/apiClient'
 import { CasePreview } from './CasePreview'
+import { GrantExpiryChip } from './GrantExpiryChip'
 import {
   QUEUE_TABS,
   actionFor,
@@ -361,6 +362,7 @@ export function CasesPage() {
                             {isEmergencyReferral(item) ? <span aria-hidden="true">⚠ </span> : null}
                             {statusLabel(item)}
                           </span>
+                          {item.mine && <GrantExpiryChip expiresAt={item.grantExpiresAt} />}
                         </div>
                       </div>
                       <div className="triage-card__foot">

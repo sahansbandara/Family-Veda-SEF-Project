@@ -1,5 +1,7 @@
 // Owner: S4 · whole-project waiver (agent/DECISIONS.md 2026-09-28b)
 // Building blocks of the doctor Triage Cases queue: tone chips, the case card and the detail sheet.
+import 'dart:async';
+
 import 'package:family_veda/models/doctor_queue_case.dart';
 import 'package:family_veda/providers/doctor_cases_provider.dart';
 import 'package:family_veda/widgets/doctor/calendar_parts.dart';
@@ -60,6 +62,49 @@ class ToneChip extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Live countdown for the doctor's time-bound case grant. Display only: the API enforces access.
+class GrantExpiryChip extends StatefulWidget {
+  const GrantExpiryChip({super.key, required this.expiresAt});
+
+  final DateTime? expiresAt;
+
+  @override
+  State<GrantExpiryChip> createState() => _GrantExpiryChipState();
+}
+
+class _GrantExpiryChipState extends State<GrantExpiryChip> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.expiresAt != null) {
+      _timer = Timer.periodic(
+        const Duration(seconds: 30),
+        (_) => setState(() {}),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final countdown = grantCountdown(widget.expiresAt, DateTime.now());
+    if (countdown == null) return const SizedBox.shrink();
+    return ToneChip(
+      key: const ValueKey('grant-expiry-chip'),
+      label: countdown.label,
+      tone: countdown.tone,
+      icon: Icons.timer_outlined,
     );
   }
 }
@@ -144,6 +189,10 @@ class QueueCaseCard extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               CaseTags(item: item),
+              if (item.mine && item.grantExpiresAt != null) ...[
+                const SizedBox(height: 8),
+                GrantExpiryChip(expiresAt: item.grantExpiresAt),
+              ],
               const SizedBox(height: 10),
               Text(
                 item.mine
