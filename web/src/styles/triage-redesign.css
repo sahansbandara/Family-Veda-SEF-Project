@@ -357,6 +357,7 @@
   text-align: left;
   font-size: 12px;
   font-weight: 550;
+  white-space: nowrap;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -581,6 +582,7 @@
 
 .triage-redesign .filters {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   margin: 16px 0 14px;
 }

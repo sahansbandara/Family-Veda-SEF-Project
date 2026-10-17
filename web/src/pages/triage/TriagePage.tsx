@@ -101,12 +101,15 @@ const symptomOptions = [
   { name: 'Other symptom', icon: 'M12 11v5M12 7.5h.01 M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18' },
 ]
 const severityLabels: Record<number, string> = { 3: 'Mild', 6: 'Moderate', 9: 'Severe' }
-type RequestFilter = 'all' | 'review' | 'ready'
+type RequestFilter = 'all' | 'review' | 'ready' | 'withdrawn'
 const requestFilters: { id: RequestFilter; label: string }[] = [
   { id: 'all', label: 'All' },
   { id: 'review', label: 'In review' },
   { id: 'ready', label: 'Guidance ready' },
+  { id: 'withdrawn', label: 'Withdrawn' },
 ]
+// Withdrawn and replaced requests leave the active list but stay visible here (history is kept).
+const isInactive = (status: string) => status === 'Withdrawn' || status === 'Superseded'
 
 export function TriagePage() {
   const [searchParams] = useSearchParams()
@@ -343,7 +346,9 @@ export function TriagePage() {
       ? isApproved(item.status)
       : filter === 'review'
         ? !isApproved(item.status) && !['Rejected', 'Withdrawn', 'Superseded'].includes(item.status) && !needsInPersonCare(item.status, item.priority)
-        : true,
+        : filter === 'withdrawn'
+          ? isInactive(item.status)
+          : !isInactive(item.status),
   )
   const submitted = message.includes('submitted')
   return (

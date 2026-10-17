@@ -308,4 +308,15 @@ describe('TriagePage request filters', () => {
     expect(screen.getByText(/^Case 0009 ·/)).toBeInTheDocument()
     expect(screen.queryByText(/^Case case-1 ·/)).not.toBeInTheDocument()
   })
+
+  it('moves withdrawn requests out of All into the Withdrawn filter', async () => {
+    const listedCases = [cases[0], { ...cases[0], id: 'case-3', status: 'Withdrawn', caseNumber: 12 }]
+    routeGet({ id: 'case-1', status: 'PendingDoctorReview', priority: 'Routine' }, undefined, listedCases)
+    page('/triage')
+    expect(await screen.findByText(/^Case case-1 ·/)).toBeInTheDocument()
+    expect(screen.queryByText(/^Case 0012 ·/)).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Withdrawn' }))
+    expect(screen.getByText(/^Case 0012 ·/)).toBeInTheDocument()
+    expect(screen.queryByText(/^Case case-1 ·/)).not.toBeInTheDocument()
+  })
 })
