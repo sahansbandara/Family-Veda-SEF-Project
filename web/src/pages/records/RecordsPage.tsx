@@ -61,6 +61,7 @@ export function RecordsPage() {
   const [reports, setReports] = useState<LabReportDto[]>([])
   const [vitals, setVitals] = useState<VitalDto[]>([])
   const [originalReport, setOriginalReport] = useState<LabReportDto | null>(null)
+  const [uploadedReportId, setUploadedReportId] = useState<string | null>(null)
   const [selectedReport, setSelectedReport] = useState<LabReportDetailDto | null>(null)
   const [reviewTarget, setReviewTarget] = useState<LabReportDto | null>(null)
   const [reviewLoading, setReviewLoading] = useState(false)
@@ -241,6 +242,7 @@ export function RecordsPage() {
     setShowRecordForm(false)
     setShowUploadForm(false)
     setUploadFileName('')
+    setUploadedReportId(null)
     setPage(1)
     setMessage('')
   }
@@ -340,10 +342,12 @@ export function RecordsPage() {
       return
     }
     setUploading(true)
+    setUploadedReportId(null)
     try {
       const { data } = await apiClient.post<LabReportDto>(`/members/${memberId}/lab-reports`, form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
+      if (activeMemberId.current === targetMemberId) setUploadedReportId(data.id)
       let sharingFailed = false
       if (shareAfterUpload) {
         try { await apiClient.patch(`/lab-reports/${data.id}/sharing`, { sharedWithFamilyHead: true }) }
@@ -661,6 +665,14 @@ export function RecordsPage() {
             onClick={() => setMessage('')}
           >
             Dismiss
+          </button>
+        </div>
+      )}
+      {uploadedReportId && !isSharedView && reports.some((report) => report.id === uploadedReportId) && (
+        <div className="care-actions">
+          <button type="button" className="button button--primary" disabled={uploading}
+            onClick={() => void openReport(uploadedReportId)}>
+            View report &amp; check values
           </button>
         </div>
       )}

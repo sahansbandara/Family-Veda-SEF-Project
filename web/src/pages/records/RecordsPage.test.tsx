@@ -92,6 +92,44 @@ function stubLists() {
 }
 
 describe('RecordsPage', () => {
+  it('opens uploaded values directly and clears the link on profile switch', async () => {
+    stubLists()
+    const report = {
+      id: 'synthetic-uploaded-report', memberId: member.id,
+      originalFileName: 'synthetic-lab.png', ocrStatus: 'Completed', hasOriginalFile: false,
+    }
+    let uploaded = false
+    const defaultGet = mocks.get.getMockImplementation()!
+    mocks.get.mockImplementation((url: string, config?: unknown) => {
+      if (url === `/members/${member.id}/lab-reports`) return Promise.resolve({ data: uploaded ? [report] : [] })
+      if (url === `/lab-reports/${report.id}`) return Promise.resolve({ data: { ...report, values: [], flags: [] } })
+      return defaultGet(url, config)
+    })
+    mocks.post.mockImplementation((url: string) => {
+      if (url.endsWith('/lab-reports')) { uploaded = true; return Promise.resolve({ data: report }) }
+      return Promise.resolve({ data: {} })
+    })
+    render(<MemoryRouter initialEntries={['/records?upload=1']}><RecordsPage /></MemoryRouter>)
+    const file = new File(['synthetic'], 'synthetic-lab.png', { type: 'image/png' })
+    await userEvent.upload(await screen.findByLabelText(/report file/i), file)
+    // jsdom does not include userEvent's selected File in FormData(form).
+    const getFormValue = FormData.prototype.get
+    const formGet = vi.spyOn(FormData.prototype, 'get').mockImplementation(function (this: FormData, key) {
+      return key === 'file' ? file : getFormValue.call(this, key)
+    })
+    try {
+      fireEvent.submit(screen.getByLabelText(/report file/i).closest('form')!)
+    } finally {
+      formGet.mockRestore()
+    }
+    await userEvent.click(await screen.findByRole('button', { name: 'View report & check values' }))
+    expect(await screen.findByRole('dialog', { name: 'synthetic-lab.png' })).toBeInTheDocument()
+    expect(mocks.get).toHaveBeenCalledWith(`/lab-reports/${report.id}`)
+    await userEvent.click(screen.getByRole('button', { name: /close report review/i }))
+    await userEvent.selectOptions(screen.getByLabelText(/profile/i), minor.id)
+    expect(screen.queryByRole('button', { name: 'View report & check values' })).not.toBeInTheDocument()
+  })
+
   beforeEach(() => {
     mocks.get.mockReset()
     mocks.post.mockReset()

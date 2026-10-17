@@ -426,3 +426,16 @@ User explicitly requested actual app integration and develop push. React dialog,
 ## 2026-10-17 — Submitted complaint counts as required agent evidence (amends a78bc87 rule)
 
 Context and Analysis previously reported NoData unless the member had prior history or lab trends, so every member without labs failed with `MISSING_REQUIRED_AGENT_EVIDENCE` even when the agent returned valid output. User approved: the submitted complaint itself is agent input data. Missing, invalid or empty agent output still fails closed; confidence rules still route weak drafts to LowConfidence for doctor review. No patient-visible change; RULE 2 approval gate unchanged.
+
+## 2026-10-17 — Personal Team iPhone build without push
+- User explicitly approved building/installing on their connected iPhone without notifications after Apple's Personal Team rejected the Push Notifications capability.
+- Remove the iOS aps-environment entitlement and disable com.apple.Push in Runner. Preserve keychain entitlement, backend notification delivery, Android configuration and clinical approval rules. Restoring iOS push requires a supported Apple Developer team and re-enabling the capability/entitlement.
+- Use the existing Railway API URL through generated Flutter build defines. No commit, push or deployment authorized.
+
+## 2026-10-17 — Upload directly to report-value review
+- User explicitly approved the records-flow plan and ownership exception for the required edits after being informed the earlier waiver had expired. Implement on codex/mobile-report-review rather than protected develop.
+- Reuse existing original-document and extracted-value review components and API permissions. Add View existing reports and View report & check values to Flutter upload; select the Lab reports tab and open only a report found in the currently authorized profile list. Mirror the post-upload action on responsive web.
+- Return the saved report ID from MobileApi.uploadLabReport; preserve it in SavedReportUploadException when sharing/extraction follow-up fails, so the user can review/retry without duplicate uploads. Discard links when the profile changes.
+- Rejected: a second review screen or backend schema/API changes; existing review supports corrections, confirmation, extraction status and retry. No clinical interpretation, auth changes, migration, production web deployment or commit.
+- User reported login was working again during investigation. No credential/auth changes made. Release iOS app does not require its USB cable; API access needs internet and free-team signing expires independently.
+- Required rules/common/*, agent/BRIEF.md and blueprint are absent in this checkout. Used current CLAUDE.md, agent context, docs/OWNERSHIP.tsv and university requirements/audit; rechecked A1 specification PDF pages 2–3.

@@ -72,6 +72,71 @@ const reports = [
   ),
 ];
 void main() {
+  testWidgets('uploaded report link opens extracted values directly', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 1000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final api = _FileApi();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeMemberProvider.overrideWith((ref) => 'member-1'),
+          myMemberIdProvider.overrideWith((ref) async => 'member-1'),
+          memberRecordsProvider.overrideWith((ref) async => []),
+          memberLabReportsProvider.overrideWith((ref) async => reports),
+          mobileApiProvider.overrideWithValue(api),
+        ],
+        child: const MaterialApp(
+          home: RecordsScreen(
+            initialTab: 1,
+            initialReportId: 'synthetic-report',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(ReportReviewWorkspace), findsOneWidget);
+    expect(find.text('Synthetic glucose'), findsOneWidget);
+    expect(api.reviews, 0);
+    expect(api.extractions, 0);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('uploaded report link cannot open a report outside the profile', (
+    tester,
+  ) async {
+    final api = _FileApi();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          activeMemberProvider.overrideWith((ref) => 'member-1'),
+          myMemberIdProvider.overrideWith((ref) async => 'member-1'),
+          memberRecordsProvider.overrideWith((ref) async => []),
+          memberLabReportsProvider.overrideWith((ref) async => reports),
+          mobileApiProvider.overrideWithValue(api),
+        ],
+        child: const MaterialApp(
+          home: RecordsScreen(
+            initialTab: 1,
+            initialReportId: 'different-profile-report',
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(ReportReviewWorkspace), findsNothing);
+    expect(
+      find.text(
+        'This report is not available for review in the selected profile.',
+      ),
+      findsOneWidget,
+    );
+    expect(api.loads, 0);
+    expect(api.reviews, 0);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('original recheck opens review without starting extraction', (
     tester,
   ) async {

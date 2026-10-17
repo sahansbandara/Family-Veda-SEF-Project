@@ -222,6 +222,67 @@ void main() {
 
   tearDown(() => tokenStore.expirations.close());
 
+  test(
+    'report library preserves selected-member scope and saved report ID',
+    () async {
+      adapter.respond(
+        '/api/v1/members/synthetic-selected/lab-reports',
+        status: 200,
+        body: {
+          'items': [
+            {
+              'id': 'synthetic-saved-report',
+              'memberId': 'synthetic-selected',
+              'originalFileName': 'synthetic.png',
+              'uploadedAt': '2026-10-17T00:00:00Z',
+              'ocrStatus': 'Completed',
+              'hasOriginalFile': true,
+            },
+          ],
+        },
+      );
+      final reports = await DioMobileApi(
+        client,
+      ).getLabReports('synthetic-selected');
+      expect(reports.single.id, 'synthetic-saved-report');
+      expect(reports.single.memberId, 'synthetic-selected');
+      expect(reports.single.hasOriginalFile, isTrue);
+      expect(adapter.requests.single.method, 'GET');
+    },
+  );
+
+  test('vitals keep stored units and selected-member scope', () async {
+    adapter.respond(
+      '/api/v1/members/synthetic-selected/vitals',
+      status: 200,
+      body: [
+        {
+          'id': 'synthetic-vital',
+          'memberId': 'synthetic-selected',
+          'vitalType': 'HeartRate',
+          'value': 72,
+          'unit': 'bpm',
+          'measuredAt': '2026-10-17T00:00:00Z',
+        },
+      ],
+    );
+    final vitals = await DioMobileApi(client).getVitals('synthetic-selected');
+    expect(vitals.single.value, 72);
+    expect(vitals.single.unit, 'bpm');
+    expect(vitals.single.memberId, 'synthetic-selected');
+    expect(adapter.requests.single.method, 'GET');
+  });
+
+  test('record ownership uses the authenticated member endpoint', () async {
+    adapter.respond(
+      '/api/v1/members/me',
+      status: 200,
+      body: {'id': 'synthetic-self'},
+    );
+    expect(await DioMobileApi(client).getMyMemberId(), 'synthetic-self');
+    expect(adapter.requests.single.uri.path, '/api/v1/members/me');
+  });
+
   Future<String> submitSyntheticComplaint() =>
       DioPatientApi(
         client,
@@ -766,11 +827,12 @@ void main() {
           status: 200,
           body: {},
         );
-        await DioMobileApi(client).uploadLabReport(
+        final reportId = await DioMobileApi(client).uploadLabReport(
           memberId: 'member-1',
           path: file.path,
           sharedWithFamilyHead: shared,
         );
+        expect(reportId, 'saved-report');
         final paths = adapter.requests.map((r) => r.uri.path).toList();
         expect(paths, [
           '/api/v1/members/member-1/lab-reports',
@@ -810,11 +872,9 @@ void main() {
           sharedWithFamilyHead: true,
         ),
         throwsA(
-          isA<SavedReportUploadException>().having(
-            (e) => e.message,
-            'message',
-            contains('saved privately'),
-          ),
+          isA<SavedReportUploadException>()
+              .having((e) => e.message, 'message', contains('saved privately'))
+              .having((e) => e.reportId, 'reportId', 'saved-report'),
         ),
       );
       expect(adapter.requests.length, 2);
@@ -845,11 +905,13 @@ void main() {
           client,
         ).uploadLabReport(memberId: 'member-1', path: file.path),
         throwsA(
-          isA<SavedReportUploadException>().having(
-            (e) => e.message,
-            'message',
-            contains('Do not upload it again'),
-          ),
+          isA<SavedReportUploadException>()
+              .having(
+                (e) => e.message,
+                'message',
+                contains('Do not upload it again'),
+              )
+              .having((e) => e.reportId, 'reportId', 'saved-report'),
         ),
       );
       expect(adapter.requests.length, 2);

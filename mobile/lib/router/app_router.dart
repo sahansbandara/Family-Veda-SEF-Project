@@ -1,4 +1,7 @@
 // ⚠ SHARED — coordinated route blocks for S1-S4.
+// ===== S2 — Records route identity =====
+import 'package:flutter/foundation.dart' show ValueKey;
+// ===== End S2 — Records route identity =====
 import 'package:family_veda/providers/active_member_provider.dart';
 import 'package:family_veda/providers/auth_provider.dart';
 import 'package:family_veda/screens/profile/profile_screen.dart';
@@ -73,7 +76,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
           GoRoute(path: '/members', builder: (_, _) => const MembersScreen()),
-          GoRoute(path: '/records', builder: (_, _) => const RecordsScreen()),
+          // ===== S2 — Health records upload-to-review navigation =====
+          GoRoute(
+            path: '/records',
+            builder: (_, state) => RecordsScreen(
+              key: ValueKey(state.uri.toString()),
+              initialTab: state.uri.queryParameters['tab'] == 'reports' ? 1 : 0,
+              initialReportId: state.uri.queryParameters['reportId'],
+            ),
+          ),
+          // ===== End S2 — Health records upload-to-review navigation =====
           GoRoute(path: '/cases', builder: (_, _) => const CasesScreen()),
           GoRoute(path: '/my-doctor', builder: (_, _) => const MyDoctorScreen()),
           GoRoute(path: '/appointments', builder: (_, _) => const AppointmentsScreen()),

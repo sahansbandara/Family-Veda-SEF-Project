@@ -25,7 +25,7 @@ abstract interface class MobileApi {
     required String unit,
     required DateTime measuredAt,
   });
-  Future<void> uploadLabReport({
+  Future<String> uploadLabReport({
     required String memberId,
     required String path,
     bool sharedWithFamilyHead = false,
@@ -109,7 +109,7 @@ class DioMobileApi implements MobileApi {
   }
 
   @override
-  Future<void> uploadLabReport({
+  Future<String> uploadLabReport({
     required String memberId,
     required String path,
     bool sharedWithFamilyHead = false,
@@ -134,8 +134,9 @@ class DioMobileApi implements MobileApi {
       try {
         await setLabReportSharing(reportId: reportId, shared: true);
       } on Object {
-        throw const SavedReportUploadException(
+        throw SavedReportUploadException(
           'Report saved privately. Sharing was not changed. Update it from Health records.',
+          reportId: reportId,
         );
       }
     }
@@ -145,17 +146,25 @@ class DioMobileApi implements MobileApi {
       // 422 carries the backend's own reason, e.g. the 4-page limit; it is safe to show as-is.
       final data = error.response?.data;
       final detail = data is Map<String, dynamic> ? data['detail'] : null;
-      if (error.response?.statusCode == 422 && detail is String && detail.isNotEmpty) {
-        throw SavedReportUploadException('Report saved. $detail');
+      if (error.response?.statusCode == 422 &&
+          detail is String &&
+          detail.isNotEmpty) {
+        throw SavedReportUploadException(
+          'Report saved. $detail',
+          reportId: reportId,
+        );
       }
-      throw const SavedReportUploadException(
+      throw SavedReportUploadException(
         'Report saved. Reading could not be started; open it in Health records to read it again. Do not upload it again.',
+        reportId: reportId,
       );
     } on Object {
-      throw const SavedReportUploadException(
+      throw SavedReportUploadException(
         'Report saved. Reading could not be started; open it in Health records to read it again. Do not upload it again.',
+        reportId: reportId,
       );
     }
+    return reportId;
   }
 
   @override
@@ -250,6 +259,7 @@ List<Map<String, dynamic>> _listFrom(dynamic value) {
 }
 
 class SavedReportUploadException implements Exception {
-  const SavedReportUploadException(this.message);
+  const SavedReportUploadException(this.message, {this.reportId});
   final String message;
+  final String? reportId;
 }

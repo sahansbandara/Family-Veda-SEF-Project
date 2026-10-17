@@ -47,11 +47,11 @@ class _FakeMobileApi implements MobileApi {
   }) async {}
 
   @override
-  Future<void> uploadLabReport({
+  Future<String> uploadLabReport({
     required String memberId,
     required String path,
     bool sharedWithFamilyHead = false,
-  }) async {}
+  }) async => 'synthetic-report';
 
   @override
   Future<List<LabReport>> getLabReports(String memberId) async => const [];

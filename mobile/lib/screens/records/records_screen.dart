@@ -25,7 +25,10 @@ import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 
 class RecordsScreen extends ConsumerStatefulWidget {
-  const RecordsScreen({super.key});
+  const RecordsScreen({super.key, this.initialTab = 0, this.initialReportId});
+
+  final int initialTab;
+  final String? initialReportId;
 
   @override
   ConsumerState<RecordsScreen> createState() => _RecordsScreenState();
@@ -162,6 +165,7 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
         : ref.watch(recordsByMemberProvider(selected));
     final myMemberId = ref.watch(myMemberIdProvider).valueOrNull;
     return DefaultTabController(
+      initialIndex: widget.initialTab,
       length: 3,
       child: Scaffold(
         appBar: AppBar(
@@ -394,6 +398,7 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
                       memberId: selected,
                       myMemberId: myMemberId,
                       canManage: !readOnly,
+                      initialReportId: widget.initialReportId,
                       onToggle: _toggleReport,
                     ),
                     VitalsTab(readOnly: readOnly),
@@ -415,7 +420,9 @@ class _LabReportsTab extends ConsumerStatefulWidget {
     required this.myMemberId,
     required this.canManage,
     required this.onToggle,
+    this.initialReportId,
   });
+  final String? initialReportId;
   final String? memberId;
 
   /// False for a Head reading another adult's shared reports: no delete, no trash.
@@ -430,6 +437,32 @@ class _LabReportsTab extends ConsumerStatefulWidget {
 
 class _LabReportsTabState extends ConsumerState<_LabReportsTab> {
   bool _grid = false;
+  bool _initialReviewHandled = false;
+
+  void _openUploadedReport(List<LabReport> reports, String? memberId) {
+    final reportId = widget.initialReportId;
+    if (_initialReviewHandled || reportId == null) return;
+    _initialReviewHandled = true;
+    final matches = reports.where((report) => report.id == reportId);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          (widget.memberId ?? ref.read(activeMemberProvider)) != memberId) {
+        return;
+      }
+      if (!widget.canManage || matches.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'This report is not available for review in the selected profile.',
+            ),
+          ),
+        );
+        return;
+      }
+      unawaited(_checkValues(matches.first, memberId));
+    });
+  }
+
   Timer? _readingTimer;
   DateTime? _readingSince;
 
@@ -630,6 +663,7 @@ class _LabReportsTabState extends ConsumerState<_LabReportsTab> {
       ),
       data: (items) {
         _scheduleReadingRefresh(items);
+        _openUploadedReport(items, memberId);
         final trash = widget.canManage && memberId != null
             ? DeletedReportsSection(
                 key: ValueKey('trash:$memberId'),
