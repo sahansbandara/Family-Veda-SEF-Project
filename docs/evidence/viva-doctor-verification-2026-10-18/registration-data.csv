@@ -1,0 +1,4 @@
+role,fullName,email,mobileNumber,registrationNumber,specialization,hospitalClinic,practiceCity,district,languages,document
+A,Dr. Synthetic Amara Perera,viva-dispute-doctor-a@example.invalid,0700000000,90001,General Practice,Synthetic Viva Training Clinic,Colombo,Colombo,"Sinhala, English",SYNTHETIC_doctor_A_certificate.pdf
+B,Dr Viva Synthetic B,viva-dispute-doctor-b@example.invalid,0700000000,90001,General Practice,Synthetic Viva Training Clinic,Colombo,Colombo,"Sinhala, English",SYNTHETIC_doctor_B_certificate.pdf
+C,Dr Viva Synthetic C,viva-dispute-doctor-c@example.invalid,0700000000,90001,General Practice,Synthetic Viva Training Clinic,Colombo,Colombo,"Sinhala, English",SYNTHETIC_doctor_C_certificate.pdf
