@@ -286,16 +286,16 @@ public sealed class GoldenCaseFlowTests : IAsyncLifetime
             email = $"synthetic-{prefix}@example.invalid",
             password = "Synthetic-Test-Password-42!",
             displayName = "Synthetic Verified Doctor",
-            userType = "Doctor"
+            userType = "Doctor",
+            registrationNumber = "88001",
+            specialty = "Synthetic specialty",
+            hospitalClinic = "Synthetic Clinic",
+            phoneNumber = "0771234567"
         });
         registration.StatusCode.Should().Be(HttpStatusCode.Created);
         var auth = await registration.Content.ReadFromJsonAsync<JsonElement>();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.GetProperty("accessToken").GetString());
-        (await client.PostAsJsonAsync("/api/v1/doctors/register", new
-        {
-            registrationNumber = "SYNTHETIC-GOLDEN-DOCTOR",
-            specialty = "Synthetic specialty"
-        })).StatusCode.Should().Be(HttpStatusCode.Created);
+        // Doctor sign-up now creates the doctor profile in the same call (registration validation, 0b7288b).
 
         await using var scope = _factory!.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
