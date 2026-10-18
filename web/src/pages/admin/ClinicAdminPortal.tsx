@@ -17,6 +17,7 @@ import {
 import './ClinicAdminPortal.css'
 import { ClaimDisputesPanel } from './ClaimDisputesPanel'
 import { RegisterMatchBadge } from './RegisterMatchBadge'
+import { openLicenseDocument } from './claimDisputes'
 
 export type AdminTab =
   | 'dashboard'
@@ -644,6 +645,14 @@ export function ClinicAdminPortal({ initialTab = 'dashboard' }: Props) {
                               onClick={() => setSelectedDoctor(doc)}
                             >
                               👁️ Details
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-action"
+                              title="Open the licence document uploaded at registration"
+                              onClick={() => void openLicenseDocument(doc.id).catch(() => showToast('No licence document for this doctor.'))}
+                            >
+                              📄 Licence
                             </button>
                             {isPending ? (
                               <button
