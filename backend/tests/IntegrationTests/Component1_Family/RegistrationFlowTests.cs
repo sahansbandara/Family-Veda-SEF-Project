@@ -173,7 +173,7 @@ public sealed class RegistrationFlowTests : IAsyncLifetime
 
     private static object HeadBody(string email, string nic) => new
     {
-        account = new { fullName = "Synthetic Head", email, mobileNumber = "+94 771234567", password = Password, confirmPassword = Password },
+        account = new { fullName = "Synthetic Head", email, mobileNumber = "+94771234567", password = Password, confirmPassword = Password },
         personal = new { dateOfBirth = "1985-06-15", sexForClinicalReference = "Female" },
         familyName = "Synthetic Registration Family",
         nationalId = nic,
