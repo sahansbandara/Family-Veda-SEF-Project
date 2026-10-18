@@ -33,12 +33,23 @@ describe('practice option helpers', () => {
   })
 
   it('accepts Sri Lankan mobile and landline numbers only', () => {
-    for (const ok of ['', '0771234567', '+94771234567', '011 234 5678', '+94 (11) 234-5678']) expect(phoneProblem(ok)).toBeNull()
-    for (const bad of ['12345', '077123456', '+1 555 010 0000', 'call me']) expect(phoneProblem(bad)).not.toBeNull()
+    for (const ok of ['', '0771234567', '+94771234567', '0112345678', '+94112345678']) expect(phoneProblem(ok)).toBeNull()
+    for (const bad of ['12345', '077123456', '+1 555 010 0000', 'call me', '011 234 5678', '+94 (11) 234-5678']) expect(phoneProblem(bad)).not.toBeNull()
   })
 })
 
 describe('PracticeProfileForm', () => {
+  it('rejects typed or pasted letters in professional phone', () => {
+    setup()
+    const phone = screen.getByLabelText('Professional phone')
+    fireEvent.change(phone, { target: { value: 'letters' } })
+    expect(phone).toHaveValue('0771234567')
+    fireEvent.change(phone, { target: { value: '+94112345678' } })
+    expect(phone).toHaveValue('+94112345678')
+    fireEvent.change(phone, { target: { value: '+94112345678abc' } })
+    expect(phone).toHaveValue('+94112345678')
+  })
+
   it('saves an untouched profile without losing any saved value', async () => {
     const { onSave, save } = setup()
     save()

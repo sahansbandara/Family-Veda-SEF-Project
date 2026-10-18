@@ -48,4 +48,46 @@ void main() {
       expect(find.text('Sri Lanka time · UTC+05:30'), findsOneWidget);
     });
   }
+  testWidgets('clears selection when availability refresh fails', (
+    tester,
+  ) async {
+    var fail = false;
+    DateTime? selection;
+    final slot = DateTime.utc(2026, 10, 19, 4, 30);
+    final key = familyDoctorSlotsProvider((familyId: 'f', date: '2026-10-19'));
+    final container = ProviderContainer(
+      overrides: [
+        key.overrideWith((ref) async {
+          if (fail) throw Exception('offline');
+          return FamilyDoctorSlots(
+            configured: true,
+            slotMinutes: 30,
+            slots: [slot],
+          );
+        }),
+      ],
+    );
+    addTearDown(container.dispose);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          home: Scaffold(
+            body: FamilyDoctorAvailability(
+              familyId: 'f',
+              initialSlot: slot,
+              onSelected: (value, duration) => selection = value,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(selection, slot);
+    fail = true;
+    container.invalidate(key);
+    await tester.pumpAndSettle();
+    expect(selection, isNull);
+    expect(find.text('Retry availability'), findsOneWidget);
+  });
 }

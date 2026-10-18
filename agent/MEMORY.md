@@ -235,3 +235,11 @@ Android debug demo APK build PASSED (assembleDebug 516.6s): mobile/build/app/out
 - C# `\d` permits Unicode digits; professional registration numbers and postal codes use `[0-9]`.
 - Flutter professional-step checkbox tiles need a local transparent Material inside the decorated registration card to avoid Flutter debug assertions.
 - This checkout lacks referenced `rules/common/*`, university reference docs and the blueprint. Use the available ownership map and report those source gaps.
+
+
+## 2026-10-18 — Availability failure and booking parity
+
+- DoctorWorkspaceService queried PostgreSQL timestamptz using +05:30 day boundaries, causing500. UTC boundaries preserve the intended clinic-local date. AppointmentService must also normalize offset inputs before EF queries/storage.
+- Never replace failed slot loading with a free-text time field. Display retry/no-hours/no-free-slots states and disable booking until a current API slot is selected.
+- Riverpod refresh can retain stale data: availability uses skipLoadingOnRefresh:false and clears parent selection while loading/error. Validate deep-link selection against both cached and newly loaded provider data.
+- Date-based slot iteration avoids TimeOnly midnight wrapping; a slot must end inside its availability window.

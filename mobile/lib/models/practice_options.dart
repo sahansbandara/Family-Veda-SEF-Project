@@ -465,11 +465,11 @@ List<String> parseChoices(
 String? joinChoices(List<String> choices) =>
     choices.isEmpty ? null : choices.join(', ');
 
-final _phone = RegExp(r'^(?:0|\+94)\d{9}$');
+final _phone = RegExp(r'^(?:0|\+94)[0-9]{9}$');
 
 /// Null when the number is empty (the field is optional) or a Sri Lankan mobile or landline number.
 String? phoneProblem(String value) {
-  final digits = value.replaceAll(RegExp(r'[\s()-]'), '');
+  final digits = value.trim();
   return digits.isEmpty || _phone.hasMatch(digits)
       ? null
       : 'Enter a Sri Lankan phone number, e.g. 0112345678 or +94771234567.';

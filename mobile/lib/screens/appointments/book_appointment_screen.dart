@@ -3,6 +3,9 @@
 // [S4] Three-portal family features — book appointment with Royal Blue Hero banner,
 // role-aware doctor assignment guidance (Family Head vs Adult Member), and bookable member gating.
 import 'package:family_veda/models/member.dart';
+import 'package:family_veda/models/family_doctor_slots.dart';
+import 'package:family_veda/providers/family_doctor_slots_provider.dart';
+import 'package:family_veda/services/api/doctor_practice_api.dart';
 import 'package:family_veda/providers/active_member_provider.dart';
 import 'package:family_veda/providers/family_dashboard_role_provider.dart';
 import 'package:family_veda/providers/family_portal_provider.dart';
@@ -98,7 +101,7 @@ class BookAppointmentScreen extends ConsumerStatefulWidget {
 class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
   final _reasonController = TextEditingController();
   String? _selectedMemberId;
-  late DateTime? _selectedSlot = widget.initialSlot?.toUtc();
+  DateTime? _selectedSlot;
   late int _durationMinutes = widget.initialMinutes;
   ReportAttachment? _attachment;
   bool _submitting = false;
@@ -161,12 +164,25 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
         );
         Navigator.of(context).pop(true);
       }
-    } on Object {
+    } on Object catch (error) {
+      final familyId = ref.read(familyDashboardProvider).valueOrNull?.familyId;
+      if (familyId != null) {
+        final day = sriLankaTime(startsAt);
+        final date =
+            '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+        ref.invalidate(
+          familyDoctorSlotsProvider((familyId: familyId, date: date)),
+        );
+      }
       if (mounted && ref.read(activeMemberProvider) == profileId) {
+        setState(() => _selectedSlot = null);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Could not book the appointment. A family doctor must be assigned first.',
+              practiceErrorMessage(
+                error,
+                'Could not book the appointment. Availability has been refreshed. Choose an available time and try again.',
+              ),
             ),
             backgroundColor: AppColors.danger,
           ),
@@ -701,11 +717,13 @@ class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
                         width: double.infinity,
                         height: 48,
                         child: ElevatedButton(
-                          onPressed: _submitting
+                          onPressed: _submitting || _selectedSlot == null
                               ? null
-                              : () => _submit(familyDoctor != null),
+                              : () => _submit(true),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: isDark ? AppColors.primaryDark : AppColors.primary,
+                            backgroundColor: isDark
+                                ? AppColors.primaryDark
+                                : AppColors.primary,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),

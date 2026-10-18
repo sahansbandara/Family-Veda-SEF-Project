@@ -110,9 +110,9 @@ export function PracticeProfileForm({ profile, onSave }: {
         <div className="dprof-grid">
           <div className="dprof-field">
             <label htmlFor={`${id}-phone`}>Professional phone</label>
-            <input id={`${id}-phone`} type="tel" inputMode="tel" autoComplete="tel" maxLength={32} placeholder="e.g. 0112345678"
+            <input id={`${id}-phone`} type="tel" inputMode="tel" autoComplete="tel" maxLength={12} placeholder="e.g. 0112345678"
               value={draft.phoneNumber} aria-invalid={phoneError ? true : undefined} aria-describedby={phoneError ? `${id}-phone-error` : undefined}
-              onChange={(event) => { setPhoneError(null); set({ phoneNumber: event.target.value }) }} />
+              onChange={(event) => { if (/^\+?[0-9]*$/.test(event.target.value)) { setPhoneError(null); set({ phoneNumber: event.target.value }) } }} />
             {phoneError && <small className="dprof-hint dprof-hint--error" id={`${id}-phone-error`} role="alert">{phoneError}</small>}
           </div>
           <label className="dprof-field">Appointment length

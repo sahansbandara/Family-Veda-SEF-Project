@@ -257,6 +257,62 @@ public sealed class DoctorWorkspaceServiceTests
             .Should().ThrowAsync<NotFoundException>();
     }
 
+    [Theory]
+    [InlineData("synthetic")]
+    [InlineData("011000000a")]
+    [InlineData("+9411000000a")]
+    [InlineData("011 0000000")]
+    [InlineData("011-0000000")]
+    [InlineData("(011)0000000")]
+    [InlineData("011+000000")]
+    [InlineData("++94110000000")]
+    [InlineData("94110000000")]
+    [InlineData("011000000")]
+    [InlineData("01100000000")]
+    [InlineData("０１１０００００００")]
+    [InlineData("٠١١٠٠٠٠٠٠٠")]
+    public async Task Profile_InvalidPhone_RejectsWithoutChangingProfileOrAudit(string phone)
+    {
+        await using var db = NewDb();
+        var f = await SeedAsync(db);
+        f.Doctor.PhoneNumber = "0110000000";
+        f.Doctor.HospitalClinic = "Synthetic original clinic";
+        await db.SaveChangesAsync();
+
+        var action = () => Workspace(db, f.DoctorUser.Id).UpdateProfileAsync(
+            new UpdatePracticeProfileRequest("GP", "Synthetic changed clinic", phone, null, null, null, null, true, 30), CancellationToken.None);
+
+        var error = await action.Should().ThrowAsync<ValidationException>();
+        error.Which.Errors.Should().ContainKey("phoneNumber");
+        db.ChangeTracker.Clear();
+        var persisted = await db.Doctors.SingleAsync(x => x.Id == f.Doctor.Id);
+        persisted.PhoneNumber.Should().Be("0110000000");
+        persisted.HospitalClinic.Should().Be("Synthetic original clinic");
+        (await db.AuditLogs.AnyAsync(x => x.EventType == "DOCTOR_PROFILE_UPDATED")).Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData("0110000000", "0110000000")]
+    [InlineData("0700000000", "0700000000")]
+    [InlineData("+94110000000", "+94110000000")]
+    [InlineData("+94700000000", "+94700000000")]
+    [InlineData(" 0110000000 ", "0110000000")]
+    [InlineData(null, null)]
+    [InlineData("", null)]
+    [InlineData("  ", null)]
+    public async Task Profile_ValidOptionalPhone_SavesTrimmedValue(string? phone, string? expected)
+    {
+        await using var db = NewDb();
+        var f = await SeedAsync(db);
+
+        var result = await Workspace(db, f.DoctorUser.Id).UpdateProfileAsync(
+            new UpdatePracticeProfileRequest("GP", null, phone, null, null, null, null, true, 30), CancellationToken.None);
+
+        result.PhoneNumber.Should().Be(expected);
+        db.ChangeTracker.Clear();
+        (await db.Doctors.SingleAsync(x => x.Id == f.Doctor.Id)).PhoneNumber.Should().Be(expected);
+    }
+
     [Fact]
     public async Task Profile_RejectsUnsupportedSlotLength()
     {

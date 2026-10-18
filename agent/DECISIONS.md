@@ -465,3 +465,8 @@ User approved changes across S1/S4 registration flows and requested checking all
 - Validation applies to React, Flutter, multipart registration, legacy account registration and the authenticated doctor-profile endpoint. Client filtering alone cannot protect the API.
 - Removed fabricated doctor phone/specialty/clinic defaults. Required professional details must come from the user.
 - No schema, dependency, deployment or authentication-policy changes.
+
+
+## 2026-10-18 — Approved appointment availability recovery
+
+User approved S1/S4 implementation, develop push and deployment verification. Railway logs confirmed Npgsql rejects +05:30 DateTimeOffset query parameters. Convert clinic day query boundaries and booking/rescheduling/follow-up instants to UTC; retain Sri Lanka slot labels. Keep existing authorization and schedule/conflict checks. Reject arbitrary manual-time fallback when availability is unavailable or unconfigured; only returned slots may be selected. Clear selections on date change, refresh/error and booking rejection. Keep optional profile phone values canonical (ASCII digits, leading +94 allowed). Real PostgreSQL HTTP tests cover returned-offset booking201, duplicate409, reschedule200 and invalid-phone400 without persistence. Slot end must remain within the same configured window, including late-night windows. No migration/dependency or security-policy change.

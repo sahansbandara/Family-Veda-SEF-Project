@@ -363,6 +363,20 @@ void main() {
     expect(api.updates, isEmpty);
   });
 
+  testWidgets('professional phone rejects typed and pasted letters', (
+    tester,
+  ) async {
+    await _pump(tester);
+    await _tap(tester, find.text('Practice'));
+    final phone = find.widgetWithText(TextField, 'Professional phone');
+    await _tap(tester, find.text('Professional phone'));
+    await tester.enterText(phone, 'letters');
+    expect(tester.widget<TextField>(phone).controller!.text, '');
+    await tester.enterText(phone, '+94112345678');
+    await tester.enterText(phone, '+94112345678abc');
+    expect(tester.widget<TextField>(phone).controller!.text, '+94112345678');
+  });
+
   test('practice option helpers match the web module', () {
     expect(districts, hasLength(25));
     expect(parseChoices('sinhala / English', languageOptions), [
@@ -370,10 +384,10 @@ void main() {
       'English',
     ]);
     expect(joinChoices([]), isNull);
-    for (final ok in ['', '0771234567', '+94771234567', '011 234 5678']) {
+    for (final ok in ['', '0771234567', '+94771234567', '0112345678']) {
       expect(phoneProblem(ok), isNull);
     }
-    for (final bad in ['12345', '+1 555 010 0000', 'call me']) {
+    for (final bad in ['12345', '+1 555 010 0000', 'call me', '011 234 5678']) {
       expect(phoneProblem(bad), isNotNull);
     }
   });

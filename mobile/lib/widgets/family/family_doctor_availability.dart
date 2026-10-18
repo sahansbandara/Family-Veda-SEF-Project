@@ -32,6 +32,22 @@ class _FamilyDoctorAvailabilityState
     final day = sriLankaTime(initial ?? DateTime.now());
     _date = DateTime.utc(day.year, day.month, day.day);
     _selected = initial;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final value = ref.read(
+        familyDoctorSlotsProvider((
+          familyId: widget.familyId,
+          date: DateFormat('yyyy-MM-dd').format(_date),
+        )),
+      );
+      if (value.hasValue && !value.isLoading && !value.hasError) {
+        final data = value.requireValue;
+        if (!data.configured || !data.slots.contains(_selected)) {
+          setState(() => _selected = null);
+        }
+        widget.onSelected?.call(_selected, data.slotMinutes);
+      }
+    });
   }
 
   Future<void> _chooseDate() async {
@@ -59,11 +75,15 @@ class _FamilyDoctorAvailabilityState
     ref.listen<AsyncValue<FamilyDoctorSlots>>(
       familyDoctorSlotsProvider(request),
       (previous, next) {
-        if (_selected != null &&
-            next.hasValue &&
-            !next.requireValue.slots.contains(_selected)) {
-          setState(() => _selected = null);
-          widget.onSelected?.call(null, next.requireValue.slotMinutes);
+        if (next.hasValue && !next.isLoading && !next.hasError) {
+          final data = next.requireValue;
+          if (!data.configured || !data.slots.contains(_selected)) {
+            setState(() => _selected = null);
+          }
+          widget.onSelected?.call(_selected, data.slotMinutes);
+        } else {
+          if (_selected != null) setState(() => _selected = null);
+          widget.onSelected?.call(null, 30);
         }
       },
     );
@@ -89,6 +109,8 @@ class _FamilyDoctorAvailabilityState
             ref
                 .watch(familyDoctorSlotsProvider(request))
                 .when(
+                  skipLoadingOnRefresh: false,
+                  skipLoadingOnReload: false,
                   loading: () => const LinearProgressIndicator(),
                   error: (_, _) => Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

@@ -69,8 +69,36 @@ function renderAsAdult(entry = '/appointments', appointments: object[] = []) {
 describe('AppointmentsPage booking form', () => {
   beforeEach(() => {
     mocks.getFamilyDoctorSlots.mockReset()
-    mocks.getFamilyDoctorSlots.mockResolvedValue({ data: { date: '2027-01-01', availabilityConfigured: false, slotMinutes: 30, slots: [] } })
+    mocks.getFamilyDoctorSlots.mockResolvedValue({ data: { date: '2027-01-01', availabilityConfigured: true, slotMinutes: 30, slots: ['2027-01-01T04:30:00Z'] } })
   })
+  it('blocks booking on availability failure and retries without a manual time input', async () => {
+    mocks.bookAppointment.mockClear()
+    mocks.getFamilyDoctorSlots.mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValue({ data: { date: '2027-01-01', availabilityConfigured: true, slotMinutes: 30, slots: ['2027-01-01T04:30:00Z'] } })
+    renderAsAdult('/appointments?date=2027-01-01')
+    const retry = await screen.findByRole('button', { name: 'Retry availability' })
+    expect(screen.queryByLabelText('Time')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Book appointment' })).toBeDisabled()
+    fireEvent.submit(screen.getByRole('button', { name: 'Book appointment' }).closest('form')!)
+    expect(mocks.bookAppointment).not.toHaveBeenCalled()
+    fireEvent.click(retry)
+    expect(await screen.findByRole('button', { name: '10:00 AM' })).toBeInTheDocument()
+  })
+
+  it('clears a rejected selection and refreshes availability with the server reason', async () => {
+    mocks.getFamilyDoctorSlots.mockResolvedValue({ data: { date: '2027-01-01', availabilityConfigured: true, slotMinutes: 30, slots: ['2027-01-01T10:00:00+05:30'] } })
+    mocks.bookAppointment.mockRejectedValueOnce({ response: { status: 409, data: { message: 'That time is no longer available. Choose another slot.' } } })
+    renderAsAdult('/appointments?date=2027-01-01')
+    fireEvent.click(await screen.findByRole('button', { name: '10:00 AM' }))
+    fireEvent.change(screen.getByLabelText('Member'), { target: { value: 'self-1' } })
+    fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Synthetic follow-up' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Book appointment' }))
+    expect(await screen.findByText('That time is no longer available. Choose another slot.')).toBeInTheDocument()
+    expect(mocks.bookAppointment).toHaveBeenLastCalledWith(expect.objectContaining({ startsAt: '2027-01-01T04:30:00.000Z' }))
+    await waitFor(() => expect(mocks.getFamilyDoctorSlots).toHaveBeenCalledTimes(2))
+    expect(screen.getByRole('button', { name: 'Book appointment' })).toBeDisabled()
+  })
+
   it('preselects an authorized deep-link slot and ignores stale slots after changing dates', async () => {
     let finishOld!: (result: { data: object }) => void
     const oldSlot = '2027-01-01T03:30:00Z'
@@ -93,7 +121,7 @@ describe('AppointmentsPage booking form', () => {
     fireEvent.change(screen.getByLabelText('Member'), { target: { value: 'self-1' } })
     fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Synthetic date change' } })
     fireEvent.submit(screen.getByRole('button', { name: 'Book appointment' }).closest('form')!)
-    await waitFor(() => expect(mocks.bookAppointment).toHaveBeenCalledWith(expect.objectContaining({ startsAt: newSlot, durationMinutes: 20 })))
+    await waitFor(() => expect(mocks.bookAppointment).toHaveBeenCalledWith(expect.objectContaining({ startsAt: new Date(newSlot).toISOString(), durationMinutes: 20 })))
   })
 
   it('preselects the deep-link time only when returned by the current date availability', async () => {
@@ -123,7 +151,7 @@ describe('AppointmentsPage booking form', () => {
     await waitFor(() => expect(screen.getByText('Book an appointment')).toBeInTheDocument())
     fireEvent.change(screen.getByLabelText('Member'), { target: { value: 'self-1' } })
     fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2027-01-01' } })
-    fireEvent.change(screen.getByLabelText('Time'), { target: { value: '10:00' } })
+    fireEvent.click(await screen.findByRole('button', { name: '10:00 AM' }))
     fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Synthetic follow-up' } })
     fireEvent.submit(screen.getByRole('button', { name: 'Book appointment' }).closest('form')!)
 
@@ -148,7 +176,7 @@ describe('AppointmentsPage booking form', () => {
     await waitFor(() => expect(screen.getByText('Book an appointment')).toBeInTheDocument())
     fireEvent.change(screen.getByLabelText('Member'), { target: { value: 'self-1' } })
     fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2027-01-01' } })
-    fireEvent.change(screen.getByLabelText('Time'), { target: { value: '10:00' } })
+    fireEvent.click(await screen.findByRole('button', { name: '10:00 AM' }))
     fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Synthetic follow-up' } })
     const file = new File(['synthetic'], 'synthetic-referral.pdf', { type: 'application/pdf' })
     await userEvent.upload(document.getElementById('appointment-attachment') as HTMLInputElement, file)
@@ -176,7 +204,7 @@ describe('AppointmentsPage booking form', () => {
     fireEvent.submit(screen.getByRole('button', { name: 'Book appointment' }).closest('form')!)
 
     await waitFor(() => expect(mocks.bookAppointment).toHaveBeenCalledWith({
-      memberId: 'self-1', startsAt: '2026-10-05T03:30:00+00:00', reason: 'Synthetic follow-up', durationMinutes: 20,
+      memberId: 'self-1', startsAt: '2026-10-05T03:30:00.000Z', reason: 'Synthetic follow-up', durationMinutes: 20,
     }))
   })
 

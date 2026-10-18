@@ -16,6 +16,7 @@ public sealed class AppointmentService(AppDbContext dbContext, ICurrentUser curr
 {
     public async Task<AppointmentDto> BookAsync(CreateAppointmentRequest request, CancellationToken cancellationToken)
     {
+        var startsAt = request.StartsAt.ToUniversalTime();
         var member = await dbContext.Members.SingleOrDefaultAsync(x => x.Id == request.MemberId, cancellationToken) ?? throw new NotFoundException();
         var isSelf = member.UserId == currentUser.UserId;
         var isMinor = member.DateOfBirth.AddYears(18) > DateOnly.FromDateTime(DateTime.UtcNow);
@@ -31,7 +32,7 @@ public sealed class AppointmentService(AppDbContext dbContext, ICurrentUser curr
             throw new Application.Common.ValidationException(new Dictionary<string, string[]> { ["reason"] = ["Reason is required and cannot exceed 200 characters."] });
         }
 
-        if (request.StartsAt <= DateTimeOffset.UtcNow)
+        if (startsAt <= DateTimeOffset.UtcNow)
         {
             throw new Application.Common.ValidationException(new Dictionary<string, string[]> { ["startsAt"] = ["Appointment time must be in the future."] });
         }
@@ -46,24 +47,24 @@ public sealed class AppointmentService(AppDbContext dbContext, ICurrentUser curr
             .FirstOrDefaultAsync(x => x.FamilyId == member.FamilyId && x.IsPrimary && x.EndedAt == null, cancellationToken)
             ?? throw new ConflictException("This family does not have a primary doctor yet.");
 
-        var endsAt = request.StartsAt.AddMinutes(duration);
+        var endsAt = startsAt.AddMinutes(duration);
         var overlapping = await dbContext.Appointments.AnyAsync(x =>
             x.DoctorId == assignment.DoctorId &&
             (x.Status == AppointmentStatus.Requested || x.Status == AppointmentStatus.Confirmed) &&
             x.StartsAt < endsAt &&
-            request.StartsAt < x.StartsAt.AddMinutes(x.DurationMinutes), cancellationToken);
+            startsAt < x.StartsAt.AddMinutes(x.DurationMinutes), cancellationToken);
         if (overlapping)
         {
             throw new ConflictException("The doctor already has an appointment overlapping this time.");
         }
-        await RequireFitsScheduleAsync(assignment.DoctorId, request.StartsAt, duration, cancellationToken);
+        await RequireFitsScheduleAsync(assignment.DoctorId, startsAt, duration, cancellationToken);
 
         var appointment = new Appointment
         {
             MemberId = member.Id,
             DoctorId = assignment.DoctorId,
             BookedByUserId = currentUser.UserId,
-            StartsAt = request.StartsAt,
+            StartsAt = startsAt,
             DurationMinutes = duration,
             Reason = request.Reason.Trim()
         };
@@ -178,26 +179,27 @@ public sealed class AppointmentService(AppDbContext dbContext, ICurrentUser curr
     /// <summary>Doctor moves a requested or confirmed appointment. The family is notified; a confirmed visit's grant follows the new time.</summary>
     public async Task<AppointmentDto> RescheduleAsync(Guid id, RescheduleAppointmentRequest request, CancellationToken cancellationToken)
     {
+        var startsAt = request.StartsAt.ToUniversalTime();
         var doctor = await RequireDoctorAsync(cancellationToken);
         var appointment = await dbContext.Appointments.SingleOrDefaultAsync(x => x.Id == id && x.DoctorId == doctor.Id, cancellationToken) ?? throw new NotFoundException();
         if (appointment.Status is not (AppointmentStatus.Requested or AppointmentStatus.Confirmed))
         {
             throw new ConflictException($"Appointment cannot be rescheduled from status {appointment.Status}.");
         }
-        if (request.StartsAt <= DateTimeOffset.UtcNow)
+        if (startsAt <= DateTimeOffset.UtcNow)
         {
             throw new Application.Common.ValidationException(new Dictionary<string, string[]> { ["startsAt"] = ["The new time must be in the future."] });
         }
-        var endsAt = request.StartsAt.AddMinutes(appointment.DurationMinutes);
+        var endsAt = startsAt.AddMinutes(appointment.DurationMinutes);
         var overlapping = await dbContext.Appointments.AnyAsync(x =>
             x.Id != appointment.Id && x.DoctorId == doctor.Id &&
             (x.Status == AppointmentStatus.Requested || x.Status == AppointmentStatus.Confirmed) &&
-            x.StartsAt < endsAt && request.StartsAt < x.StartsAt.AddMinutes(x.DurationMinutes), cancellationToken);
+            x.StartsAt < endsAt && startsAt < x.StartsAt.AddMinutes(x.DurationMinutes), cancellationToken);
         if (overlapping) throw new ConflictException("You already have an appointment overlapping this time.");
-        await RequireFitsScheduleAsync(doctor.Id, request.StartsAt, appointment.DurationMinutes, cancellationToken);
+        await RequireFitsScheduleAsync(doctor.Id, startsAt, appointment.DurationMinutes, cancellationToken);
 
         appointment.RescheduledFromStartsAt = appointment.StartsAt;
-        appointment.StartsAt = request.StartsAt;
+        appointment.StartsAt = startsAt;
         appointment.UpdatedAt = DateTimeOffset.UtcNow;
         if (!string.IsNullOrWhiteSpace(request.Note)) appointment.DoctorNote = request.Note.Trim();
         // A follow-up the doctor booked carries no visit grant: the patient never agreed to record access.
@@ -227,13 +229,14 @@ public sealed class AppointmentService(AppDbContext dbContext, ICurrentUser curr
     /// </summary>
     public async Task<AppointmentDto> BookFollowUpAsync(Guid caseId, FollowUpAppointmentRequest request, CancellationToken cancellationToken)
     {
+        var startsAt = request.StartsAt.ToUniversalTime();
         var access = await EmergencyCaseAccess.RequireAsync(dbContext, currentUser, caseId, cancellationToken);
         var reason = string.IsNullOrWhiteSpace(request.Reason) ? "Follow-up after urgent care referral" : request.Reason.Trim();
         if (reason.Length > 200)
         {
             throw new Application.Common.ValidationException(new Dictionary<string, string[]> { ["reason"] = ["Reason cannot exceed 200 characters."] });
         }
-        if (request.StartsAt <= DateTimeOffset.UtcNow)
+        if (startsAt <= DateTimeOffset.UtcNow)
         {
             throw new Application.Common.ValidationException(new Dictionary<string, string[]> { ["startsAt"] = ["Appointment time must be in the future."] });
         }
@@ -248,20 +251,20 @@ public sealed class AppointmentService(AppDbContext dbContext, ICurrentUser curr
             x.DoctorId == doctorId && x.MemberId == memberId && x.BookedByUserId == currentUser.UserId &&
             x.Status == AppointmentStatus.Confirmed && x.StartsAt > DateTimeOffset.UtcNow, cancellationToken);
         if (hasOpenFollowUp) throw new ConflictException("You already booked a follow-up for this patient.");
-        var endsAt = request.StartsAt.AddMinutes(duration);
+        var endsAt = startsAt.AddMinutes(duration);
         var overlapping = await dbContext.Appointments.AnyAsync(x =>
             x.DoctorId == doctorId &&
             (x.Status == AppointmentStatus.Requested || x.Status == AppointmentStatus.Confirmed) &&
-            x.StartsAt < endsAt && request.StartsAt < x.StartsAt.AddMinutes(x.DurationMinutes), cancellationToken);
+            x.StartsAt < endsAt && startsAt < x.StartsAt.AddMinutes(x.DurationMinutes), cancellationToken);
         if (overlapping) throw new ConflictException("You already have an appointment overlapping this time.");
-        await RequireFitsScheduleAsync(doctorId, request.StartsAt, duration, cancellationToken);
+        await RequireFitsScheduleAsync(doctorId, startsAt, duration, cancellationToken);
 
         var appointment = new Appointment
         {
             MemberId = memberId,
             DoctorId = doctorId,
             BookedByUserId = currentUser.UserId,
-            StartsAt = request.StartsAt,
+            StartsAt = startsAt,
             DurationMinutes = duration,
             Reason = reason,
             Status = AppointmentStatus.Confirmed

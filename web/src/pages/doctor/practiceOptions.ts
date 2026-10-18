@@ -153,6 +153,6 @@ const PHONE = /^(?:0|\+94)\d{9}$/
 
 /** Null when the number is empty (the field is optional) or a Sri Lankan mobile or landline number. */
 export function phoneProblem(value: string): string | null {
-  const digits = value.replace(/[\s()-]/g, '')
+  const digits = value.trim()
   return !digits || PHONE.test(digits) ? null : 'Enter a Sri Lankan phone number, e.g. 0112345678 or +94771234567.'
 }

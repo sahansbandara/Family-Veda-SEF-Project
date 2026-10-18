@@ -6,6 +6,7 @@
 //   verified doctor → active primary assignment for the member's family (eligibility only)
 //   → active visit grant or case grant for THIS member → consent per category → audit row.
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using FamilyVeda.Application.Common;
 using FamilyVeda.Application.Portal;
 using FamilyVeda.Application.Records;
@@ -34,6 +35,8 @@ public sealed class DoctorWorkspaceService(AppDbContext dbContext, ICurrentUser 
         Max("specialty", request.Specialty, 120); Max("clinic", request.Clinic, 120); Max("phoneNumber", request.PhoneNumber, 32);
         Max("district", request.District, 60); Max("city", request.City, 60); Max("languages", request.Languages, 120);
         Max("consultationModes", request.ConsultationModes, 60);
+        if (!string.IsNullOrWhiteSpace(request.PhoneNumber) && !Regex.IsMatch(request.PhoneNumber.Trim(), @"\A(?:0|\+94)[0-9]{9}\z"))
+            errors["phoneNumber"] = ["Enter a Sri Lankan phone number: 0 followed by 9 digits, or +94 followed by 9 digits."];
         if (!DoctorSchedule.AllowedSlotMinutes.Contains(request.SlotMinutes)) errors["slotMinutes"] = ["Slot length must be 15, 20, 30, 45 or 60 minutes."];
         if (errors.Count > 0) throw new ValidationException(errors);
 
@@ -118,7 +121,8 @@ public sealed class DoctorWorkspaceService(AppDbContext dbContext, ICurrentUser 
             .Select(x => new DoctorSchedule.Window(x.DayOfWeek, x.StartTime, x.EndTime)).ToListAsync(cancellationToken);
         if (windows.Count == 0) return new DoctorSlotsDto(date, false, doctor.SlotMinutes, []);
 
-        var dayStart = new DateTimeOffset(date.ToDateTime(TimeOnly.MinValue), DoctorSchedule.ClinicOffset);
+        // Preserve the clinic-local calendar day, but send UTC parameters to PostgreSQL timestamptz.
+        var dayStart = new DateTimeOffset(date.ToDateTime(TimeOnly.MinValue), DoctorSchedule.ClinicOffset).ToUniversalTime();
         var dayEnd = dayStart.AddDays(1);
         var appointments = await dbContext.Appointments.AsNoTracking()
             .Where(x => x.DoctorId == doctor.Id && (x.Status == AppointmentStatus.Requested || x.Status == AppointmentStatus.Confirmed)

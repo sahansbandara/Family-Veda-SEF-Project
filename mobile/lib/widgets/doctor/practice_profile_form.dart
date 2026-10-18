@@ -8,6 +8,7 @@ import 'package:family_veda/widgets/doctor/calendar_parts.dart';
 import 'package:family_veda/widgets/doctor/family_workspace_parts.dart';
 import 'package:family_veda/widgets/doctor/practice_selectors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class PracticeProfileForm extends StatefulWidget {
   const PracticeProfileForm({
@@ -234,7 +235,15 @@ class _PracticeProfileFormState extends State<PracticeProfileForm> {
         group('Contact & scheduling'),
         TextField(
           controller: _phone,
-          maxLength: 32,
+          maxLength: 12,
+          inputFormatters: [
+            TextInputFormatter.withFunction(
+              (oldValue, newValue) =>
+                  RegExp(r'^\+?[0-9]*$').hasMatch(newValue.text)
+                  ? newValue
+                  : oldValue,
+            ),
+          ],
           keyboardType: TextInputType.phone,
           textInputAction: TextInputAction.done,
           // Leaves room for the keyboard and the error text when the field scrolls into view.

@@ -89,6 +89,7 @@ export function AppointmentsPage() {
   const [attachmentName, setAttachmentName] = useState('')
   const [slots, setSlots] = useState<DoctorSlotsDto | null>(null)
   const [slotMessage, setSlotMessage] = useState('')
+  const [slotRetry, setSlotRetry] = useState(0)
   // One request lifecycle for deep links and manual date changes; old dates cannot replace current slots.
   useEffect(() => {
     if (!familyId || !selectedDate) return
@@ -100,9 +101,9 @@ export function AppointmentsPage() {
       if (!active) return
       setSlots(data)
       setSelectedSlot(data.slots.includes(initialSlot) ? initialSlot : '')
-    }).catch(() => { if (active) setSlotMessage('Free times could not be loaded. Choose another date or enter a time to request it.') })
+    }).catch(() => { if (active) setSlotMessage("Could not load your doctor’s available times. Retry availability or choose another date. Booking is unavailable until times are loaded.") })
     return () => { active = false }
-  }, [familyId, selectedDate, initialSlot])
+  }, [familyId, selectedDate, initialSlot, slotRetry])
 
   const load = useCallback(async () => {
     setStatus('loading')
@@ -162,17 +163,16 @@ export function AppointmentsPage() {
     const form = new FormData(formElement)
     const memberId = String(form.get('memberId') || '')
     const date = String(form.get('date') || '')
-    const time = String(form.get('time') || '')
-    const slot = slots?.availabilityConfigured ? selectedSlot : ''
+    const slot = selectedSlot
     const reason = String(form.get('reason') || '').trim()
     const attachment = (formElement.elements.namedItem('attachment') as HTMLInputElement | null)?.files?.[0]
-    if (!memberId || !date || !(time || slot) || !reason) {
+    if (!memberId || !date || !reason) {
       setMessage('Please fill in all appointment details.')
       return
     }
 
-    if (slot && (!slots?.slots.includes(slot) || slots.date !== date)) { setMessage('Available times changed. Choose the appointment date and time again.'); return }
-    const startsAt = slot || new Date(`${date}T${time}:00+05:30`).toISOString()
+    if (!slots?.availabilityConfigured || !slot || !slots.slots.includes(slot) || slots.date !== date) { setMessage('Available times changed. Choose the appointment date and time again.'); return }
+    const startsAt = new Date(slot).toISOString()
     setSubmitting(true)
     setMessage('')
     try {
@@ -180,7 +180,7 @@ export function AppointmentsPage() {
         memberId,
         startsAt,
         reason,
-        durationMinutes: slots?.availabilityConfigured ? slots.slotMinutes : 30,
+        durationMinutes: slots.slotMinutes,
       })
       // Upload only after the booking exists, and say so plainly if the file did not go through.
       let attachmentNote = ''
@@ -205,7 +205,10 @@ export function AppointmentsPage() {
       setMessage(`Appointment requested. You will be notified once the doctor confirms it.${attachmentNote}`)
       await load()
     } catch (error) {
-      setMessage(extractErrorMessage(error, 'Appointment could not be booked.'))
+      setMessage(extractErrorMessage(error, 'Appointment could not be booked. Choose an available time and try again.'))
+      setSelectedSlot('')
+      setSlots(null)
+      setSlotRetry((value) => value + 1)
     } finally {
       setSubmitting(false)
     }
@@ -332,13 +335,13 @@ export function AppointmentsPage() {
                 )}
               </div>
             ) : (
-              <label className="appt-field">
-                <span>Time</span>
-                <input name="time" type="time" required />
-                {slots && <small className="appt-muted">Your doctor has not set weekly hours yet, so request any time and they will confirm it.</small>}
-              </label>
+              <p className="appt-muted" aria-live="polite">
+                {!selectedDate ? 'Choose a date to see your doctor’s available times.' : slotMessage || (slots
+                  ? 'Your doctor has not set availability yet. Booking is unavailable until weekly hours are published.'
+                  : 'Loading your doctor’s available times…')}
+              </p>
             )}
-            {slotMessage && <p className="appt-muted">{slotMessage}</p>}
+            {slotMessage && <button type="button" className="button button--secondary" onClick={() => setSlotRetry((value) => value + 1)}>Retry availability</button>}
 
             <label className="appt-field">
               <span>Reason</span>
@@ -364,7 +367,7 @@ export function AppointmentsPage() {
               </label>
             </div>
 
-            <button className="button button--primary appt-submit" type="submit" disabled={submitting}>
+            <button className="button button--primary appt-submit" type="submit" disabled={submitting || !slots?.availabilityConfigured || slots.date !== selectedDate || !slots.slots.includes(selectedSlot)}>
               {submitting ? 'Booking…' : 'Book appointment'}
             </button>
             <p className="appt-info">A request is not confirmed until your doctor accepts it. You will be notified.</p>

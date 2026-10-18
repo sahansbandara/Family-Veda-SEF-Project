@@ -41,12 +41,12 @@ public static class DoctorSchedule
         var slots = new List<DateTimeOffset>();
         foreach (var window in windows.Where(w => w.Day == date.DayOfWeek).OrderBy(w => w.Start))
         {
-            for (var t = window.Start; t.AddMinutes(slotMinutes) <= window.End && t >= window.Start; t = t.AddMinutes(slotMinutes))
+            var windowEnd = new DateTimeOffset(date.ToDateTime(window.End), ClinicOffset);
+            for (var start = new DateTimeOffset(date.ToDateTime(window.Start), ClinicOffset);
+                 start.AddMinutes(slotMinutes) <= windowEnd; start = start.AddMinutes(slotMinutes))
             {
-                var start = new DateTimeOffset(date.ToDateTime(t), ClinicOffset);
                 var end = start.AddMinutes(slotMinutes);
                 if (start > now && !Overlaps(start, end, busy)) slots.Add(start);
-                if (t.AddMinutes(slotMinutes) < t) break; // wrapped past midnight
             }
         }
         return slots;
