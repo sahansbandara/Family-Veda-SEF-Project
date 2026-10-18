@@ -1,0 +1,74 @@
+{
+  "date": "2026-10-18",
+  "timezone": "Asia/Colombo",
+  "baseline": "e875b4ae206f44b1354f05126f5d936e570894b7",
+  "syntheticOnly": true,
+  "productionAppDeploymentChanged": false,
+  "databaseSchemaChanged": false,
+  "productionDemoDataChanged": true,
+  "preparedA": "Verified, active, undisputed; ownership not confirmed",
+  "reservedBAndC": "Not created; register during viva",
+  "syntheticNumber": "90001",
+  "liveRehearsalComplete": true,
+  "checks": [
+    {
+      "check": "pending B denied clinical workspace profile",
+      "passed": true,
+      "httpStatus": 403
+    },
+    {
+      "check": "server challenge is 72 hours within one-second timestamp tolerance",
+      "passed": true,
+      "seconds": 259199.996694
+    },
+    {
+      "check": "owner uploads fake PDF through live storage",
+      "passed": true,
+      "httpStatus": 200
+    },
+    {
+      "check": "owner denied administrator-only evidence bytes",
+      "passed": true,
+      "httpStatus": 403
+    },
+    {
+      "check": "anonymous denied evidence bytes",
+      "passed": true,
+      "httpStatus": 401
+    },
+    {
+      "check": "administrator downloads exact fake PDF",
+      "passed": true,
+      "httpStatus": 200
+    },
+    {
+      "check": "rehearsal dispute resolved",
+      "passed": true,
+      "status": "Resolved"
+    },
+    {
+      "check": "later C automatically rejected",
+      "passed": true,
+      "verificationStatus": "Rejected"
+    },
+    {
+      "check": "one additional admin view creates exactly one persisted audit entry",
+      "passed": true,
+      "before": 1,
+      "after": 2
+    },
+    {
+      "check": "uploaded fake evidence uses Google Drive storage",
+      "passed": true
+    },
+    {
+      "check": "uploaded fake PDF has owner-only Drive permissions",
+      "passed": true
+    }
+  ],
+  "limits": [
+    "No real-time deadline expiry exercised",
+    "No active-admin revocation enforcement claim",
+    "Native installation evidence recorded separately; no Android device connected"
+  ]
+}
