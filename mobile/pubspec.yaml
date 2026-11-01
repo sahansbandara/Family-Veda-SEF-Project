@@ -43,7 +43,7 @@ dependencies:
   camera: ^0.12.1
   intl: ^0.20.3
   firebase_core: ^4.13.0
-  firebase_messaging: ^16.7.0
+  firebase_messaging: ^16.7.1
   url_launcher: ^6.3.3
   path_provider: ^2.1.6
   ffi: ^2.2.0
